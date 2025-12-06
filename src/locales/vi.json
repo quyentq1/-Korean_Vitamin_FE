@@ -1,0 +1,643 @@
+{
+    "common": {
+        "login": "Đăng nhập",
+        "logout": "Đăng xuất",
+        "username": "Tên đăng nhập",
+        "password": "Mật khẩu",
+        "email": "Email",
+        "phone": "Số điện thoại",
+        "address": "Địa chỉ",
+        "save": "Lưu",
+        "cancel": "Hủy",
+        "delete": "Xóa",
+        "edit": "Sửa",
+        "create": "Tạo mới",
+        "update": "Cập nhật",
+        "submit": "Gửi",
+        "search": "Tìm kiếm",
+        "filter": "Lọc",
+        "actions": "Thao tác",
+        "status": "Trạng thái",
+        "loading": "Đang tải...",
+        "noData": "Không có dữ liệu",
+        "confirm": "Xác nhận",
+        "back": "Quay lại",
+        "next": "Tiếp theo",
+        "close": "Đóng",
+        "view": "Xem",
+        "download": "Tải xuống"
+    },
+    "nav": {
+        "dashboard": "Trang chủ",
+        "users": "Người dùng",
+        "courses": "Khóa học",
+        "registrations": "Đăng ký",
+        "ocrScanner": "Quét OCR",
+        "questionBank": "Ngân hàng câu hỏi",
+        "exams": "Đề thi",
+        "grading": "Chấm điểm",
+        "myExams": "Bài thi của tôi",
+        "results": "Kết quả",
+        "profile": "Hồ sơ"
+    },
+    "roles": {
+        "ADMIN": "Quản trị viên",
+        "STAFF": "Nhân viên",
+        "TEACHER": "Giáo viên",
+        "STUDENT": "Học viên"
+    },
+    "login": {
+        "title": "Trung Tâm Đào Tạo",
+        "subtitle": "Hệ Thống Quản Lý",
+        "loginButton": "Đăng nhập",
+        "loggingIn": "Đang đăng nhập...",
+        "enterUsername": "Nhập tên đăng nhập",
+        "enterPassword": "Nhập mật khẩu",
+        "error": "Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin."
+    },
+    "homepage": {
+        "nav": {
+            "brand": "Trung Tâm Học Tiếng Hàn",
+            "home": "Trang chủ",
+            "courses": "Khóa học",
+            "materials": "Tài liệu",
+            "practice": "Luyện đề",
+            "blog": "Blog/Tin tức",
+            "contact": "Liên hệ",
+            "login": "Đăng nhập"
+        },
+        "hero": {
+            "label": "ĐỀ THI TOPIK ONLINE - DÙNG THỬ MIỄN PHÍ",
+            "title": "Luyện TOPIK siêu dễ chỉ với một cú nhập chuột",
+            "description": "Nghiên hàng từ 60+ đề thi, chuẩn đầy đủ cấu trúc đề, chấm điểm tự động và giải thích chi tiết đáp án cho TOPIK I đến TOPIK II.",
+            "startLearning": "Bắt đầu thử ngay",
+            "signIn": "Các đề thi mới",
+            "stat1": "10,000+ lượt thi đã luyện",
+            "stat2": "Chuẩn format 2025",
+            "stat3": "5 bộ đề miễn phí"
+        },
+        "badges": {
+            "standard": "Chuẩn cấu trúc đề TOPIK",
+            "students": "50,000+ lượt luyện bài",
+            "tracking": "Báo cáo theo kỳ năng",
+            "noRegister": "Không cần đăng ký",
+            "updates": "Cập nhật liên tục"
+        },
+        "intro": {
+            "title": "Tại Sao Chọn Nền Tảng Của Chúng Tôi?",
+            "description": "Chúng tôi cung cấp tài liệu ôn thi TOPIK toàn diện với tài liệu chính gốc, hướng dẫn chuyên gia và phương pháp học tập đã được chứng minh để giúp bạn đạt được mục tiêu tiếng Hàn."
+        },
+        "stats": {
+            "students": {
+                "number": "10,000+",
+                "label": "Học Viên Tích Cực"
+            },
+            "passRate": {
+                "number": "95%",
+                "label": "Tỉ Lệ Đỗ"
+            },
+            "exams": {
+                "number": "500+",
+                "label": "Đề Thi Thử"
+            }
+        },
+        "courses": {
+            "title": "Khóa Học Theo Cấp Độ",
+            "subtitle": "Chọn cấp độ phù hợp cho hành trình học tiếng Hàn của bạn",
+            "beginner": {
+                "title": "Sơ Cấp (TOPIK I)",
+                "description": "Hoàn hảo cho những người mới bắt đầu học tiếng Hàn",
+                "feature1": "Ngữ pháp và từ vựng cơ bản",
+                "feature2": "Đọc và viết Hangul",
+                "feature3": "Luyện hội thoại đơn giản"
+            },
+            "intermediate": {
+                "title": "Trung Cấp (TOPIK II)",
+                "description": "Xây dựng trên nền tảng và mở rộng kỹ năng của bạn",
+                "feature1": "Cấu trúc ngữ pháp nâng cao",
+                "feature2": "Mở rộng từ vựng (3000+ từ)",
+                "feature3": "Luyện đọc hiểu"
+            },
+            "advanced": {
+                "title": "Cao Cấp (TOPIK II)",
+                "description": "Thành thạo tiếng Hàn cho mục đích chuyên nghiệp và học thuật",
+                "feature1": "Ngữ pháp và cách diễn đạt phức tạp",
+                "feature2": "Tiếng Hàn học thuật và kinh doanh",
+                "feature3": "Viết luận và nói"
+            }
+        },
+        "features": {
+            "title": "Tính Năng Nền Tảng",
+            "subtitle": "Mọi thứ bạn cần để thành công trong việc học tiếng Hàn",
+            "autoGrading": {
+                "title": "Luyện Đề Trực Tuyến Có Chấm Điểm Tự Động",
+                "description": "Làm bài thi thử trực tuyến với chấm điểm tự động ngay lập tức và phản hồi chi tiết"
+            },
+            "progress": {
+                "title": "Thống Kê Tiến Độ Học Tập",
+                "description": "Theo dõi tiến độ học tập của bạn với thống kê chi tiết và phân tích hiệu suất"
+            },
+            "materials": {
+                "title": "Tài Liệu PDF & Bài Tập Tương Tác",
+                "description": "Truy cập tài liệu học tập toàn diện dạng PDF và bài tập thực hành tương tác"
+            },
+            "community": {
+                "title": "Diễn Đàn Cộng Đồng Học Viên",
+                "description": "Kết nối với các học viên khác, chia sẻ mẹo và nhận hỗ trợ từ cộng đồng tích cực của chúng tôi"
+            },
+            "topik": {
+                "title": "Luyện Đề TOPIK I & II",
+                "description": "Đề thi thử toàn diện cho cả TOPIK I và TOPIK II với định dạng câu hỏi chính gốc"
+            },
+            "flashcards": {
+                "title": "Flashcard Từ Vựng & Ngữ Pháp",
+                "description": "Thành thạo từ vựng và ngữ pháp thiết yếu với hệ thống flashcard tương tác của chúng tôi"
+            }
+        },
+        "testimonials": {
+            "title": "Cảm Nhận Học Viên",
+            "subtitle": "Nghe từ các học viên đã đạt được mục tiêu TOPIK của họ",
+            "student1": {
+                "text": "Nhờ nền tảng này, tôi đã đỗ TOPIK II cấp độ 5! Các đề thi thử cực kỳ hữu ích và rất giống với kỳ thi thật.",
+                "name": "Nguyễn Minh Anh",
+                "result": "TOPIK II Cấp 5"
+            },
+            "student2": {
+                "text": "Flashcard từ vựng và giải thích ngữ pháp làm cho việc học dễ dàng hơn rất nhiều. Tôi đã cải thiện từ cấp 3 lên cấp 6 chỉ trong 6 tháng!",
+                "name": "Trần Thanh Hà",
+                "result": "TOPIK II Cấp 6"
+            },
+            "student3": {
+                "text": "Là người mới bắt đầu, tôi lo lắng về TOPIK I, nhưng các khóa học có cấu trúc và tài liệu luyện tập đã cho tôi sự tự tin. Tôi đã đỗ ngay lần đầu!",
+                "name": "Lê Hoàng Nam",
+                "result": "TOPIK I Cấp 2"
+            }
+        },
+        "blog": {
+            "title": "Tin Tức & Blog",
+            "subtitle": "Cập nhật tin tức TOPIK mới nhất và mẹo học tập",
+            "readMore": "Đọc Thêm",
+            "post1": {
+                "title": "Lịch Thi TOPIK 2025",
+                "description": "Xem ngày thi TOPIK mới nhất và hạn chót đăng ký cho năm 2025"
+            },
+            "post2": {
+                "title": "10 Mẹo Học Từ Vựng Hàng Đầu",
+                "description": "Chiến lược hiệu quả để ghi nhớ từ vựng tiếng Hàn nhanh hơn và giữ lâu hơn"
+            },
+            "post3": {
+                "title": "Văn Hóa Hàn Quốc: Tìm Hiểu Hanbok",
+                "description": "Khám phá vẻ đẹp và ý nghĩa của trang phục truyền thống Hàn Quốc và phong tục"
+            }
+        },
+        "cta": {
+            "title": "Sẵn Sàng Bắt Đầu Hành Trình Học Tiếng Hàn?",
+            "description": "Tham gia cùng hàng nghìn học viên thành công và đạt được mục tiêu TOPIK của bạn với nền tảng toàn diện của chúng tôi.",
+            "button": "Bắt Đầu Ngay Hôm Nay"
+        },
+        "footer": {
+            "about": {
+                "title": "Về Chúng Tôi",
+                "description": "Chúng tôi tận tâm giúp học viên đạt được mục tiêu tiếng Hàn thông qua tài liệu ôn thi TOPIK toàn diện và hướng dẫn chuyên gia."
+            },
+            "contact": {
+                "title": "Thông Tin Liên Hệ",
+                "email": "lienhe@hoctienhan.com",
+                "phone": "+84 123 456 789",
+                "address": "123 Đường Học Tập, Quận 1, Thành phố Hồ Chí Minh"
+            },
+            "social": {
+                "title": "Theo Dõi Chúng Tôi"
+            },
+            "links": {
+                "title": "Liên Kết Nhanh",
+                "privacy": "Chính Sách Bảo Mật",
+                "terms": "Điều Khoản Sử Dụng",
+                "faq": "Câu Hỏi Thường Gặp"
+            },
+            "copyright": "© 2025 Trung Tâm Học Tiếng Hàn. Bảo lưu mọi quyền."
+        },
+        "dashboard": {
+            "totalUsers": "Tổng số người dùng",
+            "activeCourses": "Khóa học đang mở",
+            "pendingRegistrations": "Đăng ký chờ duyệt",
+            "userManagement": "Quản lý người dùng",
+            "userManagementDesc": "Quản lý người dùng, vai trò và quyền hạn",
+            "courseManagement": "Quản lý khóa học",
+            "courseManagementDesc": "Tạo và quản lý các khóa học",
+            "reports": "Báo cáo",
+            "reportsDesc": "Xem thống kê và báo cáo hệ thống",
+            "settings": "Cài đặt",
+            "settingsDesc": "Cấu hình hệ thống",
+            "access": "Truy cập"
+        },
+        "users": {
+            "title": "Quản Lý Người Dùng",
+            "subtitle": "Quản lý người dùng và vai trò trong hệ thống",
+            "createUser": "Tạo Người Dùng",
+            "editUser": "Sửa Người Dùng",
+            "createNew": "Tạo Người Dùng Mới",
+            "fullName": "Họ và tên",
+            "role": "Vai trò",
+            "active": "Đang hoạt động",
+            "inactive": "Ngưng hoạt động",
+            "resetPassword": "Đặt lại mật khẩu",
+            "confirmDelete": "Bạn có chắc muốn xóa người dùng này?",
+            "userCreated": "Tạo người dùng thành công!",
+            "userUpdated": "Cập nhật người dùng thành công!",
+            "userDeleted": "Xóa người dùng thành công!"
+        },
+        "vitamin": {
+            "brand": "Vitamin Korean Center",
+            "brandFull": "Trung tâm Hàn Ngữ Vitamin",
+            "nav": {
+                "home": "Trang chủ",
+                "about": "Giới thiệu",
+                "courses": "Khóa học",
+                "teachers": "Giảng viên",
+                "achievements": "Thành tích",
+                "contact": "Liên hệ",
+                "login": "Đăng nhập"
+            },
+            "hero": {
+                "badge": "🏆 Uy tín - Chất lượng - Hiệu quả",
+                "badge2": "🌟 Trung tâm Hàn Ngữ #1 Hà Nội",
+                "title1": "Trung tâm Hàn Ngữ",
+                "title2": "Chinh phục TOPIK cùng",
+                "titleHighlight": "Vitamin",
+                "description1": "Đơn vị hàng đầu trong lĩnh vực đào tạo tiếng Hàn và luyện thi TOPIK tại Việt Nam. Với đội ngũ giảng viên giàu kinh nghiệm và phương pháp giảng dạy hiện đại, chúng tôi cam kết mang đến trải nghiệm học tập tốt nhất.",
+                "description2": "Học tiếng Hàn hiệu quả, đạt chứng chỉ TOPIK nhanh chóng với phương pháp độc quyền và đội ngũ giảng viên tâm huyết",
+                "btnCourses": "Xem khóa học",
+                "btnCourses2": "Khám phá khóa học →",
+                "btnConsult": "Tư vấn miễn phí",
+                "btnConsult2": "Tư vấn ngay",
+                "stat1Label": "Năm kinh nghiệm",
+                "stat2Label": "Học viên",
+                "stat2Label2": "Học viên đạt TOPIK",
+                "stat3Label": "Tỷ lệ đỗ",
+                "stat3Label2": "Tỷ lệ đỗ TOPIK"
+            },
+            "about": {
+                "title": "Về chúng tôi",
+                "title2": "Tại sao chọn Vitamin?",
+                "subtitle": "Trung tâm Hàn Ngữ Vitamin - Đối tác tin cậy trên hành trình chinh phục tiếng Hàn",
+                "subtitle2": "6 lý do khiến hàng ngàn học viên tin tưởng lựa chọn",
+                "mission": "Sứ mệnh",
+                "missionDesc": "Cung cấp chương trình đào tạo tiếng Hàn chất lượng cao, giúp học viên đạt được mục tiêu học tập và phát triển sự nghiệp",
+                "vision": "Tầm nhìn",
+                "visionDesc": "Trở thành trung tâm đào tạo tiếng Hàn hàng đầu Việt Nam, được công nhận bởi chất lượng giảng dạy và tỷ lệ đỗ TOPIK cao",
+                "values": "Giá trị cốt lõi",
+                "valuesDesc": "Chất lượng - Uy tín - Tận tâm - Sáng tạo trong phương pháp giảng dạy, đặt học viên làm trung tâm",
+                "feature1Title": "Giảng viên chất lượng",
+                "feature1Title2": "Giảng viên xuất sắc",
+                "feature1Desc": "100% giảng viên người Hàn và Việt có trình độ cao, kinh nghiệm giảng dạy TOPIK từ 5-10 năm",
+                "feature1Desc2": "100% giảng viên người Hàn và Việt Nam có trình độ cao, kinh nghiệm 5-10 năm giảng dạy TOPIK",
+                "feature2Title": "Giáo trình chuẩn",
+                "feature2Title2": "Giáo trình độc quyền",
+                "feature2Desc": "Giáo trình biên soạn riêng theo chuẩn TOPIK, kết hợp sách Hàn Quốc và tài liệu độc quyền",
+                "feature2Desc2": "Tài liệu được biên soạn riêng theo chuẩn TOPIK, kết hợp sách Hàn Quốc và bài tập thực tế",
+                "feature3Title": "Lớp học nhỏ",
+                "feature3Desc": "Tối đa 15 học viên/lớp, đảm bảo chất lượng và sự quan tâm đến từng học viên",
+                "feature3Desc2": "Tối đa 12-15 học viên/lớp, đảm bảo giảng viên quan tâm đến từng học viên",
+                "feature4Title": "Online & Offline",
+                "feature4Title2": "Linh hoạt thời gian",
+                "feature4Desc": "Linh hoạt lựa chọn hình thức học phù hợp: Trực tiếp tại trung tâm hoặc online qua Zoom",
+                "feature4Desc2": "Học trực tiếp hoặc online, lịch học linh hoạt phù hợp với sinh viên và người đi làm",
+                "feature5Title": "Theo dõi tiến độ",
+                "feature5Desc": "Hệ thống đánh giá định kỳ, báo cáo tiến độ chi tiết, tư vấn lộ trình cá nhân hóa",
+                "feature5Desc2": "Hệ thống đánh giá định kỳ, báo cáo chi tiết cho phụ huynh và học viên",
+                "feature6Title": "Cam kết đầu ra",
+                "feature6Desc": "Cam kết đạt chứng chỉ TOPIK hoặc học lại miễn phí. Tỷ lệ đỗ TOPIK đạt 98%",
+                "feature6Desc2": "Cam kết đạt chứng chỉ TOPIK hoặc học lại miễn phí. Tỷ lệ đạt chứng chỉ lên đến 98%"
+            },
+            "courses": {
+                "title": "Khóa học của chúng tôi",
+                "title2": "Các khóa học TOPIK",
+                "subtitle": "Chương trình học được thiết kế theo lộ trình từ cơ bản đến nâng cao",
+                "subtitle2": "Lộ trình học bài bản từ cơ bản đến nâng cao",
+                "topik1Title": "Luyện thi TOPIK I",
+                "topik1Level": "Level 1-2",
+                "topik1Price": "3.500.000đ",
+                "topik1Duration": "/3 tháng",
+                "topik1Feature1": "📖 Học phí bao gồm giáo trình",
+                "topik1Feature2": "⏰ 48 buổi học (3 buổi/tuần)",
+                "topik1Feature3": "👥 Lớp 10-15 học viên",
+                "topik1Feature4": "📝 Ngữ pháp & từ vựng cơ bản",
+                "topik1Feature5": "👂 Luyện nghe & đọc hiểu",
+                "topik1Feature6": "✍️ Bài tập thực hành hàng tuần",
+                "topik1Feature7": "📊 3 bài kiểm tra giữa khóa",
+                "topik1Feature8": "🎯 1 bài thi thử TOPIK I",
+                "topik2IntTitle": "Luyện thi TOPIK II",
+                "topik2IntLevel": "Level 3-4",
+                "topik2IntPrice": "4.800.000đ",
+                "topik2IntDuration": "/4 tháng",
+                "topik2IntFeature1": "📖 Học phí bao gồm giáo trình",
+                "topik2IntFeature2": "⏰ 64 buổi học (4 buổi/tuần)",
+                "topik2IntFeature3": "👥 Lớp 10-12 học viên",
+                "topik2IntFeature4": "📝 Ngữ pháp & từ vựng nâng cao",
+                "topik2IntFeature5": "👂 Luyện nghe nâng cao",
+                "topik2IntFeature6": "📄 Luyện đọc hiểu chuyên sâu",
+                "topik2IntFeature7": "✍️ Luyện viết đoạn văn & bài luận",
+                "topik2IntFeature8": "📊 4 bài kiểm tra giữa khóa",
+                "topik2IntFeature9": "🎯 2 bài thi thử TOPIK II",
+                "topik2AdvTitle": "Luyện thi TOPIK II",
+                "topik2AdvLevel": "Level 5-6",
+                "topik2AdvPrice": "6.000.000đ",
+                "topik2AdvDuration": "/5 tháng",
+                "topik2AdvFeature1": "📖 Học phí bao gồm giáo trình",
+                "topik2AdvFeature2": "⏰ 80 buổi học (4 buổi/tuần)",
+                "topik2AdvFeature3": "👥 Lớp 8-10 học viên",
+                "topik2AdvFeature4": "📝 Ngữ pháp học thuật",
+                "topik2AdvFeature5": "👂 Nghe hiểu native speed",
+                "topik2AdvFeature6": "📄 Đọc hiểu văn bản phức tạp",
+                "topik2AdvFeature7": "✍️ Viết bài luận học thuật",
+                "topik2AdvFeature8": "🗣️ Thảo luận chuyên sâu",
+                "topik2AdvFeature9": "📊 5 bài kiểm tra giữa khóa",
+                "topik2AdvFeature10": "🎯 3 bài thi thử TOPIK II",
+                "popularBadge": "⭐ Phổ biến nhất",
+                "registerBtn": "Đăng ký ngay"
+            },
+            "teachers": {
+                "title": "Đội ngũ giảng viên",
+                "subtitle": "Giảng viên giàu kinh nghiệm, tận tâm và chuyên nghiệp",
+                "teacher1Name": "Cô Park Min Ji",
+                "teacher1Title": "Giảng viên người Hàn",
+                "teacher1Degree": "🎓 Thạc sĩ Ngôn ngữ Hàn Quốc",
+                "teacher1Degree2": "🎓 Thạc sĩ Ngôn ngữ HQ",
+                "teacher1Exp": "⭐ 10 năm kinh nghiệm",
+                "teacher1Achievement": "🏆 500+ học viên đạt TOPIK",
+                "teacher2Name": "Thầy Nguyễn Văn A",
+                "teacher2Title": "Giảng viên Việt Nam",
+                "teacher2Degree": "🎓 TOPIK Level 6 - 290/300",
+                "teacher2Degree2": "🎓 TOPIK Level 6",
+                "teacher2Exp": "⭐ 8 năm kinh nghiệm",
+                "teacher2Achievement": "🏆 Du học Hàn Quốc 4 năm",
+                "teacher3Name": "Cô Kim Soo Yeon",
+                "teacher3Title": "Giảng viên người Hàn",
+                "teacher3Degree": "🎓 Cử nhân Sư phạm Hàn Quốc",
+                "teacher3Degree2": "🎓 Cử nhân Sư phạm HQ",
+                "teacher3Exp": "⭐ 7 năm kinh nghiệm",
+                "teacher3Achievement": "🏆 Chuyên TOPIK II Level 5-6",
+                "teacher4Name": "Thầy Trần Minh B",
+                "teacher4Title": "Giảng viên Việt Nam",
+                "teacher4Degree": "🎓 TOPIK Level 6 - 285/300",
+                "teacher4Degree2": "🎓 TOPIK Level 6",
+                "teacher4Exp": "⭐ 6 năm kinh nghiệm",
+                "teacher4Achievement": "🏆 Làm việc tại Samsung 3 năm"
+            },
+            "achievements": {
+                "title": "Thành tích & Chứng nhận",
+                "subtitle": "Được công nhận và tin tưởng bởi các tổ chức uy tín",
+                "achievement1Title": "Top 10",
+                "achievement1Desc": "Trung tâm Hàn Ngữ xuất sắc Việt Nam 2023",
+                "achievement2Title": "98%",
+                "achievement2Desc": "Tỷ lệ học viên đạt TOPIK mục tiêu",
+                "achievement3Title": "5,000+",
+                "achievement3Desc": "Học viên đã hoàn thành khóa học",
+                "achievement4Title": "Đối tác",
+                "achievement4Desc": "Hợp tác với Trường ĐH Hàn Quốc"
+            },
+            "testimonials": {
+                "title": "Học viên nói gì về chúng tôi",
+                "subtitle": "Những chia sẻ chân thực từ học viên",
+                "student1Text": "Mình đã thử nhiều trung tâm nhưng chỉ có Vitamin mới giúp mình đạt TOPIK II Level 5. Thầy cô rất tận tâm, giáo trình dễ hiểu và bài tập thực hành nhiều.",
+                "student1Name": "Nguyễn Thị Lan",
+                "student1Result": "TOPIK II Level 5 - 220/300",
+                "student2Text": "Lớp học nhỏ nên thầy quan tâm đến từng em. Mình yếu kỹ năng viết nhưng được thầy hướng dẫn kỹ càng nên cải thiện rất nhiều. Đã đạt Level 4 sau 4 tháng học!",
+                "student2Name": "Trần Văn Nam",
+                "student2Result": "TOPIK II Level 4 - 185/300",
+                "student3Text": "Chương trình học rất bài bản và khoa học. Giáo trình của Vitamin kết hợp tốt giữa lý thuyết và thực hành. Cảm ơn cô Park đã tận tâm hướng dẫn!",
+                "student3Name": "Lê Thị Mai",
+                "student3Result": "TOPIK II Level 6 - 265/300"
+            },
+            "contact": {
+                "title": "Liên hệ với chúng tôi",
+                "subtitle": "Đăng ký tư vấn miễn phí hoặc tham quan trung tâm",
+                "addressLabel": "Địa chỉ",
+                "address": "Số 123 Đường Láng, Đống Đa, Hà Nội",
+                "hotlineLabel": "Hotline",
+                "hotline": "0123 456 789",
+                "hotlineDesc": "0123 456 789 (Tư vấn miễn phí)",
+                "emailLabel": "Email",
+                "email": "contact@vitaminkoreancenter.vn",
+                "hoursLabel": "Giờ làm việc",
+                "hours": "Thứ 2 - Chủ nhật: 8:00 - 20:00",
+                "hours2": "Thứ 2 - CN: 8:00 - 20:00",
+                "formTitle": "Đăng ký tư vấn",
+                "formTitle2": "Đăng ký tư vấn miễn phí",
+                "formName": "Họ và tên *",
+                "formPhone": "Số điện thoại *",
+                "formEmail": "Email",
+                "formCourse": "Khóa học quan tâm",
+                "formCourse2": "Chọn khóa học",
+                "formNote": "Ghi chú (nếu có)",
+                "formNote2": "Ghi chú",
+                "formSubmit": "Gửi đăng ký",
+                "formSubmit2": "Gửi đăng ký →"
+            },
+            "footer": {
+                "description": "Trung tâm Hàn Ngữ Vitamin - Đối tác tin cậy trên hành trình chinh phục tiếng Hàn của bạn",
+                "description2": "Trung tâm Hàn Ngữ uy tín hàng đầu Việt Nam",
+                "coursesTitle": "Khóa học",
+                "linksTitle": "Liên kết",
+                "socialTitle": "Mạng xã hội",
+                "socialTitle2": "Theo dõi chúng tôi",
+                "copyright": "© 2024 Trung tâm Hàn Ngữ Vitamin. All rights reserved."
+            }
+        }
+    },
+    "student": {
+        "dashboard": {
+            "title": "Trang Học Viên",
+            "welcome": "Chào mừng",
+            "availableExams": "Bài thi khả dụng",
+            "completedExams": "Bài thi đã hoàn thành",
+            "averageScore": "Điểm trung bình",
+            "myExams": "Bài Thi Của Tôi",
+            "myExamsDesc": "Xem và làm các bài thi",
+            "myResults": "Kết Quả Của Tôi",
+            "myResultsDesc": "Xem kết quả các bài thi",
+            "myCourses": "Khóa Học Của Tôi",
+            "myCoursesDesc": "Xem các khóa học đã đăng ký",
+            "profile": "Hồ Sơ",
+            "profileDesc": "Cập nhật thông tin cá nhân",
+            "open": "Mở"
+        },
+        "exams": {
+            "title": "Bài Thi Khả Dụng",
+            "subtitle": "Làm bài thi trực tuyến tại đây",
+            "noExams": "Không Có Bài Thi",
+            "noExamsDesc": "Hiện tại không có bài thi nào. Vui lòng quay lại sau!",
+            "duration": "Thời gian",
+            "totalPoints": "Tổng điểm",
+            "minutes": "phút",
+            "points": "điểm",
+            "course": "Khóa học",
+            "available": "Khả dụng",
+            "upcoming": "Sắp tới",
+            "closed": "Đã đóng",
+            "startExam": "Bắt đầu thi",
+            "confirmStart": "Bắt đầu bài thi này?"
+        },
+        "takeExam": {
+            "timeRemaining": "Thời gian còn lại",
+            "question": "Câu hỏi",
+            "progress": "Tiến độ",
+            "answered": "Đã trả lời",
+            "total": "Tổng số",
+            "submitExam": "Nộp bài",
+            "submitting": "Đang nộp...",
+            "confirmSubmit": "Bạn có chắc muốn nộp bài thi này? Bạn không thể thay đổi câu trả lời sau khi nộp.",
+            "typeAnswer": "Nhập câu trả lời tại đây...",
+            "writeEssay": "Viết bài luận tại đây...",
+            "recordAnswer": "Thu âm câu trả lời của bạn",
+            "startRecording": "Bắt đầu thu âm",
+            "examSubmitted": "Nộp bài thành công!"
+        }
+    },
+    "teacher": {
+        "dashboard": {
+            "title": "Trang Giáo Viên",
+            "subtitle": "Quản lý câu hỏi, đề thi và chấm điểm",
+            "questionBank": "Ngân Hàng Câu Hỏi",
+            "examBuilder": "Tạo Đề Thi",
+            "grading": "Chấm Điểm"
+        },
+        "questions": {
+            "title": "Ngân Hàng Câu Hỏi",
+            "subtitle": "Quản lý câu hỏi và danh mục",
+            "createQuestion": "Tạo Câu Hỏi",
+            "editQuestion": "Sửa Câu Hỏi",
+            "createNew": "Tạo Câu Hỏi Mới",
+            "allCategories": "Tất cả danh mục",
+            "questionTypes": {
+                "MULTIPLE_CHOICE": "Trắc nghiệm",
+                "SHORT_ANSWER": "Trả lời ngắn",
+                "ESSAY": "Tự luận",
+                "LISTENING": "Nghe",
+                "SPEAKING": "Nói"
+            },
+            "difficulty": {
+                "EASY": "Dễ",
+                "MEDIUM": "Trung bình",
+                "HARD": "Khó"
+            },
+            "category": "Danh mục",
+            "questionType": "Loại câu hỏi",
+            "questionText": "Nội dung câu hỏi",
+            "correctAnswer": "Đáp án đúng",
+            "points": "Điểm",
+            "mediaUrl": "URL media (tùy chọn)",
+            "options": "Lựa chọn",
+            "option": "Lựa chọn",
+            "confirmDelete": "Bạn có chắc muốn xóa câu hỏi này?",
+            "questionCreated": "Tạo câu hỏi thành công!",
+            "questionUpdated": "Cập nhật câu hỏi thành công!",
+            "questionDeleted": "Xóa câu hỏi thành công!",
+            "selectCategory": "Chọn danh mục",
+            "enterQuestion": "Nhập nội dung câu hỏi..."
+        },
+        "exams": {
+            "title": "Tạo Đề Thi",
+            "subtitle": "Tạo và quản lý đề thi",
+            "generateExam": "Tạo Đề Thi",
+            "myExams": "Đề Thi Của Tôi",
+            "examTitle": "Tên đề thi",
+            "description": "Mô tả",
+            "duration": "Thời gian (phút)",
+            "published": "Đã xuất bản",
+            "draft": "Bản nháp",
+            "publish": "Xuất bản",
+            "unpublish": "Hủy xuất bản",
+            "criteria": "Tiêu Chí Chọn Câu Hỏi",
+            "criteriaNote": "Chọn số lượng câu hỏi từ mỗi danh mục. Hệ thống sẽ chọn ngẫu nhiên.",
+            "totalQuestions": "Tổng số câu",
+            "generateNew": "Tạo Đề Mới",
+            "confirmGenerate": "Tạo đề thi với tiêu chí này?",
+            "examGenerated": "Tạo đề thi thành công!",
+            "examPublished": "Xuất bản đề thi thành công!",
+            "examUnpublished": "Hủy xuất bản thành công!"
+        },
+        "grading": {
+            "title": "Giao Diện Chấm Điểm",
+            "subtitle": "Xem xét và chấm điểm bài làm của học viên",
+            "pendingGrading": "Chờ chấm điểm",
+            "allCaughtUp": "Đã hoàn thành! Không còn bài chờ chấm.",
+            "studentAnswer": "Bài làm của học viên",
+            "score": "Điểm",
+            "feedback": "Nhận xét",
+            "submitGrade": "Gửi điểm",
+            "maxPoints": "Tối đa",
+            "provideScore": "Nhập điểm",
+            "provideFeedback": "Nhập nhận xét chi tiết để giúp học viên cải thiện...",
+            "selectItem": "Chọn một mục bên trái để bắt đầu chấm điểm",
+            "gradeSubmitted": "Gửi điểm thành công!",
+            "noAnswer": "Không có câu trả lời văn bản",
+            "viewFile": "Xem file đã tải lên"
+        }
+    },
+    "staff": {
+        "dashboard": {
+            "title": "Trang Nhân Viên",
+            "subtitle": "Quản lý đăng ký và xử lý form",
+            "registrationManagement": "Quản Lý Đăng Ký",
+            "ocrScanner": "Quét OCR"
+        },
+        "registrations": {
+            "title": "Quản Lý Đăng Ký",
+            "subtitle": "Quản lý đăng ký khóa học của học viên",
+            "newRegistration": "Đăng Ký Mới",
+            "createRegistration": "Tạo Đăng Ký",
+            "studentName": "Tên học viên",
+            "registrationDate": "Ngày đăng ký",
+            "notes": "Ghi chú",
+            "approve": "Duyệt",
+            "reject": "Từ chối",
+            "createAccount": "Tạo Tài Khoản",
+            "allStatus": "Tất cả trạng thái",
+            "pending": "Chờ duyệt",
+            "approved": "Đã duyệt",
+            "rejected": "Đã từ chối",
+            "completed": "Hoàn thành",
+            "registrations": "đăng ký",
+            "confirmApprove": "Duyệt đăng ký này?",
+            "confirmReject": "Nhập lý do từ chối:",
+            "registrationCreated": "Tạo đăng ký thành công!",
+            "registrationApproved": "Duyệt đăng ký thành công!",
+            "registrationRejected": "Từ chối đăng ký thành công!",
+            "accountCreated": "Tạo tài khoản học viên thành công!",
+            "accountNote": "Tên đăng nhập và mật khẩu sẽ được tự động tạo và gửi qua email."
+        },
+        "ocr": {
+            "title": "Quét OCR",
+            "subtitle": "Quét và số hóa form đăng ký",
+            "uploadForm": "Tải Lên Form Đăng Ký",
+            "support": "Hỗ trợ: JPG, PNG, BMP",
+            "chooseFile": "Chọn File",
+            "processOcr": "Xử Lý OCR",
+            "processing": "Đang xử lý...",
+            "reset": "Làm lại",
+            "extractedInfo": "Thông Tin Trích Xuất",
+            "exportWord": "Xuất Word",
+            "rawText": "Văn Bản OCR Gốc",
+            "nextSteps": "Các Bước Tiếp Theo:",
+            "step1": "Xem lại thông tin trích xuất ở trên",
+            "step2": "Sửa lỗi thủ công nếu cần",
+            "step3": "Tạo đăng ký trong Quản Lý Đăng Ký",
+            "step4": "Hoặc xuất Word để lưu trữ",
+            "uploadProcess": "Tải lên và xử lý ảnh để xem kết quả",
+            "notDetected": "Không phát hiện",
+            "ocrCompleted": "Xử lý OCR hoàn tất!",
+            "exportSuccess": "Xuất Word thành công!",
+            "courseCode": "Mã khóa học"
+        }
+    },
+    "errors": {
+        "unauthorized": "Không Có Quyền",
+        "unauthorizedDesc": "Bạn không có quyền truy cập trang này.",
+        "notFound": "404 - Không Tìm Thấy",
+        "notFoundDesc": "Trang bạn tìm kiếm không tồn tại.",
+        "error": "Lỗi",
+        "tryAgain": "Vui lòng thử lại"
+    }
+}

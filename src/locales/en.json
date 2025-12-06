@@ -1,0 +1,643 @@
+{
+    "common": {
+        "login": "Login",
+        "logout": "Logout",
+        "username": "Username",
+        "password": "Password",
+        "email": "Email",
+        "phone": "Phone",
+        "address": "Address",
+        "save": "Save",
+        "cancel": "Cancel",
+        "delete": "Delete",
+        "edit": "Edit",
+        "create": "Create",
+        "update": "Update",
+        "submit": "Submit",
+        "search": "Search",
+        "filter": "Filter",
+        "actions": "Actions",
+        "status": "Status",
+        "loading": "Loading...",
+        "noData": "No data available",
+        "confirm": "Confirm",
+        "back": "Back",
+        "next": "Next",
+        "close": "Close",
+        "view": "View",
+        "download": "Download"
+    },
+    "nav": {
+        "dashboard": "Dashboard",
+        "users": "Users",
+        "courses": "Courses",
+        "registrations": "Registrations",
+        "ocrScanner": "OCR Scanner",
+        "questionBank": "Question Bank",
+        "exams": "Exams",
+        "grading": "Grading",
+        "myExams": "My Exams",
+        "results": "Results",
+        "profile": "Profile"
+    },
+    "roles": {
+        "ADMIN": "Admin",
+        "STAFF": "Staff",
+        "TEACHER": "Teacher",
+        "STUDENT": "Student"
+    },
+    "login": {
+        "title": "Training Center",
+        "subtitle": "Management System",
+        "loginButton": "Login",
+        "loggingIn": "Logging in...",
+        "enterUsername": "Enter your username",
+        "enterPassword": "Enter your password",
+        "error": "Login failed. Please check your credentials."
+    },
+    "homepage": {
+        "nav": {
+            "brand": "Korean Learning Center",
+            "home": "Home",
+            "courses": "Courses",
+            "materials": "Materials",
+            "practice": "Practice Tests",
+            "blog": "Blog",
+            "contact": "Contact",
+            "login": "Login"
+        },
+        "hero": {
+            "label": "TOPIK ONLINE EXAM - FREE TRIAL",
+            "title": "Practice TOPIK super easily with just one click",
+            "description": "Over 60+ practice tests, full exam structure, instant grading and detailed answer explanations for TOPIK I and TOPIK II.",
+            "startLearning": "Start Now",
+            "signIn": "All Practice Tests",
+            "stat1": "10,000+ practice sessions",
+            "stat2": "Standard format 2025",
+            "stat3": "5 free practice tests"
+        },
+        "badges": {
+            "standard": "Standard TOPIK structure",
+            "students": "50,000+ practice sessions",
+            "tracking": "Track performance",
+            "noRegister": "No registration required",
+            "updates": "Continuously updated"
+        },
+        "intro": {
+            "title": "Why Choose Our Platform?",
+            "description": "We provide comprehensive TOPIK exam preparation with authentic materials, expert guidance, and proven study methods to help you achieve your Korean language goals."
+        },
+        "stats": {
+            "students": {
+                "number": "10,000+",
+                "label": "Active Students"
+            },
+            "passRate": {
+                "number": "95%",
+                "label": "Pass Rate"
+            },
+            "exams": {
+                "number": "500+",
+                "label": "Practice Tests"
+            }
+        },
+        "courses": {
+            "title": "Courses by Level",
+            "subtitle": "Choose the right level for your Korean learning journey",
+            "beginner": {
+                "title": "Beginner Level (TOPIK I)",
+                "description": "Perfect for those starting their Korean language journey",
+                "feature1": "Basic grammar and vocabulary",
+                "feature2": "Hangul reading and writing",
+                "feature3": "Simple conversation practice"
+            },
+            "intermediate": {
+                "title": "Intermediate Level (TOPIK II)",
+                "description": "Build on your foundation and expand your skills",
+                "feature1": "Advanced grammar structures",
+                "feature2": "Expanded vocabulary (3000+ words)",
+                "feature3": "Reading comprehension practice"
+            },
+            "advanced": {
+                "title": "Advanced Level (TOPIK II)",
+                "description": "Master Korean for professional and academic use",
+                "feature1": "Complex grammar and expressions",
+                "feature2": "Academic and business Korean",
+                "feature3": "Essay writing and speaking"
+            }
+        },
+        "features": {
+            "title": "Platform Features",
+            "subtitle": "Everything you need to succeed in Korean language learning",
+            "autoGrading": {
+                "title": "Auto-Graded Practice Tests",
+                "description": "Take online practice tests with instant automatic grading and detailed feedback"
+            },
+            "progress": {
+                "title": "Progress Tracking",
+                "description": "Monitor your learning progress with detailed statistics and performance analytics"
+            },
+            "materials": {
+                "title": "PDF Materials & Interactive Exercises",
+                "description": "Access comprehensive study materials in PDF format and interactive practice exercises"
+            },
+            "community": {
+                "title": "Student Community Forum",
+                "description": "Connect with fellow learners, share tips, and get support from our active community"
+            },
+            "topik": {
+                "title": "TOPIK I & II Practice",
+                "description": "Comprehensive practice tests for both TOPIK I and TOPIK II with authentic question formats"
+            },
+            "flashcards": {
+                "title": "Vocabulary Flashcards & Grammar",
+                "description": "Master essential vocabulary and grammar with our interactive flashcard system"
+            }
+        },
+        "testimonials": {
+            "title": "Student Success Stories",
+            "subtitle": "Hear from students who achieved their TOPIK goals",
+            "student1": {
+                "text": "Thanks to this platform, I passed TOPIK II with level 5! The practice tests were incredibly helpful and very similar to the real exam.",
+                "name": "Nguyen Minh Anh",
+                "result": "TOPIK II Level 5"
+            },
+            "student2": {
+                "text": "The vocabulary flashcards and grammar explanations made learning so much easier. I improved from level 3 to level 6 in just 6 months!",
+                "name": "Tran Thanh Ha",
+                "result": "TOPIK II Level 6"
+            },
+            "student3": {
+                "text": "As a beginner, I was worried about TOPIK I, but the structured courses and practice materials gave me confidence. I passed on my first try!",
+                "name": "Le Hoang Nam",
+                "result": "TOPIK I Level 2"
+            }
+        },
+        "blog": {
+            "title": "News & Blog",
+            "subtitle": "Stay updated with the latest TOPIK news and learning tips",
+            "readMore": "Read More",
+            "post1": {
+                "title": "TOPIK 2025 Exam Schedule",
+                "description": "Check out the latest TOPIK exam dates and registration deadlines for 2025"
+            },
+            "post2": {
+                "title": "Top 10 Vocabulary Learning Tips",
+                "description": "Effective strategies to memorize Korean vocabulary faster and retain it longer"
+            },
+            "post3": {
+                "title": "Korean Culture: Understanding Hanbok",
+                "description": "Explore the beauty and significance of traditional Korean clothing and customs"
+            }
+        },
+        "cta": {
+            "title": "Ready to Start Your Korean Learning Journey?",
+            "description": "Join thousands of successful students and achieve your TOPIK goals with our comprehensive platform.",
+            "button": "Get Started Today"
+        },
+        "footer": {
+            "about": {
+                "title": "About Us",
+                "description": "We are dedicated to helping students achieve their Korean language goals through comprehensive TOPIK preparation materials and expert guidance."
+            },
+            "contact": {
+                "title": "Contact Information",
+                "email": "contact@koreanlearning.com",
+                "phone": "+84 123 456 789",
+                "address": "123 Learning Street, District 1, Ho Chi Minh City"
+            },
+            "social": {
+                "title": "Follow Us"
+            },
+            "links": {
+                "title": "Quick Links",
+                "privacy": "Privacy Policy",
+                "terms": "Terms of Service",
+                "faq": "FAQ"
+            },
+            "copyright": "© 2025 Korean Learning Center. All rights reserved."
+        },
+        "dashboard": {
+            "totalUsers": "Total Users",
+            "activeCourses": "Active Courses",
+            "pendingRegistrations": "Pending Registrations",
+            "userManagement": "User Management",
+            "userManagementDesc": "Manage users, roles, and permissions",
+            "courseManagement": "Course Management",
+            "courseManagementDesc": "Create and manage courses",
+            "reports": "Reports",
+            "reportsDesc": "View system statistics and reports",
+            "settings": "Settings",
+            "settingsDesc": "Configure system settings",
+            "access": "Access"
+        },
+        "users": {
+            "title": "User Management",
+            "subtitle": "Manage users and roles in the system",
+            "createUser": "Create User",
+            "editUser": "Edit User",
+            "createNew": "Create New User",
+            "fullName": "Full Name",
+            "role": "Role",
+            "active": "Active",
+            "inactive": "Inactive",
+            "resetPassword": "Reset Password",
+            "confirmDelete": "Are you sure you want to delete this user?",
+            "userCreated": "User created successfully!",
+            "userUpdated": "User updated successfully!",
+            "userDeleted": "User deleted successfully!"
+        },
+        "vitamin": {
+            "brand": "Vitamin Korean Center",
+            "brandFull": "Vitamin Korean Language Center",
+            "nav": {
+                "home": "Home",
+                "about": "About",
+                "courses": "Courses",
+                "teachers": "Teachers",
+                "achievements": "Achievements",
+                "contact": "Contact",
+                "login": "Login"
+            },
+            "hero": {
+                "badge": "🏆 Trust - Quality - Efficiency",
+                "badge2": "🌟 #1 Korean Center in Hanoi",
+                "title1": "Vitamin Korean",
+                "title2": "Conquer TOPIK with",
+                "titleHighlight": "Vitamin",
+                "description1": "Leading institution in Korean language education and TOPIK preparation in Vietnam. With highly experienced instructors and modern teaching methods, we are committed to providing the best learning experience.",
+                "description2": "Learn Korean effectively, achieve TOPIK certification quickly with our unique methodology and dedicated instructors",
+                "btnCourses": "View Courses",
+                "btnCourses2": "Explore Courses →",
+                "btnConsult": "Free Consultation",
+                "btnConsult2": "Consult Now",
+                "stat1Label": "Years Experience",
+                "stat2Label": "Students",
+                "stat2Label2": "TOPIK Achievers",
+                "stat3Label": "Pass Rate",
+                "stat3Label2": "TOPIK Pass Rate"
+            },
+            "about": {
+                "title": "About Us",
+                "title2": "Why Choose Vitamin?",
+                "subtitle": "Vitamin Korean Center - Your trusted partner on the journey to Korean language mastery",
+                "subtitle2": "6 reasons why thousands of students trust us",
+                "mission": "Mission",
+                "missionDesc": "Provide high-quality Korean language training programs to help students achieve their learning goals and career development",
+                "vision": "Vision",
+                "visionDesc": "Become Vietnam's leading Korean language training center, recognized for teaching quality and high TOPIK pass rates",
+                "values": "Core Values",
+                "valuesDesc": "Quality - Trust - Dedication - Innovation in teaching methods, putting students at the center",
+                "feature1Title": "Quality Instructors",
+                "feature1Title2": "Excellent Teachers",
+                "feature1Desc": "100% Korean and Vietnamese instructors with high qualifications, 5-10 years of TOPIK teaching experience",
+                "feature1Desc2": "100% Korean and Vietnamese teachers with advanced degrees, 5-10 years TOPIK teaching experience",
+                "feature2Title": "Standard Curriculum",
+                "feature2Title2": "Exclusive Curriculum",
+                "feature2Desc": "Curriculum developed according to TOPIK standards, combining Korean textbooks and exclusive materials",
+                "feature2Desc2": "Materials developed specifically for TOPIK, combining Korean textbooks and practical exercises",
+                "feature3Title": "Small Class Size",
+                "feature3Desc": "Maximum 15 students per class, ensuring quality and attention to each student",
+                "feature3Desc2": "Maximum 12-15 students/class, ensuring instructor attention to each student",
+                "feature4Title": "Online & Offline",
+                "feature4Title2": "Flexible Schedule",
+                "feature4Desc": "Flexible learning format: In-person at the center or online via Zoom",
+                "feature4Desc2": "Study in-person or online, flexible schedule suitable for students and working professionals",
+                "feature5Title": "Progress Tracking",
+                "feature5Desc": "Regular assessment system, detailed progress reports, personalized roadmap consulting",
+                "feature5Desc2": "Regular assessment system, detailed reports for parents and students",
+                "feature6Title": "Output Commitment",
+                "feature6Desc": "Guaranteed TOPIK certification or free retake. TOPIK pass rate of 98%",
+                "feature6Desc2": "Guaranteed TOPIK certification or free retake. Pass rate up to 98%"
+            },
+            "courses": {
+                "title": "Our Courses",
+                "title2": "TOPIK Courses",
+                "subtitle": "Programs designed from beginner to advanced level",
+                "subtitle2": "Systematic curriculum from basic to advanced",
+                "topik1Title": "TOPIK I Prep",
+                "topik1Level": "Level 1-2",
+                "topik1Price": "3,500,000đ",
+                "topik1Duration": "/3 months",
+                "topik1Feature1": "📖 Tuition includes textbook",
+                "topik1Feature2": "⏰ 48 sessions (3 times/week)",
+                "topik1Feature3": "👥 Class of 10-15 students",
+                "topik1Feature4": "📝 Basic grammar & vocabulary",
+                "topik1Feature5": "👂 Listening & reading practice",
+                "topik1Feature6": "✍️ Weekly practice exercises",
+                "topik1Feature7": "📊 3 mid-term tests",
+                "topik1Feature8": "🎯 1 TOPIK I mock exam",
+                "topik2IntTitle": "TOPIK II Prep",
+                "topik2IntLevel": "Level 3-4",
+                "topik2IntPrice": "4,800,000đ",
+                "topik2IntDuration": "/4 months",
+                "topik2IntFeature1": "📖 Tuition includes textbook",
+                "topik2IntFeature2": "⏰ 64 sessions (4 times/week)",
+                "topik2IntFeature3": "👥 Class of 10-12 students",
+                "topik2IntFeature4": "📝 Advanced grammar & vocabulary",
+                "topik2IntFeature5": "👂 Advanced listening",
+                "topik2IntFeature6": "📄 In-depth reading comprehension",
+                "topik2IntFeature7": "✍️ Paragraph & essay writing",
+                "topik2IntFeature8": "📊 4 mid-term tests",
+                "topik2IntFeature9": "🎯 2 TOPIK II mock exams",
+                "topik2AdvTitle": "TOPIK II Prep",
+                "topik2AdvLevel": "Level 5-6",
+                "topik2AdvPrice": "6,000,000đ",
+                "topik2AdvDuration": "/5 months",
+                "topik2AdvFeature1": "📖 Tuition includes textbook",
+                "topik2AdvFeature2": "⏰ 80 sessions (4 times/week)",
+                "topik2AdvFeature3": "👥 Class of 8-10 students",
+                "topik2AdvFeature4": "📝 Academic grammar",
+                "topik2AdvFeature5": "👂 Native speed listening",
+                "topik2AdvFeature6": "📄 Complex text comprehension",
+                "topik2AdvFeature7": "✍️ Academic essay writing",
+                "topik2AdvFeature8": "🗣️ In-depth discussions",
+                "topik2AdvFeature9": "📊 5 mid-term tests",
+                "topik2AdvFeature10": "🎯 3 TOPIK II mock exams",
+                "popularBadge": "⭐ Most Popular",
+                "registerBtn": "Register Now"
+            },
+            "teachers": {
+                "title": "Our Teachers",
+                "subtitle": "Experienced, dedicated, and professional instructors",
+                "teacher1Name": "Ms. Park Min Ji",
+                "teacher1Title": "Korean Instructor",
+                "teacher1Degree": "🎓 MA in Korean Language",
+                "teacher1Degree2": "🎓 MA Korean Language",
+                "teacher1Exp": "⭐ 10 years experience",
+                "teacher1Achievement": "🏆 500+ students passed TOPIK",
+                "teacher2Name": "Mr. Nguyen Van A",
+                "teacher2Title": "Vietnamese Instructor",
+                "teacher2Degree": "🎓 TOPIK Level 6 - 290/300",
+                "teacher2Degree2": "🎓 TOPIK Level 6",
+                "teacher2Exp": "⭐ 8 years experience",
+                "teacher2Achievement": "🏆 Studied in Korea 4 years",
+                "teacher3Name": "Ms. Kim Soo Yeon",
+                "teacher3Title": "Korean Instructor",
+                "teacher3Degree": "🎓 BA Korean Education",
+                "teacher3Degree2": "🎓 BA Education",
+                "teacher3Exp": "⭐ 7 years experience",
+                "teacher3Achievement": "🏆 Specialist TOPIK II Level 5-6",
+                "teacher4Name": "Mr. Tran Minh B",
+                "teacher4Title": "Vietnamese Instructor",
+                "teacher4Degree": "🎓 TOPIK Level 6 - 285/300",
+                "teacher4Degree2": "🎓 TOPIK Level 6",
+                "teacher4Exp": "⭐ 6 years experience",
+                "teacher4Achievement": "🏆 Worked at Samsung 3 years"
+            },
+            "achievements": {
+                "title": "Achievements & Certifications",
+                "subtitle": "Recognized and trusted by reputable organizations",
+                "achievement1Title": "Top 10",
+                "achievement1Desc": "Outstanding Korean Center Vietnam 2023",
+                "achievement2Title": "98%",
+                "achievement2Desc": "Students achieving TOPIK goals",
+                "achievement3Title": "5,000+",
+                "achievement3Desc": "Students completed courses",
+                "achievement4Title": "Partner",
+                "achievement4Desc": "Partnership with Korean University"
+            },
+            "testimonials": {
+                "title": "What Our Students Say",
+                "subtitle": "Genuine feedback from students",
+                "student1Text": "I tried many centers but only Vitamin helped me achieve TOPIK II Level 5. Teachers are very dedicated, materials are easy to understand with lots of practice exercises.",
+                "student1Name": "Nguyen Thi Lan",
+                "student1Result": "TOPIK II Level 5 - 220/300",
+                "student2Text": "Small class sizes mean teachers care about each student. I was weak in writing but with detailed guidance I improved significantly. Achieved Level 4 after 4 months!",
+                "student2Name": "Tran Van Nam",
+                "student2Result": "TOPIK II Level 4 - 185/300",
+                "student3Text": "The program is very systematic and scientific. Vitamin's curriculum combines theory and practice well. Thank you Ms. Park for your dedicated guidance!",
+                "student3Name": "Le Thi Mai",
+                "student3Result": "TOPIK II Level 6 - 265/300"
+            },
+            "contact": {
+                "title": "Contact Us",
+                "subtitle": "Free consultation or visit our center",
+                "addressLabel": "Address",
+                "address": "123 Duong Lang Street, Dong Da, Hanoi",
+                "hotlineLabel": "Hotline",
+                "hotline": "0123 456 789",
+                "hotlineDesc": "0123 456 789 (Free consultation)",
+                "emailLabel": "Email",
+                "email": "contact@vitaminkoreancenter.vn",
+                "hoursLabel": "Hours",
+                "hours": "Mon - Sun: 8:00 AM - 8:00 PM",
+                "hours2": "Mon - Sun: 8:00 - 20:00",
+                "formTitle": "Register for Consultation",
+                "formTitle2": "Free Consultation Registration",
+                "formName": "Full Name *",
+                "formPhone": "Phone Number *",
+                "formEmail": "Email",
+                "formCourse": "Course of Interest",
+                "formCourse2": "Select Course",
+                "formNote": "Note (optional)",
+                "formNote2": "Note",
+                "formSubmit": "Submit Registration",
+                "formSubmit2": "Submit Registration →"
+            },
+            "footer": {
+                "description": "Vitamin Korean Center - Your trusted partner on the journey to Korean language mastery",
+                "description2": "Leading Korean Language Center in Vietnam",
+                "coursesTitle": "Courses",
+                "linksTitle": "Links",
+                "socialTitle": "Social Media",
+                "socialTitle2": "Follow Us",
+                "copyright": "© 2024 Vitamin Korean Center. All rights reserved."
+            }
+        }
+    },
+    "student": {
+        "dashboard": {
+            "title": "Student Dashboard",
+            "welcome": "Welcome",
+            "availableExams": "Available Exams",
+            "completedExams": "Completed Exams",
+            "averageScore": "Average Score",
+            "myExams": "My Exams",
+            "myExamsDesc": "View and take available exams",
+            "myResults": "My Results",
+            "myResultsDesc": "View your exam results",
+            "myCourses": "My Courses",
+            "myCoursesDesc": "View enrolled courses",
+            "profile": "Profile",
+            "profileDesc": "Update your profile",
+            "open": "Open"
+        },
+        "exams": {
+            "title": "Available Exams",
+            "subtitle": "Take your online examinations here",
+            "noExams": "No Exams Available",
+            "noExamsDesc": "There are currently no published exams. Check back later!",
+            "duration": "Duration",
+            "totalPoints": "Total Points",
+            "minutes": "minutes",
+            "points": "points",
+            "course": "Course",
+            "available": "Available",
+            "upcoming": "Upcoming",
+            "closed": "Closed",
+            "startExam": "Start Exam",
+            "confirmStart": "Start this exam?"
+        },
+        "takeExam": {
+            "timeRemaining": "Time Remaining",
+            "question": "Question",
+            "progress": "Progress",
+            "answered": "Answered",
+            "total": "Total",
+            "submitExam": "Submit Exam",
+            "submitting": "Submitting...",
+            "confirmSubmit": "Are you sure you want to submit this exam? You cannot change your answers after submission.",
+            "typeAnswer": "Type your answer here...",
+            "writeEssay": "Write your essay here...",
+            "recordAnswer": "Record your answer using the recording feature",
+            "startRecording": "Start Recording",
+            "examSubmitted": "Exam submitted successfully!"
+        }
+    },
+    "teacher": {
+        "dashboard": {
+            "title": "Teacher Dashboard",
+            "subtitle": "Manage questions, exams, and grading",
+            "questionBank": "Question Bank",
+            "examBuilder": "Exam Builder",
+            "grading": "Grading"
+        },
+        "questions": {
+            "title": "Question Bank",
+            "subtitle": "Manage your exam questions and categories",
+            "createQuestion": "Create Question",
+            "editQuestion": "Edit Question",
+            "createNew": "Create New Question",
+            "allCategories": "All Categories",
+            "questionTypes": {
+                "MULTIPLE_CHOICE": "Multiple Choice",
+                "SHORT_ANSWER": "Short Answer",
+                "ESSAY": "Essay",
+                "LISTENING": "Listening",
+                "SPEAKING": "Speaking"
+            },
+            "difficulty": {
+                "EASY": "Easy",
+                "MEDIUM": "Medium",
+                "HARD": "Hard"
+            },
+            "category": "Category",
+            "questionType": "Question Type",
+            "questionText": "Question Text",
+            "correctAnswer": "Correct Answer",
+            "points": "Points",
+            "mediaUrl": "Media URL (optional)",
+            "options": "Options",
+            "option": "Option",
+            "confirmDelete": "Are you sure you want to delete this question?",
+            "questionCreated": "Question created successfully!",
+            "questionUpdated": "Question updated successfully!",
+            "questionDeleted": "Question deleted successfully!",
+            "selectCategory": "Select category",
+            "enterQuestion": "Enter your question here..."
+        },
+        "exams": {
+            "title": "Exam Builder",
+            "subtitle": "Create and manage exams",
+            "generateExam": "Generate Exam",
+            "myExams": "My Exams",
+            "examTitle": "Exam Title",
+            "description": "Description",
+            "duration": "Duration (minutes)",
+            "published": "Published",
+            "draft": "Draft",
+            "publish": "Publish",
+            "unpublish": "Unpublish",
+            "criteria": "Question Selection Criteria",
+            "criteriaNote": "Select how many questions from each category. System will randomly pick questions.",
+            "totalQuestions": "Total Questions",
+            "generateNew": "Generate New Exam",
+            "confirmGenerate": "Generate exam with these criteria?",
+            "examGenerated": "Exam generated successfully!",
+            "examPublished": "Exam published successfully!",
+            "examUnpublished": "Exam unpublished successfully!"
+        },
+        "grading": {
+            "title": "Grading Interface",
+            "subtitle": "Review and grade student submissions",
+            "pendingGrading": "Pending Grading",
+            "allCaughtUp": "All caught up! No pending grading.",
+            "studentAnswer": "Student Answer",
+            "score": "Score",
+            "feedback": "Feedback",
+            "submitGrade": "Submit Grade",
+            "maxPoints": "Max",
+            "provideScore": "Enter score",
+            "provideFeedback": "Provide detailed feedback to help the student improve...",
+            "selectItem": "Select an item from the left to start grading",
+            "gradeSubmitted": "Grade submitted successfully!",
+            "noAnswer": "No text answer provided",
+            "viewFile": "View uploaded file"
+        }
+    },
+    "staff": {
+        "dashboard": {
+            "title": "Staff Dashboard",
+            "subtitle": "Manage registrations and process forms",
+            "registrationManagement": "Registration Management",
+            "ocrScanner": "OCR Scanner"
+        },
+        "registrations": {
+            "title": "Registration Management",
+            "subtitle": "Manage student course registrations",
+            "newRegistration": "New Registration",
+            "createRegistration": "Create Registration",
+            "studentName": "Student Name",
+            "registrationDate": "Registration Date",
+            "notes": "Notes",
+            "approve": "Approve",
+            "reject": "Reject",
+            "createAccount": "Create Account",
+            "allStatus": "All Status",
+            "pending": "Pending",
+            "approved": "Approved",
+            "rejected": "Rejected",
+            "completed": "Completed",
+            "registrations": "registrations",
+            "confirmApprove": "Approve this registration?",
+            "confirmReject": "Enter rejection reason:",
+            "registrationCreated": "Registration created successfully!",
+            "registrationApproved": "Registration approved!",
+            "registrationRejected": "Registration rejected!",
+            "accountCreated": "Student account created!",
+            "accountNote": "Username and password will be auto-generated and sent to the student's email."
+        },
+        "ocr": {
+            "title": "OCR Scanner",
+            "subtitle": "Scan and digitize registration forms",
+            "uploadForm": "Upload Registration Form",
+            "support": "Support: JPG, PNG, BMP",
+            "chooseFile": "Choose File",
+            "processOcr": "Process OCR",
+            "processing": "Processing...",
+            "reset": "Reset",
+            "extractedInfo": "Extracted Information",
+            "exportWord": "Export to Word",
+            "rawText": "Raw OCR Text",
+            "nextSteps": "Next Steps:",
+            "step1": "Review extracted information above",
+            "step2": "Manually correct any errors if needed",
+            "step3": "Create registration in Registration Management",
+            "step4": "Or export to Word for record keeping",
+            "uploadProcess": "Upload and process an image to see results here",
+            "notDetected": "Not detected",
+            "ocrCompleted": "OCR processing completed!",
+            "exportSuccess": "Exported to Word successfully!",
+            "courseCode": "Course Code"
+        }
+    },
+    "errors": {
+        "unauthorized": "Unauthorized",
+        "unauthorizedDesc": "You don't have permission to access this page.",
+        "notFound": "404 - Not Found",
+        "notFoundDesc": "The page you're looking for doesn't exist.",
+        "error": "Error",
+        "tryAgain": "Please try again"
+    }
+}
