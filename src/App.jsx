@@ -1,8 +1,8 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Login';
-import Homepage from './pages/Homepage/Homepage.jsx';
-import Homepage2 from './pages/Homepage/Homepage2.jsx';
-import Homepage3 from './pages/Homepage/Homepage3.jsx';
+import Homepage from './pages/HomePage/Homepage.jsx';
+import Homepage2 from './pages/HomePage/Homepage2.jsx';
+import Homepage3 from './pages/HomePage/Homepage3.jsx';
 import './App.css';
 
 function App() {
