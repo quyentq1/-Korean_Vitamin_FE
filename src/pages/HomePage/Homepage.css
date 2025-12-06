@@ -1,0 +1,936 @@
+/* ===== CSS VARIABLES ===== */
+:root {
+    /* Korean-inspired color palette */
+    --primary-red: #C41E3A;
+    --primary-blue: #003478;
+    --accent-gold: #FFD700;
+    --bg-primary: #FFFFFF;
+    --bg-secondary: #F8F9FA;
+    --bg-light: #FFF5F5;
+    --text-primary: #1A1A1A;
+    --text-secondary: #6B7280;
+    --gradient-korea: linear-gradient(135deg, #C41E3A 0%, #003478 100%);
+    --gradient-hero: linear-gradient(135deg, #FFF5F5 0%, #F0F4FF 100%);
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06);
+    --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.08);
+    --shadow-lg: 0 10px 20px rgba(0, 0, 0, 0.12);
+    --shadow-xl: 0 20px 30px rgba(0, 0, 0, 0.15);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+}
+
+.homepage-container {
+    min-height: 100vh;
+    background: var(--bg-secondary);
+}
+
+.homepage-background {
+    display: none;
+}
+
+/* ===== NAVBAR ===== */
+.navbar {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    background: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(12px);
+    box-shadow: var(--shadow-sm);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.nav-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
+}
+
+.nav-logo {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-weight: 700;
+    color: var(--primary-red);
+}
+
+.logo-icon {
+    font-size: 2rem;
+}
+
+.logo-text {
+    font-size: 1.25rem;
+}
+
+.nav-menu {
+    display: flex;
+    list-style: none;
+    gap: 2rem;
+}
+
+.nav-menu li a {
+    text-decoration: none;
+    color: var(--text-primary);
+    font-weight: 500;
+    font-size: 0.95rem;
+    transition: color 0.3s ease;
+}
+
+.nav-menu li a:hover {
+    color: var(--primary-red);
+}
+
+.btn-login {
+    background: var(--gradient-korea);
+    color: white;
+    padding: 0.65rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-login:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.lang-toggle {
+    position: fixed;
+    top: 1.5rem;
+    right: 1.5rem;
+    z-index: 1100;
+    background: white;
+    border: 2px solid var(--primary-red);
+    padding: 0.6rem 1.2rem;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    color: var(--primary-red);
+    box-shadow: var(--shadow-md);
+    transition: all 0.3s ease;
+}
+
+.lang-toggle:hover {
+    background: var(--primary-red);
+    color: white;
+}
+
+.homepage-content {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* ===== HERO SECTION ===== */
+.hero-section {
+    padding: 4rem 2rem;
+    background: var(--gradient-hero);
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-section::before {
+    content: '';
+    position: absolute;
+    right: -50px;
+    top: -50px;
+    width: 300px;
+    height: 300px;
+    background: url('/images/korean-flag-pattern.png') no-repeat center;
+    background-size: contain;
+    opacity: 0.05;
+    pointer-events: none;
+}
+
+.hero-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.hero-label {
+    display: inline-block;
+    background: white;
+    color: var(--primary-red);
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    box-shadow: var(--shadow-sm);
+}
+
+.hero-title {
+    font-size: 3rem;
+    font-weight: 800;
+    line-height: 1.2;
+    color: var(--text-primary);
+    margin-bottom: 1.5rem;
+}
+
+.hero-title::after {
+    content: '🇰🇷';
+    margin-left: 0.5rem;
+}
+
+.hero-description {
+    font-size: 1.1rem;
+    line-height: 1.8;
+    color: var(--text-secondary);
+    margin-bottom: 2rem;
+}
+
+.cta-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.btn {
+    padding: 1rem 2rem;
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-primary {
+    background: var(--gradient-korea);
+    color: white;
+}
+
+.btn-primary:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
+}
+
+.btn-secondary {
+    background: white;
+    color: var(--primary-red);
+    border: 2px solid var(--primary-red);
+}
+
+.btn-secondary:hover {
+    background: var(--primary-red);
+    color: white;
+}
+
+.btn-large {
+    padding: 1.2rem 2.5rem;
+    font-size: 1.05rem;
+}
+
+.hero-stats {
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+}
+
+.hero-stat-item {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.stat-icon {
+    font-size: 1.3rem;
+}
+
+.hero-image {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+.hero-image img {
+    width: 100%;
+    max-width: 500px;
+    height: auto;
+    border-radius: 20px;
+    box-shadow: var(--shadow-xl);
+    transition: transform 0.3s ease;
+}
+
+.hero-image img:hover {
+    transform: scale(1.02);
+}
+
+/* Decorative elements for Korean theme */
+.hero-image::before {
+    content: '한';
+    position: absolute;
+    top: -20px;
+    left: -20px;
+    font-size: 5rem;
+    color: var(--primary-blue);
+    opacity: 0.1;
+    font-weight: 900;
+}
+
+.hero-image::after {
+    content: '국';
+    position: absolute;
+    bottom: -20px;
+    right: -20px;
+    font-size: 5rem;
+    color: var(--primary-red);
+    opacity: 0.1;
+    font-weight: 900;
+}
+
+/* ===== FEATURE BADGES ===== */
+.feature-badges {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    padding: 2.5rem 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.badge-item {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    background: white;
+    padding: 1rem 1.5rem;
+    border-radius: 50px;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.badge-item:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--primary-red);
+}
+
+.badge-icon {
+    font-size: 1.5rem;
+}
+
+.badge-text {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+/* ===== COURSES SECTION ===== */
+.courses-section {
+    padding: 5rem 2rem;
+    background: white;
+    position: relative;
+}
+
+.courses-section::before {
+    content: '';
+    position: absolute;
+    right: 5%;
+    top: 15%;
+    width: 250px;
+    height: 250px;
+    background: url('/images/topik-books-study.png') no-repeat center;
+    background-size: contain;
+    opacity: 0.08;
+    pointer-events: none;
+    filter: grayscale(20%);
+}
+
+.courses-section h2 {
+    text-align: center;
+    font-size: 2.5rem;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+    font-weight: 800;
+}
+
+.courses-section h2::before {
+    content: '📚 ';
+}
+
+.section-subtitle {
+    text-align: center;
+    font-size: 1.15rem;
+    color: var(--text-secondary);
+    margin-bottom: 3rem;
+}
+
+.courses-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.course-card {
+    padding: 2.5rem;
+    border-radius: 20px;
+    box-shadow: var(--shadow-md);
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    border: 2px solid transparent;
+}
+
+.course-card:hover {
+    transform: translateY(-8px);
+    box-shadow: var(--shadow-xl);
+    border-color: var(--primary-red);
+}
+
+.course-card:nth-child(1) {
+    background: linear-gradient(135deg, #FFE5E5 0%, #FFF0F0 100%);
+}
+
+.course-card:nth-child(2) {
+    background: linear-gradient(135deg, #E5F0FF 0%, #F0F7FF 100%);
+}
+
+.course-card:nth-child(3) {
+    background: linear-gradient(135deg, #FFF5E5 0%, #FFFAF0 100%);
+}
+
+.course-icon {
+    font-size: 3rem;
+    margin-bottom: 1.5rem;
+}
+
+.course-card h3 {
+    font-size: 1.4rem;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+    font-weight: 700;
+    min-height: 2.8rem;
+}
+
+.course-card p {
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+    font-size: 0.95rem;
+    min-height: 3rem;
+}
+
+.course-features {
+    list-style: none;
+    flex-grow: 1;
+}
+
+.course-features li {
+    padding: 0.5rem 0;
+    color: var(--text-secondary);
+    position: relative;
+    padding-left: 1.8rem;
+    font-size: 0.9rem;
+}
+
+.course-features li::before {
+    content: '✓';
+    /* position: absolute; */
+    left: 0;
+    color: var(--primary-red);
+    font-weight: 800;
+    font-size: 1.1rem;
+}
+
+/* ===== FEATURES SECTION ===== */
+.features-section {
+    padding: 5rem 2rem;
+    background: var(--bg-secondary);
+    position: relative;
+}
+
+.features-section::after {
+    content: '';
+    position: absolute;
+    left: 5%;
+    bottom: 15%;
+    width: 220px;
+    height: 220px;
+    background: url('/images/korean-classroom.png') no-repeat center;
+    background-size: contain;
+    opacity: 0.08;
+    pointer-events: none;
+    filter: grayscale(20%);
+}
+
+.features-section h2 {
+    text-align: center;
+    font-size: 2.5rem;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+    font-weight: 800;
+}
+
+.features-section h2::before {
+    content: '⭐ ';
+}
+
+.features-subtitle {
+    text-align: center;
+    font-size: 1.15rem;
+    color: var(--text-secondary);
+    margin-bottom: 3rem;
+}
+
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.feature-card {
+    background: white;
+    padding: 2.5rem;
+    border-radius: 16px;
+    text-align: center;
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow-sm);
+    border: 2px solid transparent;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--primary-blue);
+}
+
+.feature-icon {
+    font-size: 3rem;
+    margin-bottom: 1.5rem;
+}
+
+.feature-card h3 {
+    font-size: 1.25rem;
+    color: var(--text-primary);
+    margin-bottom: 0.8rem;
+    font-weight: 700;
+}
+
+.feature-card p {
+    color: var(--text-secondary);
+    line-height: 1.6;
+    font-size: 0.95rem;
+}
+
+/* ===== TESTIMONIALS ===== */
+.testimonials-section {
+    padding: 5rem 2rem;
+    background: white;
+}
+
+.testimonials-section h2 {
+    text-align: center;
+    font-size: 2.5rem;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+    font-weight: 800;
+}
+
+.testimonials-section h2::before {
+    content: '💬 ';
+}
+
+.testimonials-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-top: 3rem;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.testimonial-card {
+    background: var(--bg-light);
+    padding: 2.5rem;
+    border-radius: 16px;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.3s ease;
+    border-left: 4px solid var(--primary-red);
+}
+
+.testimonial-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+}
+
+.testimonial-avatar {
+    font-size: 3.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.testimonial-text {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    line-height: 1.7;
+    font-style: italic;
+    margin-bottom: 1.5rem;
+}
+
+.testimonial-author {
+    font-weight: 700;
+    color: var(--text-primary);
+    font-size: 1.05rem;
+    margin-bottom: 0.4rem;
+}
+
+.testimonial-result {
+    color: var(--primary-red);
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+/* ===== BLOG SECTION ===== */
+.blog-section {
+    padding: 5rem 2rem;
+    background: var(--bg-secondary);
+}
+
+.blog-section h2 {
+    text-align: center;
+    font-size: 2.5rem;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+    font-weight: 800;
+}
+
+.blog-section h2::before {
+    content: '📖 ';
+}
+
+.blog-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-top: 3rem;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.blog-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.3s ease;
+    overflow: hidden;
+    border: 2px solid transparent;
+}
+
+.blog-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--accent-gold);
+}
+
+.blog-icon {
+    font-size: 3.5rem;
+    padding: 2rem 2rem 1.5rem;
+    background: var(--bg-light);
+}
+
+.blog-card h3 {
+    font-size: 1.2rem;
+    color: var(--text-primary);
+    padding: 1.5rem 2rem 1rem;
+    font-weight: 700;
+}
+
+.blog-card p {
+    color: var(--text-secondary);
+    line-height: 1.6;
+    padding: 0 2rem 1.5rem;
+    font-size: 0.95rem;
+}
+
+.blog-link {
+    color: var(--primary-blue);
+    font-weight: 600;
+    text-decoration: none;
+    padding: 0 2rem 2rem;
+    display: block;
+    font-size: 0.95rem;
+    transition: color 0.3s ease;
+}
+
+.blog-link:hover {
+    color: var(--primary-red);
+}
+
+/* ===== CTA SECTION ===== */
+.cta-section {
+    padding: 5rem 3rem;
+    text-align: center;
+    background: var(--gradient-korea);
+    color: white;
+    margin: 4rem 2rem;
+    border-radius: 24px;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+    position: relative;
+    overflow: hidden;
+}
+
+.cta-section::before {
+    content: '';
+    position: absolute;
+    right: 8%;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 180px;
+    height: 180px;
+    background: url('/images/topik-certificate.png') no-repeat center;
+    background-size: contain;
+    opacity: 0.2;
+    pointer-events: none;
+}
+
+.cta-section::after {
+    content: '';
+    position: absolute;
+    left: 8%;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 180px;
+    height: 180px;
+    background: url('/images/topik-certificate.png') no-repeat center;
+    background-size: contain;
+    opacity: 0.2;
+    pointer-events: none;
+}
+
+.cta-section h2 {
+    font-size: 2.5rem;
+    margin-bottom: 1.5rem;
+    font-weight: 800;
+    position: relative;
+    z-index: 1;
+}
+
+.cta-section p {
+    font-size: 1.15rem;
+    opacity: 0.95;
+    max-width: 650px;
+    margin: 0 auto 2rem;
+    line-height: 1.7;
+    position: relative;
+    z-index: 1;
+}
+
+.cta-section .cta-buttons {
+    position: relative;
+    z-index: 1;
+    justify-content: center;
+}
+
+.cta-section .btn-secondary {
+    background: white;
+    color: var(--primary-red);
+    border: none;
+}
+
+.cta-section .btn-secondary:hover {
+    background: var(--bg-light);
+}
+
+/* ===== FOOTER ===== */
+.footer {
+    background: var(--text-primary);
+    color: rgba(255, 255, 255, 0.9);
+    padding: 3.5rem 2rem 2rem;
+}
+
+.footer-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 2.5rem;
+    margin-bottom: 2.5rem;
+}
+
+.footer-section h3 {
+    font-size: 1.2rem;
+    margin-bottom: 1.2rem;
+    font-weight: 700;
+    color: white;
+}
+
+.footer-section p {
+    line-height: 1.7;
+    opacity: 0.85;
+    font-size: 0.95rem;
+}
+
+.footer-section ul {
+    list-style: none;
+}
+
+.footer-section ul li {
+    padding: 0.5rem 0;
+    opacity: 0.85;
+    font-size: 0.95rem;
+}
+
+.footer-section ul li a {
+    color: rgba(255, 255, 255, 0.85);
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.footer-section ul li a:hover {
+    color: white;
+    padding-left: 5px;
+}
+
+.social-links {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+.social-links a {
+    color: rgba(255, 255, 255, 0.85);
+    text-decoration: none;
+    transition: all 0.3s ease;
+    font-size: 0.95rem;
+}
+
+.social-links a:hover {
+    color: var(--accent-gold);
+    transform: translateX(8px);
+}
+
+.footer-bottom {
+    text-align: center;
+    padding-top: 2rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
+    opacity: 0.75;
+    font-size: 0.9rem;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 968px) {
+    .courses-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .hero-title {
+        font-size: 2.5rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .nav-menu {
+        display: none;
+    }
+
+    .hero-content {
+        grid-template-columns: 1fr;
+        gap: 2.5rem;
+    }
+
+    .hero-image {
+        order: -1;
+    }
+
+    .hero-image::before,
+    .hero-image::after {
+        display: none;
+    }
+
+    .hero-title {
+        font-size: 2.2rem;
+    }
+
+    .feature-badges {
+        gap: 0.8rem;
+    }
+
+    .badge-item {
+        padding: 0.8rem 1.2rem;
+    }
+
+    .courses-section::before,
+    .features-section::after,
+    .cta-section::before,
+    .cta-section::after {
+        display: none;
+    }
+
+    .features-grid,
+    .testimonials-grid,
+    .blog-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .footer-content {
+        grid-template-columns: 1fr;
+    }
+
+    .courses-section h2,
+    .features-section h2,
+    .testimonials-section h2,
+    .blog-section h2,
+    .cta-section h2 {
+        font-size: 2rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero-section {
+        padding: 3rem 1rem;
+    }
+
+    .hero-title {
+        font-size: 1.8rem;
+    }
+
+    .cta-buttons {
+        flex-direction: column;
+    }
+
+    .btn {
+        width: 100%;
+    }
+
+    .cta-section {
+        margin: 2rem 1rem;
+        padding: 3rem 1.5rem;
+    }
+
+    .lang-toggle {
+        top: 1rem;
+        right: 1rem;
+        padding: 0.5rem 1rem;
+        font-size: 0.85rem;
+    }
+}
