@@ -639,5 +639,177 @@
         "notFoundDesc": "Trang bạn tìm kiếm không tồn tại.",
         "error": "Lỗi",
         "tryAgain": "Vui lòng thử lại"
+    },
+    "landing": {
+        "nav": {
+            "title": "Korean Vitamin",
+            "features": "Tính năng",
+            "courses": "Khóa học",
+            "pricing": "Học phí",
+            "testimonials": "Đánh giá",
+            "login": "Đăng nhập"
+        },
+        "hero": {
+            "title": "Chinh Phục",
+            "titleHighlight": "Tiếng Hàn",
+            "subtitle": "Nền tảng học và luyện thi tiếng Hàn hàng đầu với công nghệ AI, giúp bạn đạt chứng chỉ TOPIK, OPIc, EPS-TOPIK một cách hiệu quả nhất",
+            "cta1": "Dùng thử miễn phí",
+            "cta2": "Xem khóa học",
+            "stat1": "Học viên",
+            "stat2": "Đỗ chứng chỉ",
+            "stat3": "Giáo viên"
+        },
+        "features": {
+            "title": "Tính Năng Nổi Bật",
+            "subtitle": "Học - Ôn - Thi với hệ thống toàn diện",
+            "learn": {
+                "title": "HỌC",
+                "desc": "Khóa học có cấu trúc rõ ràng từ cơ bản đến nâng cao, phù hợp với mọi trình độ",
+                "item1": "Lộ trình cá nhân hóa",
+                "item2": "Video bài giảng HD",
+                "item3": "Tài liệu đầy đủ"
+            },
+            "practice": {
+                "title": "ÔN",
+                "desc": "Hàng nghìn câu hỏi và đề thi thử được cập nhật liên tục",
+                "item1": "Ngân hàng câu hỏi khổng lồ",
+                "item2": "Luyện theo dạng câu",
+                "item3": "Phân tích điểm yếu"
+            },
+            "test": {
+                "title": "THI",
+                "desc": "Thi thử với đề thi chuẩn, chấm điểm tự động bằng AI",
+                "item1": "20 mã đề không trùng",
+                "item2": "AI chấm viết & nói",
+                "item3": "Báo cáo chi tiết"
+            }
+        },
+        "courses": {
+            "title": "Các Chứng Chỉ",
+            "subtitle": "Luyện thi đầy đủ các chứng chỉ tiếng Hàn",
+            "cta": "Tìm hiểu thêm",
+            "topik": {
+                "desc": "Chứng chỉ tiếng Hàn phổ biến nhất, 6 cấp độ từ 1-6. Phù hợp du học, việc làm",
+                "item1": "Đọc - Nghe - Viết",
+                "item2": "40-50 câu mỗi phần",
+                "item3": "Thi 2 lần/năm"
+            },
+            "opic": {
+                "desc": "Đánh giá khả năng giao tiếp tiếng Hàn trong thực tế, quan trọng với doanh nghiệp",
+                "item1": "Thi nói qua máy tính",
+                "item2": "12-15 câu hỏi",
+                "item3": "Cấp độ AL - NL"
+            },
+            "eps": {
+                "desc": "Chứng chỉ cho lao động Việt Nam đi làm việc tại Hàn Quốc trong các ngành sản xuất",
+                "item1": "Đọc - Nghe",
+                "item2": "25 câu mỗi phần",
+                "item3": "Chuẩn xuất khẩu lao động"
+            }
+        },
+        "pricing": {
+            "title": "Gói Học Phí",
+            "subtitle": "Linh hoạt theo nhu cầu của bạn",
+            "popular": "Phổ biến",
+            "free": {
+                "name": "Miễn Phí",
+                "desc": "Dùng thử không giới hạn thời gian",
+                "item1": "5 bài test miễn phí",
+                "item2": "Xem thông tin khóa học",
+                "item3": "Tham gia forum",
+                "item4": "Thi viết và nói",
+                "cta": "Bắt đầu ngay"
+            },
+            "pertest": {
+                "name": "Trả Theo Bài",
+                "desc": "Mỗi bài test bổ sung",
+                "item1": "Tất cả quyền gói miễn phí",
+                "item2": "Làm bài test không giới hạn",
+                "item3": "Thi viết và nói",
+                "item4": "Lớp học online",
+                "cta": "Mua ngay"
+            },
+            "full": {
+                "name": "Khóa Học Đầy Đủ",
+                "price": "Liên hệ",
+                "desc": "Truy cập toàn bộ khóa học",
+                "item1": "Tất cả quyền gói trước",
+                "item2": "Lớp học online với giáo viên",
+                "item3": "Chấm bài 1-1",
+                "item4": "Hỗ trợ 24/7",
+                "cta": "Liên hệ tư vấn"
+            }
+        },
+        "ai": {
+            "title": "Công Nghệ AI Tiên Tiến",
+            "subtitle": "Học thông minh hơn với trợ lý AI",
+            "chatbot": {
+                "title": "AI Chatbot",
+                "desc": "Tư vấn khóa học và chứng chỉ phù hợp 24/7"
+            },
+            "grading": {
+                "title": "Chấm Tự Động",
+                "desc": "AI chấm bài viết và nói với phản hồi chi tiết"
+            },
+            "ocr": {
+                "title": "OCR Thông Minh",
+                "desc": "Tự động nhập thông tin học viên từ ảnh"
+            },
+            "analysis": {
+                "title": "Phân Tích Điểm Yếu",
+                "desc": "Chỉ ra điểm yếu và đề xuất lộ trình cải thiện"
+            }
+        },
+        "process": {
+            "title": "Quy Trình Học Tập",
+            "subtitle": "5 bước đơn giản để chinh phục tiếng Hàn",
+            "step1": {
+                "title": "Đăng ký online",
+                "desc": "Tạo tài khoản miễn phí và chọn khóa học phù hợp"
+            },
+            "step2": {
+                "title": "Test đầu vào",
+                "desc": "Làm bài kiểm tra để xác định trình độ hiện tại"
+            },
+            "step3": {
+                "title": "Tham gia lớp",
+                "desc": "Học online/offline với giáo viên chuyên nghiệp"
+            },
+            "step4": {
+                "title": "Luyện với AI",
+                "desc": "Thực hành với công cụ AI hỗ trợ cá nhân hóa"
+            },
+            "step5": {
+                "title": "Thi chứng chỉ",
+                "desc": "Đạt chứng chỉ TOPIK/OPIc/EPS-TOPIK"
+            }
+        },
+        "testimonials": {
+            "title": "Học Viên Nói Gì",
+            "subtitle": "Câu chuyện thành công từ học viên",
+            "test1": "Tôi đã đỗ TOPIK II level 5 nhờ hệ thống luyện đề và AI chấm bài rất chi tiết. Thầy cô tận tâm!",
+            "test2": "OPIc IM3 không còn khó với bài tập nói qua AI. Giúp em tự tin hơn rất nhiều!",
+            "test3": "EPS-TOPIK đạt 200 điểm, được sang Hàn làm việc. Cảm ơn Korean Vitamin!"
+        },
+        "faq": {
+            "title": "Câu Hỏi Thường Gặp",
+            "q1": "Làm thế nào để đăng ký khóa học?",
+            "a1": "Bạn có thể đăng ký trực tuyến qua website hoặc liên hệ hotline để được tư vấn chi tiết về khóa học phù hợp với trình độ và mục tiêu của bạn.",
+            "q2": "Học phí có bao gồm tài liệu?",
+            "a2": "Có, học phí đã bao gồm đầy đủ tài liệu giáo trình, sách bài tập, và quyền truy cập vào hệ thống luyện thi online với hàng nghìn câu hỏi.",
+            "q3": "Tôi có thể học online không?",
+            "a3": "Có, chúng tôi có cả lớp học trực tiếp và online qua Zoom. Bạn có thể linh hoạt lựa chọn hình thức phù hợp với lịch trình của mình.",
+            "q4": "Thời gian học mỗi khóa là bao lâu?",
+            "a4": "Tùy theo cấp độ: TOPIK I khoảng 3 tháng, TOPIK II cấp độ 3-4 khoảng 4 tháng, và TOPIK II cấp độ 5-6 khoảng 5 tháng.",
+            "q5": "Nếu không đỗ TOPIK thì sao?",
+            "a5": "Chúng tôi cam kết nếu bạn học đầy đủ và nghiêm túc mà không đạt mục tiêu TOPIK, bạn sẽ được học lại miễn phí cho đến khi đạt được kết quả mong muốn."
+        },
+        "footer": {
+            "about": "Nền tảng học và luyện thi tiếng Hàn hàng đầu Việt Nam với công nghệ AI tiên tiến",
+            "links": "Liên kết",
+            "support": "Hỗ trợ",
+            "contact": "Liên hệ",
+            "rights": "Bảo lưu mọi quyền"
+        }
     }
 }

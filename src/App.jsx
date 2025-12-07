@@ -1,8 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Login';
 import Homepage from './pages/HomePage/Homepage.jsx';
-import Homepage2 from './pages/HomePage/Homepage2.jsx';
-import Homepage3 from './pages/HomePage/Homepage3.jsx';
+import LandingPage from './pages/LandingPage/LandingPage.jsx';
 import './App.css';
 
 function App() {
@@ -24,8 +23,7 @@ function App() {
         />
         {/* Homepage - Public */}
         <Route path="/" element={<Homepage />} />
-        <Route path="/homepage2" element={<Homepage2 />} />
-        <Route path="/homepage3" element={<Homepage3 />} />
+        <Route path="/landing" element={<LandingPage />} />
 
       </Routes>
     </BrowserRouter>

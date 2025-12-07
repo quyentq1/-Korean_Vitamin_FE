@@ -639,5 +639,177 @@
         "notFoundDesc": "The page you're looking for doesn't exist.",
         "error": "Error",
         "tryAgain": "Please try again"
+    },
+    "landing": {
+        "nav": {
+            "title": "Korean Vitamin",
+            "features": "Features",
+            "courses": "Courses",
+            "pricing": "Pricing",
+            "testimonials": "Testimonials",
+            "login": "Login"
+        },
+        "hero": {
+            "title": "Master",
+            "titleHighlight": "Korean Language",
+            "subtitle": "Leading Korean learning and test preparation platform with AI technology, helping you achieve TOPIK, OPIc, EPS-TOPIK certifications most effectively",
+            "cta1": "Start Free Trial",
+            "cta2": "View Courses",
+            "stat1": "Students",
+            "stat2": "Pass Rate",
+            "stat3": "Teachers"
+        },
+        "features": {
+            "title": "Key Features",
+            "subtitle": "Learn - Practice - Test with comprehensive system",
+            "learn": {
+                "title": "LEARN",
+                "desc": "Well-structured courses from basic to advanced, suitable for all levels",
+                "item1": "Personalized roadmap",
+                "item2": "HD video lectures",
+                "item3": "Complete materials"
+            },
+            "practice": {
+                "title": "PRACTICE",
+                "desc": "Thousands of questions and mock tests continuously updated",
+                "item1": "Massive question bank",
+                "item2": "Practice by question type",
+                "item3": "Weakness analysis"
+            },
+            "test": {
+                "title": "TEST",
+                "desc": "Mock tests with standard format, AI auto-grading",
+                "item1": "20 unique test versions",
+                "item2": "AI writing & speaking grading",
+                "item3": "Detailed reports"
+            }
+        },
+        "courses": {
+            "title": "Certifications",
+            "subtitle": "Comprehensive preparation for all Korean certifications",
+            "cta": "Learn More",
+            "topik": {
+                "desc": "Most popular Korean certification, 6 levels from 1-6. Perfect for study abroad and employment",
+                "item1": "Reading - Listening - Writing",
+                "item2": "40-50 questions per section",
+                "item3": "2 exams per year"
+            },
+            "opic": {
+                "desc": "Assesses practical Korean communication skills, important for businesses",
+                "item1": "Computer-based speaking test",
+                "item2": "12-15 questions",
+                "item3": "Levels AL - NL"
+            },
+            "eps": {
+                "desc": "Certificate for Vietnamese workers going to Korea in manufacturing sectors",
+                "item1": "Reading - Listening",
+                "item2": "25 questions per section",
+                "item3": "Work abroad standard"
+            }
+        },
+        "pricing": {
+            "title": "Pricing Plans",
+            "subtitle": "Flexible according to your needs",
+            "popular": "Popular",
+            "free": {
+                "name": "Free",
+                "desc": "Unlimited trial period",
+                "item1": "5 free tests",
+                "item2": "View course information",
+                "item3": "Join forum",
+                "item4": "Writing and speaking tests",
+                "cta": "Get Started"
+            },
+            "pertest": {
+                "name": "Pay Per Test",
+                "desc": "Each additional test",
+                "item1": "All free plan features",
+                "item2": "Unlimited tests",
+                "item3": "Writing & speaking tests",
+                "item4": "Online classes",
+                "cta": "Buy Now"
+            },
+            "full": {
+                "name": "Full Course",
+                "price": "Contact",
+                "desc": "Full course access",
+                "item1": "All previous plan features",
+                "item2": "Online classes with teachers",
+                "item3": "1-on-1 grading",
+                "item4": "24/7 support",
+                "cta": "Contact Us"
+            }
+        },
+        "ai": {
+            "title": "Advanced AI Technology",
+            "subtitle": "Learn smarter with AI assistants",
+            "chatbot": {
+                "title": "AI Chatbot",
+                "desc": "Course and certification consulting 24/7"
+            },
+            "grading": {
+                "title": "Auto Grading",
+                "desc": "AI grades writing and speaking with detailed feedback"
+            },
+            "ocr": {
+                "title": "Smart OCR",
+                "desc": "Automatic student data entry from images"
+            },
+            "analysis": {
+                "title": "Weakness Analysis",
+                "desc": "Identify weaknesses and suggest improvement paths"
+            }
+        },
+        "process": {
+            "title": "Learning Process",
+            "subtitle": "5 simple steps to master Korean",
+            "step1": {
+                "title": "Register online",
+                "desc": "Create free account and choose suitable course"
+            },
+            "step2": {
+                "title": "Placement test",
+                "desc": "Take assessment test to determine current level"
+            },
+            "step3": {
+                "title": "Join class",
+                "desc": "Study online/offline with professional teachers"
+            },
+            "step4": {
+                "title": "Practice with AI",
+                "desc": "Practice with personalized AI support tools"
+            },
+            "step5": {
+                "title": "Take certification",
+                "desc": "Achieve TOPIK/OPIc/EPS-TOPIK certification"
+            }
+        },
+        "testimonials": {
+            "title": "What Students Say",
+            "subtitle": "Success stories from our students",
+            "test1": "I passed TOPIK II level 5 thanks to the practice system and very detailed AI grading. Teachers are so dedicated!",
+            "test2": "OPIc IM3 is no longer difficult with AI speaking practice. Helped me gain much more confidence!",
+            "test3": "EPS-TOPIK scored 200 points, got to work in Korea. Thank you Korean Vitamin!"
+        },
+        "faq": {
+            "title": "Frequently Asked Questions",
+            "q1": "How do I register for courses?",
+            "a1": "You can register online through our website or contact our hotline for detailed consultation about courses suitable for your level and goals.",
+            "q2": "Does tuition include materials?",
+            "a2": "Yes, tuition includes complete textbooks, workbooks, and access to the online test system with thousands of questions.",
+            "q3": "Can I study online?",
+            "a3": "Yes, we offer both in-person and online classes via Zoom. You can flexibly choose the format that suits your schedule.",
+            "q4": "How long is each course?",
+            "a4": "Depending on level: TOPIK I about 3 months, TOPIK II level 3-4 about 4 months, and TOPIK II level 5-6 about 5 months.",
+            "q5": "What if I don't pass TOPIK?",
+            "a5": "We guarantee that if you attend fully and study seriously but don't achieve your TOPIK goal, you can retake the course for free until you achieve your desired result."
+        },
+        "footer": {
+            "about": "Vietnam's leading Korean learning and test preparation platform with advanced AI technology",
+            "links": "Quick Links",
+            "support": "Support",
+            "contact": "Contact",
+            "rights": "All rights reserved"
+        }
     }
 }
