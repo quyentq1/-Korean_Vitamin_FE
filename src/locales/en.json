@@ -720,11 +720,11 @@
                 "item4": "Writing and speaking tests",
                 "cta": "Get Started"
             },
-            "pertest": {
-                "name": "Pay Per Test",
-                "desc": "Each additional test",
+            "combo": {
+                "name": "Combo Test",
+                "desc": "Add-on Combo Test",
                 "item1": "All free plan features",
-                "item2": "Unlimited tests",
+                "item2": "Test in combo",
                 "item3": "Writing & speaking tests",
                 "item4": "Online classes",
                 "cta": "Buy Now"

@@ -714,17 +714,17 @@
             "free": {
                 "name": "Miễn Phí",
                 "desc": "Dùng thử không giới hạn thời gian",
-                "item1": "5 bài test miễn phí",
+                "item1": "2 bài test miễn phí",
                 "item2": "Xem thông tin khóa học",
                 "item3": "Tham gia forum",
                 "item4": "Thi viết và nói",
                 "cta": "Bắt đầu ngay"
             },
-            "pertest": {
-                "name": "Trả Theo Bài",
-                "desc": "Mỗi bài test bổ sung",
+            "combo": {
+                "name": "Combo Test",
+                "desc": "Combo Test Bổ Sung",
                 "item1": "Tất cả quyền gói miễn phí",
-                "item2": "Làm bài test không giới hạn",
+                "item2": "Làm test theo combo",
                 "item3": "Thi viết và nói",
                 "item4": "Lớp học online",
                 "cta": "Mua ngay"
