@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
+import ContactModal from '../../components/ContactModal';
 
 const HomePage = () => {
     const { t, i18n } = useTranslation();
     const navigate = useNavigate();
     const [isScrolled, setIsScrolled] = useState(false);
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [isContactModalOpen, setIsContactModalOpen] = useState(false);
 
     useEffect(() => {
         const handleScroll = () => {
@@ -23,77 +26,145 @@ const HomePage = () => {
     return (
         <div className="min-h-screen bg-white font-sans">
             {/* Navigation Bar */}
-            <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? 'bg-white shadow-md py-3' : 'bg-transparent py-5'
+            <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? 'bg-white shadow-md py-2' : 'bg-transparent py-4'
                 }`}>
-                <div className="container mx-auto px-6 flex items-center justify-between">
-                    {/* Logo */}
-                    <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate('/landing')}>
-                        <div
-                            className="nav-logo"
-                            onClick={() => scrollToSection('home')}
-                            style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}
-                        >
-                            <span className="text-xl font-bold text-primary-700" style={{ marginRight: '8px' }}>
-                                🇰🇷
-                            </span>
-                            <span className="text-xl font-bold text-primary-700" style={{ marginRight: '8px' }}>
-                                <img
-                                    src="https://flagcdn.com/w20/kr.png"
-                                    alt="Korean Flag"
-                                    style={{ width: '24px', verticalAlign: 'middle' }}
-                                />
+                <div className="container mx-auto px-6">
+                    <div className="flex items-center justify-between">
+                        {/* Logo */}
+                        <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate('/')}>
+                            <div className="flex items-center">
+                                <span className="text-xl font-bold text-primary-700 mr-2">🇰🇷</span>
+                                <span className="text-xl font-bold text-primary-700 mr-2">
+                                    <img
+                                        src="https://flagcdn.com/w20/kr.png"
+                                        alt="Korean Flag"
+                                        className="w-6 align-middle"
+                                    />
+                                </span>
+                            </div>
+                            <span className="text-xl font-bold text-primary-700 hidden sm:block">
+                                {t('landing.nav.title', 'Korean Vitamin')}
                             </span>
                         </div>
-                        <span className="text-xl font-bold text-primary-700">
-                            {t('landing.nav.title', 'Korean Vitamin')}
-                        </span>
+
+                        {/* Desktop Nav Links - Button Style */}
+                        <div className="hidden lg:flex items-center gap-4">
+                            {[
+                                { link: '#features', label: t('landing.nav.features', 'Tính năng') },
+                                { link: '#courses', label: t('landing.nav.courses', 'Khóa học') },
+                                { link: '#pricing', label: t('landing.nav.pricing', 'Học phí') },
+                                { link: '#testimonials', label: t('landing.nav.testimonials', 'Đánh giá') },
+                                { link: '#curriculum', label: t('landing.nav.curriculum_only', 'Giáo trình') },
+                                { link: '#prep', label: t('landing.nav.prep', 'Luyện thi') }
+                            ].map((item, index) => (
+                                <a
+                                    key={index}
+                                    href={item.link}
+                                    className={`px-4 py-2 text-sm font-bold border-2 rounded-xl transition duration-300 whitespace-nowrap ${isScrolled
+                                        ? 'text-primary-600 border-primary-200 hover:border-primary-500 hover:bg-primary-50'
+                                        : 'text-white border-white/30 bg-white/10 hover:bg-white hover:text-primary-600 backdrop-blur-sm'
+                                        }`}
+                                >
+                                    {item.label}
+                                </a>
+                            ))}
+                        </div>
+
+                        {/* Actions & Mobile Menu Button */}
+                        <div className="flex items-center gap-3">
+                            <button
+                                onClick={toggleLanguage}
+                                className={`flex items-center gap-2 px-3 py-2 rounded-lg transition hidden sm:flex ${isScrolled ? 'hover:bg-gray-100 text-gray-700' : 'text-white hover:bg-white/20'
+                                    }`}
+                            >
+                                <img
+                                    src={i18n.language === 'en' ? 'https://flagcdn.com/w20/vn.png' : 'https://flagcdn.com/w20/gb.png'}
+                                    alt="flag"
+                                    className="w-5 h-4"
+                                />
+                                <span className="text-sm font-medium">
+                                    {i18n.language === 'en' ? 'VN' : 'EN'}
+                                </span>
+                            </button>
+                            <button
+                                onClick={() => navigate('/login')}
+                                className={`px-6 py-2 rounded-xl transition font-medium whitespace-nowrap hidden sm:block ${isScrolled
+                                    ? 'bg-primary-500 text-white hover:bg-primary-600'
+                                    : 'bg-white text-primary-600 hover:bg-gray-100 shadow-lg'
+                                    }`}
+                            >
+                                {t('landing.nav.login', 'Đăng nhập')}
+                            </button>
+
+                            {/* Mobile Menu Button */}
+                            <button
+                                className={`lg:hidden p-2 rounded-lg ${isScrolled ? 'text-primary-600 hover:bg-primary-50' : 'text-white hover:bg-white/20'
+                                    }`}
+                                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                            >
+                                {isMobileMenuOpen ? (
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                ) : (
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                                    </svg>
+                                )}
+                            </button>
+                        </div>
                     </div>
 
-                    {/* Nav Links */}
-                    <div className="hidden md:flex items-center gap-8">
-                        <a href="#features" className="text-gray-700 hover:text-primary-600 transition font-medium">
-                            {t('landing.nav.features', 'Tính năng')}
-                        </a>
-                        <a href="#courses" className="text-gray-700 hover:text-primary-600 transition font-medium">
-                            {t('landing.nav.courses', 'Khóa học')}
-                        </a>
-                        <a href="#pricing" className="text-gray-700 hover:text-primary-600 transition font-medium">
-                            {t('landing.nav.pricing', 'Học phí')}
-                        </a>
-                        <a href="#testimonials" className="text-gray-700 hover:text-primary-600 transition font-medium">
-                            {t('landing.nav.testimonials', 'Đánh giá')}
-                        </a>
-                    </div>
-
-                    {/* Actions */}
-                    <div className="flex items-center gap-4">
-                        <button
-                            onClick={toggleLanguage}
-                            className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition"
-                        >
-                            <img
-                                src={i18n.language === 'en' ? 'https://flagcdn.com/w20/vn.png' : 'https://flagcdn.com/w20/gb.png'}
-                                alt="flag"
-                                className="w-5 h-4"
-                            />
-                            <span className="text-sm font-medium">
-                                {i18n.language === 'en' ? 'Tiếng Việt' : 'English'}
-                            </span>
-                        </button>
-                        <button
-                            onClick={() => navigate('/login')}
-                            className="px-6 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition font-medium"
-                        >
-                            {t('landing.nav.login', 'Đăng nhập')}
-                        </button>
-                    </div>
+                    {/* Mobile Menu Dropdown */}
+                    {isMobileMenuOpen && (
+                        <div className="lg:hidden absolute top-full left-0 right-0 bg-white border-t border-gray-100 shadow-xl p-4 flex flex-col gap-4 animate-slide-down">
+                            {[
+                                { link: '#features', label: t('landing.nav.features', 'Tính năng') },
+                                { link: '#courses', label: t('landing.nav.courses', 'Khóa học') },
+                                { link: '#pricing', label: t('landing.nav.pricing', 'Học phí') },
+                                { link: '#testimonials', label: t('landing.nav.testimonials', 'Đánh giá') },
+                                { link: '#curriculum', label: t('landing.nav.curriculum_only', 'Giáo trình') },
+                                { link: '#prep', label: t('landing.nav.prep', 'Luyện thi') }
+                            ].map((item, index) => (
+                                <a
+                                    key={index}
+                                    href={item.link}
+                                    className="block w-full px-4 py-3 text-center font-bold text-primary-600 border-2 border-primary-200 rounded-xl hover:border-primary-500 hover:bg-primary-50 transition"
+                                    onClick={() => setIsMobileMenuOpen(false)}
+                                >
+                                    {item.label}
+                                </a>
+                            ))}
+                            <div className="flex items-center justify-center gap-4 pt-2 border-t border-gray-100">
+                                <button
+                                    onClick={toggleLanguage}
+                                    className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-gray-100 transition"
+                                >
+                                    <img
+                                        src={i18n.language === 'en' ? 'https://flagcdn.com/w20/vn.png' : 'https://flagcdn.com/w20/gb.png'}
+                                        alt="flag"
+                                        className="w-5 h-4"
+                                    />
+                                    <span className="text-sm font-medium">
+                                        {i18n.language === 'en' ? 'Tiếng Việt' : 'English'}
+                                    </span>
+                                </button>
+                                <button
+                                    onClick={() => navigate('/login')}
+                                    className="px-6 py-2 bg-primary-500 text-white rounded-xl hover:bg-primary-600 transition font-medium"
+                                >
+                                    {t('landing.nav.login', 'Đăng nhập')}
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </nav>
 
             {/* Hero Section */}
             <section className="relative pt-32 pb-20 bg-gradient-to-br from-primary-400 via-primary-300 to-white overflow-hidden">
                 <div className="container mx-auto px-6">
-                    <div className="grid md:grid-cols-2 gap-12 items-center">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
                         {/* Left Content */}
                         <div className="space-y-6 animate-slide-up">
                             <h1 className="text-5xl md:text-6xl font-bold text-gray-900 leading-tight">
@@ -173,7 +244,7 @@ const HomePage = () => {
                         </p>
                     </div>
 
-                    <div className="grid md:grid-cols-3 gap-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                         {/* HỌC */}
                         <div className="group bg-gradient-to-br from-blue-50 to-white p-8 rounded-2xl border-2 border-transparent hover:border-accent-blue hover:shadow-xl transition-all duration-300">
                             <div className="w-16 h-16 bg-accent-blue rounded-2xl flex items-center justify-center text-3xl mb-6 group-hover:scale-110 transition">
@@ -270,16 +341,16 @@ const HomePage = () => {
                         </p>
                     </div>
 
-                    <div className="grid md:grid-cols-3 gap-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-8">
                         {/* TOPIK */}
-                        <div className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition group">
+                        <div className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition group h-full flex flex-col">
                             <div className="h-48 bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center">
                                 <div className="text-white text-center">
                                     <div className="text-6xl mb-2">📘</div>
                                     <div className="text-3xl font-bold">TOPIK</div>
                                 </div>
                             </div>
-                            <div className="p-8">
+                            <div className="p-8 flex flex-col flex-1">
                                 <h3 className="text-2xl font-bold text-gray-900 mb-3">
                                     TOPIK I & II
                                 </h3>
@@ -291,21 +362,21 @@ const HomePage = () => {
                                     <li>• {t('landing.courses.topik.item2', '40-50 câu mỗi phần')}</li>
                                     <li>• {t('landing.courses.topik.item3', 'Thi 2 lần/năm')}</li>
                                 </ul>
-                                <button className="w-full py-3 bg-orange-500 text-white rounded-xl font-semibold hover:bg-orange-600 transition">
+                                <button className="w-full py-3 bg-orange-500 text-white rounded-xl font-semibold hover:bg-orange-600 transition mt-auto">
                                     {t('landing.courses.cta', 'Tìm hiểu thêm')} →
                                 </button>
                             </div>
                         </div>
 
                         {/* OPIc */}
-                        <div className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition group">
+                        <div className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition group h-full flex flex-col">
                             <div className="h-48 bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center">
                                 <div className="text-white text-center">
                                     <div className="text-6xl mb-2">🎤</div>
                                     <div className="text-3xl font-bold">OPIc</div>
                                 </div>
                             </div>
-                            <div className="p-8">
+                            <div className="p-8 flex flex-col flex-1">
                                 <h3 className="text-2xl font-bold text-gray-900 mb-3">
                                     OPIc
                                 </h3>
@@ -317,21 +388,21 @@ const HomePage = () => {
                                     <li>• {t('landing.courses.opic.item2', '12-15 câu hỏi')}</li>
                                     <li>• {t('landing.courses.opic.item3', 'Cấp độ AL - NL')}</li>
                                 </ul>
-                                <button className="w-full py-3 bg-green-500 text-white rounded-xl font-semibold hover:bg-green-600 transition">
+                                <button className="w-full py-3 bg-green-500 text-white rounded-xl font-semibold hover:bg-green-600 transition mt-auto">
                                     {t('landing.courses.cta', 'Tìm hiểu thêm')} →
                                 </button>
                             </div>
                         </div>
 
                         {/* EPS-TOPIK */}
-                        <div className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition group">
+                        <div className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition group h-full flex flex-col">
                             <div className="h-48 bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center">
                                 <div className="text-white text-center">
                                     <div className="text-6xl mb-2">👷</div>
                                     <div className="text-3xl font-bold">EPS-TOPIK</div>
                                 </div>
                             </div>
-                            <div className="p-8">
+                            <div className="p-8 flex flex-col flex-1">
                                 <h3 className="text-2xl font-bold text-gray-900 mb-3">
                                     EPS-TOPIK
                                 </h3>
@@ -343,7 +414,33 @@ const HomePage = () => {
                                     <li>• {t('landing.courses.eps.item2', '25 câu mỗi phần')}</li>
                                     <li>• {t('landing.courses.eps.item3', 'Chuẩn xuất khẩu lao động')}</li>
                                 </ul>
-                                <button className="w-full py-3 bg-blue-500 text-white rounded-xl font-semibold hover:bg-blue-600 transition">
+                                <button className="w-full py-3 bg-blue-500 text-white rounded-xl font-semibold hover:bg-blue-600 transition mt-auto">
+                                    {t('landing.courses.cta', 'Tìm hiểu thêm')} →
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Communication */}
+                        <div className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition group h-full flex flex-col">
+                            <div className="h-48 bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center">
+                                <div className="text-white text-center">
+                                    <div className="text-6xl mb-2">💬</div>
+                                    <div className="text-3xl font-bold">{t('landing.courses.comm.title', 'Communication')}</div>
+                                </div>
+                            </div>
+                            <div className="p-8 flex flex-col flex-1">
+                                <h3 className="text-2xl font-bold text-gray-900 mb-3">
+                                    {t('landing.courses.comm.title', 'Communication')}
+                                </h3>
+                                <p className="text-gray-600 mb-6">
+                                    {t('landing.courses.comm.desc', 'Khóa học giao tiếp thực tế, giúp bạn tự tin nói chuyện với người Hàn Quốc trong mọi tình huống')}
+                                </p>
+                                <ul className="space-y-2 mb-6 text-gray-600 text-sm">
+                                    <li>• {t('landing.courses.comm.item1', 'Phát âm chuẩn')}</li>
+                                    <li>• {t('landing.courses.comm.item2', 'Hội thoại hàng ngày')}</li>
+                                    <li>• {t('landing.courses.comm.item3', 'Văn hóa giao tiếp')}</li>
+                                </ul>
+                                <button className="w-full py-3 bg-purple-500 text-white rounded-xl font-semibold hover:bg-purple-600 transition mt-auto">
                                     {t('landing.courses.cta', 'Tìm hiểu thêm')} →
                                 </button>
                             </div>
@@ -364,7 +461,7 @@ const HomePage = () => {
                         </p>
                     </div>
 
-                    <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
                         {/* Free Plan */}
                         <div className="bg-white border-2 border-gray-200 rounded-2xl p-8 hover:shadow-xl transition">
                             <div className="text-center mb-6">
@@ -435,7 +532,10 @@ const HomePage = () => {
                                     <span className="text-gray-400">{t('landing.pricing.combo.item4', 'Online classes')}</span>
                                 </li>
                             </ul>
-                            <button className="w-full py-3 bg-primary-600 text-white rounded-xl font-semibold hover:bg-primary-700 transition">
+                            <button
+                                onClick={() => setIsContactModalOpen(true)}
+                                className="w-full py-3 bg-primary-600 text-white rounded-xl font-semibold hover:bg-primary-700 transition"
+                            >
                                 {t('landing.pricing.combo.cta', 'Buy Now')}
                             </button>
                         </div>
@@ -470,7 +570,10 @@ const HomePage = () => {
                                     <span>{t('landing.pricing.full.item4', 'Hỗ trợ 24/7')}</span>
                                 </li>
                             </ul>
-                            <button className="w-full py-3 bg-white text-primary-600 rounded-xl font-semibold hover:bg-gray-100 transition">
+                            <button
+                                onClick={() => setIsContactModalOpen(true)}
+                                className="w-full py-3 bg-white text-primary-600 rounded-xl font-semibold hover:bg-gray-100 transition"
+                            >
                                 {t('landing.pricing.full.cta', 'Liên hệ tư vấn')}
                             </button>
                         </div>
@@ -490,7 +593,7 @@ const HomePage = () => {
                         </p>
                     </div>
 
-                    <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                         {/* AI Chatbot */}
                         <div className="bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition">
                             <div className="w-14 h-14 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl flex items-center justify-center text-2xl mb-4">
@@ -568,7 +671,7 @@ const HomePage = () => {
                                             {step}
                                         </div>
                                         {step < 5 && (
-                                            <div className="absolute top-8 left-1/2 w-full h-1 bg-primary-200"></div>
+                                            <div className="absolute top-8 left-[63%] w-full h-1 bg-primary-200"></div>
                                         )}
                                         <h3 className="font-bold text-gray-900 mb-2 text-lg">
                                             {t(`landing.process.step${step}.title`, `Bước ${step}`)}
@@ -615,7 +718,7 @@ const HomePage = () => {
                         </p>
                     </div>
 
-                    <div className="grid md:grid-cols-3 gap-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                         {/* Testimonial 1 */}
                         <div className="bg-white p-8 rounded-2xl shadow-lg">
                             <div className="flex items-center gap-4 mb-4">
@@ -707,10 +810,16 @@ const HomePage = () => {
                 </div>
             </section>
 
+            {/* Contact Modal */}
+            <ContactModal
+                isOpen={isContactModalOpen}
+                onClose={() => setIsContactModalOpen(false)}
+            />
+
             {/* Footer */}
-            <footer className="bg-gray-900 text-white py-16">
+            < footer className="bg-gray-900 text-white py-16" >
                 <div className="container mx-auto px-6">
-                    <div className="grid md:grid-cols-4 gap-8 mb-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
                         {/* About */}
                         <div>
                             <h3 className="text-xl font-bold mb-4">Korean Vitamin</h3>
@@ -767,8 +876,8 @@ const HomePage = () => {
                         <p>© 2024 Korean Vitamin. {t('landing.footer.rights', 'Bảo lưu mọi quyền')}.</p>
                     </div>
                 </div>
-            </footer>
-        </div>
+            </footer >
+        </div >
     );
 };
 

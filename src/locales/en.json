@@ -27,6 +27,20 @@
         "view": "View",
         "download": "Download"
     },
+    "contactModal": {
+        "title": "Contact Us",
+        "name": "Full Name",
+        "namePlaceholder": "Enter your full name",
+        "phone": "Phone Number",
+        "phonePlaceholder": "Enter your phone number",
+        "email": "Email",
+        "emailPlaceholder": "Enter your email address",
+        "message": "Message",
+        "messagePlaceholder": "What do you need advice on?",
+        "cancel": "Cancel",
+        "submit": "Submit Info",
+        "successMessage": "Information submitted successfully! We will contact you soon."
+    },
     "nav": {
         "dashboard": "Dashboard",
         "users": "Users",
@@ -647,6 +661,8 @@
             "courses": "Courses",
             "pricing": "Pricing",
             "testimonials": "Testimonials",
+            "curriculum_only": "Curriculum",
+            "prep": "Test Prep",
             "login": "Login"
         },
         "hero": {
@@ -705,6 +721,13 @@
                 "item1": "Reading - Listening",
                 "item2": "25 questions per section",
                 "item3": "Work abroad standard"
+            },
+            "comm": {
+                "title": "Communication",
+                "desc": "Practical communication course helping you confidently speak with Koreans in any situation",
+                "item1": "Standard Pronunciation",
+                "item2": "Daily Conversation",
+                "item3": "Communication Culture"
             }
         },
         "pricing": {
@@ -727,7 +750,7 @@
                 "item2": "Test in combo",
                 "item3": "Writing & speaking tests",
                 "item4": "Online classes",
-                "cta": "Buy Now"
+                "cta": "Contact Us"
             },
             "full": {
                 "name": "Full Course",
@@ -769,7 +792,7 @@
             },
             "step2": {
                 "title": "Placement test",
-                "desc": "Take assessment test to determine current level"
+                "desc": "Take a test to find the suitable class"
             },
             "step3": {
                 "title": "Join class",
@@ -780,8 +803,8 @@
                 "desc": "Practice with personalized AI support tools"
             },
             "step5": {
-                "title": "Take certification",
-                "desc": "Achieve TOPIK/OPIc/EPS-TOPIK certification"
+                "title": "Exam Prep & Mock Test",
+                "desc": "Test preparation and mock tests for TOPIK/OPIc/EPS-TOPIK"
             }
         },
         "testimonials": {
@@ -790,6 +813,20 @@
             "test1": "I passed TOPIK II level 5 thanks to the practice system and very detailed AI grading. Teachers are so dedicated!",
             "test2": "OPIc IM3 is no longer difficult with AI speaking practice. Helped me gain much more confidence!",
             "test3": "EPS-TOPIK scored 200 points, got to work in Korea. Thank you Korean Vitamin!"
+        },
+        "modal": {
+            "title": "Contact Us",
+            "name": "Full Name",
+            "namePlaceholder": "Enter your full name",
+            "phone": "Phone Number",
+            "phonePlaceholder": "Enter your phone number",
+            "email": "Email",
+            "emailPlaceholder": "Enter your email address",
+            "message": "Message",
+            "messagePlaceholder": "What do you need advice on?",
+            "cancel": "Cancel",
+            "submit": "Submit Info",
+            "successMessage": "Information submitted successfully! We will contact you soon."
         },
         "faq": {
             "title": "Frequently Asked Questions",

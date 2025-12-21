@@ -27,6 +27,20 @@
         "view": "Xem",
         "download": "Tải xuống"
     },
+    "contactModal": {
+        "title": "Liên Hệ Tư Vấn",
+        "name": "Họ và tên",
+        "namePlaceholder": "Nhập họ tên của bạn",
+        "phone": "Số điện thoại",
+        "phonePlaceholder": "Nhập số điện thoại",
+        "email": "Email",
+        "emailPlaceholder": "Nhập địa chỉ email",
+        "message": "Lời nhắn",
+        "messagePlaceholder": "Bạn cần tư vấn về vấn đề gì?",
+        "cancel": "Hủy bỏ",
+        "submit": "Gửi thông tin",
+        "successMessage": "Gửi thông tin thành công! Chúng tôi sẽ liên hệ lại sớm."
+    },
     "nav": {
         "dashboard": "Trang chủ",
         "users": "Người dùng",
@@ -647,6 +661,8 @@
             "courses": "Khóa học",
             "pricing": "Học phí",
             "testimonials": "Đánh giá",
+            "curriculum_only": "Giáo trình",
+            "prep": "Luyện thi",
             "login": "Đăng nhập"
         },
         "hero": {
@@ -705,6 +721,13 @@
                 "item1": "Đọc - Nghe",
                 "item2": "25 câu mỗi phần",
                 "item3": "Chuẩn xuất khẩu lao động"
+            },
+            "comm": {
+                "title": "Giao Tiếp",
+                "desc": "Khóa học giao tiếp thực tế, giúp bạn tự tin nói chuyện với người Hàn Quốc trong mọi tình huống",
+                "item1": "Phát âm chuẩn",
+                "item2": "Hội thoại hàng ngày",
+                "item3": "Văn hóa giao tiếp"
             }
         },
         "pricing": {
@@ -727,7 +750,7 @@
                 "item2": "Làm test theo combo",
                 "item3": "Thi viết và nói",
                 "item4": "Lớp học online",
-                "cta": "Mua ngay"
+                "cta": "Liên hệ tư vấn"
             },
             "full": {
                 "name": "Khóa Học Đầy Đủ",
@@ -769,7 +792,7 @@
             },
             "step2": {
                 "title": "Test đầu vào",
-                "desc": "Làm bài kiểm tra để xác định trình độ hiện tại"
+                "desc": "Làm bài kiểm tra để sắp xếp lớp phù hợp"
             },
             "step3": {
                 "title": "Tham gia lớp",
@@ -780,8 +803,8 @@
                 "desc": "Thực hành với công cụ AI hỗ trợ cá nhân hóa"
             },
             "step5": {
-                "title": "Thi chứng chỉ",
-                "desc": "Đạt chứng chỉ TOPIK/OPIc/EPS-TOPIK"
+                "title": "Luyện thi & Thi thử",
+                "desc": "Luyện thi và thi thử TOPIK/OPIc/EPS-TOPIK"
             }
         },
         "testimonials": {
@@ -790,6 +813,20 @@
             "test1": "Tôi đã đỗ TOPIK II level 5 nhờ hệ thống luyện đề và AI chấm bài rất chi tiết. Thầy cô tận tâm!",
             "test2": "OPIc IM3 không còn khó với bài tập nói qua AI. Giúp em tự tin hơn rất nhiều!",
             "test3": "EPS-TOPIK đạt 200 điểm, được sang Hàn làm việc. Cảm ơn Korean Vitamin!"
+        },
+        "modal": {
+            "title": "Liên Hệ Tư Vấn",
+            "name": "Họ và tên",
+            "namePlaceholder": "Nhập họ tên của bạn",
+            "phone": "Số điện thoại",
+            "phonePlaceholder": "Nhập số điện thoại",
+            "email": "Email",
+            "emailPlaceholder": "Nhập địa chỉ email",
+            "message": "Lời nhắn",
+            "messagePlaceholder": "Bạn cần tư vấn về vấn đề gì?",
+            "cancel": "Hủy bỏ",
+            "submit": "Gửi thông tin",
+            "successMessage": "Gửi thông tin thành công! Chúng tôi sẽ liên hệ lại sớm."
         },
         "faq": {
             "title": "Câu Hỏi Thường Gặp",
