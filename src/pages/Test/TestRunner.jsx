@@ -2,82 +2,70 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
-import ipTracker from '../../utils/IPTracker';
+import examService from '../../services/examService';
+import UpgradePopup from '../../components/UpgradePopup';
 
 const TestRunner = () => {
     const { testId } = useParams();
     const { t } = useTranslation();
     const navigate = useNavigate();
 
-    const [currentSection, setCurrentSection] = useState(0);
+    const [test, setTest] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [showUpgradePopup, setShowUpgradePopup] = useState(false);
+    const [attemptId, setAttemptId] = useState(null);
+
+    // Exam state
+    const [timeRemaining, setTimeRemaining] = useState(0);
     const [currentQuestion, setCurrentQuestion] = useState(0);
     const [answers, setAnswers] = useState({});
-    const [timeRemaining, setTimeRemaining] = useState(3600); // 60 minutes in seconds
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    // Mock test data - in real app, fetch from API
-    const testData = {
-        'test-1': {
-            title: 'TOPIK Level 1',
-            duration: 60,
-            sections: [
-                {
-                    name: t('testRunner.listening', 'Nghe'),
-                    questions: Array.from({ length: 20 }, (_, i) => ({
-                        id: `L${i + 1}`,
-                        text: `Câu hỏi nghe số ${i + 1}`,
-                        audioUrl: '/audio/sample.mp3',
-                        options: ['A', 'B', 'C', 'D']
-                    }))
-                },
-                {
-                    name: t('testRunner.reading', 'Đọc'),
-                    questions: Array.from({ length: 20 }, (_, i) => ({
-                        id: `R${i + 1}`,
-                        text: `Câu hỏi đọc số ${i + 1}: Lorem ipsum dolor sit amet...`,
-                        options: ['A', 'B', 'C', 'D']
-                    }))
-                }
-            ]
-        },
-        'test-2': {
-            title: 'TOPIK Level 2',
-            duration: 90,
-            sections: [
-                {
-                    name: t('testRunner.listening', 'Nghe'),
-                    questions: Array.from({ length: 20 }, (_, i) => ({
-                        id: `L${i + 1}`,
-                        text: `Câu hỏi nghe số ${i + 1}`,
-                        audioUrl: '/audio/sample.mp3',
-                        options: ['A', 'B', 'C', 'D']
-                    }))
-                },
-                {
-                    name: t('testRunner.reading', 'Đọc'),
-                    questions: Array.from({ length: 20 }, (_, i) => ({
-                        id: `R${i + 1}`,
-                        text: `Câu hỏi đọc số ${i + 1}: Lorem ipsum dolor sit amet...`,
-                        options: ['A', 'B', 'C', 'D']
-                    }))
-                },
-                {
-                    name: t('testRunner.writing', 'Viết'),
-                    questions: [
-                        { id: 'W1', text: 'Viết đoạn văn ngắn (200-300 từ)', type: 'essay' },
-                        { id: 'W2', text: 'Viết bài luận (600-700 từ)', type: 'essay' }
-                    ]
-                }
-            ]
-        }
-    };
+    // Initial Fetch & Start Exam
+    useEffect(() => {
+        const initExam = async () => {
+            try {
+                setLoading(true);
+                // 1. Fetch Exam Details (Title, Description, etc. - Public info)
+                // Note: Real API might separate "Details" from "Content/Questions"
+                // Assuming startExam returns everything or we allow fetching details first.
+                // For now, let's try starting it directly.
 
-    const test = testData[testId] || testData['test-1'];
-    const currentSectionData = test.sections[currentSection];
-    const currentQuestionData = currentSectionData.questions[currentQuestion];
+                const isGuest = !localStorage.getItem('token'); // Simple check
+
+                // Start Exam Request
+                const response = await examService.startExam(testId, isGuest);
+                const attemptData = response;
+
+                setAttemptId(attemptData.id);
+                setTest(attemptData.exam); // Assuming BE returns exam inside attempt
+
+                // Initialize answers if continuing (logic to be added later)
+                // For now new attempt
+
+            } catch (err) {
+                console.error("Exam Start Error:", err);
+                if (err.response && err.response.data && err.response.data.message && err.response.data.message.includes('LIMIT_EXCEEDED')) {
+                    setShowUpgradePopup(true);
+                } else {
+                    setError('Không thể bắt đầu bài thi. Vui lòng thử lại.');
+                }
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        initExam();
+    }, [testId]);
 
     // Timer countdown
     useEffect(() => {
+        if (!test) return;
+
+        // Use test duration
+        setTimeRemaining(test.durationMinutes * 60);
+
         const timer = setInterval(() => {
             setTimeRemaining((prev) => {
                 if (prev <= 0) {
@@ -89,35 +77,37 @@ const TestRunner = () => {
         }, 1000);
 
         return () => clearInterval(timer);
-    }, []);
+    }, [test]);
 
-    // Keyboard lock (disable certain keys)
+    // Anti-cheat: Disable copy/paste
     useEffect(() => {
-        const handleKeyDown = (e) => {
-            // Disable F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U
-            if (
-                e.key === 'F12' ||
-                (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J')) ||
-                (e.ctrlKey && e.key === 'u')
-            ) {
-                e.preventDefault();
-                return false;
-            }
-        };
-
-        // Disable right-click
-        const handleContextMenu = (e) => {
+        const disableCopyPaste = (e) => {
             e.preventDefault();
             return false;
         };
 
-        document.addEventListener('keydown', handleKeyDown);
-        document.addEventListener('contextmenu', handleContextMenu);
+        document.addEventListener('copy', disableCopyPaste);
+        document.addEventListener('cut', disableCopyPaste);
+        document.addEventListener('paste', disableCopyPaste);
 
         return () => {
-            document.removeEventListener('keydown', handleKeyDown);
-            document.removeEventListener('contextmenu', handleContextMenu);
+            document.removeEventListener('copy', disableCopyPaste);
+            document.removeEventListener('cut', disableCopyPaste);
+            document.removeEventListener('paste', disableCopyPaste);
         };
+    }, []);
+
+    // Anti-cheat: Warn on tab switch
+    useEffect(() => {
+        const handleVisibilityChange = () => {
+            if (document.hidden) {
+                console.warn('User switched tabs during exam!');
+                // Optionally record this event or show warning
+            }
+        };
+
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
     }, []);
 
     const formatTime = (seconds) => {
@@ -130,39 +120,63 @@ const TestRunner = () => {
         setAnswers({ ...answers, [questionId]: value });
     };
 
-    const handleNext = () => {
-        if (currentQuestion < currentSectionData.questions.length - 1) {
-            setCurrentQuestion(currentQuestion + 1);
-        } else if (currentSection < test.sections.length - 1) {
-            setCurrentSection(currentSection + 1);
-            setCurrentQuestion(0);
-        }
-    };
-
-    const handlePrevious = () => {
-        if (currentQuestion > 0) {
-            setCurrentQuestion(currentQuestion - 1);
-        } else if (currentSection > 0) {
-            setCurrentSection(currentSection - 1);
-            setCurrentQuestion(test.sections[currentSection - 1].questions.length - 1);
-        }
-    };
-
     const handleSubmit = async () => {
         if (!window.confirm(t('testRunner.confirmSubmit', 'Bạn có chắc muốn nộp bài?'))) {
             return;
         }
 
         setIsSubmitting(true);
-
-        // Record test completion
-        await ipTracker.recordTestAttempt(testId, true, null);
-
-        // Navigate to results
-        navigate(`/test-result/${testId}`, { state: { answers } });
+        try {
+            await examService.submitExam(attemptId);
+            navigate(`/test-result/${testId}`, { state: { answers, score: null } }); // Redirect to result
+        } catch (err) {
+            alert('Lỗi nộp bài: ' + err.message);
+        }
     };
 
-    const progress = ((currentSection * 100 + (currentQuestion / currentSectionData.questions.length) * 100) / test.sections.length);
+    if (loading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gray-50">
+                <div className="text-center">
+                    <div className="w-16 h-16 border-4 border-primary-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                    <p className="text-gray-600 font-medium">Đang tải đề thi...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (showUpgradePopup) {
+        return <UpgradePopup onClose={() => navigate('/')} />;
+    }
+
+    if (error) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gray-50">
+                <div className="text-center p-8 bg-white rounded-2xl shadow-lg">
+                    <h2 className="text-xl font-bold text-red-600 mb-2">Đã xảy ra lỗi</h2>
+                    <p className="text-gray-600">{error}</p>
+                    <button onClick={() => navigate('/')} className="mt-4 px-6 py-2 bg-gray-200 rounded-lg hover:bg-gray-300">
+                        Quay về trang chủ
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
+    if (!test) return null;
+
+    // Helper to get current display logic
+    // We assume backend returns `examQuestions` list.
+    // Frontend needs to group them by section if structure differs?
+    // Let's assume flattened structure for MVP or map it.
+    // For now, I will wrap the flat questions into a single "Section" to reuse UI or adapt UI.
+
+    // Quick Adapt: Map backend `test.examQuestions` to UI `currentQuestionData`
+    const questions = test.examQuestions || [];
+    const currentQuestionData = questions[currentQuestion];
+
+    // Calculate progress
+    const progress = ((currentQuestion + 1) / questions.length) * 100;
 
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -176,7 +190,7 @@ const TestRunner = () => {
                         <div className="flex-1 min-w-0">
                             <h1 className="text-base sm:text-lg lg:text-xl font-bold text-gray-900 truncate">{test.title}</h1>
                             <div className="text-xs sm:text-sm text-gray-600 truncate">
-                                {currentSectionData.name} - {t('testRunner.question', 'Câu')} {currentQuestion + 1}/{currentSectionData.questions.length}
+                                {t('testRunner.question', 'Câu')} {currentQuestion + 1}/{questions.length}
                             </div>
                         </div>
 
@@ -207,26 +221,27 @@ const TestRunner = () => {
                         <div className="mb-6">
                             <div className="flex items-start gap-3 mb-4">
                                 <div className="bg-primary-100 text-primary-700 font-bold px-2 py-1 sm:px-3 rounded-lg text-xs sm:text-sm shrink-0">
-                                    {currentQuestionData.id}
+                                    Q{currentQuestion + 1}
                                 </div>
                                 <div className="flex-1">
+                                    {/* Question Text from BE */}
                                     <p className="text-base sm:text-lg text-gray-800 leading-relaxed">
-                                        {currentQuestionData.text}
+                                        {currentQuestionData?.question?.content}
                                     </p>
                                 </div>
                             </div>
 
                             {/* Audio Player for Listening */}
-                            {currentQuestionData.audioUrl && (
+                            {currentQuestionData?.question?.audioUrl && (
                                 <div className="mb-4 bg-gray-50 p-3 sm:p-4 rounded-lg">
                                     <audio controls className="w-full">
-                                        <source src={currentQuestionData.audioUrl} type="audio/mpeg" />
+                                        <source src={currentQuestionData.question.audioUrl} type="audio/mpeg" />
                                     </audio>
                                 </div>
                             )}
 
                             {/* Answer Options */}
-                            {currentQuestionData.type === 'essay' ? (
+                            {currentQuestionData?.question?.questionType === 'ESSAY' ? (
                                 <textarea
                                     value={answers[currentQuestionData.id] || ''}
                                     onChange={(e) => handleAnswerChange(currentQuestionData.id, e.target.value)}
@@ -235,24 +250,28 @@ const TestRunner = () => {
                                 />
                             ) : (
                                 <div className="space-y-3">
-                                    {currentQuestionData.options.map((option) => (
+                                    {/* Assuming Options are loaded or part of Question Object */}
+                                    {/* Check if options exist in question object (BE usually sends them if Type is MC) */}
+                                    {/* For MVP, let's assume options are in currentQuestionData.question.options */}
+                                    {/* NOTE: Teacher Controller logic showed: question.setOptions() */}
+                                    {currentQuestionData?.question?.options?.map((option) => (
                                         <label
-                                            key={option}
-                                            className={`flex items-center gap-3 p-3 sm:p-4 border-2 rounded-lg cursor-pointer transition-all ${answers[currentQuestionData.id] === option
+                                            key={option.id}
+                                            className={`flex items-center gap-3 p-3 sm:p-4 border-2 rounded-lg cursor-pointer transition-all ${answers[currentQuestionData.id] === option.id
                                                 ? 'border-primary-500 bg-primary-50'
                                                 : 'border-gray-200 hover:border-primary-300 hover:bg-gray-50'
                                                 }`}
                                         >
                                             <input
                                                 type="radio"
-                                                name={currentQuestionData.id}
-                                                value={option}
-                                                checked={answers[currentQuestionData.id] === option}
-                                                onChange={(e) => handleAnswerChange(currentQuestionData.id, e.target.value)}
+                                                name={`q-${currentQuestionData.id}`}
+                                                value={option.id}
+                                                checked={answers[currentQuestionData.id] === option.id} // Storing Option ID
+                                                onChange={() => handleAnswerChange(currentQuestionData.id, option.id)}
                                                 className="w-4 h-4 sm:w-5 sm:h-5 text-primary-600 shrink-0"
                                             />
-                                            <span className="font-bold text-gray-700 text-sm sm:text-base">{option}</span>
-                                            <span className="text-gray-600 text-sm sm:text-base">Option {option} text here</span>
+                                            <span className="font-bold text-gray-700 text-sm sm:text-base">{option.optionLabel}</span>
+                                            <span className="text-gray-600 text-sm sm:text-base">{option.content}</span>
                                         </label>
                                     ))}
                                 </div>
@@ -262,14 +281,14 @@ const TestRunner = () => {
                         {/* Navigation */}
                         <div className="flex items-center justify-between pt-6 border-t gap-3">
                             <button
-                                onClick={handlePrevious}
-                                disabled={currentSection === 0 && currentQuestion === 0}
+                                onClick={() => setCurrentQuestion(prev => Math.max(0, prev - 1))}
+                                disabled={currentQuestion === 0}
                                 className="px-4 sm:px-6 py-2.5 sm:py-3 border-2 border-gray-300 rounded-lg font-medium hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
                             >
                                 ← {t('testRunner.previous', 'Trước')}
                             </button>
 
-                            {currentSection === test.sections.length - 1 && currentQuestion === currentSectionData.questions.length - 1 ? (
+                            {currentQuestion === questions.length - 1 ? (
                                 <button
                                     onClick={handleSubmit}
                                     disabled={isSubmitting}
@@ -279,7 +298,7 @@ const TestRunner = () => {
                                 </button>
                             ) : (
                                 <button
-                                    onClick={handleNext}
+                                    onClick={() => setCurrentQuestion(prev => Math.min(questions.length - 1, prev + 1))}
                                     className="px-4 sm:px-6 py-2.5 sm:py-3 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 text-sm sm:text-base"
                                 >
                                     {t('testRunner.next', 'Sau')} →
@@ -292,25 +311,20 @@ const TestRunner = () => {
                     <div className="max-w-4xl mx-auto mt-6 bg-white rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-6">
                         <h3 className="font-bold text-gray-900 mb-3 text-sm sm:text-base">{t('testRunner.questionNav', 'Danh sách câu hỏi')}</h3>
                         <div className="grid grid-cols-5 sm:grid-cols-10 gap-2">
-                            {test.sections.map((section, sIdx) =>
-                                section.questions.map((q, qIdx) => (
-                                    <button
-                                        key={q.id}
-                                        onClick={() => {
-                                            setCurrentSection(sIdx);
-                                            setCurrentQuestion(qIdx);
-                                        }}
-                                        className={`aspect-square rounded-lg font-medium text-xs sm:text-sm transition-all flex items-center justify-center ${sIdx === currentSection && qIdx === currentQuestion
-                                            ? 'bg-primary-600 text-white'
-                                            : answers[q.id]
-                                                ? 'bg-green-100 text-green-700 border-2 border-green-300'
-                                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                            }`}
-                                    >
-                                        {q.id}
-                                    </button>
-                                ))
-                            )}
+                            {questions.map((q, idx) => (
+                                <button
+                                    key={q.id}
+                                    onClick={() => setCurrentQuestion(idx)}
+                                    className={`aspect-square rounded-lg font-medium text-xs sm:text-sm transition-all flex items-center justify-center ${idx === currentQuestion
+                                        ? 'bg-primary-600 text-white'
+                                        : answers[q.id]
+                                            ? 'bg-green-100 text-green-700 border-2 border-green-300'
+                                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                        }`}
+                                >
+                                    {idx + 1}
+                                </button>
+                            ))}
                         </div>
                     </div>
                 </div>
