@@ -16,17 +16,17 @@ const ExamIntro = () => {
         const fetchExam = async () => {
             try {
                 // Temporary direct axios call or use a service
-                // const res = await axiosClient.get(\`/exams/\${examId}\`);
+                // const res = await axiosClient.get(`/exams/${examId}`);
                 // For now mockup or need to import axiosClient
                 // Let's assume we import axiosClient from a service
                 // But simplified:
-                const res = await api.get(\`/teacher/exams/\${examId}\`); // Student endpoint might differ? 
+                const res = await api.get(`/teacher/exams/${examId}`); // Student endpoint might differ? 
                 // Wait, User routes are not fully clear. Let's use /public/exams or check permissions.
                 // Actually ExamAttemptService requires Auth. 
                 // Let's assume student can view exam details at /api/exams/{id} if we enabled it?
                 // TeacherController has getExamById. 
                 // We probably need a Student/General controller for viewing exams.
-                
+
                 // Workaround: Use Teacher endpoint if testing as teacher, or assume we added Public/Student endpoint.
                 setExam(res.data);
             } catch (error) {
@@ -49,8 +49,8 @@ const ExamIntro = () => {
 
     const handleStart = async () => {
         // Call API to start attempt
-        // navigate(\`/exam/\${examId}/taking/\${attemptId}\`);
-        navigate(\`/exam/\${examId}/taking/123\`); // Mock attempt
+        // navigate(`/exam/${examId}/taking/${attemptId}`);
+        navigate(`/exam/${examId}/taking/123`); // Mock attempt
     };
 
     if (loading) return <div>Loading...</div>;
@@ -62,7 +62,7 @@ const ExamIntro = () => {
                 <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
                     <h1 className="text-3xl font-bold mb-4">{exam?.title}</h1>
                     <p className="text-gray-600 mb-6">{exam?.description}</p>
-                    
+
                     <div className="grid grid-cols-2 gap-6 mb-8 text-left max-w-md mx-auto bg-blue-50 p-6 rounded-xl border border-blue-100">
                         <div>
                             <span className="block text-sm text-gray-500">Thời gian</span>
@@ -73,16 +73,16 @@ const ExamIntro = () => {
                             <span className="font-bold text-lg text-blue-900">{exam?.totalPoints}</span>
                         </div>
                         <div className="col-span-2">
-                             <span className="block text-sm text-gray-500 mb-1">Lưu ý quan trọng</span>
-                             <ul className="list-disc list-inside text-sm text-gray-700 space-y-1">
+                            <span className="block text-sm text-gray-500 mb-1">Lưu ý quan trọng</span>
+                            <ul className="list-disc list-inside text-sm text-gray-700 space-y-1">
                                 <li>Không thoát trình duyệt trong quá trình làm bài.</li>
                                 <li>Kết nối mạng ổn định.</li>
                                 <li>Hệ thống sẽ tự động nộp bài khi hết giờ.</li>
-                             </ul>
+                            </ul>
                         </div>
                     </div>
 
-                    <button 
+                    <button
                         onClick={handleStart}
                         className="px-8 py-3 bg-gradient-to-r from-primary-600 to-primary-700 text-white rounded-xl font-bold text-lg hover:shadow-lg transform hover:-translate-y-1 transition"
                     >
