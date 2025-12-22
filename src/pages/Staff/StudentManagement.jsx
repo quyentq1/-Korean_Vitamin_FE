@@ -1,17 +1,49 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import userService from '../../services/userService';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 
 const StudentManagement = () => {
     const { t } = useTranslation();
     const [showModal, setShowModal] = useState(false);
+    const [students, setStudents] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [newItem, setNewItem] = useState({ fullName: '', email: '', expirationDate: '', username: '', password: '' });
 
-    const students = [
-        { id: 1, name: 'Nguyen Van A', email: 'nguyenvana@email.com', class: 'Advanced A1', enrollDate: '2024-01-15', status: 'active', progress: 85 },
-        { id: 2, name: 'Le Thi B', email: 'lethib@email.com', class: 'Intermediate B2', enrollDate: '2024-02-20', status: 'active', progress: 72 },
-        { id: 3, name: 'Tran Van C', email: 'tranvanc@email.com', class: 'Beginner C1', enrollDate: '2024-03-10', status: 'locked', progress: 65 }
-    ];
+    useEffect(() => {
+        fetchStudents();
+    }, []);
+
+    const fetchStudents = async () => {
+        try {
+            setLoading(true);
+            const data = await userService.getStudents();
+            setStudents(data);
+        } catch (error) {
+            console.error("Failed to fetch students", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleCreate = async (e) => {
+        e.preventDefault();
+        try {
+            await userService.createStudent({
+                fullName: newItem.fullName,
+                email: newItem.email,
+                username: newItem.email, // Using email as username for simplicity or add field
+                password: 'password123', // Default password or add field
+                expirationDate: newItem.expirationDate
+            });
+            setShowModal(false);
+            fetchStudents();
+            setNewItem({ fullName: '', email: '', expirationDate: '', username: '', password: '' });
+        } catch (error) {
+            alert('Failed to create student: ' + (error.response?.data?.message || error.message));
+        }
+    };
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
@@ -74,10 +106,10 @@ const StudentManagement = () => {
                                 <div className="flex items-start justify-between mb-3">
                                     <div className="flex items-center gap-3">
                                         <div className="w-10 h-10 bg-gradient-to-br from-primary-400 to-primary-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
-                                            {student.name.charAt(0)}
+                                            {student.fullName?.charAt(0)}
                                         </div>
                                         <div>
-                                            <h3 className="font-bold text-gray-900">{student.name}</h3>
+                                            <h3 className="font-bold text-gray-900">{student.fullName}</h3>
                                             <p className="text-xs text-gray-500">{student.email}</p>
                                         </div>
                                     </div>
@@ -98,6 +130,10 @@ const StudentManagement = () => {
                                         <span className="text-gray-500 text-xs">{t('studentMgmt.enrollDate', 'Ngày Nhập Học')}:</span>
                                         <div className="mt-0.5 text-gray-700">{student.enrollDate}</div>
                                     </div>
+                                    <div>
+                                        <span className="text-gray-500 text-xs">{t('studentMgmt.expirationDate', 'Ngày Hết Hạn')}:</span>
+                                        <div className="mt-0.5 text-red-600">{student.expirationDate}</div>
+                                    </div>
                                 </div>
 
                                 {/* Progress Bar */}
@@ -109,7 +145,7 @@ const StudentManagement = () => {
                                     <div className="bg-gray-200 rounded-full h-2">
                                         <div
                                             className="bg-gradient-to-r from-primary-500 to-primary-600 h-2 rounded-full"
-                                            style={{ width: `${student.progress}%` }}
+                                            style={{ width: `${student.freeTestCount || 0}%` }} // Using freeTestCount as progress proxy for now
                                         ></div>
                                     </div>
                                 </div>
@@ -137,6 +173,7 @@ const StudentManagement = () => {
                                         <th className="px-4 py-4 text-left font-bold text-gray-700">{t('studentMgmt.email', 'Email')}</th>
                                         <th className="px-4 py-4 text-left font-bold text-gray-700">{t('studentMgmt.class', 'Lớp')}</th>
                                         <th className="px-4 py-4 text-left font-bold text-gray-700">{t('studentMgmt.enrollDate', 'Ngày Nhập Học')}</th>
+                                        <th className="px-4 py-4 text-left font-bold text-gray-700">{t('studentMgmt.expirationDate', 'Ngày Hết Hạn')}</th>
                                         <th className="px-4 py-4 text-left font-bold text-gray-700 min-w-[150px]">{t('studentMgmt.progress', 'Tiến Độ')}</th>
                                         <th className="px-4 py-4 text-left font-bold text-gray-700">{t('studentMgmt.status', 'Trạng Thái')}</th>
                                         <th className="px-4 py-4 text-left font-bold text-gray-700">{t('studentMgmt.actions', 'Thao Tác')}</th>
@@ -151,9 +188,9 @@ const StudentManagement = () => {
                                             <td className="px-4 py-4">
                                                 <div className="flex items-center gap-3">
                                                     <div className="w-10 h-10 bg-gradient-to-br from-primary-400 to-primary-600 rounded-full flex items-center justify-center text-white font-bold">
-                                                        {student.name.charAt(0)}
+                                                        {student.fullName?.charAt(0)}
                                                     </div>
-                                                    <span className="font-medium text-gray-900">{student.name}</span>
+                                                    <span className="font-medium text-gray-900">{student.fullName}</span>
                                                 </div>
                                             </td>
                                             <td className="px-4 py-4 text-gray-600">{student.email}</td>
@@ -163,15 +200,16 @@ const StudentManagement = () => {
                                                 </span>
                                             </td>
                                             <td className="px-4 py-4 text-gray-600">{student.enrollDate}</td>
+                                            <td className="px-4 py-4 text-red-600 font-medium">{student.expirationDate}</td>
                                             <td className="px-4 py-4">
                                                 <div className="flex items-center gap-2">
                                                     <div className="flex-1 bg-gray-200 rounded-full h-2">
                                                         <div
                                                             className="bg-gradient-to-r from-primary-500 to-primary-600 h-2 rounded-full"
-                                                            style={{ width: `${student.progress}%` }}
+                                                            style={{ width: `${student.freeTestCount || 0}%` }}
                                                         ></div>
                                                     </div>
-                                                    <span className="text-sm font-medium text-gray-700">{student.progress}%</span>
+                                                    <span className="text-sm font-medium text-gray-700">{student.freeTestCount || 0}%</span>
                                                 </div>
                                             </td>
                                             <td className="px-4 py-4">
@@ -193,6 +231,50 @@ const StudentManagement = () => {
                             </table>
                         </div>
                     </div>
+
+                    {/* Modal */}
+                    {showModal && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+                            <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
+                                <h2 className="text-2xl font-bold mb-4">{t('studentMgmt.addNew', 'Thêm Học Viên')}</h2>
+                                <form className="space-y-4" onSubmit={handleCreate}>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700">Họ Tên</label>
+                                        <input
+                                            type="text"
+                                            value={newItem.fullName}
+                                            onChange={(e) => setNewItem({ ...newItem, fullName: e.target.value })}
+                                            className="w-full mt-1 px-4 py-2 border rounded-lg focus:outline-none focus:border-primary-500"
+                                            required
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700">Email</label>
+                                        <input
+                                            type="email"
+                                            value={newItem.email}
+                                            onChange={(e) => setNewItem({ ...newItem, email: e.target.value })}
+                                            className="w-full mt-1 px-4 py-2 border rounded-lg focus:outline-none focus:border-primary-500"
+                                            required
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700">Ngày Hết Hạn</label>
+                                        <input
+                                            type="date"
+                                            value={newItem.expirationDate}
+                                            onChange={(e) => setNewItem({ ...newItem, expirationDate: e.target.value })}
+                                            className="w-full mt-1 px-4 py-2 border rounded-lg focus:outline-none focus:border-primary-500"
+                                        />
+                                    </div>
+                                    <div className="flex justify-end gap-3 mt-6">
+                                        <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg">Hủy</button>
+                                        <button type="submit" className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700">Lưu</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
 

@@ -1,18 +1,30 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import userService from '../../services/userService';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 
 const UserManagement = () => {
     const { t } = useTranslation();
     const [filter, setFilter] = useState('all');
+    const [users, setUsers] = useState([]);
+    const [loading, setLoading] = useState(true);
 
-    const users = [
-        { id: 1, name: 'Nguyen Van A', email: 'nguyenvana@email.com', role: 'Learner', status: 'active', lastLogin: '2024-12-20' },
-        { id: 2, name: 'Teacher Park', email: 'park@koreanvitamin.com', role: 'Teacher', status: 'active', lastLogin: '2024-12-21' },
-        { id: 3, name: 'Le Thi B', email: 'lethib@email.com', role: 'Learner', status: 'inactive', lastLogin: '2024-11-15' },
-        { id: 4, name: 'Staff Kim', email: 'kim@koreanvitamin.com', role: 'Staff', status: 'active', lastLogin: '2024-12-20' }
-    ];
+    React.useEffect(() => {
+        fetchUsers();
+    }, []);
+
+    const fetchUsers = async () => {
+        try {
+            setLoading(true);
+            const data = await userService.getAllUsers();
+            setUsers(data);
+        } catch (error) {
+            console.error("Failed to fetch users", error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
@@ -81,6 +93,9 @@ const UserManagement = () => {
                                     </div>
                                     <span className="text-xs text-gray-500">{user.lastLogin}</span>
                                 </div>
+                                <div className="text-xs text-gray-500 px-4 pb-2">
+                                    Expires: <span className="text-red-500">{user.expirationDate || 'N/A'}</span>
+                                </div>
                                 <div className="flex gap-2 pt-2">
                                     <button className="flex-1 py-2 bg-blue-50 text-blue-600 rounded-lg text-sm font-medium">👁️ View</button>
                                     <button className="flex-1 py-2 bg-green-50 text-green-600 rounded-lg text-sm font-medium">✏️ Edit</button>
@@ -102,6 +117,7 @@ const UserManagement = () => {
                                     <th className="px-6 py-4 text-left font-bold text-gray-700">{t('userMgmt.email', 'Email')}</th>
                                     <th className="px-6 py-4 text-left font-bold text-gray-700">{t('userMgmt.role', 'Vai trò')}</th>
                                     <th className="px-6 py-4 text-left font-bold text-gray-700">{t('userMgmt.status', 'Trạng thái')}</th>
+                                    <th className="px-6 py-4 text-left font-bold text-gray-700">{t('userMgmt.expirationDate', 'Ngày hết hạn')}</th>
                                     <th className="px-6 py-4 text-left font-bold text-gray-700">{t('userMgmt.lastLogin', 'Đăng nhập cuối')}</th>
                                     <th className="px-6 py-4 text-left font-bold text-gray-700">{t('userMgmt.actions', 'Thao tác')}</th>
                                 </tr>
@@ -136,6 +152,7 @@ const UserManagement = () => {
                                                 {user.status}
                                             </span>
                                         </td>
+                                        <td className="px-6 py-4 text-red-600">{user.expirationDate || 'N/A'}</td>
                                         <td className="px-6 py-4 text-gray-600">{user.lastLogin}</td>
                                         <td className="px-6 py-4">
                                             <div className="flex gap-2">
