@@ -30,106 +30,82 @@ import ExamIntro from './pages/Exam/ExamIntro.jsx';
 import ExamTaking from './pages/Exam/ExamTaking.jsx';
 import QuestionImport from './pages/Teacher/QuestionImport.jsx';
 import GradingDetail from './pages/Teacher/GradingDetail.jsx';
+import OCRRegistration from './pages/OCRRegistration.jsx';
 import './App.css';
 
 import ChatbotWidget from './components/ChatbotWidget';
 
 function App() {
   return (
-    <Router>
-      <div className="App font-sf-pro">
-        <Routes>
-          {/* ... existing routes ... */}
+    <BrowserRouter>
+      <Routes>
+        <Route path="/login" element={<Login />} />
 
-          {/* Public Routes */}
-          <Route path="/" element={<HomePage />} />
+        {/* Unauthorized */}
+        <Route
+          path="/unauthorized"
+          element={
+            <div className="page-container error-page">
+              <h1>⛔ Unauthorized</h1>
+              <p>You don't have permission to access this page.</p>
+            </div>
+          }
+        />
 
-          {/* ... other routes ... */}
+        {/* Homepage - Public */}
+        <Route path="/" element={<Homepage />} />
 
-        </Routes>
+        {/* Dashboard & Core Pages */}
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/curriculum" element={<Curriculum />} />
+        <Route path="/prep" element={<ExamPrep />} />
+        <Route path="/courses" element={<CourseList />} />
+        <Route path="/courses/:id" element={<CourseDetail />} />
+        <Route path="/free-tests" element={<FreeTestList />} />
+        <Route path="/test-runner/:testId" element={<TestRunner />} />
+        <Route path="/test-result/:testId" element={<TestResult />} />
 
-        {/* Global Widgets */}
-        <ChatbotWidget />
-        <ToastContainer position="top-right" autoClose={3000} />
-      </div>
-    </Router>
+        {/* Exam Routes */}
+        <Route path="/exam/:examId/intro" element={<ExamIntro />} />
+        <Route path="/exam/:examId/taking/:attemptId" element={<ExamTaking />} />
+
+        {/* Learner Routes */}
+        <Route path="/learner-dashboard" element={<LearnerDashboard />} />
+        <Route path="/test-library" element={<TestLibrary />} />
+        <Route path="/my-schedule" element={<MySchedule />} />
+        <Route path="/writing-submission" element={<WritingSubmission />} />
+        <Route path="/forum" element={<Forum />} />
+
+        {/* Teacher Routes */}
+        <Route path="/question-bank" element={<QuestionBank />} />
+        <Route path="/grading-queue" element={<GradingQueue />} />
+        <Route path="/create-quiz" element={<CreateQuiz />} />
+        <Route path="/teacher-reports" element={<TeacherReports />} />
+        <Route path="/teacher-dashboard" element={<TeacherDashboard />} />
+        <Route path="/question-import" element={<QuestionImport />} />
+        <Route path="/grading/:attemptId" element={<GradingDetail />} />
+
+        {/* Staff Routes */}
+        <Route path="/student-management" element={<StudentManagement />} />
+        <Route path="/class-management" element={<ClassManagement />} />
+        <Route path="/role-management" element={<RoleManagement />} />
+
+        {/* Manager Routes */}
+        <Route path="/qb-approval" element={<QBApproval />} />
+
+        {/* Admin Routes */}
+        <Route path="/system-settings" element={<SystemSettings />} />
+        <Route path="/user-management" element={<UserManagement />} />
+
+        {/* OCR Registration */}
+        <Route path="/register-ocr" element={<OCRRegistration />} />
+      </Routes>
+
+      {/* Global Widgets */}
+      <ChatbotWidget />
+    </BrowserRouter>
   );
 }
 
-return (
-  <BrowserRouter>
-
-    <Routes>
-      <Route path="/login" element={<Login />} />
-      {/* Unauthorized */}
-      <Route
-        path="/unauthorized"
-        element={
-          <div className="page-container error-page">
-            <h1>⛔ Unauthorized</h1>
-            <p>You don't have permission to access this page.</p>
-          </div>
-        }
-      />
-      {/* Homepage - Public */}
-      <Route path="/" element={<Homepage />} />
-
-      {/* New Routes */}
-      <Route path="/dashboard" element={<Dashboard />} />
-      <Route path="/curriculum" element={<Curriculum />} />
-      <Route path="/prep" element={<ExamPrep />} />
-      <Route path="/courses" element={<CourseList />} />
-      <Route path="/courses/:id" element={<CourseDetail />} />
-      <Route path="/free-tests" element={<FreeTestList />} />
-      <Route path="/test-runner/:testId" element={<TestRunner />} />
-      <Route path="/test-runner/:testId" element={<TestRunner />} />
-      <Route path="/test-result/:testId" element={<TestResult />} />
-
-      {/* Exam Routes */}
-      <Route path="/exam/:examId/intro" element={<ExamIntro />} />
-      <Route path="/exam/:examId/taking/:attemptId" element={<ExamTaking />} />
-
-      {/* Learner Routes */}
-      <Route path="/learner-dashboard" element={<LearnerDashboard />} />
-      <Route path="/test-library" element={<TestLibrary />} />
-      <Route path="/my-schedule" element={<MySchedule />} />
-      <Route path="/writing-submission" element={<WritingSubmission />} />
-      <Route path="/forum" element={<Forum />} />
-
-      {/* Teacher Routes */}
-      <Route path="/question-bank" element={<QuestionBank />} />
-      <Route path="/grading-queue" element={<GradingQueue />} />
-
-      {/* Staff Routes */}
-      <Route path="/student-management" element={<StudentManagement />} />
-      <Route path="/class-management" element={<ClassManagement />} />
-      <Route path="/role-management" element={<RoleManagement />} />
-
-      {/* Teacher Routes - Continued */}
-      <Route path="/create-quiz" element={<CreateQuiz />} />
-      <Route path="/teacher-reports" element={<TeacherReports />} />
-      <Route path="/teacher-dashboard" element={<TeacherDashboard />} />
-      <Route path="/teacher-dashboard" element={<TeacherDashboard />} />
-      <Route path="/question-import" element={<QuestionImport />} />
-      <Route path="/grading/:attemptId" element={<GradingDetail />} />
-
-      {/* Manager Routes */}
-      <Route path="/qb-approval" element={<QBApproval />} />
-
-      {/* Admin Routes */}
-      <Route path="/system-settings" element={<SystemSettings />} />
-      <Route path="/user-management" element={<UserManagement />} />
-
-      {/* Other Routes */}
-      <Route path="/register-ocr" element={<OCRRegistration />} />
-
-    </Routes>
-
-    {/* Global Widgets */}
-    <ChatbotWidget />
-    <ToastContainer position="top-right" autoClose={3000} />
-  </BrowserRouter>
-);
-}
-
 export default App;
+
