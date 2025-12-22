@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import Navbar from '../../components/Navbar';
-import Footer from '../../components/Footer';
-import ocrService from '../../services/ocrService';
+import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
+import ocrService from '../services/ocrService';
 
 const OCRRegistration = () => {
     const [image, setImage] = useState(null);
