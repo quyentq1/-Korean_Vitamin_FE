@@ -3,22 +3,33 @@ import { useTranslation } from 'react-i18next';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 
+import api from '../../services/api';
+
 const TeacherReports = () => {
     const { t } = useTranslation();
     const [selectedClass, setSelectedClass] = useState('all');
     const [dateRange, setDateRange] = useState('month');
+    const [classData, setClassData] = useState([]);
+    const [topStudents, setTopStudents] = useState([]);
 
-    const classData = [
-        { name: 'Advanced A1', students: 25, avgScore: 82, attendance: 95, progress: 78 },
-        { name: 'Intermediate B2', students: 30, avgScore: 75, attendance: 88, progress: 65 },
-        { name: 'Beginner C1', students: 20, avgScore: 68, attendance: 92, progress: 55 }
-    ];
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const [classRes, topRes] = await Promise.all([
+                    api.get('/teacher/reports/classes'),
+                    api.get('/teacher/reports/top-students')
+                ]);
+                setClassData(classRes.data);
 
-    const topStudents = [
-        { rank: 1, name: 'Nguyen Van A', class: 'Advanced A1', score: 95, tests: 12 },
-        { rank: 2, name: 'Le Thi B', class: 'Intermediate B2', score: 92, tests: 10 },
-        { rank: 3, name: 'Tran Van C', class: 'Advanced A1', score: 90, tests: 11 }
-    ];
+                // Add rank
+                const rankedStudents = topRes.data.map((s, i) => ({ ...s, rank: i + 1 }));
+                setTopStudents(rankedStudents);
+            } catch (error) {
+                console.error("Failed to load reports", error);
+            }
+        };
+        fetchData();
+    }, []);
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">

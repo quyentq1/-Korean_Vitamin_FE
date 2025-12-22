@@ -2,33 +2,40 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
+import api from '../../services/api';
 
 const GradingQueue = () => {
     const { t } = useTranslation();
     const [filter, setFilter] = useState('all');
 
-    const submissions = [
-        {
-            id: 1,
-            student: 'Nguyen Van A',
-            title: 'Essay: My Hometown',
-            assignmentType: 'writing',
-            submittedDate: '2024-12-20',
-            class: 'Advanced A1',
-            aiScore: 78,
-            aiSuggestions: ['Good vocabulary', 'Grammar needs improvement']
-        },
-        {
-            id: 2,
-            student: 'Le Thi B',
-            title: 'Speaking Test - Topic Discussion',
-            assignmentType: 'speaking',
-            submittedDate: '2024-12-19',
-            class: 'Intermediate B2',
-            aiScore: 85,
-            aiSuggestions: ['Excellent pronunciation', 'Natural flow']
-        }
-    ];
+    const [submissions, setSubmissions] = useState([]);
+
+    useEffect(() => {
+        const fetchQueue = async () => {
+            try {
+                const res = await api.get('/teacher/grading/pending');
+                // Transform data for UI if needed
+                // Backend returns ExamAttempt list. 
+                // We need: id, student name, title (exam title), assignmentType (question type?), submittedDate, class name.
+                // This might require enriching data on backend or extra fetches.
+                // Assuming ExamAttempt has: student (User), exam (Exam), submitTime.
+                const data = res.data.map(att => ({
+                    id: att.id,
+                    student: att.student?.fullName || 'Unknown',
+                    title: att.exam?.title || 'Untitled Exam',
+                    assignmentType: 'Mixed', // Logic needed to detect if writing/speaking
+                    submittedDate: new Date(att.submitTime).toLocaleDateString(),
+                    class: 'N/A', // Class info might be missing in Attempt entity directly
+                    aiScore: 0, // Placeholder
+                    aiSuggestions: []
+                }));
+                setSubmissions(data);
+            } catch (error) {
+                console.error("Failed to load grading queue", error);
+            }
+        };
+        fetchQueue();
+    }, []);
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
@@ -97,8 +104,8 @@ const GradingQueue = () => {
                                         </div>
                                     </div>
                                     <span className={`self-start px-3 sm:px-4 py-1 sm:py-2 rounded-full text-xs sm:text-sm font-medium ${sub.assignmentType === 'writing'
-                                            ? 'bg-blue-100 text-blue-700'
-                                            : 'bg-purple-100 text-purple-700'
+                                        ? 'bg-blue-100 text-blue-700'
+                                        : 'bg-purple-100 text-purple-700'
                                         }`}>
                                         {sub.assignmentType === 'writing' ? '✍️ Viết' : '🎤 Nói'}
                                     </span>
