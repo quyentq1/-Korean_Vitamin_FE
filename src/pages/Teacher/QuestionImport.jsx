@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
-import api from '../../services/api'; // Using generic api wrapper
+import teacherService from '../../services/teacherService';
 
 const QuestionImport = () => {
     const [file, setFile] = useState(null);
@@ -29,12 +29,8 @@ const QuestionImport = () => {
         try {
             // Adjust endpoint if needed based on TeacherController mapping
             // TeacherController is @RequestMapping("/api/teacher")
-            const response = await api.post("/teacher/questions/import", formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
-            });
-            setResult(\`Thành công! Đã nhập \${response.data.length} câu hỏi.\`);
+            const response = await teacherService.importQuestions(file);
+            setResult('Thành công! Đã nhập ' + response.length + ' câu hỏi.');
         } catch (err) {
             console.error(err);
             setError(err.response?.data?.message || "Lỗi khi upload file.");
@@ -49,7 +45,7 @@ const QuestionImport = () => {
             <div className="flex-1 container mx-auto px-4 py-8 mt-20 max-w-2xl">
                 <div className="bg-white rounded-xl shadow p-8">
                     <h1 className="text-2xl font-bold mb-6">Nhập Câu Hỏi Từ Excel</h1>
-                    
+
                     <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800">
                         <p className="font-bold mb-1">Hướng dẫn:</p>
                         <ul className="list-disc list-inside">
@@ -67,9 +63,9 @@ const QuestionImport = () => {
 
                     <form onSubmit={handleUpload} className="space-y-6">
                         <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-primary-500 transition cursor-pointer relative">
-                            <input 
-                                type="file" 
-                                onChange={handleFileChange} 
+                            <input
+                                type="file"
+                                onChange={handleFileChange}
                                 accept=".xlsx, .xls"
                                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                             />
@@ -84,8 +80,8 @@ const QuestionImport = () => {
                         {error && <div className="p-3 bg-red-100 text-red-700 rounded-lg">{error}</div>}
                         {result && <div className="p-3 bg-green-100 text-green-700 rounded-lg">{result}</div>}
 
-                        <button 
-                            type="submit" 
+                        <button
+                            type="submit"
                             disabled={uploading || !file}
                             className="w-full py-3 bg-primary-600 text-white rounded-lg font-bold hover:bg-primary-700 disabled:opacity-50 transition"
                         >

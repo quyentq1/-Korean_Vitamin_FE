@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
-import api from '../../services/api';
+import teacherService from '../../services/teacherService';
 
 const GradingDetail = () => {
     const { attemptId } = useParams();
@@ -22,8 +22,8 @@ const GradingDetail = () => {
                 // Will fetch generic attempts first or mock.
                 // Actually ExamAttemptService has getAttemptAnswers, but not exposed in Controller yet.
                 // I will add it in next step.
-                const res = await api.get('/teacher/grading/${attemptId}/answers');
-                 setAnswers(res.data);
+                const res = await teacherService.getGradingAnswers(attemptId);
+                setAnswers(res.data);
             } catch (error) {
                 console.error("Failed to load answers", error);
             } finally {
@@ -34,14 +34,14 @@ const GradingDetail = () => {
     }, [attemptId]);
 
     const handleGradeChange = (id, field, value) => {
-        setAnswers(prev => prev.map(a => 
+        setAnswers(prev => prev.map(a =>
             a.id === id ? { ...a, [field]: value } : a
         ));
     };
 
     const handleSubmit = async () => {
         try {
-            await api.post('/teacher/grading/${attemptId}/submit', answers);
+            await teacherService.submitGrading(attemptId, answers);
             alert("Chấm điểm thành công!");
             navigate('/grading-queue');
         } catch (error) {
@@ -57,7 +57,7 @@ const GradingDetail = () => {
             <Navbar />
             <div className="flex-1 container mx-auto px-4 py-8 mt-20">
                 <h1 className="text-2xl font-bold mb-6">Chấm Bài - Attempt #{attemptId}</h1>
-                
+
                 <div className="space-y-6">
                     {answers.map((ans, idx) => (
                         <div key={ans.id} className="bg-white rounded-xl shadow p-6">
@@ -78,8 +78,8 @@ const GradingDetail = () => {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-medium mb-1">Điểm số</label>
-                                    <input 
-                                        type="number" 
+                                    <input
+                                        type="number"
                                         value={ans.score || ''}
                                         onChange={(e) => handleGradeChange(ans.id, 'score', e.target.value)}
                                         className="w-full p-2 border rounded focus:ring-2 focus:ring-primary-500"
@@ -88,7 +88,7 @@ const GradingDetail = () => {
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium mb-1">Nhận xét</label>
-                                    <textarea 
+                                    <textarea
                                         value={ans.feedback || ''}
                                         onChange={(e) => handleGradeChange(ans.id, 'feedback', e.target.value)}
                                         className="w-full p-2 border rounded focus:ring-2 focus:ring-primary-500"
@@ -101,7 +101,7 @@ const GradingDetail = () => {
                 </div>
 
                 <div className="sticky bottom-0 bg-white border-t p-4 mt-8 flex justify-end shadow-lg">
-                    <button 
+                    <button
                         onClick={handleSubmit}
                         className="px-8 py-3 bg-primary-600 text-white rounded-xl font-bold hover:bg-primary-700 shadow-lg"
                     >

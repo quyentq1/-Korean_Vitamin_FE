@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
-import api from '../../services/api';
+import managerService from '../../services/managerService';
 
 const QBApproval = () => {
     const { t } = useTranslation();
@@ -15,11 +15,11 @@ const QBApproval = () => {
 
     const fetchPending = async () => {
         try {
-            const res = await api.get('/manager/questions/pending');
+            const res = await managerService.getPendingQuestions();
             const data = await Promise.all(res.data.map(async (q) => {
                 // Check duplicate for each
                 // Note: Heavy operation if list is long, optimize in real app
-                const check = await api.post('/manager/questions/check-duplicate', { text: q.questionText });
+                const check = await managerService.checkDuplicate(q.questionText);
                 return { ...q, duplicateScore: check.data.score };
             }));
             setPendingQuestions(data);
@@ -32,7 +32,7 @@ const QBApproval = () => {
 
     const handleApprove = async (id) => {
         try {
-            await api.post('/manager/questions/${id}/approve');
+            await managerService.approveQuestion(id);
             setPendingQuestions(prev => prev.filter(q => q.id !== id));
         } catch (error) {
             console.error("Failed to approve", error);
@@ -41,10 +41,10 @@ const QBApproval = () => {
 
     const handleReject = async (id) => {
         try {
-            await api.post('/manager/questions/${id}/reject');
+            await managerService.rejectQuestion(id);
             setPendingQuestions(prev => prev.filter(q => q.id !== id));
         } catch (error) {
-             console.error("Failed to reject", error);
+            console.error("Failed to reject", error);
         }
     };
 
@@ -53,7 +53,7 @@ const QBApproval = () => {
             <Navbar />
             <div className="pt-24 pb-16 container mx-auto px-6">
                 <h1 className="text-3xl font-bold mb-8">Phê Duyệt Câu Hỏi</h1>
-                
+
                 {loading ? <p>Loading...</p> : (
                     <div className="space-y-4">
                         {pendingQuestions.length === 0 && <p>Không có câu hỏi nào chờ duyệt.</p>}

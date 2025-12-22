@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
-import api from '../../services/api'; // Generalized API wrapper needed, or fetch directly
+import examPublicService from '../../services/examPublicService';
 
 const ExamIntro = () => {
     const { examId } = useParams();
@@ -20,7 +20,7 @@ const ExamIntro = () => {
                 // For now mockup or need to import axiosClient
                 // Let's assume we import axiosClient from a service
                 // But simplified:
-                const res = await api.get(`/teacher/exams/${examId}`); // Student endpoint might differ? 
+                const res = await examPublicService.getExamDetails(examId);
                 // Wait, User routes are not fully clear. Let's use /public/exams or check permissions.
                 // Actually ExamAttemptService requires Auth. 
                 // Let's assume student can view exam details at /api/exams/{id} if we enabled it?

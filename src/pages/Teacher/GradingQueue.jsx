@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
-import api from '../../services/api';
+import teacherService from '../../services/teacherService';
 
 const GradingQueue = () => {
     const { t } = useTranslation();
@@ -13,7 +13,7 @@ const GradingQueue = () => {
     useEffect(() => {
         const fetchQueue = async () => {
             try {
-                const res = await api.get('/teacher/grading/pending');
+                const res = await teacherService.getPendingGrading();
                 // Transform data for UI if needed
                 // Backend returns ExamAttempt list. 
                 // We need: id, student name, title (exam title), assignmentType (question type?), submittedDate, class name.
