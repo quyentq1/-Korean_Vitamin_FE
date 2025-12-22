@@ -1,56 +1,41 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
+import axiosClient from '../../api/axiosClient';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 
 const Forum = () => {
     const { t } = useTranslation();
-    const [activeCategory, setActiveCategory] = useState('all');
+    const [activeCategory, setActiveCategory] = useState(null); // null means 'all'
+    const [categories, setCategories] = useState([]);
+    const [posts, setPosts] = useState([]);
+    const [loading, setLoading] = useState(true);
 
-    const categories = [
-        { id: 'all', name: t('forum.all', 'Tất cả'), icon: '📚', count: 45 },
-        { id: 'grammar', name: t('forum.grammar', 'Ngữ pháp'), icon: '📖', count: 12 },
-        { id: 'vocabulary', name: t('forum.vocabulary', 'Từ vựng'), icon: '📝', count: 15 },
-        { id: 'speaking', name: t('forum.speaking', 'Luyện nói'), icon: '🗣️', count: 8 },
-        { id: 'general', name: t('forum.general', 'Chung'), icon: '💬', count: 10 }
-    ];
+    useEffect(() => {
+        fetchData();
+    }, [activeCategory]);
 
-    const threads = [
-        {
-            id: 1,
-            title: 'Sự khác biệt giữa -이/가 và -은/는?',
-            category: 'grammar',
-            author: 'Nguyen Van A',
-            replies: 12,
-            views: 145,
-            lastActivity: '10 phút trước',
-            hasTeacherReply: true
-        },
-        {
-            id: 2,
-            title: 'Cách học từ vựng hiệu quả cho TOPIK II',
-            category: 'vocabulary',
-            author: 'Le Thi B',
-            replies: 8,
-            views: 89,
-            lastActivity: '1 giờ trước',
-            hasTeacherReply: false
-        },
-        {
-            id: 3,
-            title: 'Tìm bạn luyện nói tiếng Hàn',
-            category: 'speaking',
-            author: 'Tran Van C',
-            replies: 24,
-            views: 203,
-            lastActivity: '30 phút trước',
-            hasTeacherReply: false
+    const fetchData = async () => {
+        setLoading(true);
+        try {
+            const [catsRes, postsRes] = await Promise.all([
+                axiosClient.get('/api/forum/categories'),
+                axiosClient.get(activeCategory ? `/api/forum/posts?categoryId=${activeCategory}` : '/api/forum/posts')
+            ]);
+            setCategories(catsRes);
+            setPosts(postsRes);
+        } catch (error) {
+            console.error("Failed to load forum data", error);
+        } finally {
+            setLoading(false);
         }
-    ];
+    };
 
-    const filteredThreads = activeCategory === 'all'
-        ? threads
-        : threads.filter(t => t.category === activeCategory);
+    // Helper to format date
+    const formatDate = (dateStr) => {
+        return new Date(dateStr).toLocaleString('vi-VN');
+    };
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
@@ -77,6 +62,19 @@ const Forum = () => {
                                 </h2>
                                 {/* Mobile: Single column list, not horizontal scroll to ensure visibility */}
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-2">
+                                    <button
+                                        onClick={() => setActiveCategory(null)}
+                                        className={`w-full flex items-center justify-between px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl transition text-sm sm:text-base ${activeCategory === null
+                                            ? 'bg-primary-600 text-white shadow-lg'
+                                            : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
+                                            }`}
+                                    >
+                                        <span className="flex items-center gap-2">
+                                            <span>📚</span>
+                                            <span className="font-medium">{t('forum.all', 'Tất cả')}</span>
+                                        </span>
+                                    </button>
+
                                     {categories.map((cat) => (
                                         <button
                                             key={cat.id}
@@ -87,12 +85,8 @@ const Forum = () => {
                                                 }`}
                                         >
                                             <span className="flex items-center gap-2">
-                                                <span>{cat.icon}</span>
+                                                <span>📂</span>
                                                 <span className="font-medium">{cat.name}</span>
-                                            </span>
-                                            <span className={`text-xs sm:text-sm px-2 py-0.5 sm:py-1 rounded-full ${activeCategory === cat.id ? 'bg-white/20' : 'bg-gray-200'
-                                                }`}>
-                                                {cat.count}
                                             </span>
                                         </button>
                                     ))}
@@ -106,51 +100,49 @@ const Forum = () => {
 
                         {/* Threads List */}
                         <div className="lg:col-span-3">
-                            <div className="space-y-3 sm:space-y-4">
-                                {filteredThreads.map((thread) => (
-                                    <div key={thread.id} className="bg-white rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-6 hover:shadow-xl transition cursor-pointer">
-                                        <div className="flex gap-3 sm:gap-4">
-                                            {/* Author Avatar - Smaller on mobile */}
-                                            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-primary-400 to-primary-600 rounded-full flex items-center justify-center text-white font-bold text-base sm:text-lg flex-shrink-0">
-                                                {thread.author.charAt(0)}
-                                            </div>
-
-                                            {/* Content */}
-                                            <div className="flex-1 min-w-0">
-                                                <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-2 gap-2">
-                                                    <div>
-                                                        <h3 className="text-lg sm:text-xl font-bold text-gray-900 hover:text-primary-600 transition break-words">
-                                                            {thread.title}
-                                                        </h3>
-                                                        <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-1 text-xs sm:text-sm text-gray-600">
-                                                            <span>{thread.author}</span>
-                                                            <span>•</span>
-                                                            <span>{thread.lastActivity}</span>
-                                                        </div>
-                                                    </div>
-                                                    {thread.hasTeacherReply && (
-                                                        <span className="self-start px-2 sm:px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium flex items-center gap-1 whitespace-nowrap">
-                                                            ✓ {t('forum.teacherReply', 'GV đã trả lời')}
-                                                        </span>
-                                                    )}
+                            {loading ? <div className="text-center py-10">Loading...</div> : (
+                                <div className="space-y-3 sm:space-y-4">
+                                    {posts.length === 0 && <div className="text-center text-gray-500 py-10">Chưa có bài viết nào.</div>}
+                                    {posts.map((post) => (
+                                        <div key={post.id} className="bg-white rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-6 hover:shadow-xl transition cursor-pointer">
+                                            <div className="flex gap-3 sm:gap-4">
+                                                {/* Author Avatar */}
+                                                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-primary-400 to-primary-600 rounded-full flex items-center justify-center text-white font-bold text-base sm:text-lg flex-shrink-0">
+                                                    {post.author ? post.author.fullName.charAt(0) : 'U'}
                                                 </div>
 
-                                                <div className="flex flex-wrap items-center gap-4 sm:gap-6 mt-3 sm:mt-4 text-xs sm:text-sm text-gray-500">
-                                                    <span className="flex items-center gap-1">
-                                                        💬 {thread.replies} {t('forum.replies', 'phản hồi')}
-                                                    </span>
-                                                    <span className="flex items-center gap-1">
-                                                        👁️ {thread.views} {t('forum.views', 'lượt xem')}
-                                                    </span>
-                                                    <span className="px-2 sm:px-3 py-0.5 sm:py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
-                                                        {categories.find(c => c.id === thread.category)?.name}
-                                                    </span>
+                                                {/* Content */}
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-2 gap-2">
+                                                        <div>
+                                                            <h3 className="text-lg sm:text-xl font-bold text-gray-900 hover:text-primary-600 transition break-words">
+                                                                {post.title}
+                                                            </h3>
+                                                            <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-1 text-xs sm:text-sm text-gray-600">
+                                                                <span>{post.author ? post.author.fullName : 'Unknown'}</span>
+                                                                <span>•</span>
+                                                                <span>{formatDate(post.createdAt)}</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="flex flex-wrap items-center gap-4 sm:gap-6 mt-3 sm:mt-4 text-xs sm:text-sm text-gray-500">
+                                                        <span className="flex items-center gap-1">
+                                                            💬 {post.commentsCount} {t('forum.replies', 'phản hồi')}
+                                                        </span>
+                                                        <span className="flex items-center gap-1">
+                                                            👁️ {post.views} {t('forum.views', 'lượt xem')}
+                                                        </span>
+                                                        <span className="px-2 sm:px-3 py-0.5 sm:py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
+                                                            {post.category ? post.category.name : 'General'}
+                                                        </span>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
-                                ))}
-                            </div>
+                                    ))}
+                                </div>
+                            )}
 
                             {/* Pagination */}
                             <div className="mt-6 sm:mt-8 flex justify-center gap-2">
