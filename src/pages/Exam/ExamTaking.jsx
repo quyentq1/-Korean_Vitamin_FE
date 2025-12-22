@@ -62,7 +62,7 @@ const ExamTaking = () => {
     const formatTime = (seconds) => {
         const m = Math.floor(seconds / 60);
         const s = seconds % 60;
-        return \`\${m}:\${s < 10 ? '0' : ''}\${s}\`;
+        return `${m}:${s < 10 ? '0' : ''}${s}`;
     };
 
     if (loading) return <div>Loading...</div>;
@@ -91,11 +91,11 @@ const ExamTaking = () => {
                             <button
                                 key={q.id}
                                 onClick={() => setCurrentQuestionIndex(idx)}
-                                className={\`w-10 h-10 rounded-lg font-bold text-sm transition \${
-                                    currentQuestionIndex === idx 
-                                    ? 'bg-primary-600 text-white' 
+                                className={'w-10 h-10 rounded-lg font-bold text-sm transition ' +
+                                    currentQuestionIndex === idx
+                                    ? 'bg-primary-600 text-white'
                                     : answers[q.id] ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                }\`}
+                                }
                             >
                                 {idx + 1}
                             </button>
@@ -131,9 +131,9 @@ const ExamTaking = () => {
                                 {currentQ.options ? (
                                     currentQ.options.map(opt => (
                                         <label key={opt.id} className="flex items-center gap-3 p-4 border rounded-xl hover:bg-gray-50 cursor-pointer transition">
-                                            <input 
-                                                type="radio" 
-                                                name={\`q-\${currentQ.id}\`} 
+                                            <input
+                                                type="radio"
+                                                name={`q-${currentQ.id}`}
                                                 value={opt.id}
                                                 checked={answers[currentQ.id] == opt.id}
                                                 onChange={() => handleAnswer(opt.id)}
@@ -143,7 +143,7 @@ const ExamTaking = () => {
                                         </label>
                                     ))
                                 ) : (
-                                    <textarea 
+                                    <textarea
                                         className="w-full border rounded-xl p-4 min-h-[150px] focus:ring-2 focus:ring-primary-500 outline-none"
                                         placeholder="Nhập câu trả lời của bạn..."
                                         value={answers[currentQ.id] || ''}
@@ -156,41 +156,43 @@ const ExamTaking = () => {
 
                     {/* Navigation */}
                     <div className="max-w-3xl mx-auto mt-8 flex justify-between">
-                         <button 
+                        <button
                             disabled={currentQuestionIndex === 0}
                             onClick={() => setCurrentQuestionIndex(prev => prev - 1)}
                             className="px-6 py-2 bg-white border rounded-lg hover:bg-gray-50 disabled:opacity-50"
-                         >
-                             Câu trước
-                         </button>
-                         <button 
+                        >
+                            Câu trước
+                        </button>
+                        <button
                             disabled={currentQuestionIndex === questions.length - 1}
                             onClick={() => setCurrentQuestionIndex(prev => prev + 1)}
                             className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50"
-                         >
-                             Câu tiếp
-                         </button>
+                        >
+                            Câu tiếp
+                        </button>
                     </div>
                 </div>
             </div>
 
             {/* Anti-cheat Warning Modal */}
-            {showWarning && (
-                <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-                    <div className="bg-white p-6 rounded-xl max-w-sm text-center">
-                        <div className="text-4xl mb-4">⚠️</div>
-                        <h2 className="text-xl font-bold text-red-600 mb-2">Cảnh báo gian lận!</h2>
-                        <p className="text-gray-600 mb-6">Bạn vừa rời khỏi màn hình làm bài. Hành động này đã được ghi lại. Nếu tái phạm, bài thi sẽ bị hủy.</p>
-                        <button 
-                            onClick={() => setShowWarning(false)}
-                            className="px-4 py-2 bg-red-600 text-white rounded-lg font-bold"
-                        >
-                            Tôi đã hiểu
-                        </button>
+            {
+                showWarning && (
+                    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+                        <div className="bg-white p-6 rounded-xl max-w-sm text-center">
+                            <div className="text-4xl mb-4">⚠️</div>
+                            <h2 className="text-xl font-bold text-red-600 mb-2">Cảnh báo gian lận!</h2>
+                            <p className="text-gray-600 mb-6">Bạn vừa rời khỏi màn hình làm bài. Hành động này đã được ghi lại. Nếu tái phạm, bài thi sẽ bị hủy.</p>
+                            <button
+                                onClick={() => setShowWarning(false)}
+                                className="px-4 py-2 bg-red-600 text-white rounded-lg font-bold"
+                            >
+                                Tôi đã hiểu
+                            </button>
+                        </div>
                     </div>
-                </div>
-            )}
-        </div>
+                )
+            }
+        </div >
     );
 };
 
