@@ -1,57 +1,190 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
+import {
+  Menu,
+  X,
+  Bell,
+  User,
+  LogOut,
+  Settings,
+  Globe,
+  ChevronDown,
+  Home,
+  BookOpen,
+  GraduationCap,
+  Users,
+  FileText,
+  Calendar,
+  CheckCircle,
+  AlertCircle,
+  Search
+} from 'lucide-react';
+import authService from '../services/authService';
 
+/**
+ * Navbar Component
+ *
+ * Enhanced navbar with role-based menu, user profile dropdown,
+ * notification bell, language switcher, and mobile hamburger menu.
+ *
+ * Features:
+ * - Role-based navigation (ADMIN, STAFF, TEACHER, STUDENT)
+ * - User profile dropdown with actions
+ * - Notification bell with badge
+ * - Language switcher
+ * - Responsive mobile menu
+ * - Transparent on homepage, solid on scroll
+ * - Smooth scroll to sections
+ *
+ * @component
+ */
 const Navbar = () => {
-    const { t, i18n } = useTranslation();
-    const navigate = useNavigate();
-    const location = useLocation();
-    const [isScrolled, setIsScrolled] = useState(false);
-    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
+  const location = useLocation();
+  
+  // State
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const [notificationCount, setNotificationCount] = useState(3);
+  const [currentUser, setCurrentUser] = useState(null);
 
-    useEffect(() => {
-        const handleScroll = () => {
-            setIsScrolled(window.scrollY > 50);
-        };
-        window.addEventListener('scroll', handleScroll);
-        return () => window.removeEventListener('scroll', handleScroll);
-    }, []);
+  // Get current user from localStorage
+  useEffect(() => {
+    const user = authService.getCurrentUser();
+    setCurrentUser(user);
+  }, []);
 
-    const toggleLanguage = () => {
-        const newLang = i18n.language === 'en' ? 'vi' : 'en';
-        i18n.changeLanguage(newLang);
+  // Handle scroll effect
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 50);
     };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
-    // Check if we're on homepage to apply transparent background
-    const isHomePage = location.pathname === '/';
-    const shouldBeTransparent = isHomePage && !isScrolled;
+  // Close dropdowns on route change
+  useEffect(() => {
+    setIsProfileOpen(false);
+    setIsNotificationOpen(false);
+    setIsMobileMenuOpen(false);
+  }, [location.pathname]);
 
-    const navLinks = [
-        { link: '#features', label: t('landing.nav.features', 'Tính năng'), isAnchor: true },
-        { link: '#courses', label: t('landing.nav.courses', 'Khóa học'), isAnchor: true },
-        { link: '#pricing', label: t('landing.nav.pricing', 'Học phí'), isAnchor: true },
-        { link: '#testimonials', label: t('landing.nav.testimonials', 'Đánh giá'), isAnchor: true },
-        { link: '/curriculum', label: t('landing.nav.curriculum_only', 'Giáo trình') },
-        { link: '/prep', label: t('landing.nav.prep', 'Luyện thi') }
+  // Role-based navigation links
+  const getNavLinks = () => {
+    const role = currentUser?.role;
+    
+    // Public links (always visible)
+    const publicLinks = [
+      { link: '/', label: t('nav.home', 'Trang chủ'), icon: Home },
+      { link: '/courses', label: t('nav.courses', 'Khóa học'), icon: BookOpen },
+      { link: '/curriculum', label: t('nav.curriculum', 'Giáo trình'), icon: GraduationCap },
+      { link: '/prep', label: t('nav.prep', 'Luyện thi'), icon: FileText },
     ];
 
-    const handleNavClick = (item) => {
-        if (item.isAnchor) {
-            if (location.pathname !== '/') {
-                navigate('/');
-                setTimeout(() => {
-                    const element = document.querySelector(item.link);
-                    element?.scrollIntoView({ behavior: 'smooth' });
-                }, 100);
-            } else {
-                const element = document.querySelector(item.link);
-                element?.scrollIntoView({ behavior: 'smooth' });
-            }
-        } else {
-            navigate(item.link);
-        }
-        setIsMobileMenuOpen(false);
-    };
+    // Role-specific links
+    if (!role) {
+      return [
+        ...publicLinks,
+        { link: '/login', label: t('nav.login', 'Đăng nhập'), isAuth: true },
+        { link: '/register', label: t('nav.register', 'Đăng ký'), isAuth: true },
+      ];
+    }
+
+    switch (role) {
+      case 'STUDENT':
+        return [
+          ...publicLinks,
+          { link: '/learner-dashboard', label: t('nav.studentDashboard', 'Dashboard'), icon: Home },
+          { link: '/test-library', label: t('nav.testLibrary', 'Thư viện đề thi'), icon: BookOpen },
+          { link: '/my-schedule', label: t('nav.mySchedule', 'Lịch học'), icon: Calendar },
+          { link: '/writing-submission', label: t('nav.writingSubmission', 'Bài viết'), icon: FileText },
+          { link: '/forum', label: t('nav.forum', 'Diễn đàn'), icon: Users },
+        ];
+      
+      case 'TEACHER':
+        return [
+          ...publicLinks,
+          { link: '/teacher-dashboard', label: t('nav.teacherDashboard', 'Dashboard'), icon: Home },
+          { link: '/question-bank', label: t('nav.questionBank', 'Ngân hàng câu hỏi'), icon: BookOpen },
+          { link: '/grading-queue', label: t('nav.gradingQueue', 'Hàng đợi chấm'), icon: CheckCircle },
+          { link: '/teacher-reports', label: t('nav.reports', 'Báo cáo'), icon: FileText },
+          { link: '/forum', label: t('nav.forum', 'Diễn đàn'), icon: Users },
+        ];
+      
+      case 'STAFF':
+        return [
+          ...publicLinks,
+          { link: '/student-management', label: t('nav.studentManagement', 'Quản lý học viên'), icon: Users },
+          { link: '/class-management', label: t('nav.classManagement', 'Quản lý lớp học'), icon: Calendar },
+          { link: '/role-management', label: t('nav.roleManagement', 'Quản lý vai trò'), icon: Settings },
+          { link: '/forum', label: t('nav.forum', 'Diễn đàn'), icon: Users },
+        ];
+      
+      case 'ADMIN':
+        return [
+          ...publicLinks,
+          { link: '/user-management', label: t('nav.userManagement', 'Quản lý người dùng'), icon: Users },
+          { link: '/system-settings', label: t('nav.systemSettings', 'Cài đặt hệ thống'), icon: Settings },
+          { link: '/qb-approval', label: t('nav.qbApproval', 'Duyệt câu hỏi'), icon: CheckCircle },
+          { link: '/forum', label: t('nav.forum', 'Diễn đàn'), icon: Users },
+        ];
+      
+      default:
+        return publicLinks;
+    }
+  };
+
+  const navLinks = getNavLinks();
+
+  // Handle language toggle
+  const toggleLanguage = () => {
+    const newLang = i18n.language === 'en' ? 'vi' : 'en';
+    i18n.changeLanguage(newLang);
+  };
+
+  // Handle logout
+  const handleLogout = () => {
+    authService.logout();
+    navigate('/login');
+    setIsProfileOpen(false);
+  };
+
+  // Handle navigation click
+  const handleNavClick = (item) => {
+    if (item.isAnchor) {
+      if (location.pathname !== '/') {
+        navigate('/');
+        setTimeout(() => {
+          const element = document.querySelector(item.link);
+          element?.scrollIntoView({ behavior: 'smooth' });
+        }, 100);
+      } else {
+        const element = document.querySelector(item.link);
+        element?.scrollIntoView({ behavior: 'smooth' });
+      }
+    } else {
+      navigate(item.link);
+    }
+    setIsMobileMenuOpen(false);
+    setIsProfileOpen(false);
+    setIsNotificationOpen(false);
+  };
+
+  // Check if we're on homepage to apply transparent background
+  const isHomePage = location.pathname === '/';
+  const shouldBeTransparent = isHomePage && !isScrolled;
+
+  // Notification items (mock data)
+  const notifications = [
+    { id: 1, title: t('notification.newExam', 'Đề thi mới đã được thêm'), time: '5 phút trước', type: 'info', read: false },
+    { id: 2, title: t('notification.examResult', 'Kết quả đề thi đã có sẵn'), time: '1 giờ trước', type: 'success', read: false },
+    { id: 3, title: t('notification.classReminder', 'Nhắc nhở: Lớp học bắt đầu lúc 14:00'), time: '2 giờ trước', type: 'warning', read: true },
+  ];
 
     return (
         <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${shouldBeTransparent ? 'bg-transparent py-4' : 'bg-white shadow-md py-2'
