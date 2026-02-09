@@ -1,6 +1,6 @@
 import axiosClient from '../api/axiosClient';
 
-const classService = {
+export const classService = {
     getAllClasses: async () => {
         return await axiosClient.get('/classes');
     },

@@ -1,6 +1,6 @@
 import axiosClient from '../api/axiosClient';
 
-const ocrService = {
+export const ocrService = {
     // Process form image via OCR
     processFormImage: async (file) => {
         const formData = new FormData();

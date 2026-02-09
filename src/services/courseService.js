@@ -1,6 +1,6 @@
 import axiosClient from '../api/axiosClient';
 
-const courseService = {
+export const courseService = {
     // Public: Get all active courses
     getActiveCourses: async () => {
         return await axiosClient.get('/public/courses');
@@ -27,6 +27,10 @@ const courseService = {
 
     deleteCourse: async (id) => {
         return await axiosClient.delete(`/admin/courses/${id}`);
+    },
+
+    getCourseStudents: async (id) => {
+        return await axiosClient.get(`/admin/courses/${id}/students`);
     }
 };
 

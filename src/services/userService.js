@@ -1,6 +1,6 @@
 import axiosClient from '../api/axiosClient';
 
-const userService = {
+export const userService = {
     // Admin: Get all users
     getAllUsers: async () => {
         return await axiosClient.get('/admin/users');

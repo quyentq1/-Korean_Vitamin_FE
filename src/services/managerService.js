@@ -1,6 +1,6 @@
 import axiosClient from '../api/axiosClient';
 
-const managerService = {
+export const managerService = {
     // Question Bank Approval
     getPendingQuestions: async () => {
         return await axiosClient.get('/api/manager/questions/pending');

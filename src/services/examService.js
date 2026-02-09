@@ -1,6 +1,6 @@
 import axiosClient from '../api/axiosClient';
 
-const examService = {
+export const examService = {
     // Get all published exams (Public/Guest view)
     getPublishedExams: async () => {
         return await axiosClient.get('/student/exams'); // Or public endpoint if exists
