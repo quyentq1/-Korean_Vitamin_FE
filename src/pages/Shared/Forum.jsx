@@ -1,27 +1,50 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
+import { Search, ThumbsUp, ThumbsDown, Pin, PinOff } from 'lucide-react';
 import axiosClient from '../../api/axiosClient';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
+import CategoryManagementModal from '../../components/Shared/CategoryManagementModal';
 
 const Forum = () => {
     const { t } = useTranslation();
-    const [activeCategory, setActiveCategory] = useState(null); // null means 'all'
+    const [activeCategory, setActiveCategory] = useState(null);
     const [categories, setCategories] = useState([]);
     const [posts, setPosts] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+    const [userRole, setUserRole] = useState(null);
 
     useEffect(() => {
         fetchData();
-    }, [activeCategory]);
+    }, [activeCategory, searchTerm]);
+
+    useEffect(() => {
+        const fetchUserRole = async () => {
+            try {
+                const userStr = localStorage.getItem('user');
+                if (userStr) {
+                    const user = JSON.parse(userStr);
+                    setUserRole(user.role);
+                }
+            } catch (error) {
+                console.error('Error fetching user role:', error);
+            }
+        };
+        fetchUserRole();
+    }, []);
 
     const fetchData = async () => {
         setLoading(true);
         try {
             const [catsRes, postsRes] = await Promise.all([
                 axiosClient.get('/api/forum/categories'),
-                axiosClient.get(activeCategory ? `/api/forum/posts?categoryId=${activeCategory}` : '/api/forum/posts')
+                axiosClient.get(activeCategory
+                    ? `/api/forum/posts?categoryId=${activeCategory}&search=${encodeURIComponent(searchTerm)}`
+                    : `/api/forum/posts?search=${encodeURIComponent(searchTerm)}`
+                )
             ]);
             setCategories(catsRes);
             setPosts(postsRes);
@@ -29,6 +52,32 @@ const Forum = () => {
             console.error("Failed to load forum data", error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleSearch = (e) => {
+        setSearchTerm(e.target.value);
+    };
+
+    const handlePinToggle = async (postId, currentStatus) => {
+        try {
+            await axiosClient.put(`/api/forum/posts/${postId}/pin`, {
+                pinned: !currentStatus
+            });
+            fetchData();
+        } catch (error) {
+            console.error('Error toggling pin:', error);
+        }
+    };
+
+    const handleVote = async (postId, voteType) => {
+        try {
+            await axiosClient.post(`/api/forum/posts/${postId}/vote`, {
+                voteType
+            });
+            fetchData();
+        } catch (error) {
+            console.error('Error voting:', error);
         }
     };
 
@@ -51,6 +100,29 @@ const Forum = () => {
                         <p className="text-gray-600 text-sm sm:text-base lg:text-lg">
                             {t('forum.subtitle', 'Cùng nhau học tập và chia sẻ kinh nghiệm')}
                         </p>
+                        
+                        {/* Search Bar */}
+                        <div className="mt-4 flex gap-2">
+                            <div className="flex-1 relative">
+                                <Search className="absolute left-3 top-1/2 text-gray-400 w-5 h-5" />
+                                <input
+                                    type="text"
+                                    placeholder={t('forum.searchPlaceholder', 'Tìm kiếm bài viết...')}
+                                    value={searchTerm}
+                                    onChange={handleSearch}
+                                    className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm sm:text-base"
+                                />
+                            </div>
+                            {(userRole === 'ADMIN' || userRole === 'MANAGER') && (
+                                <button
+                                    onClick={() => setIsCategoryModalOpen(true)}
+                                    className="px-4 py-2.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-xl font-bold hover:shadow-lg transition text-sm sm:text-base flex items-center gap-2"
+                                >
+                                    <span>➕</span>
+                                    {t('forum.createCategory', 'Tạo Danh Mục')}
+                                </button>
+                            )}
+                        </div>
                     </div>
 
                     <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 sm:gap-8">
@@ -136,6 +208,59 @@ const Forum = () => {
                                                         <span className="px-2 sm:px-3 py-0.5 sm:py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
                                                             {post.category ? post.category.name : 'General'}
                                                         </span>
+                                                        
+                                                        {/* Pin Button (Admin/Manager only) */}
+                                                        {(userRole === 'ADMIN' || userRole === 'MANAGER') && (
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    handlePinToggle(post.id, post.pinned);
+                                                                }}
+                                                                className={`flex items-center gap-1 px-2 py-1 rounded-lg transition ${
+                                                                    post.pinned
+                                                                        ? 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200'
+                                                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                                                }`}
+                                                                title={post.pinned ? 'Bỏ ghim' : 'Ghim bài viết'}
+                                                            >
+                                                                {post.pinned ? <PinOff className="w-4 h-4" /> : <Pin className="w-4 h-4" />}
+                                                                {post.pinned ? 'Đã ghim' : 'Ghim'}
+                                                            </button>
+                                                        )}
+                                                        
+                                                        {/* Vote Buttons */}
+                                                        <div className="flex items-center gap-1">
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    handleVote(post.id, 'UP');
+                                                                }}
+                                                                className={`flex items-center gap-1 px-2 py-1 rounded-lg transition ${
+                                                                    post.userVote === 'UP'
+                                                                        ? 'bg-green-100 text-green-700'
+                                                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                                                }`}
+                                                                title="Thích bài viết"
+                                                            >
+                                                                <ThumbsUp className="w-4 h-4" />
+                                                                <span>{post.upvotes || 0}</span>
+                                                            </button>
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    handleVote(post.id, 'DOWN');
+                                                                }}
+                                                                className={`flex items-center gap-1 px-2 py-1 rounded-lg transition ${
+                                                                    post.userVote === 'DOWN'
+                                                                        ? 'bg-red-100 text-red-700'
+                                                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                                                }`}
+                                                                title="Không thích bài viết"
+                                                            >
+                                                                <ThumbsDown className="w-4 h-4" />
+                                                                <span>{post.downvotes || 0}</span>
+                                                            </button>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -163,6 +288,13 @@ const Forum = () => {
                 </div>
             </div>
 
+            <CategoryManagementModal
+                isOpen={isCategoryModalOpen}
+                onClose={() => setIsCategoryModalOpen(false)}
+                onSuccess={() => {
+                    fetchData();
+                }}
+            />
             <Footer />
         </div>
     );

@@ -1,31 +1,50 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
-import ipTracker from '../../utils/IPTracker';
+import ConsultationPopup from '../../components/ConsultationPopup';
+import { useAuth } from '../../contexts/AuthContext';
+import useTestTracking from '../../hooks/useTestTracking';
 
 const FreeTestList = () => {
     const { t } = useTranslation();
     const navigate = useNavigate();
-    const [quota, setQuota] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const { isAuthenticated, user } = useAuth();
+    const [showConsultationPopup, setShowConsultationPopup] = useState(false);
 
+    // Ref để theo dõi việc đã redirect chưa
+    const hasRedirectedRef = useRef(false);
+
+    // Redirect nếu user đã đăng nhập
     useEffect(() => {
-        loadQuota();
-    }, []);
-
-    const loadQuota = async () => {
-        setLoading(true);
-        try {
-            const quotaData = await ipTracker.checkQuota();
-            setQuota(quotaData);
-        } catch (error) {
-            console.error('Error loading quota:', error);
-        } finally {
-            setLoading(false);
+        if (isAuthenticated && user?.role && !hasRedirectedRef.current) {
+            hasRedirectedRef.current = true;
+            const roleRoutes = {
+                'ADMIN': '/admin',
+                'MANAGER': '/manager',
+                'TEACHER': '/teacher-dashboard',
+                'STAFF': '/staff',
+                'STUDENT': '/learner-dashboard',
+                'LEARNER': '/learner-dashboard'
+            };
+            const redirectPath = roleRoutes[user.role] || '/';
+            navigate(redirectPath, { replace: true });
         }
-    };
+
+        // Reset ref khi không còn authenticated (đăng xuất)
+        if (!isAuthenticated) {
+            hasRedirectedRef.current = false;
+        }
+    }, [isAuthenticated, user, navigate]);
+
+    // Use tracking hook instead of IPTracker
+    const {
+        loading,
+        remainingFreeTests,
+        hasQuota,
+        hasCompletedTest,
+    } = useTestTracking();
 
     const tests = [
         {
@@ -39,7 +58,7 @@ const FreeTestList = () => {
                 { name: t('freeTest.reading', 'Đọc'), questions: 20 }
             ],
             icon: '📝',
-            color: 'from-blue-500 to-blue-700'
+            color: 'from-primary-500 to-primary-700'
         },
         {
             id: 'test-2',
@@ -53,21 +72,36 @@ const FreeTestList = () => {
                 { name: t('freeTest.writing', 'Viết'), questions: 2 }
             ],
             icon: '✍️',
-            color: 'from-purple-500 to-purple-700'
+            color: 'from-secondary-500 to-secondary-700'
         }
     ];
 
-    const handleStartTest = (testId) => {
-        if (!quota || !quota.hasQuota) {
-            alert(t('freeTest.noQuota', 'Bạn đã hết lượt test miễn phí. Vui lòng liên hệ để làm thêm!'));
+    const handleStartTest = (testId, index) => {
+        const completed = hasCompletedTest(testId);
+
+        // If test is beyond free quota and not completed, show popup
+        if (index >= 2 && !completed) {
+            setShowConsultationPopup(true);
             return;
         }
+
+        // Navigate to test runner
         navigate(`/test-runner/${testId}`);
     };
 
-    const isTestCompleted = (testId) => {
-        if (!quota || !quota.testHistory) return false;
-        return quota.testHistory.some(t => t.testId === testId && t.completed);
+    const handleConsultationSubmit = async (formData) => {
+        try {
+            // TODO: Send to backend or contact service
+            console.log('Consultation request:', formData);
+
+            // Show success message
+            alert(t('consultation.success', 'Yêu cầu tư vấn đã được gửi! Chúng tôi sẽ liên hệ sớm nhất.'));
+
+            setShowConsultationPopup(false);
+        } catch (error) {
+            console.error('Error submitting consultation:', error);
+            throw error;
+        }
     };
 
     if (loading) {
@@ -100,14 +134,14 @@ const FreeTestList = () => {
                         </p>
 
                         {/* Quota Display */}
-                        <div className="inline-flex items-center gap-3 bg-white px-4 sm:px-6 py-2 sm:py-3 rounded-full shadow-lg">
+                        <div className="inline-flex items-center gap-3 bg-white px-4 sm:px-6 py-2 sm:py-3 rounded-full shadow-lg border-2 border-primary-200">
                             <div className="flex items-center gap-2">
                                 <span className="text-xl sm:text-2xl">🎯</span>
                                 <span className="font-medium text-gray-700 text-sm sm:text-base">
                                     {t('freeTest.remaining', 'Còn lại')}:
                                 </span>
                                 <span className="text-xl sm:text-2xl font-bold text-primary-600">
-                                    {quota?.remaining || 0}/{quota?.total || 2}
+                                    {remainingFreeTests}/2
                                 </span>
                                 <span className="text-gray-600 text-sm sm:text-base">
                                     {t('freeTest.tests', 'bài test')}
@@ -119,16 +153,25 @@ const FreeTestList = () => {
                     {/* Test Cards */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 max-w-5xl mx-auto">
                         {tests.map((test, index) => {
-                            const completed = isTestCompleted(test.id);
-                            const canTake = quota?.hasQuota || completed;
+                            const completed = hasCompletedTest(test.id);
+                            const isLocked = index >= 2 && !hasQuota && !completed;
+                            const canTake = index < 2 || hasQuota || completed;
 
                             return (
                                 <div
                                     key={test.id}
-                                    className="bg-white rounded-xl sm:rounded-2xl shadow-xl overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1"
+                                    className={`bg-white rounded-xl sm:rounded-2xl shadow-xl overflow-hidden transition-all duration-300 ${isLocked
+                                            ? 'opacity-75 transform scale-95'
+                                            : 'hover:shadow-2xl hover:-translate-y-1'
+                                        }`}
                                 >
                                     {/* Header */}
-                                    <div className={`bg-gradient-to-r ${test.color} p-4 sm:p-6 text-white`}>
+                                    <div className={`bg-gradient-to-r ${test.color} p-4 sm:p-6 text-white relative`}>
+                                        {isLocked && (
+                                            <div className="absolute top-2 right-2 bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full">
+                                                <span className="text-xs font-bold">🔒 ĐÃ KHÓA</span>
+                                            </div>
+                                        )}
                                         <div className="flex items-center gap-3 mb-3">
                                             <span className="text-3xl sm:text-4xl">{test.icon}</span>
                                             <div>
@@ -171,11 +214,11 @@ const FreeTestList = () => {
 
                                         {/* Status Badge */}
                                         {completed && (
-                                            <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg flex items-center gap-2">
-                                                <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                            <div className="mb-4 p-3 bg-success-50 border border-success-200 rounded-lg flex items-center gap-2">
+                                                <svg className="w-5 h-5 text-success-600" fill="currentColor" viewBox="0 0 20 20">
                                                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                                                 </svg>
-                                                <span className="text-green-700 font-medium text-sm sm:text-base">
+                                                <span className="text-success-700 font-medium text-sm sm:text-base">
                                                     {t('freeTest.completed', 'Đã hoàn thành')}
                                                 </span>
                                             </div>
@@ -183,18 +226,23 @@ const FreeTestList = () => {
 
                                         {/* Action Button */}
                                         <button
-                                            onClick={() => handleStartTest(test.id)}
-                                            disabled={!canTake}
-                                            className={`w-full py-3 sm:py-4 rounded-xl font-bold transition-all duration-300 text-sm sm:text-base ${canTake
-                                                ? `bg-gradient-to-r ${test.color} text-white hover:shadow-xl transform hover:-translate-y-0.5`
-                                                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                            onClick={() => handleStartTest(test.id, index)}
+                                            className={`w-full py-3 sm:py-4 rounded-xl font-bold transition-all duration-300 text-sm sm:text-base ${isLocked
+                                                    ? 'bg-gray-300 text-gray-600 cursor-pointer hover:bg-gray-400'
+                                                    : canTake
+                                                        ? `bg-gradient-to-r ${test.color} text-white hover:shadow-xl transform hover:-translate-y-0.5`
+                                                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                                                 }`}
                                         >
-                                            {completed
-                                                ? t('freeTest.retake', 'Làm lại')
-                                                : canTake
-                                                    ? t('freeTest.start', 'Bắt đầu làm bài')
-                                                    : t('freeTest.locked', 'Đã hết lượt')}
+                                            {isLocked ? (
+                                                <>🔒 {t('freeTest.requestAccess', 'Yêu Cầu Truy Cập')}</>
+                                            ) : completed ? (
+                                                t('freeTest.retake', 'Làm lại')
+                                            ) : canTake ? (
+                                                t('freeTest.start', 'Bắt đầu làm bài')
+                                            ) : (
+                                                t('freeTest.locked', 'Đã hết lượt')
+                                            )}
                                         </button>
                                     </div>
                                 </div>
@@ -202,26 +250,27 @@ const FreeTestList = () => {
                         })}
                     </div>
 
-                    {/* No Quota Warning */}
-                    {quota && !quota.hasQuota && (
-                        <div className="mt-8 sm:mt-12 max-w-2xl mx-auto bg-gradient-to-r from-orange-50 to-orange-100 border-2 border-orange-300 rounded-2xl p-6 sm:p-8 text-center">
-                            <div className="text-4xl sm:text-5xl mb-4">🔒</div>
+                    {/* No Quota Info */}
+                    {!hasQuota && (
+                        <div className="mt-8 sm:mt-12 max-w-2xl mx-auto bg-gradient-to-r from-warning-50 to-warning-100 border-2 border-warning-300 rounded-2xl p-6 sm:p-8 text-center">
+                            <div className="text-4xl sm:text-5xl mb-4">🎓</div>
                             <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3">
                                 {t('freeTest.noQuotaTitle', 'Bạn đã hoàn thành 2 bài test miễn phí!')}
                             </h3>
                             <p className="text-gray-700 mb-6 text-sm sm:text-base">
-                                {t('freeTest.noQuotaDesc', 'Liên hệ với chúng tôi để mua gói test hoặc đăng ký khóa học để làm thêm nhiều bài test khác.')}
+                                {t('freeTest.noQuotaDesc', 'Click "Yêu Cầu Truy Cập" trên bất kỳ test nào để liên hệ tư vấn.')}
                             </p>
-                            <button
-                                onClick={() => navigate('/contact')}
-                                className="px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl font-bold hover:shadow-xl transition-all duration-300 text-sm sm:text-base"
-                            >
-                                {t('freeTest.contactNow', 'Liên hệ ngay')} →
-                            </button>
                         </div>
                     )}
                 </div>
             </div>
+
+            {/* Consultation Popup */}
+            <ConsultationPopup
+                isOpen={showConsultationPopup}
+                onClose={() => setShowConsultationPopup(false)}
+                onSubmit={handleConsultationSubmit}
+            />
 
             <Footer />
         </div>
@@ -229,3 +278,4 @@ const FreeTestList = () => {
 };
 
 export default FreeTestList;
+

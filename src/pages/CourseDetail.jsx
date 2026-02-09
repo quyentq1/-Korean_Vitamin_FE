@@ -1,19 +1,46 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import ContactModal from '../components/ContactModal';
+import { useAuth } from '../contexts/AuthContext';
 import courseService from '../services/courseService';
 
 const CourseDetail = () => {
     const { id } = useParams();
     const { t } = useTranslation();
     const navigate = useNavigate();
+    const { isAuthenticated, user } = useAuth();
     const [isContactModalOpen, setIsContactModalOpen] = useState(false);
     const [course, setCourse] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+
+    // Ref để theo dõi việc đã redirect chưa
+    const hasRedirectedRef = useRef(false);
+
+    // Redirect nếu user đã đăng nhập
+    useEffect(() => {
+        if (isAuthenticated && user?.role && !hasRedirectedRef.current) {
+            hasRedirectedRef.current = true;
+            const roleRoutes = {
+                'ADMIN': '/admin',
+                'MANAGER': '/manager',
+                'TEACHER': '/teacher-dashboard',
+                'STAFF': '/staff',
+                'STUDENT': '/learner-dashboard',
+                'LEARNER': '/learner-dashboard'
+            };
+            const redirectPath = roleRoutes[user.role] || '/';
+            navigate(redirectPath, { replace: true });
+        }
+
+        // Reset ref khi không còn authenticated (đăng xuất)
+        if (!isAuthenticated) {
+            hasRedirectedRef.current = false;
+        }
+    }, [isAuthenticated, user, navigate]);
 
     // Legacy static data for fallback (optional, or just remove if fully dynamic)
     const staticCourseData = {

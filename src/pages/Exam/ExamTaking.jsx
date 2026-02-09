@@ -1,199 +1,334 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import examService from '../../services/examService';
+import useExamSecurity from '../../hooks/useExamSecurity';
+import useExamTimer from '../../hooks/useExamTimer';
+import { generateExamVariant } from '../../utils/examVariantGenerator';
 
 const ExamTaking = () => {
     const { examId, attemptId } = useParams();
     const navigate = useNavigate();
 
-    const [loading, setLoading] = useState(false); // Mock loading
-    const [timeLeft, setTimeLeft] = useState(45 * 60); // 45 mins in seconds
+    const [loading, setLoading] = useState(true);
+    const [exam, setExam] = useState(null);
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [answers, setAnswers] = useState({});
-    const [questions, setQuestions] = useState([]);
-    const [showWarning, setShowWarning] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [showCheatWarning, setShowCheatWarning] = useState(false);
 
-    // Anti-cheat: Tab switching
+    // Security: Strict monitoring for official exams
+    const { violationCount, resetViolations } = useExamSecurity((type) => {
+        // Immediate warning
+        setShowCheatWarning(true);
+        // Log violation to backend immediately in background
+        examService.logViolation(attemptId, type).catch(console.error);
+    });
+
+    // Timer: Will be initialized after exam loads
+    const [duration, setDuration] = useState(0);
+    const { formattedTime, startTimer, stopTimer, progress: timeProgress } = useExamTimer(
+        duration,
+        () => handleSubmit(true)
+    );
+
     useEffect(() => {
-        const handleVisibilityChange = () => {
-            if (document.hidden) {
-                setShowWarning(true);
-                // Could verify logic to auto-submit or penalize
+        const initExam = async () => {
+            try {
+                setLoading(true);
+                // Fetch attempt details
+                // const attempt = await examService.getAttempt(attemptId); 
+                // Mocking for now as per previous logic
+                const mockExamData = {
+                    id: examId,
+                    title: "Kỳ thi Đánh giá Năng lực tiếng Hàn (TOPIK)",
+                    duration: 45, // minutes
+                    questions: [
+                        { id: 1, type: 'MULTIPLE_CHOICE', text: 'Thủ đô của Hàn Quốc là gì?', options: [{ id: 1, text: 'Seoul' }, { id: 2, text: 'Busan' }, { id: 3, text: 'Incheon' }, { id: 4, text: 'Daegu' }] },
+                        { id: 2, type: 'SHORT_ANSWER', text: 'Viết từ "Xin chào" bằng tiếng Hàn.' },
+                        { id: 3, type: 'LISTENING', text: 'Nghe đoạn hội thoại và chọn đáp án đúng.', mediaUrl: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', options: [{ id: 1, text: 'Khủng long' }, { id: 2, text: 'Sư tử' }] },
+                        { id: 4, type: 'MULTIPLE_CHOICE', text: 'Kimchi thường được làm từ loại rau nào?', options: [{ id: 1, text: 'Cải thảo' }, { id: 2, text: 'Rau muống' }, { id: 3, text: 'Cà rốt' }, { id: 4, text: 'Khoai tây' }] }
+                    ]
+                };
+
+                // Shuffle/Variant generation
+                // Ideally this happens on backend when creating attempt, but frontend shuffle for extra layer
+                const variant = generateExamVariant({ sections: [{ questions: mockExamData.questions }] }, 'student-123'); // Assuming student ID from context
+
+                // Unpack sections for flat list or keep sections logic (Flat for MVP)
+                const flatQuestions = variant.sections[0].questions;
+
+                setExam({ ...mockExamData, questions: flatQuestions });
+                setDuration(mockExamData.duration);
+
+            } catch (error) {
+                console.error("Failed to load exam", error);
+                alert("Lỗi tải đề thi.");
+                navigate('/dashboard');
+            } finally {
+                setLoading(false);
             }
         };
-        document.addEventListener("visibilitychange", handleVisibilityChange);
-        return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
-    }, []);
 
-    // Timer
+        if (attemptId) {
+            initExam();
+        }
+    }, [attemptId, examId, navigate]);
+
+    // Start timer once exam loaded
     useEffect(() => {
-        const timer = setInterval(() => {
-            setTimeLeft((prev) => {
-                if (prev <= 0) {
-                    clearInterval(timer);
-                    handleSubmit();
-                    return 0;
-                }
-                return prev - 1;
-            });
-        }, 1000);
-        return () => clearInterval(timer);
-    }, []);
-
-    // Mock Questions Init
-    useEffect(() => {
-        // Fetch questions for attempt
-        setQuestions([
-            { id: 1, type: 'MULTIPLE_CHOICE', text: 'Thủ đô của Hàn Quốc là gì?', options: [{ id: 1, text: 'Seoul' }, { id: 2, text: 'Busan' }, { id: 3, text: 'Incheon' }, { id: 4, text: 'Daegu' }] },
-            { id: 2, type: 'SHORT_ANSWER', text: 'Viết từ "Xin chào" bằng tiếng Hàn.' },
-            { id: 3, type: 'LISTENING', text: 'Nghe đoạn hội thoại và chọn đáp án đúng.', mediaUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3', options: [{ id: 1, text: 'Option A' }, { id: 2, text: 'Option B' }] }
-        ]);
-    }, []);
-
-    const handleSubmit = async () => {
-        // API Call to submit
-        alert("Nộp bài thành công!");
-        navigate('/exams/result/' + attemptId); // Mock result page
-    };
+        if (exam) {
+            startTimer();
+            // Enter fullscreen for official exam
+            document.documentElement.requestFullscreen().catch(() => { });
+        }
+        return () => stopTimer();
+    }, [exam]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const handleAnswer = (val) => {
-        setAnswers(prev => ({ ...prev, [questions[currentQuestionIndex].id]: val }));
+        setAnswers(prev => ({ ...prev, [exam.questions[currentQuestionIndex].id]: val }));
     };
 
-    const formatTime = (seconds) => {
-        const m = Math.floor(seconds / 60);
-        const s = seconds % 60;
-        return `${m}:${s < 10 ? '0' : ''}${s}`;
+    const handleSubmit = async (autoSubmit = false) => {
+        if (!autoSubmit && !window.confirm("Bạn có chắc chắn muốn nộp bài? Hành động này không thể hoàn tác.")) {
+            return;
+        }
+
+        setIsSubmitting(true);
+        stopTimer();
+        if (document.fullscreenElement) {
+            document.exitFullscreen().catch(() => { });
+        }
+
+        try {
+            // await examService.submitExam(attemptId, answers);
+            // Mock submit
+            await new Promise(r => setTimeout(r, 1000));
+            alert("Nộp bài thành công!");
+            navigate('/dashboard'); // Should go to result or grading Pending page
+        } catch (error) {
+            console.error("Submit error", error);
+            alert("Lỗi nộp bài. Vui lòng thử lại.");
+            setIsSubmitting(false);
+        }
     };
 
-    if (loading) return <div>Loading...</div>;
+    if (loading || !exam) {
+        return (
+            <div className="h-screen flex items-center justify-center bg-gray-50">
+                <div className="text-center">
+                    <div className="animate-spin h-10 w-10 border-4 border-primary-600 border-t-transparent rounded-full mx-auto mb-4"></div>
+                    <p className="text-gray-500 font-medium">Đang chuẩn bị phòng thi...</p>
+                </div>
+            </div>
+        );
+    }
 
-    const currentQ = questions[currentQuestionIndex];
+    const currentQ = exam.questions[currentQuestionIndex];
+    const progress = ((currentQuestionIndex + 1) / exam.questions.length) * 100;
+    const answeredCount = Object.keys(answers).length;
 
     return (
-        <div className="h-screen flex flex-col bg-gray-50 overflow-hidden">
-            {/* Header */}
-            <div className="h-16 bg-white shadow-sm flex items-center justify-between px-6 z-10">
-                <h1 className="font-bold text-gray-800">Exam #{examId} - Attempt #{attemptId}</h1>
-                <div className="text-2xl font-mono font-bold text-primary-600">
-                    {formatTime(timeLeft)}
-                </div>
-                <button onClick={handleSubmit} className="px-4 py-2 bg-red-500 text-white rounded font-bold hover:bg-red-600">
-                    Nộp bài
-                </button>
-            </div>
-
-            <div className="flex flex-1 overflow-hidden">
-                {/* Sidebar - Question Palette */}
-                <div className="w-64 bg-white border-r p-4 overflow-y-auto hidden md:block">
-                    <h3 className="font-bold mb-4 text-gray-500 uppercase text-xs">Danh sách câu hỏi</h3>
-                    <div className="grid grid-cols-4 gap-2">
-                        {questions.map((q, idx) => (
-                            <button
-                                key={q.id}
-                                onClick={() => setCurrentQuestionIndex(idx)}
-                                className={'w-10 h-10 rounded-lg font-bold text-sm transition ' +
-                                    currentQuestionIndex === idx
-                                    ? 'bg-primary-600 text-white'
-                                    : answers[q.id] ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                }
-                            >
-                                {idx + 1}
-                            </button>
-                        ))}
+        <div className="h-screen flex flex-col bg-gray-100 overflow-hidden select-none">
+            {/* Secure Header */}
+            <header className="h-16 bg-gray-900 text-white shadow-lg flex items-center justify-between px-6 z-20 shrink-0">
+                <div className="flex items-center gap-4">
+                    <div className="flex flex-col">
+                        <span className="font-bold text-lg leading-tight tracking-wide">KỲ THI CHÍNH THỨC</span>
+                        <span className="text-xs text-gray-400 font-mono">Attempt ID: {attemptId}</span>
                     </div>
                 </div>
 
+                <div className="flex items-center gap-6">
+                    <div className="bg-gray-800 px-4 py-2 rounded-lg flex items-center gap-3 border border-gray-700">
+                        <span className="text-xs text-gray-400 uppercase font-bold tracking-wider">Thời gian còn lại</span>
+                        <span className={`font-mono text-xl font-bold ${Number(formattedTime.split(':')[0]) < 5 ? 'text-red-500 animate-pulse' : 'text-white'
+                            }`}>
+                            {formattedTime}
+                        </span>
+                    </div>
+
+                    <button
+                        onClick={() => handleSubmit(false)}
+                        disabled={isSubmitting}
+                        className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold transition shadow-lg hover:shadow-red-500/30"
+                    >
+                        {isSubmitting ? 'ĐANG NỘP...' : 'NỘP BÀI'}
+                    </button>
+                </div>
+            </header>
+
+            {/* Violation Wrapper */}
+            {violationCount > 0 && (
+                <div className="bg-red-600 text-white px-4 py-1 text-center text-sm font-bold animate-pulse">
+                    ⚠️ PHÁT HIỆN {violationCount} LẦN VI PHẠM QUY CHẾ THI
+                </div>
+            )}
+
+            <div className="flex flex-1 overflow-hidden">
+                {/* Sidebar - Question Palette */}
+                <aside className="w-72 bg-white border-r border-gray-200 flex flex-col hidden md:flex z-10">
+                    <div className="p-4 border-b border-gray-100">
+                        <div className="flex justify-between items-center mb-2">
+                            <h3 className="font-bold text-gray-700 text-sm uppercase">Câu hỏi</h3>
+                            <span className="text-xs font-medium bg-gray-100 px-2 py-1 rounded text-gray-600">{answeredCount}/{exam.questions.length}</span>
+                        </div>
+                        <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
+                            <div className="h-full bg-green-500 transition-all duration-300" style={{ width: `${(answeredCount / exam.questions.length) * 100}%` }}></div>
+                        </div>
+                    </div>
+
+                    <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
+                        <div className="grid grid-cols-5 gap-2">
+                            {exam.questions.map((q, idx) => (
+                                <button
+                                    key={q.id}
+                                    onClick={() => setCurrentQuestionIndex(idx)}
+                                    className={`aspect-square rounded-lg font-bold text-xs transition relative ${currentQuestionIndex === idx
+                                            ? 'bg-gray-900 text-white ring-2 ring-offset-2 ring-gray-900'
+                                            : answers[q.id]
+                                                ? 'bg-green-100 text-green-700 border border-green-200'
+                                                : 'bg-gray-50 text-gray-500 hover:bg-gray-100 border border-gray-200'
+                                        }`}
+                                >
+                                    {idx + 1}
+                                    {answers[q.id] && (
+                                        <div className="absolute top-0 right-0 w-2 h-2 bg-green-500 rounded-full -mt-0.5 -mr-0.5"></div>
+                                    )}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="p-4 bg-gray-50 border-t border-gray-200 text-xs text-gray-500">
+                        <p>• Màu xanh: Đã trả lời</p>
+                        <p>• Màu đen: Đang chọn</p>
+                    </div>
+                </aside>
+
                 {/* Main Content */}
-                <div className="flex-1 p-6 sm:p-10 overflow-y-auto">
-                    {currentQ && (
-                        <div className="max-w-3xl mx-auto bg-white rounded-2xl shadow-lg p-8 min-h-[400px]">
-                            <div className="mb-6 flex items-start gap-4">
-                                <span className="bg-primary-100 text-primary-700 px-3 py-1 rounded font-bold text-sm">
-                                    Câu {currentQuestionIndex + 1}
-                                </span>
-                                <span className="text-gray-500 text-sm uppercase tracking-wider">{currentQ.type}</span>
+                <main className="flex-1 overflow-y-auto p-4 sm:p-8 bg-gray-100 relative">
+                    {/* Mobile Warning Overlay */}
+                    {showCheatWarning && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+                            <div className="bg-white p-6 md:p-8 rounded-2xl max-w-md text-center shadow-2xl mx-4 animate-bounce-in">
+                                <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center text-3xl mx-auto mb-4">
+                                    ⚠️
+                                </div>
+                                <h2 className="text-2xl font-bold text-gray-900 mb-2">CẢNH BÁO VI PHẠM!</h2>
+                                <p className="text-gray-600 mb-6">
+                                    Hệ thống phát hiện bạn đã rời khỏi màn hình hoặc cố gắng thực hiện thao tác cấm.
+                                    <br /><br />
+                                    <strong>Vi phạm này đã được ghi lại.</strong> Nếu tiếp tục, bài thi của bạn sẽ bị hủy bỏ.
+                                </p>
+                                <button
+                                    onClick={() => setShowCheatWarning(false)}
+                                    className="w-full px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold transition"
+                                >
+                                    TÔI ĐÃ HIỂU
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Question Card */}
+                    <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden min-h-[500px] flex flex-col">
+                        <div className="p-6 sm:p-10 flex-1">
+                            <div className="flex items-start justify-between mb-6">
+                                <div className="flex items-center gap-3">
+                                    <span className="bg-gray-900 text-white px-3 py-1.5 rounded-lg font-bold text-sm shadow-lg shadow-gray-200">
+                                        Câu {currentQuestionIndex + 1}
+                                    </span>
+                                    <span className="px-3 py-1.5 bg-gray-100 text-gray-600 rounded-lg text-xs font-bold uppercase tracking-wider">
+                                        {currentQ.type}
+                                    </span>
+                                </div>
                             </div>
 
-                            <p className="text-xl font-medium text-gray-800 mb-8 leading-relaxed">
-                                {currentQ.text}
-                            </p>
-
-                            {/* Question Content based on Type */}
                             {currentQ.mediaUrl && (
-                                <div className="mb-6 p-4 bg-gray-50 rounded-xl">
-                                    <audio controls className="w-full">
+                                <div className="mb-8 p-4 bg-blue-50/50 rounded-xl border border-blue-100">
+                                    <div className="flex items-center gap-2 mb-2 text-blue-800 font-bold text-sm">
+                                        <span>🎧</span> Phần Nghe
+                                    </div>
+                                    <audio controls className="w-full h-10">
                                         <source src={currentQ.mediaUrl} type="audio/mpeg" />
                                     </audio>
                                 </div>
                             )}
 
-                            <div className="space-y-3">
+                            <h2 className="text-xl sm:text-2xl font-medium text-gray-800 mb-8 leading-relaxed">
+                                {currentQ.text}
+                            </h2>
+
+                            <div className="space-y-4 max-w-2xl">
                                 {currentQ.options ? (
                                     currentQ.options.map(opt => (
-                                        <label key={opt.id} className="flex items-center gap-3 p-4 border rounded-xl hover:bg-gray-50 cursor-pointer transition">
+                                        <label
+                                            key={opt.id}
+                                            className={`flex items-center gap-4 p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 group ${answers[currentQ.id] == opt.id
+                                                    ? 'border-gray-900 bg-gray-50'
+                                                    : 'border-gray-100 hover:border-gray-300 hover:bg-white'
+                                                }`}
+                                        >
+                                            <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${answers[currentQ.id] == opt.id
+                                                    ? 'border-gray-900'
+                                                    : 'border-gray-300 group-hover:border-gray-400'
+                                                }`}>
+                                                {answers[currentQ.id] == opt.id && (
+                                                    <div className="w-3 h-3 bg-gray-900 rounded-full"></div>
+                                                )}
+                                            </div>
+                                            <span className={`text-lg ${answers[currentQ.id] == opt.id ? 'font-medium text-gray-900' : 'text-gray-600'}`}>
+                                                {opt.text}
+                                            </span>
                                             <input
                                                 type="radio"
                                                 name={`q-${currentQ.id}`}
                                                 value={opt.id}
                                                 checked={answers[currentQ.id] == opt.id}
                                                 onChange={() => handleAnswer(opt.id)}
-                                                className="w-5 h-5 text-primary-600"
+                                                className="hidden"
                                             />
-                                            <span className="text-lg">{opt.text}</span>
                                         </label>
                                     ))
                                 ) : (
                                     <textarea
-                                        className="w-full border rounded-xl p-4 min-h-[150px] focus:ring-2 focus:ring-primary-500 outline-none"
-                                        placeholder="Nhập câu trả lời của bạn..."
+                                        className="w-full border-2 border-gray-200 rounded-xl p-4 min-h-[200px] focus:border-gray-900 focus:ring-0 outline-none text-lg resize-none"
+                                        placeholder="Nhập câu trả lời của bạn tại đây..."
                                         value={answers[currentQ.id] || ''}
                                         onChange={(e) => handleAnswer(e.target.value)}
                                     />
                                 )}
                             </div>
                         </div>
-                    )}
 
-                    {/* Navigation */}
-                    <div className="max-w-3xl mx-auto mt-8 flex justify-between">
-                        <button
-                            disabled={currentQuestionIndex === 0}
-                            onClick={() => setCurrentQuestionIndex(prev => prev - 1)}
-                            className="px-6 py-2 bg-white border rounded-lg hover:bg-gray-50 disabled:opacity-50"
-                        >
-                            Câu trước
-                        </button>
-                        <button
-                            disabled={currentQuestionIndex === questions.length - 1}
-                            onClick={() => setCurrentQuestionIndex(prev => prev + 1)}
-                            className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50"
-                        >
-                            Câu tiếp
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            {/* Anti-cheat Warning Modal */}
-            {
-                showWarning && (
-                    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-                        <div className="bg-white p-6 rounded-xl max-w-sm text-center">
-                            <div className="text-4xl mb-4">⚠️</div>
-                            <h2 className="text-xl font-bold text-red-600 mb-2">Cảnh báo gian lận!</h2>
-                            <p className="text-gray-600 mb-6">Bạn vừa rời khỏi màn hình làm bài. Hành động này đã được ghi lại. Nếu tái phạm, bài thi sẽ bị hủy.</p>
+                        {/* Navigation Footer */}
+                        <div className="bg-gray-50 p-4 sm:px-10 py-6 border-t border-gray-100 flex justify-between items-center">
                             <button
-                                onClick={() => setShowWarning(false)}
-                                className="px-4 py-2 bg-red-600 text-white rounded-lg font-bold"
+                                disabled={currentQuestionIndex === 0}
+                                onClick={() => setCurrentQuestionIndex(prev => prev - 1)}
+                                className="px-6 py-2.5 rounded-lg font-bold text-gray-600 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition"
                             >
-                                Tôi đã hiểu
+                                ← Quay lại
+                            </button>
+
+                            <div className="hidden sm:block text-gray-400 text-sm font-medium">
+                                Sử dụng phím mũi tên để điều hướng nhanh
+                            </div>
+
+                            <button
+                                disabled={currentQuestionIndex === exam.questions.length - 1}
+                                onClick={() => setCurrentQuestionIndex(prev => prev + 1)}
+                                className="px-6 py-2.5 bg-gray-900 text-white rounded-lg font-bold hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition shadow-lg hover:shadow-gray-900/20"
+                            >
+                                Tiếp theo →
                             </button>
                         </div>
                     </div>
-                )
-            }
+                </main>
+            </div>
         </div >
     );
 };
 
 export default ExamTaking;
+
