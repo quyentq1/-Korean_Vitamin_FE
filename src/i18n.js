@@ -21,8 +21,17 @@ i18n
         resources,
         fallbackLng: 'vi',
         lng: 'vi', // default language
+        detection: {
+            order: ['localStorage', 'navigator', 'htmlTag'],
+            caches: ['localStorage'],
+            lookupLocalStorage: 'i18nextLng',
+            checkWhitelist: true
+        },
         interpolation: {
             escapeValue: false
+        },
+        react: {
+            useSuspense: false
         }
     });
 
