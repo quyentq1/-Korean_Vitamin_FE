@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
-import examPublicService from '../../services/examPublicService';
+import examService from '../../services/examService';
 
 const ExamIntro = () => {
     const { examId } = useParams();
@@ -11,46 +11,33 @@ const ExamIntro = () => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // Fetch exam details via generic generic API for now
-        // Assuming we have an endpoint or can reuse courseService logic if extended
         const fetchExam = async () => {
             try {
-                // Temporary direct axios call or use a service
-                // const res = await axiosClient.get(`/exams/${examId}`);
-                // For now mockup or need to import axiosClient
-                // Let's assume we import axiosClient from a service
-                // But simplified:
-                const res = await examPublicService.getExamDetails(examId);
-                // Wait, User routes are not fully clear. Let's use /public/exams or check permissions.
-                // Actually ExamAttemptService requires Auth. 
-                // Let's assume student can view exam details at /api/exams/{id} if we enabled it?
-                // TeacherController has getExamById. 
-                // We probably need a Student/General controller for viewing exams.
-
-                // Workaround: Use Teacher endpoint if testing as teacher, or assume we added Public/Student endpoint.
-                setExam(res.data);
+                setLoading(true);
+                const res = await examService.getExamDetails(examId);
+                setExam(res);
             } catch (error) {
                 console.error("Failed to load exam", error);
+                alert("Không thể tải thông tin bài thi.");
+                navigate('/dashboard');
             } finally {
                 setLoading(false);
             }
         };
-        // fetchExam();
-        // Mocking data for UI dev
-        setExam({
-            id: examId,
-            title: "Mock Exam Title",
-            description: "This is a mock exam description with rules.",
-            durationMinutes: 45,
-            totalPoints: 100
-        });
-        setLoading(false);
-    }, [examId]);
+
+        if (examId) {
+            fetchExam();
+        }
+    }, [examId, navigate]);
 
     const handleStart = async () => {
-        // Call API to start attempt
-        // navigate(`/exam/${examId}/taking/${attemptId}`);
-        navigate(`/exam/${examId}/taking/123`); // Mock attempt
+        try {
+            const attempt = await examService.startExam(examId, false);
+            navigate(`/exam/${examId}/taking/${attempt.id}`);
+        } catch (error) {
+            console.error("Failed to start exam attempt", error);
+            alert("Không thể bắt đầu làm bài. Vui lòng thử lại.");
+        }
     };
 
     if (loading) return <div>Loading...</div>;

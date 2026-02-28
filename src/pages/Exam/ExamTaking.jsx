@@ -35,30 +35,33 @@ const ExamTaking = () => {
         const initExam = async () => {
             try {
                 setLoading(true);
-                // Fetch attempt details
-                // const attempt = await examService.getAttempt(attemptId); 
-                // Mocking for now as per previous logic
-                const mockExamData = {
-                    id: examId,
-                    title: "Kỳ thi Đánh giá Năng lực tiếng Hàn (TOPIK)",
-                    duration: 45, // minutes
-                    questions: [
-                        { id: 1, type: 'MULTIPLE_CHOICE', text: 'Thủ đô của Hàn Quốc là gì?', options: [{ id: 1, text: 'Seoul' }, { id: 2, text: 'Busan' }, { id: 3, text: 'Incheon' }, { id: 4, text: 'Daegu' }] },
-                        { id: 2, type: 'SHORT_ANSWER', text: 'Viết từ "Xin chào" bằng tiếng Hàn.' },
-                        { id: 3, type: 'LISTENING', text: 'Nghe đoạn hội thoại và chọn đáp án đúng.', mediaUrl: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3', options: [{ id: 1, text: 'Khủng long' }, { id: 2, text: 'Sư tử' }] },
-                        { id: 4, type: 'MULTIPLE_CHOICE', text: 'Kimchi thường được làm từ loại rau nào?', options: [{ id: 1, text: 'Cải thảo' }, { id: 2, text: 'Rau muống' }, { id: 3, text: 'Cà rốt' }, { id: 4, text: 'Khoai tây' }] }
-                    ]
-                };
+                // Fetch attempt details from real API
+                const attemptData = await examService.getAttemptDetails(attemptId);
+                const examObj = attemptData.exam;
 
-                // Shuffle/Variant generation
-                // Ideally this happens on backend when creating attempt, but frontend shuffle for extra layer
-                const variant = generateExamVariant({ sections: [{ questions: mockExamData.questions }] }, 'student-123'); // Assuming student ID from context
+                if (!examObj || !examObj.examQuestions) {
+                    throw new Error("Dữ liệu đề thi không hợp lệ từ máy chủ");
+                }
 
-                // Unpack sections for flat list or keep sections logic (Flat for MVP)
-                const flatQuestions = variant.sections[0].questions;
+                const formattedQuestions = examObj.examQuestions.map(eq => ({
+                    examQuestionId: eq.id,
+                    id: eq.question.id,
+                    text: eq.question.questionText,
+                    type: eq.question.questionType === 'LISTENING' ? 'LC' : 'RC',
+                    mediaUrl: eq.question.questionMediaUrl,
+                    options: eq.question.options.map(opt => ({
+                        id: opt.id,
+                        text: opt.optionText
+                    }))
+                }));
 
-                setExam({ ...mockExamData, questions: flatQuestions });
-                setDuration(mockExamData.duration);
+                setExam({
+                    id: examObj.id,
+                    title: examObj.title,
+                    duration: examObj.durationMinutes,
+                    questions: formattedQuestions
+                });
+                setDuration(examObj.durationMinutes);
 
             } catch (error) {
                 console.error("Failed to load exam", error);
@@ -84,8 +87,18 @@ const ExamTaking = () => {
         return () => stopTimer();
     }, [exam]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    const handleAnswer = (val) => {
+    const handleAnswer = async (val) => {
         setAnswers(prev => ({ ...prev, [exam.questions[currentQuestionIndex].id]: val }));
+
+        try {
+            const qData = exam.questions[currentQuestionIndex];
+            await examService.submitAnswer(attemptId, {
+                examQuestionId: qData.examQuestionId,
+                answerText: String(val)
+            });
+        } catch (error) {
+            console.error("Failed to sync answer:", error);
+        }
     };
 
     const handleSubmit = async (autoSubmit = false) => {
@@ -100,11 +113,10 @@ const ExamTaking = () => {
         }
 
         try {
-            // await examService.submitExam(attemptId, answers);
-            // Mock submit
-            await new Promise(r => setTimeout(r, 1000));
+            await examService.submitExam(attemptId);
             alert("Nộp bài thành công!");
-            navigate('/dashboard'); // Should go to result or grading Pending page
+            // In future, you'd navigate to Results page. For now, sending back to dashboard.
+            navigate('/dashboard');
         } catch (error) {
             console.error("Submit error", error);
             alert("Lỗi nộp bài. Vui lòng thử lại.");
@@ -184,10 +196,10 @@ const ExamTaking = () => {
                                     key={q.id}
                                     onClick={() => setCurrentQuestionIndex(idx)}
                                     className={`aspect-square rounded-lg font-bold text-xs transition relative ${currentQuestionIndex === idx
-                                            ? 'bg-gray-900 text-white ring-2 ring-offset-2 ring-gray-900'
-                                            : answers[q.id]
-                                                ? 'bg-green-100 text-green-700 border border-green-200'
-                                                : 'bg-gray-50 text-gray-500 hover:bg-gray-100 border border-gray-200'
+                                        ? 'bg-gray-900 text-white ring-2 ring-offset-2 ring-gray-900'
+                                        : answers[q.id]
+                                            ? 'bg-green-100 text-green-700 border border-green-200'
+                                            : 'bg-gray-50 text-gray-500 hover:bg-gray-100 border border-gray-200'
                                         }`}
                                 >
                                     {idx + 1}
@@ -265,13 +277,13 @@ const ExamTaking = () => {
                                         <label
                                             key={opt.id}
                                             className={`flex items-center gap-4 p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 group ${answers[currentQ.id] == opt.id
-                                                    ? 'border-gray-900 bg-gray-50'
-                                                    : 'border-gray-100 hover:border-gray-300 hover:bg-white'
+                                                ? 'border-gray-900 bg-gray-50'
+                                                : 'border-gray-100 hover:border-gray-300 hover:bg-white'
                                                 }`}
                                         >
                                             <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${answers[currentQ.id] == opt.id
-                                                    ? 'border-gray-900'
-                                                    : 'border-gray-300 group-hover:border-gray-400'
+                                                ? 'border-gray-900'
+                                                : 'border-gray-300 group-hover:border-gray-400'
                                                 }`}>
                                                 {answers[currentQ.id] == opt.id && (
                                                     <div className="w-3 h-3 bg-gray-900 rounded-full"></div>

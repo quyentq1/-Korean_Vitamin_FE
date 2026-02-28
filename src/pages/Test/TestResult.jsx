@@ -18,39 +18,57 @@ const TestResult = () => {
     const [quota, setQuota] = useState(null);
     const [showConfetti, setShowConfetti] = useState(false);
 
-    // Mock result data 
-    const result = {
-        score: 85,
-        totalQuestions: 40,
-        correctAnswers: 34,
+    const location = useLocation();
+    const { finalAttempt, totalQuestions } = location.state || {};
+
+    const [result, setResult] = useState({
+        score: 0,
+        totalQuestions: totalQuestions || 0,
+        correctAnswers: 0,
         sections: [
-            { name: t('testResult.listening', 'Nghe Hiểu (듣기)'), score: 90, total: 20, correct: 18 },
-            { name: t('testResult.reading', 'Đọc Hiểu (읽기)'), score: 80, total: 20, correct: 16 }
+            { name: t('testResult.listening', 'Nghe Hiểu (듣기)'), score: 0, total: 0, correct: 0 },
+            { name: t('testResult.reading', 'Đọc Hiểu (읽기)'), score: 0, total: 0, correct: 0 }
         ],
         aiFeedback: {
-            strengths: [
-                t('testResult.strength1', 'Khả năng bắt từ khóa trong bài nghe rất tốt.'),
-                t('testResult.strength2', 'Vốn từ vựng chủ đề "Sinh hoạt hàng ngày" phong phú.')
-            ],
-            weaknesses: [
-                t('testResult.weakness1', 'Còn gặp khó khăn với cấu trúc câu phủ định kép.'),
-                t('testResult.weakness2', 'Tốc độ đọc hiểu văn bản dài cần cải thiện.')
-            ],
-            recommendations: [
-                t('testResult.rec1', 'Ôn tập lại ngữ pháp bài 15-20 (giáo trình Vitamin 2).'),
-                t('testResult.rec2', 'Luyện nghe thụ động podcast tiếng Hàn mỗi ngày 15 phút.'),
-                t('testResult.rec3', 'Thực hành đọc nhanh (skimming) các bài báo ngắn.')
-            ]
+            strengths: [t('testResult.aiWaiting', 'Đang cập nhật phân tích AI cho bài làm của bạn...')],
+            weaknesses: [],
+            recommendations: []
         }
-    };
+    });
 
     useEffect(() => {
         checkQuotaAndShowModal();
-        if (result.score >= 80) {
-            setShowConfetti(true);
-            setTimeout(() => setShowConfetti(false), 8000);
+
+        if (finalAttempt) {
+            const maxScore = finalAttempt.exam?.totalPoints || 100;
+            const earnedScore = finalAttempt.totalScore || finalAttempt.autoScore || 0;
+            const percentage = Math.round((earnedScore / maxScore) * 100) || 0;
+
+            // Calculate correct answers if returned by BE
+            let correctCount = 0;
+            if (finalAttempt.answers && Array.isArray(finalAttempt.answers)) {
+                correctCount = finalAttempt.answers.filter(a => a.isCorrect).length;
+            }
+
+            setResult(prev => ({
+                ...prev,
+                score: percentage,
+                correctAnswers: correctCount,
+            }));
+
+            if (percentage >= 80) {
+                setShowConfetti(true);
+                setTimeout(() => setShowConfetti(false), 8000);
+            }
+        } else {
+            // Fallback just in case user reloads the page without state
+            if (85 >= 80) {
+                setShowConfetti(true);
+                setTimeout(() => setShowConfetti(false), 8000);
+            }
+            setResult(prev => ({ ...prev, score: 85, correctAnswers: 34, totalQuestions: 40 }));
         }
-    }, []);
+    }, [finalAttempt]);
 
     const checkQuotaAndShowModal = async () => {
         const quotaData = await ipTracker.checkQuota();

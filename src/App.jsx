@@ -29,6 +29,8 @@ import ExamManagement from './pages/Teacher/ExamManagement.jsx';
 import ExamEditor from './pages/Teacher/ExamEditor.jsx';
 import ExamAttempts from './pages/Teacher/ExamAttempts.jsx';
 import QBApproval from './pages/Manager/QBApproval.jsx';
+import StaffDashboard from './pages/Staff/StaffDashboard.jsx';
+import ManagerDashboard from './pages/Manager/ManagerDashboard.jsx';
 import SystemSettings from './pages/Admin/SystemSettings.jsx';
 import UserManagement from './pages/Admin/UserManagement.jsx';
 import CourseManagement from './pages/Admin/CourseManagement.jsx';
@@ -92,16 +94,9 @@ function App() {
               <Dashboard />
             </ProtectedRoute>
           } />
-          <Route path="/test-runner/:testId" element={
-            <ProtectedRoute>
-              <TestRunner />
-            </ProtectedRoute>
-          } />
-          <Route path="/test-result/:testId" element={
-            <ProtectedRoute>
-              <TestResult />
-            </ProtectedRoute>
-          } />
+          {/* Test runner is PUBLIC - guests can take free tests without login */}
+          <Route path="/test-runner/:testId" element={<TestRunner />} />
+          <Route path="/test-result/:testId" element={<TestResult />} />
 
           {/* Exam Routes - Protected */}
           <Route path="/exam/:examId/intro" element={
@@ -209,10 +204,7 @@ function App() {
           {/* Staff Routes - Staff Only */}
           <Route path="/staff" element={
             <StaffRoute>
-              <div className="page-container">
-                <h1>Staff Dashboard</h1>
-                <p>Coming soon...</p>
-              </div>
+              <StaffDashboard />
             </StaffRoute>
           } />
           <Route path="/student-management" element={
@@ -234,10 +226,7 @@ function App() {
           {/* Manager Routes - Manager Only */}
           <Route path="/manager" element={
             <ManagerRoute>
-              <div className="page-container">
-                <h1>Manager Dashboard</h1>
-                <p>Coming soon...</p>
-              </div>
+              <ManagerDashboard />
             </ManagerRoute>
           } />
           <Route path="/qb-approval" element={
@@ -272,7 +261,7 @@ function App() {
               <RegistrationManagement />
             </AdminRoute>
           } />
-          
+
           {/* Profile Route - All authenticated users */}
           <Route path="/profile" element={
             <ProtectedRoute>
