@@ -6,6 +6,8 @@ import Footer from '../../components/Footer';
 import ConsultationPopup from '../../components/ConsultationPopup';
 import { useAuth } from '../../contexts/AuthContext';
 import useTestTracking from '../../hooks/useTestTracking';
+import consultationService from '../../services/consultationService';
+import examPublicService from '../../services/examPublicService';
 
 const FreeTestList = () => {
     const { t } = useTranslation();
@@ -46,62 +48,60 @@ const FreeTestList = () => {
         hasCompletedTest,
     } = useTestTracking();
 
-    const tests = [
-        {
-            id: 'test-1',
-            title: t('freeTest.test1.title', 'TOPIK Level 1 - Cơ Bản'),
-            description: t('freeTest.test1.desc', 'Kiểm tra kỹ năng nghe và đọc cơ bản'),
-            duration: 60,
-            totalQuestions: 40,
-            sections: [
-                { name: t('freeTest.listening', 'Nghe'), questions: 20 },
-                { name: t('freeTest.reading', 'Đọc'), questions: 20 }
-            ],
-            icon: '📝',
-            color: 'from-primary-500 to-primary-700'
-        },
-        {
-            id: 'test-2',
-            title: t('freeTest.test2.title', 'TOPIK Level 2 - Nâng Cao'),
-            description: t('freeTest.test2.desc', 'Kiểm tra toàn diện: Nghe, Đọc, Viết'),
-            duration: 90,
-            totalQuestions: 42,
-            sections: [
-                { name: t('freeTest.listening', 'Nghe'), questions: 20 },
-                { name: t('freeTest.reading', 'Đọc'), questions: 20 },
-                { name: t('freeTest.writing', 'Viết'), questions: 2 }
-            ],
-            icon: '✍️',
-            color: 'from-secondary-500 to-secondary-700'
-        }
-    ];
+    const [tests, setTests] = useState([]);
+
+    useEffect(() => {
+        const fetchExams = async () => {
+            try {
+                const examData = await examPublicService.getGuestExams();
+
+                if (!examData || examData.length === 0) {
+                    // API returned empty - no published exams yet, show empty state
+                    setTests([]);
+                    return;
+                }
+
+                // Transform backend data to fit UI
+                const formattedTests = examData.map(exam => ({
+                    id: exam.id,
+                    title: exam.title,
+                    description: exam.description || t('freeTest.desc', 'Chưa có mô tả chi tiết'),
+                    duration: exam.durationMinutes,
+                    totalQuestions: exam.totalPoints,
+                    sections: [
+                        { name: t('freeTest.listening', 'Nghe'), questions: Math.floor((exam.totalPoints || 0) / 2) },
+                        { name: t('freeTest.reading', 'Đọc'), questions: Math.ceil((exam.totalPoints || 0) / 2) }
+                    ],
+                    icon: exam.id % 2 === 0 ? '✍️' : '📝',
+                    color: exam.id % 2 === 0 ? 'from-secondary-500 to-secondary-700' : 'from-primary-500 to-primary-700'
+                }));
+                setTests(formattedTests);
+            } catch (error) {
+                console.error("Lỗi lấy danh sách đề thi:", error);
+                // Do NOT use mock data with fake IDs — just show empty state
+                setTests([]);
+            }
+        };
+        fetchExams();
+    }, [t]);
 
     const handleStartTest = (testId, index) => {
         const completed = hasCompletedTest(testId);
 
-        // If test is beyond free quota and not completed, show popup
+        // If test is beyond free quota and not completed, show consultation popup
         if (index >= 2 && !completed) {
             setShowConsultationPopup(true);
             return;
         }
 
-        // Navigate to test runner
+        // BUG-01 FIX: /test-runner is now a public route, no login required
         navigate(`/test-runner/${testId}`);
     };
 
     const handleConsultationSubmit = async (formData) => {
-        try {
-            // TODO: Send to backend or contact service
-            console.log('Consultation request:', formData);
-
-            // Show success message
-            alert(t('consultation.success', 'Yêu cầu tư vấn đã được gửi! Chúng tôi sẽ liên hệ sớm nhất.'));
-
-            setShowConsultationPopup(false);
-        } catch (error) {
-            console.error('Error submitting consultation:', error);
-            throw error;
-        }
+        // BUG-02 FIX: Send to real backend API
+        await consultationService.submitConsultation(formData);
+        setShowConsultationPopup(false);
     };
 
     if (loading) {
@@ -161,8 +161,8 @@ const FreeTestList = () => {
                                 <div
                                     key={test.id}
                                     className={`bg-white rounded-xl sm:rounded-2xl shadow-xl overflow-hidden transition-all duration-300 ${isLocked
-                                            ? 'opacity-75 transform scale-95'
-                                            : 'hover:shadow-2xl hover:-translate-y-1'
+                                        ? 'opacity-75 transform scale-95'
+                                        : 'hover:shadow-2xl hover:-translate-y-1'
                                         }`}
                                 >
                                     {/* Header */}
@@ -228,10 +228,10 @@ const FreeTestList = () => {
                                         <button
                                             onClick={() => handleStartTest(test.id, index)}
                                             className={`w-full py-3 sm:py-4 rounded-xl font-bold transition-all duration-300 text-sm sm:text-base ${isLocked
-                                                    ? 'bg-gray-300 text-gray-600 cursor-pointer hover:bg-gray-400'
-                                                    : canTake
-                                                        ? `bg-gradient-to-r ${test.color} text-white hover:shadow-xl transform hover:-translate-y-0.5`
-                                                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                                ? 'bg-gray-300 text-gray-600 cursor-pointer hover:bg-gray-400'
+                                                : canTake
+                                                    ? `bg-gradient-to-r ${test.color} text-white hover:shadow-xl transform hover:-translate-y-0.5`
+                                                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                                                 }`}
                                         >
                                             {isLocked ? (
