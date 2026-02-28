@@ -34,6 +34,23 @@ const useExamSecurity = (onViolation) => {
             }
         };
 
+        let mouseLeaveTimer;
+        // Detect mouse leaving the window
+        const handleMouseLeave = (e) => {
+            // If relatedTarget is null, the mouse has left the document completely
+            if (e.relatedTarget === null) {
+                // Debounce to prevent multiple fires when hovering near the border
+                clearTimeout(mouseLeaveTimer);
+                mouseLeaveTimer = setTimeout(() => {
+                    handleViolation('mouse_leave');
+                }, 500); // 500ms grace period
+            }
+        };
+
+        const handleMouseEnter = () => {
+            clearTimeout(mouseLeaveTimer);
+        };
+
         // Prevent common keyboard shortcuts (Inspect, Print, etc.)
         const handleKeyDown = (e) => {
             // F12 or Ctrl+Shift+I (DevTools)
@@ -55,6 +72,8 @@ const useExamSecurity = (onViolation) => {
         document.addEventListener('cut', handleCopyCutPaste);
         document.addEventListener('paste', handleCopyCutPaste);
         document.addEventListener('visibilitychange', handleVisibilityChange);
+        document.addEventListener('mouseout', handleMouseLeave);
+        document.addEventListener('mouseover', handleMouseEnter);
         document.addEventListener('keydown', handleKeyDown);
 
         // Enter fullscreen on mount (optional, can be triggered manually)
@@ -67,6 +86,8 @@ const useExamSecurity = (onViolation) => {
             document.removeEventListener('cut', handleCopyCutPaste);
             document.removeEventListener('paste', handleCopyCutPaste);
             document.removeEventListener('visibilitychange', handleVisibilityChange);
+            document.removeEventListener('mouseout', handleMouseLeave);
+            document.removeEventListener('mouseover', handleMouseEnter);
             document.removeEventListener('keydown', handleKeyDown);
         };
     }, [handleViolation]);

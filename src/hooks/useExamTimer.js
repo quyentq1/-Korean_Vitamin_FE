@@ -7,6 +7,13 @@ const useExamTimer = (initialMinutes, onTimeUp) => {
     // Use ref for interval to clear it properly
     const timerRef = useRef(null);
 
+    // Update time if initialMinutes changes (e.g. after fetching exam data)
+    useEffect(() => {
+        if (initialMinutes && !isActive && timeLeft === 0) {
+            setTimeLeft(initialMinutes * 60);
+        }
+    }, [initialMinutes]);
+
     useEffect(() => {
         if (isActive && timeLeft > 0) {
             timerRef.current = setInterval(() => {
@@ -22,7 +29,7 @@ const useExamTimer = (initialMinutes, onTimeUp) => {
         }
 
         return () => clearInterval(timerRef.current);
-    }, [isActive, onTimeUp]);
+    }, [isActive, onTimeUp, timeLeft]);
 
     const startTimer = () => setIsActive(true);
     const stopTimer = () => setIsActive(false);

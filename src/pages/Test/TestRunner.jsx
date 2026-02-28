@@ -6,16 +6,15 @@ import examPublicService from '../../services/examPublicService'; // Use public 
 import useExamSecurity from '../../hooks/useExamSecurity';
 import useExamTimer from '../../hooks/useExamTimer';
 import useTestTracking from '../../hooks/useTestTracking';
-import { generateExamVariant } from '../../utils/examVariantGenerator';
 
 const TestRunner = () => {
     const { testId } = useParams();
     const { t } = useTranslation();
     const navigate = useNavigate();
-    const { recordTestCompletion, guestId } = useTestTracking();
+    const { recordTestCompletion } = useTestTracking();
 
-    // State
     const [test, setTest] = useState(null);
+    const [attemptId, setAttemptId] = useState(null);
     const [loading, setLoading] = useState(true);
     const [currentQuestion, setCurrentQuestion] = useState(0);
     const [answers, setAnswers] = useState({});
@@ -40,41 +39,43 @@ const TestRunner = () => {
         const initTest = async () => {
             try {
                 setLoading(true);
-                // Fetch public test data
-                // In a real app, we might distinguish between "test-1" and DB ID
-                // For now mocking or fetching based on ID
-                let testData = await examPublicService.getExamDetails(testId);
+                // Call real API: Start exam attempt
+                const attemptData = await examPublicService.startGuestExam(testId);
 
-                // If API fails or returns limited data, mock it for demo based on ID
-                if (!testData || !testData.questions) {
-                    // Fallback Mock Data matching FreeTestList descriptions
-                    const isTest1 = testId === 'test-1';
-                    testData = {
-                        id: testId,
-                        title: isTest1 ? "TOPIK Level 1 - Cơ Bản" : "TOPIK Level 2 - Nâng Cao",
-                        duration: isTest1 ? 60 : 90,
-                        questions: Array.from({ length: isTest1 ? 40 : 42 }, (_, i) => ({
-                            id: i + 1,
-                            content: `Câu hỏi mẫu số ${i + 1}: ${isTest1 ? 'Đây là câu hỏi đọc hiểu cơ bản.' : 'Đây là câu hỏi nâng cao.'}`,
-                            type: i < 20 ? 'LC' : 'RC', // Listening / Reading
-                            options: [
-                                { id: 1, content: "Đáp án A" },
-                                { id: 2, content: "Đáp án B" },
-                                { id: 3, content: "Đáp án C" },
-                                { id: 4, content: "Đáp án D" }
-                            ],
-                            audioUrl: i < 20 ? "https://example.com/audio.mp3" : null
-                        }))
-                    };
+                setAttemptId(attemptData.id);
+
+                const examObj = attemptData.exam;
+                if (!examObj || !examObj.examQuestions) {
+                    throw new Error("Dữ liệu đề thi không hợp lệ từ máy chủ");
                 }
 
-                // Shuffle for security
-                const variant = generateExamVariant(testData, guestId);
-                setTest(variant);
+                // Transform BE format to UI format
+                const formattedTest = {
+                    id: examObj.id,
+                    title: examObj.title,
+                    duration: examObj.durationMinutes,
+                    questions: examObj.examQuestions.map(eq => ({
+                        examQuestionId: eq.id,
+                        id: eq.question.id,
+                        content: eq.question.questionText,
+                        type: eq.question.questionType === 'LISTENING' ? 'LC' : 'RC',
+                        audioUrl: eq.question.questionMediaUrl,
+                        options: eq.question.options.map(opt => ({
+                            id: opt.id,
+                            content: opt.optionText
+                        }))
+                    }))
+                };
+
+                setTest(formattedTest);
 
             } catch (error) {
                 console.error("Error loading test:", error);
-                alert("Không thể tải bài thi.");
+                if (error?.status === 400 && error.message?.includes('LIMIT_EXCEEDED')) {
+                    alert('Bạn đã hết lượt làm bài miễn phí (2/2). Vui lòng để lại thông tin tư vấn!');
+                } else {
+                    alert("Không thể tải bài thi. Vui lòng thử lại sau.");
+                }
                 navigate('/free-tests');
             } finally {
                 setLoading(false);
@@ -84,7 +85,7 @@ const TestRunner = () => {
         if (testId) {
             initTest();
         }
-    }, [testId, guestId, navigate]);
+    }, [testId, navigate]);
 
     // Start timer when test is loaded
     useEffect(() => {
@@ -94,17 +95,21 @@ const TestRunner = () => {
         return () => stopTimer();
     }, [test]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    const handleAnswerChange = (questionId, value) => {
+    const handleAnswerChange = async (questionId, value) => {
         setAnswers(prev => ({ ...prev, [questionId]: value }));
-    };
 
-    const calculateScore = () => {
-        // Mock score calculation
-        if (!test) return 0;
-        const total = test.questions.length;
-        const answered = Object.keys(answers).length;
-        // Random score logic for demo
-        return Math.floor((answered / total) * 100);
+        // Find examQuestionId to submit
+        const qData = test.questions.find(q => q.id === questionId);
+        if (qData && attemptId) {
+            try {
+                // Save answer directly to backend
+                // Optional text value can be used if it's not a standard multiple choice ID
+                await examPublicService.submitAnswer(attemptId, qData.examQuestionId, value);
+            } catch (error) {
+                console.error("Failed to save answer silently:", error);
+                // We don't block UI if silent save fails, but in production we'd queue retries
+            }
+        }
     };
 
     const handleSubmit = async (autoSubmit = false) => {
@@ -116,24 +121,25 @@ const TestRunner = () => {
         stopTimer();
 
         try {
-            const score = calculateScore();
+            // Record completion locally to trigger Consultation popup on FreeTestList page later
+            recordTestCompletion(testId, Object.keys(answers), 0);
 
-            // Record completion locally
-            recordTestCompletion(testId, Object.keys(answers), score);
+            // Call API to fully submit exam and calculate grade
+            const finalAttempt = await examPublicService.submitExam(attemptId);
 
             // Navigate to results
             navigate(`/test-result/${testId}`, {
                 state: {
-                    score,
+                    attemptId: attemptId,
+                    finalAttempt: finalAttempt,
                     totalQuestions: test.questions.length,
-                    answers,
                     violations: violationCount
                 }
             });
 
         } catch (error) {
             console.error("Submit error:", error);
-            alert("Lỗi nộp bài.");
+            alert("Lỗi nộp bài. Vui lòng kiểm tra đường truyền mạng.");
             setIsSubmitting(false);
         }
     };
@@ -178,8 +184,8 @@ const TestRunner = () => {
                     <div className="flex items-center gap-4">
                         {/* Timer */}
                         <div className={`flex items-center gap-2 px-4 py-2 rounded-xl font-mono text-lg font-bold ${Number(formattedTime.split(':')[0]) < 5
-                                ? 'bg-red-50 text-red-600 animate-pulse'
-                                : 'bg-gray-100 text-gray-700'
+                            ? 'bg-red-50 text-red-600 animate-pulse'
+                            : 'bg-gray-100 text-gray-700'
                             }`}>
                             <span>⏱️</span>
                             {formattedTime}
@@ -241,13 +247,13 @@ const TestRunner = () => {
                             <label
                                 key={option.id}
                                 className={`flex items-start gap-4 p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 group ${answers[currentQuestionData.id] === option.id
-                                        ? 'border-primary-500 bg-primary-50/50'
-                                        : 'border-gray-100 hover:border-primary-200 hover:bg-gray-50'
+                                    ? 'border-primary-500 bg-primary-50/50'
+                                    : 'border-gray-100 hover:border-primary-200 hover:bg-gray-50'
                                     }`}
                             >
                                 <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 mt-0.5 transition-colors ${answers[currentQuestionData.id] === option.id
-                                        ? 'border-primary-500 bg-primary-500'
-                                        : 'border-gray-300 group-hover:border-primary-400'
+                                    ? 'border-primary-500 bg-primary-500'
+                                    : 'border-gray-300 group-hover:border-primary-400'
                                     }`}>
                                     {answers[currentQuestionData.id] === option.id && (
                                         <div className="w-2.5 h-2.5 rounded-full bg-white"></div>
@@ -278,10 +284,10 @@ const TestRunner = () => {
                                 key={q.id}
                                 onClick={() => setCurrentQuestion(idx)}
                                 className={`h-8 rounded-lg text-xs font-bold transition-colors ${idx === currentQuestion
-                                        ? 'bg-primary-600 text-white'
-                                        : answers[q.id]
-                                            ? 'bg-green-100 text-green-700'
-                                            : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                                    ? 'bg-primary-600 text-white'
+                                    : answers[q.id]
+                                        ? 'bg-green-100 text-green-700'
+                                        : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
                                     }`}
                             >
                                 {idx + 1}
