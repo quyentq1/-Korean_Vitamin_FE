@@ -12,6 +12,7 @@ import {
   ChevronDown,
   Home,
   BookOpen,
+  HelpCircle,
   GraduationCap,
   Users,
   FileText,
@@ -21,6 +22,7 @@ import {
   Search
 } from 'lucide-react';
 import authService from '../services/authService';
+import SearchBar from './SearchBar';
 
 /**
  * Navbar Component
@@ -82,6 +84,7 @@ const Navbar = () => {
     const publicLinks = [
       { link: '/', label: t('nav.home', 'Trang chủ'), icon: Home },
       { link: '/courses', label: t('nav.courses', 'Khóa học'), icon: BookOpen },
+      { link: '/faq', label: t('nav.faq', 'FAQ'), icon: HelpCircle },
       { link: '/curriculum', label: t('nav.curriculum', 'Giáo trình'), icon: GraduationCap },
       { link: '/prep', label: t('nav.prep', 'Luyện thi'), icon: FileText },
     ];
@@ -227,6 +230,9 @@ const Navbar = () => {
 
                     {/* Actions & Mobile Menu Button */}
                     <div className="flex items-center gap-3">
+                        {/* Search Bar */}
+                        <SearchBar />
+
                         <button
                             onClick={toggleLanguage}
                             className={`flex items-center gap-2 px-3 py-2 rounded-lg transition hidden sm:flex ${shouldBeTransparent ? 'text-white hover:bg-white/20' : 'hover:bg-gray-100 text-gray-700'

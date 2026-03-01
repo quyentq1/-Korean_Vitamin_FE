@@ -3,12 +3,17 @@ import { AuthProvider } from './contexts/AuthContext';
 import { ProtectedRoute, AdminRoute, TeacherRoute, StaffRoute, StudentRoute, ManagerRoute } from './components/routing/ProtectedRoute';
 import CourseList from './pages/Courses/CourseList';
 import Login from './pages/Login';
+import Signup from './pages/Signup';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import Homepage from './pages/HomePage/HomePage.jsx';
 import Dashboard from './pages/Dashboard/Dashboard.jsx';
 import Curriculum from './pages/Curriculum.jsx';
 import ExamPrep from './pages/ExamPrep.jsx';
 import CourseDetail from './pages/CourseDetail.jsx';
 import FreeTestList from './pages/Guest/FreeTestList.jsx';
+import FAQ from './pages/FAQ.jsx';
+import SearchPage from './pages/SearchPage.jsx';
 import TestRunner from './pages/Test/TestRunner.jsx';
 import TestResult from './pages/Test/TestResult.jsx';
 import LearnerDashboard from './pages/Learner/LearnerDashboard.jsx';
@@ -41,6 +46,7 @@ import ExamIntro from './pages/Exam/ExamIntro.jsx';
 import ExamTaking from './pages/Exam/ExamTaking.jsx';
 import QuestionImport from './pages/Teacher/QuestionImport.jsx';
 import GradingDetail from './pages/Teacher/GradingDetail.jsx';
+import Profile from './pages/Profile.jsx';
 import './App.css';
 
 import ChatbotWidget from './components/ChatbotWidget';
@@ -78,6 +84,9 @@ function App() {
         <Routes>
           {/* Public Routes */}
           <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/" element={<Homepage />} />
           <Route path="/unauthorized" element={<UnauthorizedPage />} />
 
@@ -85,6 +94,8 @@ function App() {
           <Route path="/courses" element={<CourseList />} />
           <Route path="/courses/:id" element={<CourseDetail />} />
           <Route path="/free-tests" element={<FreeTestList />} />
+          <Route path="/faq" element={<FAQ />} />
+          <Route path="/search" element={<SearchPage />} />
           <Route path="/curriculum" element={<Curriculum />} />
           <Route path="/prep" element={<ExamPrep />} />
 
@@ -265,10 +276,7 @@ function App() {
           {/* Profile Route - All authenticated users */}
           <Route path="/profile" element={
             <ProtectedRoute>
-              <div className="page-container">
-                <h1>Profile Page</h1>
-                <p>Coming soon...</p>
-              </div>
+              <Profile />
             </ProtectedRoute>
           } />
 
