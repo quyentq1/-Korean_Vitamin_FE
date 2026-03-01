@@ -2,16 +2,24 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { useNavigate } from 'react-router-dom';
 import { Badge } from './ui';
+import StatusBadge from './ui/StatusBadge';
 
 /**
  * CourseCard Component - Based on Figma Course Card Design
  * Displays course information in a card format
  */
-const CourseCard = ({ course }) => {
+const CourseCard = ({ course, onConsultationClick, status }) => {
     const navigate = useNavigate();
 
     const handleClick = () => {
         navigate(`/courses/${course.id}`);
+    };
+
+    const handleConsultationClick = (e) => {
+        e.stopPropagation();
+        if (onConsultationClick) {
+            onConsultationClick(course);
+        }
     };
 
     // Determine level badge color
@@ -41,6 +49,13 @@ const CourseCard = ({ course }) => {
                     />
                 ) : (
                     <span className="text-6xl text-white/80">📚</span>
+                )}
+
+                {/* Status Badge - Top Right */}
+                {status && (
+                    <div className="absolute top-3 right-3">
+                        <StatusBadge status={status} size="sm" />
+                    </div>
                 )}
 
                 {/* Level Badge - Top Left */}
@@ -90,18 +105,27 @@ const CourseCard = ({ course }) => {
                             {course.fee ? `${course.fee.toLocaleString()}đ` : 'Free'}
                         </span>
                     </div>
-                    <button
-                        className="flex items-center gap-1 text-sm font-semibold text-primary-500 hover:text-primary-600 transition-colors group"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            handleClick();
-                        }}
-                    >
-                        View Details
-                        <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                        </svg>
-                    </button>
+                    <div className="flex gap-2">
+                        <button
+                            className="flex items-center gap-1 text-sm font-semibold text-primary-500 hover:text-primary-600 transition-colors group"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handleClick();
+                            }}
+                        >
+                            View Details
+                            <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                            </svg>
+                        </button>
+                        <button
+                            onClick={handleConsultationClick}
+                            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-secondary-500 to-secondary-600 text-white rounded-xl font-bold hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 active:scale-95"
+                        >
+                            <span className="text-xl">💬</span>
+                            <span className="hidden sm:inline">Nhận Tư Vấn Ngay</span>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -118,7 +142,9 @@ CourseCard.propTypes = {
         duration: PropTypes.number,
         studentCount: PropTypes.number,
         imageUrl: PropTypes.string,
+        status: PropTypes.oneOf(['OPENING', 'COMING_SOON', 'CLOSED']),
     }).isRequired,
+    onConsultationClick: PropTypes.func,
 };
 
 export default CourseCard;

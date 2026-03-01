@@ -6,12 +6,16 @@ import examPublicService from '../../services/examPublicService'; // Use public 
 import useExamSecurity from '../../hooks/useExamSecurity';
 import useExamTimer from '../../hooks/useExamTimer';
 import useTestTracking from '../../hooks/useTestTracking';
+import { useGuestContext } from '../../hooks/useGuestContext';
+import { useAuth } from '../../contexts/AuthContext';
 
 const TestRunner = () => {
     const { testId } = useParams();
     const { t } = useTranslation();
     const navigate = useNavigate();
     const { recordTestCompletion } = useTestTracking();
+    const { recordTestCompletion: recordGuestCompletion } = useGuestContext();
+    const { isAuthenticated } = useAuth();
 
     const [test, setTest] = useState(null);
     const [attemptId, setAttemptId] = useState(null);
@@ -20,6 +24,7 @@ const TestRunner = () => {
     const [answers, setAnswers] = useState({});
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showCheatWarning, setShowCheatWarning] = useState(false);
+    const [showConfirmModal, setShowConfirmModal] = useState(false);
 
     // Security Hook
     const { violationCount, resetViolations } = useExamSecurity((type) => {
@@ -113,19 +118,32 @@ const TestRunner = () => {
     };
 
     const handleSubmit = async (autoSubmit = false) => {
-        if (!autoSubmit && !window.confirm(t('testRunner.confirmSubmit', 'Bạn có chắc chắn muốn nộp bài?'))) {
-            return;
-        }
-
         setIsSubmitting(true);
+        setShowConfirmModal(false);
         stopTimer();
 
         try {
-            // Record completion locally to trigger Consultation popup on FreeTestList page later
-            recordTestCompletion(testId, Object.keys(answers), 0);
-
             // Call API to fully submit exam and calculate grade
             const finalAttempt = await examPublicService.submitExam(attemptId);
+
+            // Record completion with REAL score from backend
+            const score = finalAttempt.autoScore ? Math.floor(finalAttempt.autoScore) :
+                         finalAttempt.totalScore ? Math.floor(finalAttempt.totalScore) : 0;
+            const correctAnswers = finalAttempt.correctAnswers || 0;
+
+            // Update useTestTracking for FreeTestList display (include attemptId)
+            recordTestCompletion(testId, Object.keys(answers), score, attemptId);
+
+            // Record guest test completion for migration during signup
+            if (!isAuthenticated && finalAttempt) {
+                recordGuestCompletion(
+                    testId,
+                    attemptId,
+                    test.id, // examId
+                    score,
+                    correctAnswers
+                );
+            }
 
             // Navigate to results
             navigate(`/test-result/${testId}`, {
@@ -142,6 +160,12 @@ const TestRunner = () => {
             alert("Lỗi nộp bài. Vui lòng kiểm tra đường truyền mạng.");
             setIsSubmitting(false);
         }
+    };
+
+    // Handle confirm modal open with explicit function to avoid inline arrow function issues
+    const handleOpenConfirmModal = () => {
+        if (isSubmitting) return;
+        setShowConfirmModal(true);
     };
 
     if (loading || !test) {
@@ -192,9 +216,9 @@ const TestRunner = () => {
                         </div>
 
                         <button
-                            onClick={() => handleSubmit(false)}
+                            onClick={handleOpenConfirmModal}
                             disabled={isSubmitting}
-                            className="hidden sm:block px-6 py-2 bg-primary-600 text-white rounded-xl font-bold hover:bg-primary-700 transition shadow-md"
+                            className="hidden sm:block px-6 py-2 bg-primary-600 text-white rounded-xl font-bold hover:bg-primary-700 transition shadow-md active:scale-95"
                         >
                             {isSubmitting ? 'Đang nộp...' : 'Nộp Bài'}
                         </button>
@@ -315,16 +339,16 @@ const TestRunner = () => {
                     <div className="flex gap-3">
                         {currentQuestion === test.questions.length - 1 ? (
                             <button
-                                onClick={() => handleSubmit(false)}
+                                onClick={handleOpenConfirmModal}
                                 disabled={isSubmitting}
-                                className="px-8 py-3 bg-green-500 text-white rounded-xl font-bold hover:bg-green-600 shadow-md hover:shadow-lg transition transform hover:-translate-y-0.5 sm:hidden"
+                                className="px-8 py-3 bg-green-500 text-white rounded-xl font-bold hover:bg-green-600 shadow-md hover:shadow-lg transition transform hover:-translate-y-0.5 active:scale-95 sm:hidden"
                             >
                                 Nộp Bài
                             </button>
                         ) : (
                             <button
                                 onClick={() => setCurrentQuestion(prev => Math.min(test.questions.length - 1, prev + 1))}
-                                className="px-6 py-3 bg-primary-600 text-white rounded-xl font-bold hover:bg-primary-700 shadow-md hover:shadow-lg transition transform hover:-translate-y-0.5"
+                                className="px-6 py-3 bg-primary-600 text-white rounded-xl font-bold hover:bg-primary-700 shadow-md hover:shadow-lg transition transform hover:-translate-y-0.5 active:scale-95"
                             >
                                 {t('testRunner.next', 'Tiếp theo')} →
                             </button>
@@ -334,6 +358,37 @@ const TestRunner = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Confirm Submit Modal */}
+            {showConfirmModal && (
+                <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-fade-in-up">
+                        <div className="p-6 text-center">
+                            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <span className="text-4xl leading-[64px]">📤</span>
+                            </div>
+                            <h3 className="text-xl font-bold text-gray-900 mb-2">Xác nhận nộp bài</h3>
+                            <p className="text-gray-500 mb-6 text-sm">
+                                Bạn đã trả lời {answeredCount}/{test.questions.length} câu hỏi. Bạn có chắc chắn muốn kết thúc và nộp bài ngay bây giờ?
+                            </p>
+                            <div className="flex flex-col sm:flex-row gap-3">
+                                <button
+                                    onClick={() => setShowConfirmModal(false)}
+                                    className="flex-1 py-3 bg-gray-100 text-gray-700 font-bold rounded-xl hover:bg-gray-200 transition active:scale-95"
+                                >
+                                    Kiểm tra lại
+                                </button>
+                                <button
+                                    onClick={() => handleSubmit(false)}
+                                    className="flex-1 py-3 bg-primary-600 text-white font-bold rounded-xl hover:bg-primary-700 transition shadow-md active:scale-95"
+                                >
+                                    Nộp bài ngay
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

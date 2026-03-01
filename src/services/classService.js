@@ -1,6 +1,10 @@
 import axiosClient from '../api/axiosClient';
 
 export const classService = {
+    getMyClasses: async () => {
+        return await axiosClient.get('/student/my-classes');
+    },
+
     getAllClasses: async () => {
         return await axiosClient.get('/classes');
     },

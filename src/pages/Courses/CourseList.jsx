@@ -4,9 +4,11 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 import CourseCard from '../../components/CourseCard';
+import ConsultationPopup from '../../components/ConsultationPopup';
 import { Button } from '../../components/ui';
 import { useAuth } from '../../contexts/AuthContext';
 import courseService from '../../services/courseService';
+import consultationService from '../../services/consultationService';
 
 const CourseList = () => {
     const { t } = useTranslation();
@@ -17,9 +19,31 @@ const CourseList = () => {
     const [error, setError] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedLevel, setSelectedLevel] = useState('ALL');
+    const [showConsultationPopup, setShowConsultationPopup] = useState(false);
+    const [selectedCourse, setSelectedCourse] = useState(null);
 
     // Ref để theo dõi việc đã redirect chưa
     const hasRedirectedRef = useRef(false);
+
+    // Handle consultation click
+    const handleConsultationClick = (course) => {
+        setSelectedCourse(course);
+        setShowConsultationPopup(true);
+    };
+
+    // Handle consultation submit
+    const handleConsultationSubmit = async (formData) => {
+        // Gửi API thực sự
+        console.log('Consultation submitted for course:', selectedCourse?.name, formData);
+        try {
+            await consultationService.submitConsultation(formData);
+            // Không đóng modal ngay - để ConsultationPopup tự xử lý việc đóng sau khi hiển thị success message
+            // ConsultationPopup sẽ tự động đóng sau 4 giây khi hiển thị success message
+        } catch (error) {
+            console.error('Error submitting consultation:', error);
+            // ConsultationPopup sẽ hiển thị error message
+        }
+    };
 
     // Redirect nếu user đã đăng nhập
     useEffect(() => {
@@ -124,8 +148,8 @@ const CourseList = () => {
                                 key={level}
                                 onClick={() => setSelectedLevel(level)}
                                 className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${selectedLevel === level
-                                        ? 'bg-primary-400 text-white shadow-teal'
-                                        : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
+                                    ? 'bg-primary-400 text-white shadow-teal'
+                                    : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
                                     }`}
                             >
                                 {level === 'ALL' ? 'All Levels' : level.charAt(0) + level.slice(1).toLowerCase()}
@@ -172,11 +196,23 @@ const CourseList = () => {
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-in">
                         {filteredCourses.map(course => (
-                            <CourseCard key={course.id} course={course} />
+                            <CourseCard
+                                key={course.id}
+                                course={course}
+                                status={course.status}
+                                onConsultationClick={handleConsultationClick}
+                            />
                         ))}
                     </div>
                 )}
             </div>
+
+            {/* Consultation Popup */}
+            <ConsultationPopup
+                isOpen={showConsultationPopup}
+                onClose={() => setShowConsultationPopup(false)}
+                onSubmit={handleConsultationSubmit}
+            />
 
             <Footer />
         </div>

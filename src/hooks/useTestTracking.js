@@ -15,6 +15,26 @@ const useTestTracking = () => {
     // Initialize guest ID and load history
     useEffect(() => {
         initializeTracking();
+
+        // Reload data when localStorage changes (sync between tabs/components)
+        const handleStorageChange = (e) => {
+            if (e.key === STORAGE_KEY || e.key === 'guestId') {
+                initializeTracking();
+            }
+        };
+
+        // Also reload when window gains focus (user comes back from another tab)
+        const handleFocus = () => {
+            initializeTracking();
+        };
+
+        window.addEventListener('storage', handleStorageChange);
+        window.addEventListener('focus', handleFocus);
+
+        return () => {
+            window.removeEventListener('storage', handleStorageChange);
+            window.removeEventListener('focus', handleFocus);
+        };
     }, []);
 
     const initializeTracking = () => {
@@ -69,7 +89,9 @@ const useTestTracking = () => {
     };
 
     const hasCompletedTest = (testId) => {
-        return testHistory.some(t => t.testId === testId && t.completed);
+        // Convert both to string for comparison (testId from URL is string, from API might be number)
+        const testIdStr = String(testId);
+        return testHistory.some(t => String(t.testId) === testIdStr && t.completed);
     };
 
     const getAllUsedQuestionIds = () => {
@@ -82,14 +104,17 @@ const useTestTracking = () => {
         return [...new Set(allIds)]; // Remove duplicates
     };
 
-    const recordTestCompletion = (testId, questionIds = [], score = null) => {
-        const existingIndex = testHistory.findIndex(t => t.testId === testId);
+    const recordTestCompletion = (testId, questionIds = [], score = null, attemptId = null) => {
+        // Convert testId to string for consistent comparison
+        const testIdStr = String(testId);
+        const existingIndex = testHistory.findIndex(t => String(t.testId) === testIdStr);
 
         const testRecord = {
-            testId,
+            testId: testIdStr,  // Always store as string
             completed: true,
             score,
             questionIds,
+            attemptId,  // Store attemptId to fetch full results later
             completedAt: new Date().toISOString(),
         };
 

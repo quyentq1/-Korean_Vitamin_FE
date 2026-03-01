@@ -25,6 +25,11 @@ export const examService = {
         return await axiosClient.get(`/student/attempts/${attemptId}`);
     },
 
+    // Get Attempt History
+    getAttemptHistory: async () => {
+        return await axiosClient.get('/student/attempts/history');
+    },
+
     // Submit Answer
     submitAnswer: async (attemptId, data) => {
         return await axiosClient.post(`/student/attempts/${attemptId}/answer`, data);

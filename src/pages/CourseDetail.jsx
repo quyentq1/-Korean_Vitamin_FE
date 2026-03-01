@@ -4,7 +4,9 @@ import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import ContactModal from '../components/ContactModal';
+import CoursePreview from '../components/CoursePreview';
 import { useAuth } from '../contexts/AuthContext';
+import { useGuestContext } from '../hooks/useGuestContext';
 import courseService from '../services/courseService';
 
 const CourseDetail = () => {
@@ -12,6 +14,7 @@ const CourseDetail = () => {
     const { t } = useTranslation();
     const navigate = useNavigate();
     const { isAuthenticated, user } = useAuth();
+    const { recordCourseInterest } = useGuestContext();
     const [isContactModalOpen, setIsContactModalOpen] = useState(false);
     const [course, setCourse] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -81,6 +84,11 @@ const CourseDetail = () => {
                         curriculum: [], // Should come from DB modules
                         fee: data.fee
                     });
+
+                    // Record course interest for guest users
+                    if (!isAuthenticated) {
+                        recordCourseInterest(parseInt(id));
+                    }
                 } catch (err) {
                     setError('Failed to load course details.');
                 } finally {
@@ -91,6 +99,12 @@ const CourseDetail = () => {
                 const staticData = staticCourseData[id];
                 if (staticData) {
                     setCourse(staticData);
+
+                    // Record course interest for guest users (for static courses)
+                    if (!isAuthenticated) {
+                        recordCourseInterest(id);
+                    }
+
                     setLoading(false);
                 } else {
                     setError('Course not found');
@@ -100,7 +114,7 @@ const CourseDetail = () => {
         };
 
         fetchCourse();
-    }, [id]);
+    }, [id, isAuthenticated, recordCourseInterest, t]);
 
     if (loading) return <div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div></div>;
     if (error || !course) return <div className="min-h-screen flex items-center justify-center text-red-500">{error || 'Course not found'}</div>;
@@ -166,6 +180,9 @@ const CourseDetail = () => {
                                     </div>
                                 </div>
                             )}
+
+                            {/* Course Preview - Free Lessons */}
+                            <CoursePreview courseId={id} />
                         </div>
 
                         {/* Right Column - Enrollment Card */}

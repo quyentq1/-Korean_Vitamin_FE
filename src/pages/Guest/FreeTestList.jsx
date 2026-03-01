@@ -46,7 +46,27 @@ const FreeTestList = () => {
         remainingFreeTests,
         hasQuota,
         hasCompletedTest,
+        testHistory,
     } = useTestTracking();
+
+    // Helper to get completed test details
+    const getCompletedTestDetails = (testId) => {
+        // Convert both to string for consistent comparison (same as hasCompletedTest)
+        return testHistory.find(t => String(t.testId) === String(testId) && t.completed);
+    };
+
+    // Format date
+    const formatCompletionDate = (isoString) => {
+        if (!isoString) return '';
+        const date = new Date(isoString);
+        return date.toLocaleDateString('vi-VN', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    };
 
     const [tests, setTests] = useState([]);
 
@@ -85,23 +105,24 @@ const FreeTestList = () => {
         fetchExams();
     }, [t]);
 
-    const handleStartTest = (testId, index) => {
+    const handleStartTest = (testId) => {
         const completed = hasCompletedTest(testId);
 
-        // If test is beyond free quota and not completed, show consultation popup
-        if (index >= 2 && !completed) {
+        // BUG-01 & BUG-03 FIX: Chặn tất cả các trường hợp hết lượt (Limit = 2)
+        if (!hasQuota && !completed) {
             setShowConsultationPopup(true);
             return;
         }
 
-        // BUG-01 FIX: /test-runner is now a public route, no login required
+        // /test-runner is now a public route, no login required
         navigate(`/test-runner/${testId}`);
     };
 
     const handleConsultationSubmit = async (formData) => {
         // BUG-02 FIX: Send to real backend API
+        // Không đóng modal ngay - để ConsultationPopup tự xử lý việc đóng sau khi hiển thị success message
         await consultationService.submitConsultation(formData);
-        setShowConsultationPopup(false);
+        // ConsultationPopup sẽ tự động đóng sau 4 giây khi hiển thị success message
     };
 
     if (loading) {
@@ -154,8 +175,10 @@ const FreeTestList = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 max-w-5xl mx-auto">
                         {tests.map((test, index) => {
                             const completed = hasCompletedTest(test.id);
-                            const isLocked = index >= 2 && !hasQuota && !completed;
-                            const canTake = index < 2 || hasQuota || completed;
+                            const completedDetails = getCompletedTestDetails(test.id);
+                            // Đã làm là completed. Nếu hết lượt và chưa làm bào này thì khóa (Bật popup).
+                            const isLocked = !hasQuota && !completed;
+                            const canTake = hasQuota || completed;
 
                             return (
                                 <div
@@ -170,6 +193,11 @@ const FreeTestList = () => {
                                         {isLocked && (
                                             <div className="absolute top-2 right-2 bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full">
                                                 <span className="text-xs font-bold">🔒 ĐÃ KHÓA</span>
+                                            </div>
+                                        )}
+                                        {completed && (
+                                            <div className="absolute top-2 right-2 bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full">
+                                                <span className="text-xs font-bold">✅ ĐÃ LÀM</span>
                                             </div>
                                         )}
                                         <div className="flex items-center gap-3 mb-3">
@@ -212,32 +240,66 @@ const FreeTestList = () => {
                                             ))}
                                         </div>
 
-                                        {/* Status Badge */}
-                                        {completed && (
-                                            <div className="mb-4 p-3 bg-success-50 border border-success-200 rounded-lg flex items-center gap-2">
-                                                <svg className="w-5 h-5 text-success-600" fill="currentColor" viewBox="0 0 20 20">
-                                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                                                </svg>
-                                                <span className="text-success-700 font-medium text-sm sm:text-base">
-                                                    {t('freeTest.completed', 'Đã hoàn thành')}
-                                                </span>
+                                        {/* Completed Test Details */}
+                                        {completed && completedDetails && (
+                                            <div className="mb-4 p-4 bg-gradient-to-r from-success-50 to-emerald-50 border-2 border-success-200 rounded-xl space-y-2">
+                                                <div className="flex items-center justify-between">
+                                                    <span className="text-success-700 font-semibold text-sm sm:text-base">
+                                                        ✅ {t('freeTest.completed', 'Đã hoàn thành')}
+                                                    </span>
+                                                    {completedDetails.score !== null && (
+                                                        <span className="text-2xl sm:text-3xl font-bold text-success-600">
+                                                            {completedDetails.score}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                {completedDetails.completedAt && (
+                                                    <div className="text-success-600 text-xs sm:text-sm">
+                                                        📅 {formatCompletionDate(completedDetails.completedAt)}
+                                                    </div>
+                                                )}
                                             </div>
                                         )}
 
                                         {/* Action Button */}
                                         <button
-                                            onClick={() => handleStartTest(test.id, index)}
+                                            onClick={() => {
+                                                if (completed) {
+                                                    // Navigate to test results page with attempt data
+                                                    navigate(`/test-result/${test.id}`, {
+                                                        state: {
+                                                            fromFreeTestList: true,
+                                                            attemptId: completedDetails.attemptId || null,
+                                                            score: completedDetails.score || 0,
+                                                            correctAnswers: completedDetails.questionIds?.length || 0,
+                                                            testDetails: test,
+                                                            // Create a minimal finalAttempt-like object for TestResult page
+                                                            finalAttempt: completedDetails.attemptId ? {
+                                                                id: completedDetails.attemptId,
+                                                                autoScore: completedDetails.score,
+                                                                totalScore: completedDetails.score,
+                                                                correctAnswers: completedDetails.questionIds?.length || 0,
+                                                                completedAt: completedDetails.completedAt
+                                                            } : null
+                                                        }
+                                                    });
+                                                } else {
+                                                    handleStartTest(test.id);
+                                                }
+                                            }}
                                             className={`w-full py-3 sm:py-4 rounded-xl font-bold transition-all duration-300 text-sm sm:text-base ${isLocked
                                                 ? 'bg-gray-300 text-gray-600 cursor-pointer hover:bg-gray-400'
-                                                : canTake
-                                                    ? `bg-gradient-to-r ${test.color} text-white hover:shadow-xl transform hover:-translate-y-0.5`
-                                                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                                : completed
+                                                    ? 'bg-gradient-to-r from-success-500 to-emerald-600 text-white hover:shadow-xl transform hover:-translate-y-0.5'
+                                                    : canTake
+                                                        ? `bg-gradient-to-r ${test.color} text-white hover:shadow-xl transform hover:-translate-y-0.5`
+                                                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                                                 }`}
                                         >
                                             {isLocked ? (
                                                 <>🔒 {t('freeTest.requestAccess', 'Yêu Cầu Truy Cập')}</>
                                             ) : completed ? (
-                                                t('freeTest.retake', 'Làm lại')
+                                                <>📊 {t('freeTest.viewResults', 'Xem Kết Quả')}</>
                                             ) : canTake ? (
                                                 t('freeTest.start', 'Bắt đầu làm bài')
                                             ) : (
