@@ -346,7 +346,7 @@ const StudentManagement = () => {
   if (loading) {
     return (
       <PageContainer>
-        <PageLoading />
+        <Loading.PageLoading />
       </PageContainer>
     );
   }
