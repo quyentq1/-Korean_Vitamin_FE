@@ -95,7 +95,7 @@ const createError = (error) => {
     errorObj.status = status;
     errorObj.code = data?.code || `HTTP_${status}`;
     errorObj.details = data;
-    
+
     // Phân loại lỗi theo status code
     if (status >= 500) {
       errorObj.isServerError = true;
@@ -109,6 +109,17 @@ const createError = (error) => {
     } else if (status === 404) {
       errorObj.isClientError = true;
       errorObj.message = data?.message || 'Không tìm thấy tài nguyên yêu cầu.';
+    } else if (status === 400) {
+      errorObj.isClientError = true;
+      // Handle validation errors
+      if (data?.errors && typeof data.errors === 'object') {
+        const errorMessages = Object.entries(data.errors)
+          .map(([field, msg]) => `${field}: ${msg}`)
+          .join('\n');
+        errorObj.message = `Dữ liệu không hợp lệ:\n${errorMessages}`;
+      } else {
+        errorObj.message = data?.message || 'Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.';
+      }
     } else if (status === 429) {
       errorObj.isClientError = true;
       errorObj.message = data?.message || 'Bạn đã gửi quá nhiều yêu cầu. Vui lòng thử lại sau.';
@@ -153,10 +164,16 @@ axiosClient.interceptors.request.use(
     
     // Logging trong development
     if (import.meta.env.DEV) {
+      // Get stack trace to find caller
+      const stack = new Error().stack;
+      const callerLine = stack.split('\n')[3]?.trim();
+
       console.log(`[API Request] ${config.method?.toUpperCase()} ${config.url}`, {
         headers: config.headers,
         data: config.data,
-        params: config.params
+        params: config.params,
+        caller: callerLine,
+        fullURL: `${config.baseURL || ''}${config.url}`
       });
     }
     
@@ -192,7 +209,15 @@ axiosClient.interceptors.response.use(
     
     // Logging trong development
     if (import.meta.env.DEV) {
-      console.error('[API Error]', errorObj);
+      console.error('[API Error]', {
+        url: originalRequest?.url,
+        fullURL: `${originalRequest?.baseURL || ''}${originalRequest?.url || ''}`,
+        method: originalRequest?.method?.toUpperCase(),
+        status: errorObj.status,
+        message: errorObj.message,
+        params: originalRequest?.params,
+        data: originalRequest?.data
+      });
     }
     
     // Xử lý lỗi 401 - Token hết hạn hoặc không hợp lệ
