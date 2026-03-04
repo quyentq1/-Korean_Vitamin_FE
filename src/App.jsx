@@ -23,8 +23,14 @@ import WritingSubmission from './pages/Learner/WritingSubmission.jsx';
 import Forum from './pages/Shared/Forum.jsx';
 import QuestionBank from './pages/Teacher/QuestionBank.jsx';
 import GradingQueue from './pages/Teacher/GradingQueue.jsx';
-import StudentManagement from './pages/Admin/StudentManagement.jsx';
+import StudentManagement from './pages/Staff/StudentManagement.jsx';
+import ViewStudent from './pages/Staff/ViewStudent.jsx';
+import EditStudent from './pages/Staff/EditStudent.jsx';
+import CreateManualStudent from './pages/Staff/CreateManualStudent.jsx';
+import CreateOCRStudent from './pages/Staff/CreateOCRStudent.jsx';
 import ClassManagement from './pages/Staff/ClassManagement.jsx';
+import ClassDetail from './pages/Staff/ClassDetail.jsx';
+import ClassAttendance from './pages/Staff/ClassAttendance.jsx';
 import RoleManagement from './pages/Staff/RoleManagement.jsx';
 import CreateQuiz from './pages/Teacher/CreateQuiz.jsx';
 import CreateQuestion from './pages/Teacher/CreateQuestion.jsx';
@@ -35,6 +41,8 @@ import ExamEditor from './pages/Teacher/ExamEditor.jsx';
 import ExamAttempts from './pages/Teacher/ExamAttempts.jsx';
 import QBApproval from './pages/Manager/QBApproval.jsx';
 import StaffDashboard from './pages/Staff/StaffDashboard.jsx';
+import StaffRegistrationManagement from './pages/Staff/RegistrationManagement.jsx';
+import StaffReports from './pages/Staff/StaffReports.jsx';
 import ManagerDashboard from './pages/Manager/ManagerDashboard.jsx';
 import SystemSettings from './pages/Admin/SystemSettings.jsx';
 import UserManagement from './pages/Admin/UserManagement.jsx';
@@ -223,9 +231,49 @@ function App() {
               <StudentManagement />
             </StaffRoute>
           } />
+          <Route path="/student-management/create-manual" element={
+            <StaffRoute>
+              <CreateManualStudent />
+            </StaffRoute>
+          } />
+          <Route path="/student-management/create-ocr" element={
+            <StaffRoute>
+              <CreateOCRStudent />
+            </StaffRoute>
+          } />
+          <Route path="/student-management/:studentId/edit" element={
+            <StaffRoute>
+              <EditStudent />
+            </StaffRoute>
+          } />
+          <Route path="/student-management/:studentId" element={
+            <StaffRoute>
+              <ViewStudent />
+            </StaffRoute>
+          } />
           <Route path="/class-management" element={
             <StaffRoute>
               <ClassManagement />
+            </StaffRoute>
+          } />
+          <Route path="/classes/:id" element={
+            <StaffRoute>
+              <ClassDetail />
+            </StaffRoute>
+          } />
+          <Route path="/classes/:id/attendance" element={
+            <StaffRoute>
+              <ClassAttendance />
+            </StaffRoute>
+          } />
+          <Route path="/registrations" element={
+            <StaffRoute>
+              <StaffRegistrationManagement />
+            </StaffRoute>
+          } />
+          <Route path="/reports" element={
+            <StaffRoute>
+              <StaffReports />
             </StaffRoute>
           } />
           <Route path="/role-management" element={
