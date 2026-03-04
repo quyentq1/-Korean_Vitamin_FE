@@ -1,46 +1,99 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, BookOpen, ClipboardList, Bell, ChevronRight, UserCheck, Clock } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { Users, BookOpen, ClipboardList, Bell, ChevronRight, UserCheck, Clock, Loader2 } from 'lucide-react';
+import Swal from 'sweetalert2';
+import staffService from '../../services/staffService';
 
 /**
  * BUG-04 FIX: Staff Dashboard — thay thế "Coming soon" placeholder
+ * Staff Dashboard with real API integration and bilingual support
  */
 const StaffDashboard = () => {
+    const { t } = useTranslation();
     const navigate = useNavigate();
-    const [stats, setStats] = useState({ students: 0, classes: 0, pendingReg: 0, newConsultations: 0 });
+    const [stats, setStats] = useState({
+        totalStudents: 0,
+        activeClasses: 0,
+        pendingRegistrations: 0,
+        newConsultations: 0
+    });
+    const [loading, setLoading] = useState(true);
+    const [recentActivities, setRecentActivities] = useState([]);
 
-    // Mock stats — sẽ kết nối API thực sau
+    // Fetch dashboard stats from API
     useEffect(() => {
-        setStats({ students: 128, classes: 12, pendingReg: 5, newConsultations: 3 });
-    }, []);
+        const fetchDashboardData = async () => {
+            try {
+                setLoading(true);
+                const response = await staffService.getDashboardStats();
+
+                if (response) {
+                    setStats({
+                        totalStudents: response.totalStudents || 0,
+                        activeClasses: response.activeClasses || 0,
+                        pendingRegistrations: response.pendingRegistrations || 0,
+                        newConsultations: response.newConsultations || 0
+                    });
+
+                    // Set recent activities if available
+                    if (response.recentActivities) {
+                        setRecentActivities(response.recentActivities);
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching dashboard stats:', error);
+
+                // Show error notification
+                Swal.fire({
+                    icon: 'error',
+                    title: t('errors.error') || 'Lỗi',
+                    text: error.message || t('errors.tryAgain') || 'Vui lòng thử lại',
+                    confirmButtonColor: '#667eea',
+                });
+
+                // Set default values on error
+                setStats({
+                    totalStudents: 0,
+                    activeClasses: 0,
+                    pendingRegistrations: 0,
+                    newConsultations: 0
+                });
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchDashboardData();
+    }, [t]);
 
     const statCards = [
         {
-            label: 'Tổng Học Viên',
-            value: stats.students,
+            label: t('staff.dashboard.totalStudents'),
+            value: stats.totalStudents,
             icon: <Users className="w-6 h-6" />,
             color: 'from-blue-500 to-blue-600',
             bg: 'bg-blue-50',
             text: 'text-blue-700',
         },
         {
-            label: 'Lớp Đang Hoạt Động',
-            value: stats.classes,
+            label: t('staff.dashboard.activeClasses'),
+            value: stats.activeClasses,
             icon: <BookOpen className="w-6 h-6" />,
             color: 'from-emerald-500 to-emerald-600',
             bg: 'bg-emerald-50',
             text: 'text-emerald-700',
         },
         {
-            label: 'Đăng Ký Chờ Xử Lý',
-            value: stats.pendingReg,
+            label: t('staff.dashboard.pendingRegistrations'),
+            value: stats.pendingRegistrations,
             icon: <ClipboardList className="w-6 h-6" />,
             color: 'from-amber-500 to-amber-600',
             bg: 'bg-amber-50',
             text: 'text-amber-700',
         },
         {
-            label: 'Tư Vấn Mới',
+            label: t('staff.dashboard.newConsultations'),
             value: stats.newConsultations,
             icon: <Bell className="w-6 h-6" />,
             color: 'from-purple-500 to-purple-600',
@@ -50,11 +103,47 @@ const StaffDashboard = () => {
     ];
 
     const quickLinks = [
-        { label: 'Quản Lý Học Viên', desc: 'Xem, thêm, chỉnh sửa thông tin học viên', path: '/student-management', icon: '👤', color: 'hover:border-blue-400' },
-        { label: 'Quản Lý Lớp Học', desc: 'Tạo lớp, xếp lịch, phân giáo viên', path: '/class-management', icon: '🏫', color: 'hover:border-emerald-400' },
-        { label: 'Phân Quyền', desc: 'Quản lý vai trò và quyền truy cập', path: '/role-management', icon: '🔐', color: 'hover:border-purple-400' },
-        { label: 'Đăng Ký Khoá Học', desc: 'Xem và xử lý đơn đăng ký mới', path: '/registration-management', icon: '📋', color: 'hover:border-amber-400' },
+        {
+            label: t('staff.dashboard.studentManagement'),
+            desc: t('staff.dashboard.studentManagementDesc'),
+            path: '/student-management',
+            icon: '👤',
+            color: 'hover:border-blue-400'
+        },
+        {
+            label: t('staff.dashboard.classManagement'),
+            desc: t('staff.dashboard.classManagementDesc'),
+            path: '/class-management',
+            icon: '🏫',
+            color: 'hover:border-emerald-400'
+        },
+        {
+            label: t('staff.dashboard.roleManagement'),
+            desc: t('staff.dashboard.roleManagementDesc'),
+            path: '/role-management',
+            icon: '🔐',
+            color: 'hover:border-purple-400'
+        },
+        {
+            label: t('staff.dashboard.registrationManagement'),
+            desc: t('staff.dashboard.registrationManagementDesc'),
+            path: '/registration-management',
+            icon: '📋',
+            color: 'hover:border-amber-400'
+        },
     ];
+
+    // Loading state
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 flex items-center justify-center">
+                <div className="text-center">
+                    <Loader2 className="w-12 h-12 text-blue-600 animate-spin mx-auto mb-4" />
+                    <p className="text-gray-600">{t('common.loading')}</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 p-6">
@@ -65,8 +154,8 @@ const StaffDashboard = () => {
                         🏢
                     </div>
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-900">Staff Dashboard</h1>
-                        <p className="text-gray-500 text-sm">Tổng quan hoạt động của trung tâm</p>
+                        <h1 className="text-2xl font-bold text-gray-900">{t('staff.dashboard.title')}</h1>
+                        <p className="text-gray-500 text-sm">{t('staff.dashboard.subtitle')}</p>
                     </div>
                 </div>
             </div>
@@ -88,7 +177,7 @@ const StaffDashboard = () => {
 
             {/* Quick Links */}
             <div className="mb-8">
-                <h2 className="text-lg font-semibold text-gray-800 mb-4">Truy Cập Nhanh</h2>
+                <h2 className="text-lg font-semibold text-gray-800 mb-4">{t('staff.dashboard.quickAccess')}</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {quickLinks.map((link, i) => (
                         <button
@@ -111,30 +200,36 @@ const StaffDashboard = () => {
                 </div>
             </div>
 
-            {/* Recent Activity Placeholder */}
+            {/* Recent Activity */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                 <div className="flex items-center gap-2 mb-4">
                     <Clock className="w-5 h-5 text-gray-400" />
-                    <h2 className="text-lg font-semibold text-gray-800">Hoạt Động Gần Đây</h2>
+                    <h2 className="text-lg font-semibold text-gray-800">{t('staff.dashboard.recentActivity')}</h2>
                 </div>
-                <div className="space-y-3">
-                    {[
-                        { icon: '📝', text: 'Đăng ký mới từ Nguyễn Văn A — TOPIK 2', time: '5 phút trước', badge: 'Mới', badgeColor: 'bg-green-100 text-green-700' },
-                        { icon: '✅', text: 'Lớp TK-24A đã được tạo thành công', time: '1 giờ trước', badge: 'Hoàn thành', badgeColor: 'bg-blue-100 text-blue-700' },
-                        { icon: '💬', text: 'Yêu cầu tư vấn từ khách — SĐT 0901234567', time: '2 giờ trước', badge: 'Chờ xử lý', badgeColor: 'bg-amber-100 text-amber-700' },
-                    ].map((item, i) => (
-                        <div key={i} className="flex items-center justify-between py-3 border-b border-gray-50 last:border-0">
-                            <div className="flex items-center gap-3">
-                                <span className="text-xl">{item.icon}</span>
-                                <span className="text-gray-700 text-sm">{item.text}</span>
+
+                {recentActivities.length > 0 ? (
+                    <div className="space-y-3">
+                        {recentActivities.map((item, i) => (
+                            <div key={i} className="flex items-center justify-between py-3 border-b border-gray-50 last:border-0">
+                                <div className="flex items-center gap-3">
+                                    <span className="text-xl">{item.icon}</span>
+                                    <span className="text-gray-700 text-sm">{item.text}</span>
+                                </div>
+                                <div className="flex items-center gap-3 shrink-0">
+                                    <span className={`text-xs font-medium px-2 py-1 rounded-full ${item.badgeColor}`}>
+                                        {item.badge}
+                                    </span>
+                                    <span className="text-xs text-gray-400 hidden sm:block">{item.time}</span>
+                                </div>
                             </div>
-                            <div className="flex items-center gap-3 shrink-0">
-                                <span className={`text-xs font-medium px-2 py-1 rounded-full ${item.badgeColor}`}>{item.badge}</span>
-                                <span className="text-xs text-gray-400 hidden sm:block">{item.time}</span>
-                            </div>
-                        </div>
-                    ))}
-                </div>
+                        ))}
+                    </div>
+                ) : (
+                    <div className="text-center py-8">
+                        <UserCheck className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                        <p className="text-gray-500 text-sm">{t('common.noData')}</p>
+                    </div>
+                )}
             </div>
         </div>
     );

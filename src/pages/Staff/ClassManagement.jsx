@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { 
-  Search, 
-  Filter, 
-  Plus, 
-  Calendar, 
-  Users, 
+import { useNavigate } from 'react-router-dom';
+import {
+  Search,
+  Filter,
+  Plus,
+  Calendar,
+  Users,
   Clock,
   MapPin,
   Edit,
@@ -27,11 +28,12 @@ import { PageContainer } from '../../components/ui/PageContainer';
 import { Badge } from '../../components/ui/Badge';
 import { Alert } from '../../components/ui/Alert';
 import { Loading } from '../../components/ui/Loading';
-import classService from '../../services/classService';
+import staffService from '../../services/staffService';
 import courseService from '../../services/courseService';
 
 const ClassManagement = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   
   // Main States
   const [view, setView] = useState('list'); // list | calendar
@@ -92,9 +94,9 @@ const ClassManagement = () => {
   const fetchClasses = async () => {
     try {
       setLoading(true);
-      const response = await classService.getAllClasses();
-      setClasses(response.data || []);
-      setFilteredClasses(response.data || []);
+      const response = await staffService.getClasses();
+      setClasses(response.data?.classes || []);
+      setFilteredClasses(response.data?.classes || []);
     } catch (error) {
       console.error('Error fetching classes:', error);
       setError(t('classManagement.fetchError'));
@@ -199,22 +201,9 @@ const ClassManagement = () => {
     }
   };
   
-  // Handle open detail modal
-  const handleOpenDetail = async (cls) => {
-    setSelectedClass(cls);
-    setIsDetailModalOpen(true);
-    try {
-      const [students, teachers] = await Promise.all([
-        classService.getStudents(cls.id),
-        classService.getTeachers(cls.id),
-      ]);
-      setClassStudents(students || []);
-      setClassTeachers(teachers || []);
-    } catch (error) {
-      console.error('Error fetching class details:', error);
-      setClassStudents([]);
-      setClassTeachers([]);
-    }
+  // Handle open detail page
+  const handleOpenDetail = (cls) => {
+    navigate(`/classes/${cls.id}`);
   };
   
   // Handle add student to class
