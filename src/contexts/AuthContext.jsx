@@ -54,6 +54,10 @@ export const AuthProvider = ({ children }) => {
       
       if (storedToken && storedUser) {
         const parsedUser = JSON.parse(storedUser);
+        // Normalize role to uppercase
+        if (parsedUser.role) {
+          parsedUser.role = parsedUser.role.toUpperCase();
+        }
         setToken(storedToken);
         setUser(parsedUser);
         setIsAuthenticated(true);
@@ -110,7 +114,7 @@ export const AuthProvider = ({ children }) => {
       });
       clearInterval(sessionCheckInterval);
     };
-  }, [lastActivity, clearAuthData, navigate]);
+  }, [clearAuthData, navigate]);
 
   /**
    * Login - Xử lý đăng nhập người dùng
@@ -128,12 +132,13 @@ export const AuthProvider = ({ children }) => {
       
       // Lưu token và thông tin người dùng
       const token = response.token || response.accessToken;
+      const rawRole = response.role || response.roles?.[0] || response.userInfo?.role;
       const userData = {
         id: response.id || response.userInfo?.id,
         username: response.username || response.userInfo?.username,
         fullName: response.fullName || response.userInfo?.fullName,
         email: response.email || response.userInfo?.email,
-        role: response.role || response.roles?.[0] || response.userInfo?.role,
+        role: rawRole ? rawRole.toUpperCase() : null, // Normalize to uppercase
         avatar: response.avatar || response.userInfo?.avatar,
         permissions: response.permissions || response.userInfo?.permissions || [],
         ...response.userInfo
@@ -265,12 +270,17 @@ export const AuthProvider = ({ children }) => {
    * @returns {boolean} Người dùng có quyền không
    */
   const hasRole = useCallback((requiredRoles) => {
-    if (!user || !user.role) return false;
-    
-    if (Array.isArray(requiredRoles)) {
-      return requiredRoles.includes(user.role);
+    if (!user || !user.role) {
+      console.log('[hasRole] No user or role:', { user, requiredRoles });
+      return false;
     }
-    return user.role === requiredRoles;
+
+    const hasRole = Array.isArray(requiredRoles)
+      ? requiredRoles.includes(user.role)
+      : user.role === requiredRoles;
+
+
+    return hasRole;
   }, [user]);
 
   /**
