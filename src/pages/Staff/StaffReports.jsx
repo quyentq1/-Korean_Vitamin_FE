@@ -11,7 +11,10 @@ import {
   Filter,
   CheckCircle,
   XCircle,
-  Clock
+  Clock,
+  GraduationCap,
+  Star,
+  Send
 } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { PageHeader } from '../../components/ui/PageHeader';
@@ -35,6 +38,20 @@ const StaffReports = () => {
   const [selectedClass, setSelectedClass] = useState(null);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+
+  // Teacher reports states
+  const [teacherReports, setTeacherReports] = useState([]);
+  const [teacherReportsLoading, setTeacherReportsLoading] = useState(false);
+  const [selectedReportDetail, setSelectedReportDetail] = useState(null);
+  const [showReportDetailModal, setShowReportDetailModal] = useState(false);
+
+  // Student feedback states
+  const [studentReports, setStudentReports] = useState([]);
+  const [studentReportsLoading, setStudentReportsLoading] = useState(false);
+  const [selectedStudentReport, setSelectedStudentReport] = useState(null);
+  const [showStudentReportModal, setShowStudentReportModal] = useState(false);
+  const [responseText, setResponseText] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
 
   useEffect(() => {
     fetchClasses();
@@ -109,6 +126,129 @@ const StaffReports = () => {
     }
   };
 
+  // Teacher Reports Handlers
+  const handleFetchTeacherReports = async () => {
+    if (!selectedClass) {
+      Swal.fire({
+        icon: 'warning',
+        title: t('staff.reports.selectClass'),
+        text: t('staff.reports.selectClassRequired')
+      });
+      return;
+    }
+
+    try {
+      setTeacherReportsLoading(true);
+      const response = await staffService.getTeacherReports(selectedClass);
+      setTeacherReports(response.data || []);
+    } catch (error) {
+      console.error('Error fetching teacher reports:', error);
+      Swal.fire({
+        icon: 'error',
+        title: t('staff.reports.error.fetchFailed'),
+        text: error.response?.data?.message || 'Failed to fetch teacher reports'
+      });
+    } finally {
+      setTeacherReportsLoading(false);
+    }
+  };
+
+  const handleViewReportDetail = async (report) => {
+    try {
+      const response = await staffService.getStudentReportDetail(selectedClass, report.student.id);
+      setSelectedReportDetail(response.data);
+      setShowReportDetailModal(true);
+    } catch (error) {
+      console.error('Error fetching report detail:', error);
+      Swal.fire({
+        icon: 'error',
+        title: t('staff.reports.error.fetchDetailFailed'),
+        text: error.response?.data?.message || 'Failed to fetch report detail'
+      });
+    }
+  };
+
+  // Student Feedback Handlers
+  const handleFetchStudentReports = async () => {
+    if (!selectedClass) {
+      Swal.fire({
+        icon: 'warning',
+        title: t('staff.reports.selectClass'),
+        text: t('staff.reports.selectClassRequired')
+      });
+      return;
+    }
+
+    try {
+      setStudentReportsLoading(true);
+      const response = await staffService.getStudentReports(selectedClass, statusFilter);
+      setStudentReports(response.data || []);
+    } catch (error) {
+      console.error('Error fetching student reports:', error);
+      Swal.fire({
+        icon: 'error',
+        title: t('staff.reports.error.fetchFailed'),
+        text: error.response?.data?.message || 'Failed to fetch student reports'
+      });
+    } finally {
+      setStudentReportsLoading(false);
+    }
+  };
+
+  const handleViewStudentReport = (report) => {
+    setSelectedStudentReport(report);
+    setResponseText(report.response || '');
+    setShowStudentReportModal(true);
+  };
+
+  const handleRespondToReport = async () => {
+    if (!selectedStudentReport || !responseText.trim()) {
+      Swal.fire({
+        icon: 'warning',
+        title: t('staff.reports.warning'),
+        text: t('staff.reports.responseRequired')
+      });
+      return;
+    }
+
+    try {
+      await staffService.respondToStudentReport(selectedStudentReport.id, responseText);
+      Swal.fire({
+        icon: 'success',
+        title: t('staff.reports.success'),
+        text: t('staff.reports.responseSent')
+      });
+      setShowStudentReportModal(false);
+      handleFetchStudentReports(); // Refresh list
+    } catch (error) {
+      console.error('Error responding to report:', error);
+      Swal.fire({
+        icon: 'error',
+        title: t('staff.reports.error.respondFailed'),
+        text: error.response?.data?.message || 'Failed to send response'
+      });
+    }
+  };
+
+  const handleResolveReport = async (reportId) => {
+    try {
+      await staffService.resolveStudentReport(reportId);
+      Swal.fire({
+        icon: 'success',
+        title: t('staff.reports.success'),
+        text: t('staff.reports.reportResolved')
+      });
+      handleFetchStudentReports(); // Refresh list
+    } catch (error) {
+      console.error('Error resolving report:', error);
+      Swal.fire({
+        icon: 'error',
+        title: t('staff.reports.error.resolveFailed'),
+        text: error.response?.data?.message || 'Failed to resolve report'
+      });
+    }
+  };
+
   return (
     <PageContainer>
       {/* Header */}
@@ -123,6 +263,7 @@ const StaffReports = () => {
           <nav className="flex space-x-8 px-6" aria-label="Tabs">
             {[
               { key: 'attendance', label: t('staff.reports.tabs.attendance'), icon: FileText },
+              { key: 'teacher', label: t('staff.reports.tabs.teacher'), icon: GraduationCap },
               { key: 'registration', label: t('staff.reports.tabs.registration'), icon: Users },
               { key: 'students', label: t('staff.reports.tabs.students'), icon: Users }
             ].map((tab) => (
@@ -147,13 +288,13 @@ const StaffReports = () => {
       {activeTab === 'attendance' && (
         <div className="space-y-6">
           {/* Report Filters */}
-          <div className="bg-white rounded-xl shadow-sm p-6">
+          <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
               <Filter className="w-5 h-5 mr-2 text-purple-600" />
               {t('staff.reports.filters')}
             </h3>
 
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   {t('staff.class.className')}
@@ -161,7 +302,7 @@ const StaffReports = () => {
                 <select
                   value={selectedClass || ''}
                   onChange={(e) => setSelectedClass(Number(e.target.value))}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all h-[42px]"
                 >
                   <option value="">{t('staff.reports.selectClass')}</option>
                   {classes.map((cls) => (
@@ -180,6 +321,7 @@ const StaffReports = () => {
                   type="date"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
+                  className="w-full h-[42px]"
                 />
               </div>
 
@@ -191,15 +333,16 @@ const StaffReports = () => {
                   type="date"
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
+                  className="w-full h-[42px]"
                 />
               </div>
 
-              <div className="flex items-end space-x-2">
+              <div>
                 <Button
                   variant="primary"
                   onClick={handleGenerateAttendanceReport}
                   disabled={loading}
-                  className="flex-1"
+                  className="w-full h-[42px] shadow-sm"
                 >
                   <BarChart3 className="w-4 h-4 mr-2" />
                   {t('staff.reports.generateReport')}
@@ -332,6 +475,147 @@ const StaffReports = () => {
         </div>
       )}
 
+      {/* Teacher Reports Tab */}
+      {activeTab === 'teacher' && (
+        <div className="space-y-6">
+          {/* Report Filters */}
+          <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+              <Filter className="w-5 h-5 mr-2 text-purple-600" />
+              {t('staff.reports.filters')}
+            </h3>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {t('staff.class.className')}
+                </label>
+                <select
+                  value={selectedClass || ''}
+                  onChange={(e) => setSelectedClass(Number(e.target.value))}
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all h-[42px]"
+                >
+                  <option value="">{t('staff.reports.selectClass')}</option>
+                  {classes.map((cls) => (
+                    <option key={cls.id} value={cls.id}>
+                      {cls.className} ({cls.classCode})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  &nbsp;
+                </label>
+                <Button
+                  variant="primary"
+                  onClick={handleFetchTeacherReports}
+                  disabled={teacherReportsLoading}
+                  className="w-full h-[42px] shadow-sm"
+                >
+                  {teacherReportsLoading ? (
+                    <>
+                      <Clock className="w-4 h-4 mr-2 animate-spin" />
+                      {t('common.loading')}
+                    </>
+                  ) : (
+                    <>
+                      <FileText className="w-4 h-4 mr-2" />
+                      {t('staff.reports.fetchReports')}
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Reports List */}
+          {teacherReports.length > 0 && (
+            <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+              <div className="px-6 py-4 border-b border-gray-200">
+                <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                  <GraduationCap className="w-5 h-5 mr-2 text-purple-600" />
+                  {t('staff.reports.teacherReportsList')} ({teacherReports.length})
+                </h3>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                        {t('staff.reports.reportDate')}
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                        {t('staff.reports.student')}
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                        {t('staff.reports.teacher')}
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                        {t('staff.reports.attendanceRate')}
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                        {t('common.actions')}
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {teacherReports.map((report) => (
+                      <tr key={report.id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-900">
+                            {new Date(report.reportDate).toLocaleDateString()}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="text-sm font-medium text-gray-900">
+                            {report.student.name}
+                          </div>
+                          <div className="text-sm text-gray-500">{report.student.email}</div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="text-sm font-medium text-gray-900">
+                            {report.teacher.name}
+                          </div>
+                          <div className="text-sm text-gray-500">{report.teacher.email}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getAttendanceRateColor(report.attendanceRate || 0)}`}>
+                            {report.attendanceRate || 0}%
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => handleViewReportDetail(report)}
+                          >
+                            <FileText className="w-4 h-4 mr-1" />
+                            {t('common.view')}
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {teacherReports.length === 0 && !teacherReportsLoading && selectedClass && (
+            <div className="bg-white rounded-xl shadow-sm p-12 text-center">
+              <GraduationCap className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                {t('staff.reports.noReports')}
+              </h3>
+              <p className="text-gray-500">{t('staff.reports.noReportsDesc')}</p>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Registration Report Tab */}
       {activeTab === 'registration' && (
         <div className="bg-white rounded-xl shadow-sm p-12 text-center">
@@ -345,12 +629,331 @@ const StaffReports = () => {
 
       {/* Students Report Tab */}
       {activeTab === 'students' && (
-        <div className="bg-white rounded-xl shadow-sm p-12 text-center">
-          <Users className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">
-            {t('staff.reports.studentReport')}
-          </h3>
-          <p className="text-gray-500">{t('staff.reports.comingSoon')}</p>
+        <div className="space-y-6">
+          {/* Report Filters */}
+          <div className="bg-white rounded-xl shadow-sm p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+              <Filter className="w-5 h-5 mr-2 text-purple-600" />
+              {t('staff.reports.filters')}
+            </h3>
+
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {t('staff.class.className')}
+                </label>
+                <select
+                  value={selectedClass || ''}
+                  onChange={(e) => setSelectedClass(Number(e.target.value))}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                >
+                  <option value="">{t('staff.reports.selectClass')}</option>
+                  {classes.map((cls) => (
+                    <option key={cls.id} value={cls.id}>
+                      {cls.className} ({cls.classCode})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {t('staff.reports.status')}
+                </label>
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                >
+                  <option value="">{t('staff.reports.allStatus')}</option>
+                  <option value="PENDING">PENDING</option>
+                  <option value="IN_PROGRESS">IN_PROGRESS</option>
+                  <option value="RESOLVED">RESOLVED</option>
+                  <option value="CLOSED">CLOSED</option>
+                </select>
+              </div>
+
+              <div className="flex items-end space-x-2">
+                <Button
+                  variant="primary"
+                  onClick={handleFetchStudentReports}
+                  disabled={studentReportsLoading}
+                  className="flex-1"
+                >
+                  {studentReportsLoading ? (
+                    <>
+                      <Clock className="w-4 h-4 mr-2 animate-spin" />
+                      {t('common.loading')}
+                    </>
+                  ) : (
+                    <>
+                      <Users className="w-4 h-4 mr-2" />
+                      {t('staff.reports.fetchReports')}
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Student Reports List */}
+          {studentReports.length > 0 && (
+            <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+              <div className="px-6 py-4 border-b border-gray-200">
+                <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                  <Users className="w-5 h-5 mr-2 text-purple-600" />
+                  {t('staff.reports.studentReportsList')} ({studentReports.length})
+                </h3>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                        {t('staff.reports.createdAt')}
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                        {t('staff.reports.student')}
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                        {t('staff.reports.type')}
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                        {t('staff.reports.subject')}
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                        {t('staff.reports.status')}
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                        {t('common.actions')}
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {studentReports.map((report) => (
+                      <tr key={report.id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-900">
+                            {new Date(report.createdAt).toLocaleDateString()}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="text-sm font-medium text-gray-900">
+                            {report.student?.name || '-'}
+                          </div>
+                          <div className="text-sm text-gray-500">{report.student?.email || '-'}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                            report.priority === 'URGENT' ? 'bg-red-100 text-red-800' :
+                            report.priority === 'HIGH' ? 'bg-orange-100 text-orange-800' :
+                            report.priority === 'MEDIUM' ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-gray-100 text-gray-800'
+                          }`}>
+                            {report.reportType}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="text-sm text-gray-900 max-w-xs truncate">
+                            {report.subject}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                            report.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
+                            report.status === 'IN_PROGRESS' ? 'bg-blue-100 text-blue-800' :
+                            report.status === 'RESOLVED' ? 'bg-green-100 text-green-800' :
+                            'bg-gray-100 text-gray-800'
+                          }`}>
+                            {report.status}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          <div className="flex items-center space-x-2">
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              onClick={() => handleViewStudentReport(report)}
+                            >
+                              <FileText className="w-4 h-4 mr-1" />
+                              {t('common.view')}
+                            </Button>
+                            {report.status !== 'RESOLVED' && report.status !== 'CLOSED' && (
+                              <Button
+                                variant="success"
+                                size="sm"
+                                onClick={() => handleResolveReport(report.id)}
+                              >
+                                <CheckCircle className="w-4 h-4 mr-1" />
+                                {t('staff.reports.resolve')}
+                              </Button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {studentReports.length === 0 && !studentReportsLoading && selectedClass && (
+            <div className="bg-white rounded-xl shadow-sm p-12 text-center">
+              <Users className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                {t('staff.reports.noReports')}
+              </h3>
+              <p className="text-gray-500">{t('staff.reports.noStudentReportsDesc')}</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Student Report Detail Modal */}
+      {showStudentReportModal && selectedStudentReport && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-gray-900 flex items-center">
+                <Users className="w-6 h-6 mr-2 text-blue-500" />
+                {t('staff.reports.studentFeedback')}
+              </h2>
+              <button
+                onClick={() => {
+                  setShowStudentReportModal(false);
+                  setSelectedStudentReport(null);
+                  setResponseText('');
+                }}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <XCircle className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-6">
+              {/* Student Info */}
+              {selectedStudentReport.student && (
+                <div className="bg-blue-50 rounded-lg p-4">
+                  <h4 className="font-semibold text-blue-900 mb-2">{t('staff.reports.from')}</h4>
+                  <p className="text-sm font-medium text-blue-800">{selectedStudentReport.student.name}</p>
+                  <p className="text-xs text-blue-600">{selectedStudentReport.student.email}</p>
+                </div>
+              )}
+
+              {/* Report Details */}
+              <div>
+                <h4 className="font-semibold text-gray-900 mb-2">{t('staff.reports.type')}: {selectedStudentReport.reportType}</h4>
+                <h4 className="font-semibold text-gray-900 mb-3">{selectedStudentReport.subject}</h4>
+                <p className="text-gray-700 bg-gray-50 rounded-lg p-4 whitespace-pre-wrap">{selectedStudentReport.content}</p>
+              </div>
+
+              {/* Response Section */}
+              {selectedStudentReport.response ? (
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-3">{t('staff.reports.previousResponse')}</h4>
+                  <p className="text-gray-700 bg-green-50 rounded-lg p-4 whitespace-pre-wrap">{selectedStudentReport.response}</p>
+                </div>
+              ) : (
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-2">{t('staff.reports.yourResponse')}</h4>
+                  <textarea
+                    value={responseText}
+                    onChange={(e) => setResponseText(e.target.value)}
+                    rows={4}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                    placeholder={t('staff.reports.responsePlaceholder')}
+                  />
+                  <div className="mt-2 flex justify-end">
+                    <Button
+                      variant="primary"
+                      onClick={handleRespondToReport}
+                    >
+                      <Send className="w-4 h-4 mr-2" />
+                      {t('staff.reports.sendResponse')}
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex items-center justify-between text-sm text-gray-500 pt-4 border-t">
+                <span>{t('staff.reports.createdAt')}: {new Date(selectedStudentReport.createdAt).toLocaleString()}</span>
+                <span className={`px-2 py-1 rounded ${
+                  selectedStudentReport.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
+                  selectedStudentReport.status === 'IN_PROGRESS' ? 'bg-blue-100 text-blue-800' :
+                  'bg-green-100 text-green-800'
+                }`}>
+                  {selectedStudentReport.status}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Report Detail Modal */}
+      {showReportDetailModal && selectedReportDetail && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-gray-900 flex items-center">
+                <Star className="w-6 h-6 mr-2 text-yellow-500" />
+                {t('staff.reports.reportDetail')}
+              </h2>
+              <button
+                onClick={() => {
+                  setShowReportDetailModal(false);
+                  setSelectedReportDetail(null);
+                }}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <XCircle className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-6">
+              {/* Student & Teacher Info */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-blue-50 rounded-lg p-4">
+                  <h4 className="font-semibold text-blue-900 mb-2">{t('staff.reports.student')}</h4>
+                  <p className="text-sm font-medium text-blue-800">{selectedReportDetail.student.name}</p>
+                  <p className="text-xs text-blue-600">{selectedReportDetail.student.email}</p>
+                </div>
+                <div className="bg-green-50 rounded-lg p-4">
+                  <h4 className="font-semibold text-green-900 mb-2">{t('staff.reports.teacher')}</h4>
+                  <p className="text-sm font-medium text-green-800">{selectedReportDetail.teacher.name}</p>
+                  <p className="text-xs text-green-600">{selectedReportDetail.teacher.email}</p>
+                </div>
+              </div>
+
+              {/* Report Details */}
+              <div>
+                <h4 className="font-semibold text-gray-900 mb-3">{t('staff.reports.progress')}</h4>
+                <p className="text-gray-700 bg-gray-50 rounded-lg p-4">{selectedReportDetail.progress || '-'}</p>
+              </div>
+
+              <div>
+                <h4 className="font-semibold text-gray-900 mb-3">{t('staff.reports.strengths')}</h4>
+                <p className="text-gray-700 bg-green-50 rounded-lg p-4">{selectedReportDetail.strengths || '-'}</p>
+              </div>
+
+              <div>
+                <h4 className="font-semibold text-gray-900 mb-3">{t('staff.reports.weaknesses')}</h4>
+                <p className="text-gray-700 bg-red-50 rounded-lg p-4">{selectedReportDetail.weaknesses || '-'}</p>
+              </div>
+
+              <div>
+                <h4 className="font-semibold text-gray-900 mb-3">{t('staff.reports.recommendations')}</h4>
+                <p className="text-gray-700 bg-blue-50 rounded-lg p-4">{selectedReportDetail.recommendations || '-'}</p>
+              </div>
+
+              <div className="flex items-center justify-between text-sm text-gray-500 pt-4 border-t">
+                <span>{t('staff.reports.reportDate')}: {new Date(selectedReportDetail.reportDate).toLocaleDateString()}</span>
+                <span>{t('staff.reports.lastUpdated')}: {new Date(selectedReportDetail.updatedAt).toLocaleString()}</span>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </PageContainer>
