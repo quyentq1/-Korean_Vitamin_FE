@@ -292,9 +292,9 @@ const RegistrationManagement = () => {
 
       {/* Filters */}
       <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
           {/* Search */}
-          <div>
+          <div className="md:col-span-2">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               {t('common.search')}
             </label>
@@ -305,7 +305,7 @@ const RegistrationManagement = () => {
                 placeholder={t('staff.registrations.searchPlaceholder')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
+                className="pl-10 w-full h-[42px]"
               />
             </div>
           </div>
@@ -318,7 +318,7 @@ const RegistrationManagement = () => {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all h-[42px]"
             >
               <option value="all">{t('staff.registrations.allStatus')}</option>
               <option value="PENDING">{t('staff.registrations.pending')}</option>
@@ -329,12 +329,15 @@ const RegistrationManagement = () => {
           </div>
 
           {/* Refresh */}
-          <div className="flex items-end">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              &nbsp;
+            </label>
             <Button
               variant="secondary"
               onClick={fetchRegistrations}
               disabled={loading}
-              className="w-full"
+              className="w-full h-[42px]"
             >
               <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
               {t('common.refresh')}
@@ -362,43 +365,45 @@ const RegistrationManagement = () => {
             >
               {/* Card Header - Always Visible */}
               <div
-                className="p-6 cursor-pointer hover:bg-gray-50 transition-colors"
+                className="p-5 cursor-pointer hover:bg-gray-50 transition-colors"
                 onClick={() => toggleCard(registration.id)}
               >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-4">
+                <div className="flex items-start justify-between gap-4">
+                  {/* Left Side - Status + Info */}
+                  <div className="flex items-start gap-4 flex-1 min-w-0">
                     {/* Status Icon */}
-                    <div className={`p-3 rounded-full ${getStatusColor(registration.status)}`}>
+                    <div className={`p-2.5 rounded-full ${getStatusColor(registration.status)} shrink-0`}>
                       {getStatusIcon(registration.status)}
                     </div>
 
                     {/* Basic Info */}
-                    <div>
-                      <h4 className="text-lg font-semibold text-gray-900">
+                    <div className="flex-1 min-w-0">
+                      <h4 className="text-base font-semibold text-gray-900 mb-1.5">
                         {registration.studentName || t('staff.registrations.unknown')}
                       </h4>
-                      <div className="flex items-center space-x-4 mt-1 text-sm text-gray-500">
+                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm text-gray-500">
                         <span className="flex items-center">
-                          <Mail className="w-4 h-4 mr-1" />
-                          {registration.email}
+                          <Mail className="w-3.5 h-3.5 mr-1.5 shrink-0" />
+                          <span className="truncate">{registration.email}</span>
                         </span>
                         <span className="flex items-center">
-                          <Phone className="w-4 h-4 mr-1" />
-                          {registration.phone}
+                          <Phone className="w-3.5 h-3.5 mr-1.5 shrink-0" />
+                          <span className="truncate">{registration.phone}</span>
                         </span>
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex items-center space-x-4">
+                  {/* Right Side - Badge + Expand Icon */}
+                  <div className="flex items-center gap-3 shrink-0">
                     {/* Status Badge */}
-                    <Badge className={getStatusColor(registration.status)}>
+                    <Badge variant="outline" className={getStatusColor(registration.status)}>
                       {t(`staff.registrations.${registration.status.toLowerCase()}`)}
                     </Badge>
 
                     {/* Expand/Collapse Icon */}
                     <ChevronDown
-                      className={`w-5 h-5 text-gray-400 transition-transform ${
+                      className={`w-5 h-5 text-gray-400 transition-transform shrink-0 ${
                         expandedCard === registration.id ? 'rotate-180' : ''
                       }`}
                     />
@@ -406,13 +411,13 @@ const RegistrationManagement = () => {
                 </div>
 
                 {/* Course Info */}
-                <div className="mt-4 flex items-center space-x-6 text-sm">
+                <div className="mt-3 pt-3 border-t border-gray-100 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
                   <span className="flex items-center text-gray-600">
-                    <BookOpen className="w-4 h-4 mr-2" />
+                    <BookOpen className="w-4 h-4 mr-2 shrink-0" />
                     {registration.courseName || '-'}
                   </span>
                   <span className="flex items-center text-gray-600">
-                    <Calendar className="w-4 h-4 mr-2" />
+                    <Calendar className="w-4 h-4 mr-2 shrink-0" />
                     {registration.createdAt ? new Date(registration.createdAt).toLocaleDateString() : '-'}
                   </span>
                 </div>
@@ -420,19 +425,23 @@ const RegistrationManagement = () => {
 
               {/* Expanded Content - Details & Actions */}
               {expandedCard === registration.id && (
-                <div className="border-t border-gray-200 p-6 bg-gray-50">
+                <div className="border-t border-gray-200 p-5 bg-gradient-to-br from-gray-50 to-blue-50/30">
                   {/* Additional Details */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                    <div>
-                      <p className="text-sm font-medium text-gray-500">{t('staff.registrations.message')}</p>
-                      <p className="text-sm text-gray-900 mt-1">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-5">
+                    <div className="bg-white rounded-lg p-4 border border-gray-100">
+                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                        {t('staff.registrations.message')}
+                      </p>
+                      <p className="text-sm text-gray-900 whitespace-pre-wrap">
                         {registration.message || '-'}
                       </p>
                     </div>
                     {registration.notes && (
-                      <div>
-                        <p className="text-sm font-medium text-gray-500">{t('staff.registrations.notes')}</p>
-                        <p className="text-sm text-gray-900 mt-1">
+                      <div className="bg-white rounded-lg p-4 border border-gray-100">
+                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                          {t('staff.registrations.notes')}
+                        </p>
+                        <p className="text-sm text-gray-900 whitespace-pre-wrap">
                           {registration.notes}
                         </p>
                       </div>
@@ -440,56 +449,71 @@ const RegistrationManagement = () => {
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="flex flex-wrap gap-3">
+                  <div className="flex flex-wrap gap-2">
                     <Button
                       variant="primary"
                       size="sm"
-                      onClick={() => handleApprove(registration.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleApprove(registration.id);
+                      }}
                       disabled={registration.status === 'APPROVED'}
-                      className="flex items-center"
+                      className="flex items-center shadow-sm"
                     >
-                      <Check className="w-4 h-4 mr-2" />
+                      <Check className="w-4 h-4 mr-1.5" />
                       {t('staff.registrations.approve')}
                     </Button>
 
                     <Button
                       variant="secondary"
                       size="sm"
-                      onClick={() => handleReject(registration.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleReject(registration.id);
+                      }}
                       disabled={registration.status === 'REJECTED'}
-                      className="flex items-center"
+                      className="flex items-center shadow-sm"
                     >
-                      <X className="w-4 h-4 mr-2" />
+                      <X className="w-4 h-4 mr-1.5" />
                       {t('staff.registrations.reject')}
                     </Button>
 
                     <Button
                       variant="secondary"
                       size="sm"
-                      onClick={() => handleAssignClass(registration)}
-                      className="flex items-center"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleAssignClass(registration);
+                      }}
+                      className="flex items-center shadow-sm"
                     >
-                      <Users className="w-4 h-4 mr-2" />
+                      <Users className="w-4 h-4 mr-1.5" />
                       {t('staff.registrations.assignClass')}
                     </Button>
 
                     <Button
                       variant="secondary"
                       size="sm"
-                      onClick={() => handleCreateAccount(registration)}
-                      className="flex items-center"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleCreateAccount(registration);
+                      }}
+                      className="flex items-center shadow-sm"
                     >
-                      <User className="w-4 h-4 mr-2" />
+                      <User className="w-4 h-4 mr-1.5" />
                       {t('staff.registrations.createAccount')}
                     </Button>
 
                     <Button
                       variant="secondary"
                       size="sm"
-                      onClick={() => handleViewDetail(registration)}
-                      className="flex items-center"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleViewDetail(registration);
+                      }}
+                      className="flex items-center shadow-sm"
                     >
-                      <Eye className="w-4 h-4 mr-2" />
+                      <Eye className="w-4 h-4 mr-1.5" />
                       {t('common.view')}
                     </Button>
                   </div>
@@ -509,25 +533,34 @@ const RegistrationManagement = () => {
           setSelectedRegistration(null);
         }}
         title={t('staff.registrations.assignClass')}
+        size="max-w-md"
       >
-        <div className="space-y-4">
-          <div>
-            <p className="text-sm text-gray-600 mb-4">
-              {t('staff.registrations.student')}: {selectedRegistration?.studentName}
+        <div className="space-y-5">
+          {/* Student Info */}
+          <div className="bg-blue-50 rounded-lg p-4 border border-blue-100">
+            <p className="text-sm font-medium text-gray-700 mb-1">
+              {t('staff.registrations.student')}:
             </p>
-            <p className="text-sm text-gray-600">
-              {t('staff.registrations.course')}: {selectedRegistration?.courseName}
+            <p className="text-base font-semibold text-gray-900 mb-2">
+              {selectedRegistration?.studentName}
+            </p>
+            <p className="text-sm font-medium text-gray-700 mb-1">
+              {t('staff.registrations.course')}:
+            </p>
+            <p className="text-base font-semibold text-gray-900">
+              {selectedRegistration?.courseName}
             </p>
           </div>
 
+          {/* Class Selection */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              {t('staff.registrations.selectClass')}
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              {t('staff.registrations.selectClass')} <span className="text-red-500">*</span>
             </label>
             <select
               value={selectedClass || ''}
               onChange={(e) => setSelectedClass(Number(e.target.value))}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
             >
               <option value="">{t('staff.registrations.chooseClass')}</option>
               {availableClasses.map((cls) => (
@@ -538,7 +571,8 @@ const RegistrationManagement = () => {
             </select>
           </div>
 
-          <div className="flex justify-end space-x-3 pt-4">
+          {/* Actions */}
+          <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
             <Button
               variant="secondary"
               onClick={() => {
@@ -565,45 +599,49 @@ const RegistrationManagement = () => {
           setSelectedRegistration(null);
         }}
         title={t('staff.registrations.createAccountTitle')}
+        size="max-w-md"
       >
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              {t('staff.students.fullName')} *
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              {t('staff.students.fullName')} <span className="text-red-500">*</span>
             </label>
             <Input
               type="text"
               value={accountFormData.studentName}
               onChange={(e) => setAccountFormData({ ...accountFormData, studentName: e.target.value })}
               placeholder={t('staff.registrations.studentNamePlaceholder')}
+              className="w-full"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              {t('staff.students.email')} *
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              {t('staff.students.email')} <span className="text-red-500">*</span>
             </label>
             <Input
               type="email"
               value={accountFormData.email}
               onChange={(e) => setAccountFormData({ ...accountFormData, email: e.target.value })}
               placeholder={t('staff.registrations.emailPlaceholder')}
+              className="w-full"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              {t('staff.students.phone')} *
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              {t('staff.students.phone')} <span className="text-red-500">*</span>
             </label>
             <Input
               type="tel"
               value={accountFormData.phone}
               onChange={(e) => setAccountFormData({ ...accountFormData, phone: e.target.value })}
               placeholder={t('staff.registrations.phonePlaceholder')}
+              className="w-full"
             />
           </div>
 
-          <div className="flex justify-end space-x-3 pt-4">
+          <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
             <Button
               variant="secondary"
               onClick={() => {
