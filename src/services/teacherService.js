@@ -92,6 +92,25 @@ export const teacherService = {
             headers: { 'Content-Type': 'multipart/form-data' },
         });
     },
+
+    // Learning Reports
+    createLearningReport: async (reportData) => {
+        return await axiosClient.post('/api/teacher/reports', reportData);
+    },
+
+    getTeacherLearningReports: async (classId) => {
+        return await axiosClient.get('/api/teacher/reports', {
+            params: classId ? { classId } : {}
+        });
+    },
+
+    getTeacherClasses: async () => {
+        return await axiosClient.get('/api/teacher/classes');
+    },
+
+    getClassStudents: async (classId) => {
+        return await axiosClient.get(`/api/classes/${classId}/students`);
+    }
 };
 
 export default teacherService;

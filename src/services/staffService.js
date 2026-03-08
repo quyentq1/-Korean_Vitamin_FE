@@ -215,6 +215,37 @@ export const staffService = {
         }
     },
 
+    /**
+     * Assign teacher to class
+     * POST /api/classes/{id}/teachers?isPrimary={boolean}
+     * Body: teacherId (number)
+     */
+    assignTeacherToClass: async (classId, teacherId, isPrimary = false) => {
+        try {
+            return await axiosClient.post(`/classes/${classId}/teachers?isPrimary=${isPrimary}`, teacherId, {
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+        } catch (error) {
+            console.error('Error assigning teacher to class:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * Get teachers in a class
+     * GET /api/classes/{id}/teachers
+     */
+    getClassTeachers: async (classId) => {
+        try {
+            return await axiosClient.get(`/classes/${classId}/teachers`);
+        } catch (error) {
+            console.error('Error fetching class teachers:', error);
+            throw error;
+        }
+    },
+
     // ==================== ATTENDANCE ====================
 
     /**
@@ -486,6 +517,95 @@ export const staffService = {
             throw error;
         }
     },
+
+    // ==================== TEACHER REPORTS ====================
+
+    /**
+     * Get all teacher reports for a class
+     * GET /api/staff/reports/teacher?classId={id}
+     */
+    getTeacherReports: async (classId) => {
+        try {
+            return await axiosClient.get('/staff/reports/teacher', {
+                params: { classId }
+            });
+        } catch (error) {
+            console.error('Error fetching teacher reports:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * Get detailed teacher report for a student in a class
+     * GET /api/staff/reports/teacher/detail?classId={classId}&studentId={studentId}
+     */
+    getStudentReportDetail: async (classId, studentId) => {
+        try {
+            return await axiosClient.get('/staff/reports/teacher/detail', {
+                params: { classId, studentId }
+            });
+        } catch (error) {
+            console.error('Error fetching student report detail:', error);
+            throw error;
+        }
+    },
+
+    // ==================== STUDENT REPORTS (Feedback from students) ====================
+
+    /**
+     * Get all student reports (reports sent by students to staff)
+     * GET /api/staff/reports/student?classId={id}&status={status}
+     */
+    getStudentReports: async (classId, status) => {
+        try {
+            const params = {};
+            if (classId) params.classId = classId;
+            if (status) params.status = status;
+            return await axiosClient.get('/staff/reports/student', { params });
+        } catch (error) {
+            console.error('Error fetching student reports:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * Get student report detail
+     * GET /api/staff/reports/student/{id}
+     */
+    getStudentFeedbackDetail: async (reportId) => {
+        try {
+            return await axiosClient.get(`/staff/reports/student/${reportId}`);
+        } catch (error) {
+            console.error('Error fetching student feedback detail:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * Respond to student report
+     * POST /api/staff/reports/student/{id}/respond
+     */
+    respondToStudentReport: async (reportId, response) => {
+        try {
+            return await axiosClient.post(`/staff/reports/student/${reportId}/respond`, { response });
+        } catch (error) {
+            console.error('Error responding to student report:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * Resolve student report
+     * POST /api/staff/reports/student/{id}/resolve
+     */
+    resolveStudentReport: async (reportId) => {
+        try {
+            return await axiosClient.post(`/staff/reports/student/${reportId}/resolve`);
+        } catch (error) {
+            console.error('Error resolving student report:', error);
+            throw error;
+        }
+    }
 };
 
 export default staffService;
