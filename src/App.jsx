@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { ProtectedRoute, AdminRoute, TeacherRoute, StaffRoute, StudentRoute, ManagerRoute } from './components/routing/ProtectedRoute';
+import StaffLayout from './components/layouts/StaffLayout';
 import CourseList from './pages/Courses/CourseList';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
@@ -24,13 +25,10 @@ import Forum from './pages/Shared/Forum.jsx';
 import QuestionBank from './pages/Teacher/QuestionBank.jsx';
 import GradingQueue from './pages/Teacher/GradingQueue.jsx';
 import StudentManagement from './pages/Staff/StudentManagement.jsx';
-import ViewStudent from './pages/Staff/ViewStudent.jsx';
-import EditStudent from './pages/Staff/EditStudent.jsx';
 import CreateManualStudent from './pages/Staff/CreateManualStudent.jsx';
 import CreateOCRStudent from './pages/Staff/CreateOCRStudent.jsx';
 import ClassManagement from './pages/Staff/ClassManagement.jsx';
 import ClassDetail from './pages/Staff/ClassDetail.jsx';
-import ClassAttendance from './pages/Staff/ClassAttendance.jsx';
 import RoleManagement from './pages/Staff/RoleManagement.jsx';
 import CreateQuiz from './pages/Teacher/CreateQuiz.jsx';
 import CreateQuestion from './pages/Teacher/CreateQuestion.jsx';
@@ -223,62 +221,65 @@ function App() {
           {/* Staff Routes - Staff Only */}
           <Route path="/staff" element={
             <StaffRoute>
-              <StaffDashboard />
+              <StaffLayout>
+                <StaffDashboard />
+              </StaffLayout>
             </StaffRoute>
           } />
           <Route path="/student-management" element={
             <StaffRoute>
-              <StudentManagement />
+              <StaffLayout>
+                <StudentManagement />
+              </StaffLayout>
             </StaffRoute>
           } />
           <Route path="/student-management/create-manual" element={
             <StaffRoute>
-              <CreateManualStudent />
+              <StaffLayout>
+                <CreateManualStudent />
+              </StaffLayout>
             </StaffRoute>
           } />
           <Route path="/student-management/create-ocr" element={
             <StaffRoute>
-              <CreateOCRStudent />
-            </StaffRoute>
-          } />
-          <Route path="/student-management/:studentId/edit" element={
-            <StaffRoute>
-              <EditStudent />
-            </StaffRoute>
-          } />
-          <Route path="/student-management/:studentId" element={
-            <StaffRoute>
-              <ViewStudent />
+              <StaffLayout>
+                <CreateOCRStudent />
+              </StaffLayout>
             </StaffRoute>
           } />
           <Route path="/class-management" element={
             <StaffRoute>
-              <ClassManagement />
+              <StaffLayout>
+                <ClassManagement />
+              </StaffLayout>
             </StaffRoute>
           } />
           <Route path="/classes/:id" element={
             <StaffRoute>
-              <ClassDetail />
-            </StaffRoute>
-          } />
-          <Route path="/classes/:id/attendance" element={
-            <StaffRoute>
-              <ClassAttendance />
+              <StaffLayout>
+                <ClassDetail />
+              </StaffLayout>
             </StaffRoute>
           } />
           <Route path="/registrations" element={
             <StaffRoute>
-              <StaffRegistrationManagement />
+              <StaffLayout>
+                <StaffRegistrationManagement />
+              </StaffLayout>
             </StaffRoute>
           } />
           <Route path="/reports" element={
             <StaffRoute>
-              <StaffReports />
+              <StaffLayout>
+                <StaffReports />
+              </StaffLayout>
             </StaffRoute>
           } />
           <Route path="/role-management" element={
             <StaffRoute>
-              <RoleManagement />
+              <StaffLayout>
+                <RoleManagement />
+              </StaffLayout>
             </StaffRoute>
           } />
 
