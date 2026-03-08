@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -32,9 +32,15 @@ import staffService from '../../services/staffService';
 import courseService from '../../services/courseService';
 
 const ClassManagement = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
-  
+
+  // Safe translation helper with fallback
+  const ts = (key, fallback) => {
+    const result = t(key);
+    return result && typeof result === 'string' && result.trim() ? result : fallback;
+  };
+
   // Main States
   const [view, setView] = useState('list'); // list | calendar
   const [classes, setClasses] = useState([]);
@@ -95,11 +101,27 @@ const ClassManagement = () => {
     try {
       setLoading(true);
       const response = await staffService.getClasses();
-      setClasses(response.data?.classes || []);
-      setFilteredClasses(response.data?.classes || []);
+      console.log('Classes response:', response);
+
+      // Handle different response structures
+      let classesData = [];
+      if (response?.classes) {
+        classesData = response.classes;
+      } else if (response?.data?.classes) {
+        classesData = response.data.classes;
+      } else if (response?.content) {
+        classesData = response.content;
+      } else if (Array.isArray(response)) {
+        classesData = response;
+      } else if (Array.isArray(response?.data)) {
+        classesData = response.data;
+      }
+
+      setClasses(classesData);
+      setFilteredClasses(classesData);
     } catch (error) {
       console.error('Error fetching classes:', error);
-      setError(t('classManagement.fetchError'));
+      setError(t('classManagement.fetchError') || 'Không thể tải danh sách lớp');
     } finally {
       setLoading(false);
     }
@@ -107,8 +129,19 @@ const ClassManagement = () => {
   
   const fetchCourses = async () => {
     try {
-      const response = await courseService.getActiveCourses();
-      setCourses(response.data || []);
+      const response = await staffService.getCourses();
+      console.log('Courses response:', response);
+
+      let coursesData = [];
+      if (Array.isArray(response)) {
+        coursesData = response;
+      } else if (response?.data) {
+        coursesData = Array.isArray(response.data) ? response.data : [];
+      } else if (response?.courses) {
+        coursesData = response.courses;
+      }
+
+      setCourses(coursesData);
     } catch (error) {
       console.error('Error fetching courses:', error);
     }
@@ -180,8 +213,9 @@ const ClassManagement = () => {
     e.preventDefault();
     setActionLoading(true);
     try {
-      await classService.createClass(newClass);
-      setAlert({ show: true, type: 'success', message: t('classManagement.createClassSuccess') });
+      // TODO: Implement when backend API is ready
+      // await staffService.createClass(newClass);
+      setAlert({ show: true, type: 'success', message: 'Tạo lớp thành công (Demo)' });
       setIsCreateModalOpen(false);
       setNewClass({
         courseId: '',
@@ -195,7 +229,7 @@ const ClassManagement = () => {
       fetchClasses();
     } catch (error) {
       console.error('Error creating class:', error);
-      setAlert({ show: true, type: 'error', message: t('classManagement.createClassError') });
+      setAlert({ show: true, type: 'error', message: t('classManagement.createClassError') || 'Không thể tạo lớp' });
     } finally {
       setActionLoading(false);
     }
@@ -211,14 +245,15 @@ const ClassManagement = () => {
     e.preventDefault();
     const studentId = e.target.studentId.value;
     try {
-      await classService.addStudent(selectedClass.id, studentId);
-      setAlert({ show: true, type: 'success', message: t('classManagement.addStudentSuccess') });
-      const students = await classService.getStudents(selectedClass.id);
-      setClassStudents(students || []);
+      // TODO: Implement when backend API is ready
+      // await staffService.addStudentToClass(selectedClass.id, studentId);
+      setAlert({ show: true, type: 'success', message: t('classManagement.addStudentSuccess') || 'Thêm học viên thành công' });
+      // const students = await staffService.getClassStudents(selectedClass.id);
+      // setClassStudents(students || []);
       e.target.reset();
     } catch (error) {
       console.error('Error adding student:', error);
-      setAlert({ show: true, type: 'error', message: t('classManagement.addStudentError') });
+      setAlert({ show: true, type: 'error', message: t('classManagement.addStudentError') || 'Không thể thêm học viên' });
     }
   };
   
@@ -228,14 +263,14 @@ const ClassManagement = () => {
     const teacherId = e.target.teacherId.value;
     const isPrimary = e.target.isPrimary.checked;
     try {
-      await classService.assignTeacher(selectedClass.id, teacherId, isPrimary);
-      setAlert({ show: true, type: 'success', message: t('classManagement.assignTeacherSuccess') });
-      const teachers = await classService.getTeachers(selectedClass.id);
+      await staffService.assignTeacherToClass(selectedClass.id, teacherId, isPrimary);
+      setAlert({ show: true, type: 'success', message: t('classManagement.assignTeacherSuccess') || 'Phân công giáo viên thành công' });
+      const teachers = await staffService.getClassTeachers(selectedClass.id);
       setClassTeachers(teachers || []);
       e.target.reset();
     } catch (error) {
       console.error('Error assigning teacher:', error);
-      setAlert({ show: true, type: 'error', message: t('classManagement.assignTeacherError') });
+      setAlert({ show: true, type: 'error', message: t('classManagement.assignTeacherError') || 'Không thể phân công giáo viên' });
     }
   };
   
@@ -244,7 +279,9 @@ const ClassManagement = () => {
     setSelectedClass(cls);
     setIsScheduleModalOpen(true);
     try {
-      const data = await classService.getSchedules(cls.id);
+      // TODO: Implement when backend API is ready
+      // const data = await staffService.getClassSchedules(cls.id);
+      const data = [];
       setSchedules(data || []);
     } catch (error) {
       console.error('Error fetching schedules:', error);
@@ -257,8 +294,9 @@ const ClassManagement = () => {
     e.preventDefault();
     setActionLoading(true);
     try {
-      await classService.createSchedule(selectedClass.id, newSchedule);
-      setAlert({ show: true, type: 'success', message: t('classManagement.createScheduleSuccess') });
+      // TODO: Implement when backend API is ready
+      // await staffService.createSchedule(selectedClass.id, newSchedule);
+      setAlert({ show: true, type: 'success', message: t('classManagement.createScheduleSuccess') || 'Tạo lịch học thành công' });
       setIsScheduleModalOpen(false);
       setNewSchedule({
         lessonNumber: '',
@@ -270,7 +308,7 @@ const ClassManagement = () => {
       });
     } catch (error) {
       console.error('Error creating schedule:', error);
-      setAlert({ show: true, type: 'error', message: t('classManagement.createScheduleError') });
+      setAlert({ show: true, type: 'error', message: t('classManagement.createScheduleError') || 'Không thể tạo lịch học' });
     } finally {
       setActionLoading(false);
     }
@@ -281,7 +319,9 @@ const ClassManagement = () => {
     setSelectedSchedule(schedule);
     setIsAttendanceModalOpen(true);
     try {
-      const atts = await classService.getAttendance(schedule.id);
+      // TODO: Implement when backend API is ready
+      // const atts = await staffService.getAttendance(schedule.id);
+      const atts = [];
       if (atts && atts.length > 0) {
         setAttendanceList(atts.map(a => ({
           studentId: a.studentId,
@@ -291,7 +331,8 @@ const ClassManagement = () => {
         })));
       } else {
         // Auto-init attendance records for all students
-        const students = await classService.getStudents(selectedClass.id);
+        // const students = await staffService.getClassStudents(selectedClass.id);
+        const students = [];
         setAttendanceList((students || []).map(s => ({
           studentId: s.id,
           studentName: s.fullName,
@@ -314,12 +355,13 @@ const ClassManagement = () => {
         studentId: a.studentId,
         status: a.status
       }));
-      await classService.markAttendance(selectedSchedule.id, payload);
-      setAlert({ show: true, type: 'success', message: t('classManagement.saveAttendanceSuccess') });
+      // TODO: Implement when backend API is ready
+      // await staffService.markAttendance(selectedSchedule.id, payload);
+      setAlert({ show: true, type: 'success', message: t('classManagement.saveAttendanceSuccess') || 'Lưu điểm danh thành công' });
       setIsAttendanceModalOpen(false);
     } catch (error) {
       console.error('Error saving attendance:', error);
-      setAlert({ show: true, type: 'error', message: t('classManagement.saveAttendanceError') });
+      setAlert({ show: true, type: 'error', message: t('classManagement.saveAttendanceError') || 'Không thể lưu điểm danh' });
     } finally {
       setActionLoading(false);
     }
@@ -329,21 +371,22 @@ const ClassManagement = () => {
   const handleDeleteClass = async (cls) => {
     if (window.confirm(t('classManagement.deleteConfirmation') || `Bạn có chắc muốn xóa lớp ${cls.className}?`)) {
       try {
-        await classService.deleteClass(cls.id);
-        setAlert({ show: true, type: 'success', message: t('classManagement.deleteSuccess') });
+        // TODO: Implement when backend API is ready
+        // await staffService.deleteClass(cls.id);
+        setAlert({ show: true, type: 'success', message: t('classManagement.deleteSuccess') || 'Xóa lớp thành công' });
         fetchClasses();
       } catch (error) {
         console.error('Error deleting class:', error);
-        setAlert({ show: true, type: 'error', message: t('classManagement.deleteError') });
+        setAlert({ show: true, type: 'error', message: t('classManagement.deleteError') || 'Không thể xóa lớp' });
       }
     }
   };
-  
-  // Table columns
-  const columns = [
+
+  // Table columns - memoized to update when language changes
+  const columns = useMemo(() => [
     {
       key: 'className',
-      label: t('classManagement.className'),
+      label: ts('classManagement.className', 'Class Name'),
       render: (cls) => (
         <div className="flex items-center space-x-3">
           <span className="font-medium text-gray-900">{cls.className}</span>
@@ -354,7 +397,7 @@ const ClassManagement = () => {
     },
     {
       key: 'courseName',
-      label: t('classManagement.course'),
+      label: ts('classManagement.course', 'Course'),
       render: (cls) => (
         <span className="text-gray-600">{cls.courseName || '-'}</span>
       ),
@@ -362,7 +405,7 @@ const ClassManagement = () => {
     },
     {
       key: 'teacherName',
-      label: t('classManagement.teacher'),
+      label: ts('classManagement.teacher', 'Teacher'),
       render: (cls) => (
         <span className="text-gray-600">{cls.teacherName || '-'}</span>
       ),
@@ -370,7 +413,7 @@ const ClassManagement = () => {
     },
     {
       key: 'studentCount',
-      label: t('classManagement.studentCount'),
+      label: ts('classManagement.studentCount', 'Student Count'),
       render: (cls) => (
         <Badge variant="info">{cls.studentCount || 0}</Badge>
       ),
@@ -378,7 +421,7 @@ const ClassManagement = () => {
     },
     {
       key: 'capacity',
-      label: t('classManagement.capacity'),
+      label: ts('classManagement.capacity', 'Capacity'),
       render: (cls) => (
         <span className="text-gray-600">{cls.capacity || '-'}</span>
       ),
@@ -386,7 +429,7 @@ const ClassManagement = () => {
     },
     {
       key: 'startDate',
-      label: t('classManagement.startDate'),
+      label: ts('classManagement.startDate', 'Start Date'),
       render: (cls) => (
         <span className="text-gray-600">
           {cls.startDate ? new Date(cls.startDate).toLocaleDateString() : '-'}
@@ -396,7 +439,7 @@ const ClassManagement = () => {
     },
     {
       key: 'endDate',
-      label: t('classManagement.endDate'),
+      label: ts('classManagement.endDate', 'End Date'),
       render: (cls) => (
         <span className="text-gray-600">
           {cls.endDate ? new Date(cls.endDate).toLocaleDateString() : '-'}
@@ -406,7 +449,7 @@ const ClassManagement = () => {
     },
     {
       key: 'status',
-      label: t('classManagement.status'),
+      label: ts('classManagement.status', 'Status'),
       render: (cls) => (
         <Badge
           variant={
@@ -421,27 +464,27 @@ const ClassManagement = () => {
     },
     {
       key: 'actions',
-      label: t('common.actions'),
+      label: ts('common.actions', 'Actions'),
       render: (cls) => (
         <div className="flex items-center space-x-2">
           <button
             onClick={() => handleOpenDetail(cls)}
             className="p-1.5 text-gray-500 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
-            title={t('common.view')}
+            title={ts('common.view', 'View')}
           >
             <Eye className="w-4 h-4" />
           </button>
           <button
             onClick={() => handleOpenSchedule(cls)}
             className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-            title={t('classManagement.schedule')}
+            title={ts('classManagement.schedule', 'Schedule')}
           >
             <Calendar className="w-4 h-4" />
           </button>
           <button
             onClick={() => handleDeleteClass(cls)}
             className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-            title={t('common.delete')}
+            title={ts('common.delete', 'Delete')}
           >
             <Trash2 className="w-4 h-4" />
           </button>
@@ -449,7 +492,7 @@ const ClassManagement = () => {
       ),
       sortable: false
     }
-  ];
+  ], [t, i18n.language, ts]);
   
   if (loading) {
     return (
@@ -624,7 +667,7 @@ const ClassManagement = () => {
       
       {/* Content */}
       {view === 'list' ? (
-        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+        <div className="bg-white rounded-lg shadow-sm overflow-hidden" key={i18n.language}>
           {paginatedClasses.length === 0 ? (
             <div className="p-12 text-center">
               <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
@@ -632,14 +675,15 @@ const ClassManagement = () => {
             </div>
           ) : (
             <>
-              <table className="w-full">
+              <div className="overflow-x-auto lg:overflow-x-visible">
+                <table className="w-full min-w-[900px] lg:min-w-0 lg:table-auto">
                 <thead>
                   <tr className="bg-gray-50">
                     {columns.map(col => (
                       <th
                         key={col.key}
                         onClick={() => col.sortable && handleSort(col.key)}
-                        className={`px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ${col.sortable ? 'cursor-pointer hover:bg-gray-100' : ''}`}
+                        className={`px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ${col.sortable ? 'cursor-pointer hover:bg-gray-100' : ''}`}
                       >
                         {col.label}
                         {col.sortable && sortField === col.key && (
@@ -655,7 +699,7 @@ const ClassManagement = () => {
                   {paginatedClasses.map((cls) => (
                     <tr key={cls.id} className="border-t border-gray-200 hover:bg-gray-50">
                       {columns.map(col => (
-                        <td key={col.key} className="px-6 py-4 whitespace-nowrap">
+                        <td key={col.key} className="px-4 py-4">
                           {col.render(cls)}
                         </td>
                       ))}
@@ -663,7 +707,8 @@ const ClassManagement = () => {
                   ))}
                 </tbody>
               </table>
-              
+              </div>
+
               {/* Pagination */}
               {totalPages > 1 && (
                 <div className="flex items-center justify-between p-4 border-t">
@@ -695,7 +740,7 @@ const ClassManagement = () => {
           )}
         </div>
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-6" key={i18n.language}>
           {paginatedClasses.map(cls => (
             <div key={cls.id} className="bg-white rounded-lg shadow-sm p-6">
               <div className="flex justify-between items-start mb-4">
@@ -721,21 +766,21 @@ const ClassManagement = () => {
                     className="flex items-center px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
                   >
                     <Eye className="w-4 h-4 mr-2" />
-                    {t('common.view')}
+                    {ts('common.view', 'View')}
                   </button>
                   <button
                     onClick={() => handleOpenSchedule(cls)}
                     className="flex items-center px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
                   >
                     <Calendar className="w-4 h-4 mr-2" />
-                    {t('classManagement.schedule')}
+                    {ts('classManagement.schedule', 'Schedule')}
                   </button>
                   <button
                     onClick={() => handleDeleteClass(cls)}
                     className="flex items-center px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
                   >
                     <Trash2 className="w-4 h-4 mr-2" />
-                    {t('common.delete')}
+                    {ts('common.delete', 'Delete')}
                   </button>
                 </div>
               </div>

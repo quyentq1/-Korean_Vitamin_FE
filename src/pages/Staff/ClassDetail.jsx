@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
@@ -56,15 +56,15 @@ const ClassDetail = () => {
     try {
       setLoading(true);
       const response = await staffService.getClassDetails(id);
-      setClassData(response.data);
+      setClassData(response);
       setError(null);
     } catch (err) {
       console.error('Error fetching class details:', err);
-      setError(err.response?.data?.message || 'Failed to load class details');
+      setError(err.message || 'Failed to load class details');
       Swal.fire({
         icon: 'error',
-        title: t('staff.class.detail.error.loadFailed'),
-        text: err.response?.data?.message || 'Failed to load class details',
+        title: t('staff.class.detail.error.loadFailed') || 'Failed to load',
+        text: err.message || 'Failed to load class details',
         confirmButtonColor: '#667eea'
       });
     } finally {
@@ -207,7 +207,7 @@ const ClassDetail = () => {
             {classData.courseName}
           </Badge>
           <Badge className="bg-gray-100 text-gray-800">
-            {classData.currentEnrollment}/{classData.capacity} {t('staff.class.detail.students')}
+            {classData.currentEnrollment}/{classData.capacity} {t('staff.class.students')}
           </Badge>
         </div>
       </div>
