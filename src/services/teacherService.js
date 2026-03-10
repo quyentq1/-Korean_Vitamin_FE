@@ -99,12 +99,20 @@ export const teacherService = {
         return await axiosClient.get('/teacher/questions', { params });
     },
 
+    getQuestion: async (id) => {
+        return await axiosClient.get(`/teacher/questions/${id}`);
+    },
+
     createQuestion: async (data) => {
         return await axiosClient.post('/teacher/questions', data);
     },
 
     updateQuestion: async (id, data) => {
-        return await axiosClient.put(`/teacher/questions/${id}`, data);
+        return await axiosClient.put(`/teacher/questions/${id}`, data, {
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
     },
 
     deleteQuestion: async (id) => {
@@ -132,6 +140,23 @@ export const teacherService = {
     downloadImportTemplate: async () => {
         return await axiosClient.get('/teacher/questions/import-template', {
             responseType: 'blob'
+        });
+    },
+
+    // Audio Upload
+    uploadAudio: async (file) => {
+        const formData = new FormData();
+        formData.append('audio', file);
+        return await axiosClient.post('/teacher/questions/upload-audio', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+        });
+    },
+
+    uploadQuestionAudio: async (questionId, file) => {
+        const formData = new FormData();
+        formData.append('audio', file);
+        return await axiosClient.post(`/teacher/questions/${questionId}/audio`, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
         });
     },
 
