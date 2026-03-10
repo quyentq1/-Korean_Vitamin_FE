@@ -31,6 +31,31 @@ export const courseService = {
 
     getCourseStudents: async (id) => {
         return await axiosClient.get(`/admin/courses/${id}/students`);
+    },
+
+    // Admin: Publish course
+    publishCourse: async (id) => {
+        return await axiosClient.post(`/admin/courses/${id}/publish`);
+    },
+
+    // Admin: Unpublish course
+    unpublishCourse: async (id) => {
+        return await axiosClient.post(`/admin/courses/${id}/unpublish`);
+    },
+
+    // Admin: Archive course
+    archiveCourse: async (id) => {
+        return await axiosClient.post(`/admin/courses/${id}/archive`);
+    },
+
+    // Admin: Update course metadata
+    updateCourseMetadata: async (id, metadata) => {
+        return await axiosClient.patch(`/admin/courses/${id}/metadata`, metadata);
+    },
+
+    // Admin: Get courses by status
+    getCoursesByStatus: async (status) => {
+        return await axiosClient.get(`/admin/courses/status/${status}`);
     }
 };
 

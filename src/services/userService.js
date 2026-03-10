@@ -26,6 +26,26 @@ export const userService = {
         return await axiosClient.delete(`/admin/users/${id}`);
     },
 
+    // Admin: Lock user account
+    lockAccount: async (id, data) => {
+        return await axiosClient.post(`/admin/users/${id}/lock`, data);
+    },
+
+    // Admin: Unlock user account
+    unlockAccount: async (id) => {
+        return await axiosClient.post(`/admin/users/${id}/unlock`);
+    },
+
+    // Admin: Reset password
+    resetPassword: async (id, data) => {
+        return await axiosClient.patch(`/admin/users/${id}/reset-password`, data);
+    },
+
+    // Admin: Get users with filters
+    getUsersWithFilters: async (params) => {
+        return await axiosClient.get('/admin/users/filter', { params });
+    },
+
     // Staff: Get students
     getStudents: async () => {
         return await axiosClient.get('/staff/students');
