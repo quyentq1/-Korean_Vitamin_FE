@@ -1,6 +1,25 @@
 import axiosClient from '../api/axiosClient';
 
 export const managerService = {
+    // Session Approvals
+    getPendingReschedules: async () => {
+        return await axiosClient.get('/api/manager/sessions/pending');
+    },
+
+    getPendingReschedulesByClass: async (classId) => {
+        return await axiosClient.get(`/api/manager/sessions/pending/class/${classId}`);
+    },
+
+    approveReschedule: async (sessionId) => {
+        return await axiosClient.put(`/api/manager/sessions/${sessionId}/approve`);
+    },
+
+    rejectReschedule: async (sessionId, reason) => {
+        return await axiosClient.put(`/api/manager/sessions/${sessionId}/reject`, null, {
+            params: { reason }
+        });
+    },
+
     // Question Bank Approval
     getPendingQuestions: async () => {
         return await axiosClient.get('/api/manager/questions/pending');

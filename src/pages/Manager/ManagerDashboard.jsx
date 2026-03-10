@@ -56,7 +56,7 @@ const ManagerDashboard = () => {
     const quickLinks = [
         { label: 'Duyệt Ngân Hàng Câu Hỏi', desc: 'Xem xét và phê duyệt câu hỏi từ giáo viên', path: '/qb-approval', icon: '✅', color: 'hover:border-amber-400', badge: stats.pendingQB },
         { label: 'Phân Công Giáo Viên', desc: 'Giao lớp và bài kiểm tra cho giáo viên', path: '/class-management', icon: '👩‍🏫', color: 'hover:border-blue-400', badge: 0 },
-        { label: 'Duyệt Yêu Cầu Đổi Lịch', desc: 'Xem xét đề nghị thay đổi lịch từ giáo viên', path: '/class-management', icon: '📅', color: 'hover:border-green-400', badge: stats.scheduleRequests },
+        { label: 'Duyệt Yêu Cầu Đổi Lịch', desc: 'Xem xét đề nghị thay đổi lịch từ giáo viên', path: '/session-approval', icon: '📅', color: 'hover:border-green-400', badge: stats.scheduleRequests },
     ];
 
     return (
