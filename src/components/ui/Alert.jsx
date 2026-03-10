@@ -1,5 +1,5 @@
 import React from 'react';
-import { CheckCircle, AlertTriangle, AlertCircle as InfoIcon, X } from 'lucide-react';
+import { CheckCircle, AlertTriangle, AlertCircle, Info, X } from 'lucide-react';
 
 /**
  * Alert Component - Reusable alert/notification components following design system
@@ -39,7 +39,7 @@ export const Alert = ({
       iconClass: 'text-error-600'
     },
     info: {
-      icon: <InfoIcon className="w-5 h-5" />,
+      icon: <Info className="w-5 h-5" />,
       bgClass: 'bg-info-50 border-info-200 text-info-800',
       iconClass: 'text-info-600'
     }
