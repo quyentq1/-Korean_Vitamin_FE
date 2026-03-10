@@ -21,7 +21,8 @@ import {
   ChevronLast,
   FileQuestion,
   AlertCircle,
-  Info
+  Info,
+  CheckCircle
 } from 'lucide-react';
 import teacherService from '../../services/teacherService';
 import {
@@ -33,6 +34,7 @@ import {
   Badge,
   Modal
 } from '../../components/ui';
+import QuestionFormModal from '../../components/Teacher/QuestionFormModal';
 
 /**
  * QuestionBank Component
@@ -76,6 +78,10 @@ const QuestionBank = () => {
   const [isSavingCategory, setIsSavingCategory] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
+  const [showDeleteSuccessModal, setShowDeleteSuccessModal] = useState(false);
+  const [deleteSuccessCount, setDeleteSuccessCount] = useState(1); // For showing count in success modal
+  const [showQuestionModal, setShowQuestionModal] = useState(false);
+  const [editingQuestionId, setEditingQuestionId] = useState(null);
 
   // Mock data - will be replaced with API calls
   const mockQuestions = [
@@ -243,7 +249,21 @@ const QuestionBank = () => {
 
   // Handle edit question
   const handleEditQuestion = (questionId) => {
-    navigate(`/teacher/questions/edit/${questionId}`);
+    setEditingQuestionId(questionId);
+    setShowQuestionModal(true);
+  };
+
+  const handleCreateQuestion = () => {
+    setEditingQuestionId(null);
+    setShowQuestionModal(true);
+  };
+
+  const handleCloseQuestionModal = (shouldRefresh = false) => {
+    setShowQuestionModal(false);
+    setEditingQuestionId(null);
+    if (shouldRefresh) {
+      fetchQuestions();
+    }
   };
 
   // Handle delete question
@@ -261,9 +281,12 @@ const QuestionBank = () => {
     try {
       await teacherService.deleteQuestion(showDeleteConfirm);
       setQuestions(prev => prev.filter(q => q.id !== showDeleteConfirm));
-      setSuccess(t('qb.success.delete', 'Đã xóa câu hỏi thành công!'));
-      setTimeout(() => setSuccess(''), 3000);
       setShowDeleteConfirm(null);
+      // Show success modal
+      setDeleteSuccessCount(1); // Single delete
+      setShowDeleteSuccessModal(true);
+      // Auto-hide after 2 seconds
+      setTimeout(() => setShowDeleteSuccessModal(false), 2000);
       // Refresh questions list
       await fetchQuestions();
     } catch (err) {
@@ -319,13 +342,17 @@ const QuestionBank = () => {
 
     setIsDeleting(true);
     setError('');
+    const deletedCount = selectedQuestions.length;
 
     try {
       // Delete all selected questions in parallel
       await Promise.all(selectedQuestions.map(id => teacherService.deleteQuestion(id)));
-      setSuccess(t('qb.success.bulkDelete', `Đã xóa ${selectedQuestions.length} câu hỏi thành công!`));
-      setTimeout(() => setSuccess(''), 3000);
       setSelectedQuestions([]);
+      // Show success modal
+      setDeleteSuccessCount(deletedCount); // Bulk delete count
+      setShowDeleteSuccessModal(true);
+      // Auto-hide after 2 seconds
+      setTimeout(() => setShowDeleteSuccessModal(false), 2000);
       // Refresh questions list
       await fetchQuestions();
     } catch (err) {
@@ -587,7 +614,7 @@ const QuestionBank = () => {
                 <Button
                   variant="primary"
                   icon={<Plus className="w-4 h-4" />}
-                  onClick={() => navigate('/teacher/questions/create')}
+                  onClick={handleCreateQuestion}
                 >
                   {t('qb.createQuestion', 'Tạo câu hỏi mới')}
                 </Button>
@@ -1113,7 +1140,7 @@ const QuestionBank = () => {
             label: t('qb.create', 'Tạo câu hỏi mới'),
             icon: Plus,
             variant: 'primary',
-            onClick: () => navigate('/teacher/questions/create'),
+            onClick: handleCreateQuestion,
           },
           {
             label: t('qb.import', 'Import Excel'),
@@ -1362,6 +1389,39 @@ const QuestionBank = () => {
           </div>
         </Modal>
       )}
+
+      {/* Delete Success Modal */}
+      {showDeleteSuccessModal && (
+        <Modal
+          isOpen={showDeleteSuccessModal}
+          onClose={() => setShowDeleteSuccessModal(false)}
+          size="sm"
+          showCloseButton={false}
+        >
+          <div className="text-center py-6">
+            <div className="flex justify-center mb-4">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+                <CheckCircle className="w-10 h-10 text-green-600" />
+              </div>
+            </div>
+            <h3 className="text-xl font-bold text-gray-800 mb-2">
+              Xóa thành công!
+            </h3>
+            <p className="text-gray-600">
+              {deleteSuccessCount === 1
+                ? 'Đã xóa câu hỏi thành công'
+                : `Đã xóa ${deleteSuccessCount} câu hỏi thành công`}
+            </p>
+          </div>
+        </Modal>
+      )}
+
+      {/* Question Form Modal */}
+      <QuestionFormModal
+        isOpen={showQuestionModal}
+        onClose={handleCloseQuestionModal}
+        questionId={editingQuestionId}
+      />
     </PageContainer>
   );
 };
