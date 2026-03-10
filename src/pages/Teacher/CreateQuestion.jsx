@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import {
   ArrowLeft,
   ArrowRight,
@@ -40,6 +40,8 @@ import {
 const CreateQuestion = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { id: questionId } = useParams(); // Present when in edit mode
+  const isEditMode = !!questionId;
 
   // Step management
   const [currentStep, setCurrentStep] = useState(1);
@@ -47,6 +49,7 @@ const CreateQuestion = () => {
 
   // State
   const [submitting, setSubmitting] = useState(false);
+  const [loadingQuestion, setLoadingQuestion] = useState(isEditMode);
   const [error, setError] = useState('');
   const [showPreviewModal, setShowPreviewModal] = useState(false);
 
@@ -81,10 +84,43 @@ const CreateQuestion = () => {
       if (question.content || question.answers.some(a => a.content)) {
         handleAutoSave();
       }
-    }, 5000); // Auto-save every 5 seconds
-
+    }, 5000);
     return () => clearTimeout(autoSaveTimer);
   }, [question]);
+
+  // Load existing question when in edit mode
+  useEffect(() => {
+    if (!isEditMode) return;
+    const loadQuestion = async () => {
+      setLoadingQuestion(true);
+      try {
+        const response = await teacherService.getQuestion(questionId);
+        const data = response.data || response;
+        setQuestion({
+          type: data.questionType || data.type || 'MULTIPLE_CHOICE',
+          category: typeof data.category === 'object' ? (data.category?.name || '') : (data.category || 'N1'),
+          difficulty: data.difficulty || 'EASY',
+          content: data.questionText || data.content || '',
+          answers: data.answers || data.options || [
+            { id: 1, content: '', isCorrect: false },
+            { id: 2, content: '', isCorrect: false },
+            { id: 3, content: '', isCorrect: false },
+            { id: 4, content: '', isCorrect: false },
+          ],
+          explanation: data.explanation || '',
+          imageFile: null,
+          audioFile: null,
+          videoFile: null,
+        });
+      } catch (err) {
+        console.error('Error loading question:', err);
+        setError('Không thể tải dữ liệu câu hỏi. Vui lòng thử lại.');
+      } finally {
+        setLoadingQuestion(false);
+      }
+    };
+    loadQuestion();
+  }, [questionId, isEditMode]);
 
   // Handle auto-save
   const handleAutoSave = async () => {
@@ -118,7 +154,7 @@ const CreateQuestion = () => {
       if (['MULTIPLE_CHOICE', 'READING', 'LISTENING'].includes(question.type)) {
         const hasAnswer = question.answers.some(a => a.content.trim());
         const hasCorrect = question.answers.some(a => a.isCorrect);
-        
+
         if (!hasAnswer) errors.answers = t('qb.error.required', 'Vui lòng nhập ít nhất một đáp án');
         if (!hasCorrect) errors.correct = t('qb.error.required', 'Vui lòng chọn đáp án đúng');
       }
@@ -184,28 +220,28 @@ const CreateQuestion = () => {
 
   // Handle submit
   const handleSubmit = async () => {
-    if (!validateStep(currentStep)) {
-      return;
-    }
+    if (!validateStep(currentStep)) return;
 
     setSubmitting(true);
     setError('');
 
     try {
-      // TODO: Replace with actual API call
-      // await teacherService.createQuestion(question);
-      
-      // Simulate API call
-      await new Promise(r => setTimeout(r, 1000));
-      
-      // Clear draft
-      // localStorage.removeItem('draft-question');
-      
-      setError('');
-      navigate('/question-bank');
+      if (isEditMode) {
+        // TODO: Replace with actual API call
+        // await teacherService.updateQuestion(questionId, question);
+        await new Promise(r => setTimeout(r, 800));
+      } else {
+        // TODO: Replace with actual API call
+        // await teacherService.createQuestion(question);
+        await new Promise(r => setTimeout(r, 1000));
+      }
+      navigate('/teacher/question-bank');
     } catch (err) {
-      console.error('Error creating question:', err);
-      setError(t('qb.error.createFailed', 'Không thể tạo câu hỏi. Vui lòng thử lại sau.'));
+      console.error('Error saving question:', err);
+      setError(isEditMode
+        ? 'Không thể cập nhật câu hỏi. Vui lòng thử lại.'
+        : t('qb.error.createFailed', 'Không thể tạo câu hỏi. Vui lòng thử lại sau.')
+      );
     } finally {
       setSubmitting(false);
     }
@@ -219,7 +255,7 @@ const CreateQuestion = () => {
           <h3 className="text-lg font-bold text-gray-900 mb-6">
             {t('qb.step1.title', 'Thông tin cơ bản')}
           </h3>
-          
+
           <div className="space-y-6">
             {/* Question Type */}
             <div>
@@ -304,7 +340,7 @@ const CreateQuestion = () => {
           <h3 className="text-lg font-bold text-gray-900 mb-6">
             {t('qb.step2.title', 'Nội dung câu hỏi')}
           </h3>
-          
+
           <div className="space-y-6">
             {/* Question Content */}
             <div>
@@ -381,7 +417,7 @@ const CreateQuestion = () => {
           <h3 className="text-lg font-bold text-gray-900 mb-6">
             {t('qb.step3.title', 'Đáp án')}
           </h3>
-          
+
           {/* Multiple Choice Answers */}
           {['MULTIPLE_CHOICE', 'READING', 'LISTENING'].includes(question.type) && (
             <div className="space-y-4">
@@ -398,15 +434,14 @@ const CreateQuestion = () => {
                   {t('qb.addAnswer', 'Thêm đáp án')}
                 </Button>
               </div>
-              
+
               {question.answers.map((ans, idx) => (
                 <div
                   key={ans.id}
-                  className={`flex items-center gap-4 p-4 rounded-xl border transition ${
-                    ans.isCorrect
+                  className={`flex items-center gap-4 p-4 rounded-xl border transition ${ans.isCorrect
                       ? 'border-green-500 bg-green-50 ring-1 ring-green-500'
                       : 'border-gray-200 bg-white'
-                  }`}
+                    }`}
                 >
                   <div className="flex items-center h-5">
                     <input
@@ -441,7 +476,7 @@ const CreateQuestion = () => {
                   )}
                 </div>
               ))}
-              
+
               {validationErrors.answers && (
                 <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
                   <AlertCircle className="w-4 h-4" />
@@ -482,7 +517,7 @@ const CreateQuestion = () => {
           <h3 className="text-lg font-bold text-gray-900 mb-6">
             {t('qb.step4.title', 'Xem trước')}
           </h3>
-          
+
           <div className="space-y-6">
             {/* Question Preview */}
             <div className="p-6 bg-gray-50 rounded-xl">
@@ -538,11 +573,10 @@ const CreateQuestion = () => {
                 {question.answers.map((ans, idx) => (
                   <div
                     key={ans.id}
-                    className={`flex items-center gap-3 p-3 rounded-lg border ${
-                      ans.isCorrect
+                    className={`flex items-center gap-3 p-3 rounded-lg border ${ans.isCorrect
                         ? 'border-green-500 bg-green-50'
                         : 'border-gray-200 bg-white'
-                    }`}
+                      }`}
                   >
                     <span className="font-mono text-gray-500">{String.fromCharCode(65 + idx)}.</span>
                     <span className="flex-1">{ans.content || t('qb.noContent', 'Chưa có nội dung')}</span>
@@ -578,21 +612,19 @@ const CreateQuestion = () => {
         {Array.from({ length: totalSteps }, (_, i) => i + 1).map((step, index) => (
           <React.Fragment key={step}>
             <div
-              className={`flex items-center justify-center w-10 h-10 rounded-full font-bold transition ${
-                currentStep === step
+              className={`flex items-center justify-center w-10 h-10 rounded-full font-bold transition ${currentStep === step
                   ? 'bg-primary-600 text-white'
                   : currentStep > step
-                  ? 'bg-green-500 text-white'
-                  : 'bg-gray-200 text-gray-500'
-              }`}
+                    ? 'bg-green-500 text-white'
+                    : 'bg-gray-200 text-gray-500'
+                }`}
             >
               {currentStep > step ? <Check className="w-5 h-5" /> : step}
             </div>
             {index < totalSteps - 1 && (
               <div
-                className={`w-16 h-1 ${
-                  currentStep > step ? 'bg-green-500' : 'bg-gray-200'
-                }`}
+                className={`w-16 h-1 ${currentStep > step ? 'bg-green-500' : 'bg-gray-200'
+                  }`}
               />
             )}
           </React.Fragment>
@@ -636,12 +668,22 @@ const CreateQuestion = () => {
     );
   };
 
+  if (loadingQuestion) {
+    return (
+      <PageContainer>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <Loading.Spinner size="xl" />
+        </div>
+      </PageContainer>
+    );
+  }
+
   return (
     <PageContainer>
       {/* Page Header */}
       <PageHeader
-        title={t('qb.createNew', 'Tạo Câu Hỏi Mới')}
-        subtitle={t('qb.createSubtitle', 'Tạo câu hỏi mới cho ngân hàng câu hỏi')}
+        title={isEditMode ? 'Chỉnh Sửa Câu Hỏi' : t('qb.createNew', 'Tạo Câu Hỏi Mới')}
+        subtitle={isEditMode ? `Đang chỉnh sửa câu hỏi #${questionId}` : t('qb.createSubtitle', 'Tạo câu hỏi mới cho ngân hàng câu hỏi')}
         actions={[
           {
             label: t('qb.preview', 'Xem trước'),
@@ -690,7 +732,7 @@ const CreateQuestion = () => {
         >
           {t('common.previous', 'Quay lại')}
         </Button>
-        
+
         {currentStep < totalSteps ? (
           <Button
             variant="primary"

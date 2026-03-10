@@ -1,12 +1,12 @@
-﻿import React, { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { BookOpen, Users, FileText, TrendingUp } from 'lucide-react';
-import PageContainer from '../../components/ui/PageContainer';
-import PageHeader from '../../components/ui/PageHeader';
-import { Card, StatsCard } from '../../components/ui/Card';
+import { useTranslation } from 'react-i18next';
+import { BookOpen, Users, FileText, TrendingUp, Calendar, Clock, AlertCircle } from 'lucide-react';
 import teacherService from '../../services/teacherService';
 
+/**
+ * Teacher Dashboard - Enhanced UI with stats and quick actions
+ */
 const TeacherDashboard = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -14,7 +14,8 @@ const TeacherDashboard = () => {
     totalExams: 0,
     totalQuestions: 0,
     pendingGrading: 0,
-    totalStudents: 0
+    totalStudents: 0,
+    upcomingSessions: 0
   });
   const [loading, setLoading] = useState(true);
 
@@ -25,18 +26,29 @@ const TeacherDashboard = () => {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
+
       // Fetch data from services
-      const [exams, questions, grading] = await Promise.all([
+      const [exams, questions, grading, sessions] = await Promise.all([
         teacherService.getExams().catch(() => ({ data: [] })),
         teacherService.getQuestions().catch(() => ({ data: [] })),
-        teacherService.getPendingGrading().catch(() => [])
+        teacherService.getPendingGrading().catch(() => []),
+        teacherService.getUpcomingSessions().catch(() => ({ data: [] }))
       ]);
 
+      // Debug: log responses
+      console.log('Dashboard API Responses:', {
+        exams,
+        questions,
+        grading,
+        sessions
+      });
+
       setStats({
-        totalExams: exams.data?.length || 0,
-        totalQuestions: questions.data?.length || 0,
-        pendingGrading: grading.length || 0,
-        totalStudents: 0 // This would come from a students endpoint
+        totalExams: Array.isArray(exams) ? exams.length : (exams.data?.length || exams.content?.length || 0),
+        totalQuestions: Array.isArray(questions) ? questions.length : (questions.data?.length || questions.content?.length || 0),
+        pendingGrading: Array.isArray(grading) ? grading.length : (grading.data?.length || grading.content?.length || 0),
+        totalStudents: 0, // Will be implemented later
+        upcomingSessions: Array.isArray(sessions) ? sessions.length : (sessions.data?.length || sessions.content?.length || 0)
       });
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
@@ -45,126 +57,168 @@ const TeacherDashboard = () => {
     }
   };
 
-  const quickActions = [
+  // Stat Cards Configuration
+  const statCards = useMemo(() => [
     {
-      title: t('teacherDashboard.createExam'),
-      description: t('teacherDashboard.createExamDesc'),
-      icon: FileText,
-      onClick: () => navigate('/exam-management'),
-      color: 'primary'
+      label: t('teacher.dashboard.totalExams'),
+      value: stats.totalExams,
+      icon: <FileText className="w-6 h-6" />,
+      color: 'from-blue-500 to-indigo-600',
+      bg: 'bg-blue-50',
+      text: 'text-blue-700',
+      urgent: false,
     },
     {
-      title: t('teacherDashboard.manageQuestions'),
-      description: t('teacherDashboard.manageQuestionsDesc'),
-      icon: BookOpen,
-      onClick: () => navigate('/question-bank'),
-      color: 'secondary'
+      label: t('teacher.dashboard.totalQuestions'),
+      value: stats.totalQuestions,
+      icon: <BookOpen className="w-6 h-6" />,
+      color: 'from-emerald-500 to-green-600',
+      bg: 'bg-emerald-50',
+      text: 'text-emerald-700',
+      urgent: false,
     },
     {
-      title: t('teacherDashboard.gradeSubmissions'),
-      description: t('teacherDashboard.gradeSubmissionsDesc'),
-      icon: Users,
-      onClick: () => navigate('/grading-queue'),
-      color: 'success'
+      label: t('teacher.dashboard.pendingGrading'),
+      value: stats.pendingGrading,
+      icon: <Clock className="w-6 h-6" />,
+      color: 'from-amber-500 to-orange-500',
+      bg: 'bg-amber-50',
+      text: 'text-amber-700',
+      urgent: stats.pendingGrading > 0,
     },
     {
-      title: t('teacherDashboard.viewReports'),
-      description: t('teacherDashboard.viewReportsDesc'),
-      icon: TrendingUp,
-      onClick: () => navigate('/teacher-reports'),
-      color: 'warning'
+      label: t('teacher.dashboard.upcomingSessions'),
+      value: stats.upcomingSessions,
+      icon: <Calendar className="w-6 h-6" />,
+      color: 'from-purple-500 to-violet-600',
+      bg: 'bg-purple-50',
+      text: 'text-purple-700',
+      urgent: false,
+    },
+  ], [t, stats]);
+
+  // Quick Actions Configuration
+  const quickActions = useMemo(() => [
+    {
+      title: t('teacher.dashboard.createExam'),
+      description: t('teacher.dashboard.createExamDesc'),
+      icon: '📝',
+      path: '/teacher/exam-management',
+      color: 'hover:border-blue-400',
+      badge: 0
+    },
+    {
+      title: t('teacher.dashboard.manageQuestions'),
+      description: t('teacher.dashboard.manageQuestionsDesc'),
+      icon: '❓',
+      path: '/teacher/question-bank',
+      color: 'hover:border-green-400',
+      badge: 0
+    },
+    {
+      title: t('teacher.dashboard.manageSessions'),
+      description: t('teacher.dashboard.manageSessionsDesc'),
+      icon: '📅',
+      path: '/teacher/sessions',
+      color: 'hover:border-purple-400',
+      badge: stats.upcomingSessions
+    },
+    {
+      title: t('teacher.dashboard.gradeSubmissions'),
+      description: t('teacher.dashboard.gradeSubmissionsDesc'),
+      icon: '✅',
+      path: '/teacher/grading-queue',
+      color: 'hover:border-amber-400',
+      badge: stats.pendingGrading
+    },
+    {
+      title: t('teacher.dashboard.viewReports'),
+      description: t('teacher.dashboard.viewReportsDesc'),
+      icon: '📊',
+      path: '/teacher/reports',
+      color: 'hover:border-pink-400',
+      badge: 0
     }
-  ];
+  ], [t, stats]);
 
   if (loading) {
     return (
-      <PageContainer>
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-purple-50 p-6">
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-purple-600"></div>
         </div>
-      </PageContainer>
+      </div>
     );
   }
 
   return (
-    <PageContainer>
-      <PageHeader
-        title={t('teacherDashboard.title')}
-        subtitle={t('teacherDashboard.subtitle')}
-      />
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-purple-50 p-6">
+      {/* Header */}
+      <div className="mb-8">
+        <div className="flex items-center gap-3 mb-1">
+          <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-600 rounded-xl flex items-center justify-center text-white text-xl">
+            👨‍🏫
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">{t('teacher.dashboard.title')}</h1>
+            <p className="text-gray-500 text-sm">{t('teacher.dashboard.subtitle')}</p>
+          </div>
+        </div>
+      </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <StatsCard
-          title={t('teacherDashboard.totalExams')}
-          value={stats.totalExams}
-          icon={FileText}
-          color="primary"
-        />
-        <StatsCard
-          title={t('teacherDashboard.totalQuestions')}
-          value={stats.totalQuestions}
-          icon={BookOpen}
-          color="secondary"
-        />
-        <StatsCard
-          title={t('teacherDashboard.pendingGrading')}
-          value={stats.pendingGrading}
-          icon={Users}
-          color="warning"
-        />
-        <StatsCard
-          title={t('teacherDashboard.totalStudents')}
-          value={stats.totalStudents}
-          icon={TrendingUp}
-          color="success"
-        />
+      {/* Stats Grid */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        {statCards.map((card, i) => (
+          <div key={i} className={`bg-white rounded-2xl shadow-sm border-2 p-5 hover:shadow-md transition-shadow ${card.urgent ? 'border-amber-300 animate-pulse-slow' : 'border-gray-100'}`}>
+            <div className={`w-12 h-12 ${card.bg} rounded-xl flex items-center justify-center ${card.text} mb-3`}>
+              {card.icon}
+            </div>
+            <div className={`text-3xl font-bold bg-gradient-to-r ${card.color} bg-clip-text text-transparent`}>
+              {card.value}
+            </div>
+            <div className="text-sm text-gray-500 mt-1">{card.label}</div>
+            {card.urgent && (
+              <div className="text-xs text-amber-600 font-medium mt-1">⚡ {t('teacher.dashboard.urgent')}</div>
+            )}
+          </div>
+        ))}
       </div>
 
       {/* Quick Actions */}
       <div className="mb-8">
-        <h2 className="text-xl font-bold text-gray-900 mb-4">
-          {t('teacherDashboard.quickActions')}
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {quickActions.map((action, index) => (
-            <Card
-              key={index}
-              hover={true}
-              className="cursor-pointer"
-              onClick={action.onClick}
+        <h2 className="text-lg font-semibold text-gray-800 mb-4">{t('teacher.dashboard.quickActions')}</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+          {quickActions.map((action, i) => (
+            <button
+              key={i}
+              onClick={() => navigate(action.path)}
+              className={`bg-white rounded-xl border-2 p-4 text-left hover:shadow-lg transition-all ${action.color} ${
+                action.badge > 0 ? 'border-l-4 border-l-amber-500' : 'border-gray-100'
+              }`}
             >
-              <div className="p-6 text-center">
-                <div className={`inline-flex items-center justify-center w-12 h-12 rounded-full mb-4 ${
-                  action.color === 'primary' ? 'bg-primary-100 text-primary-600' :
-                  action.color === 'secondary' ? 'bg-gray-100 text-gray-600' :
-                  action.color === 'success' ? 'bg-green-100 text-green-600' :
-                  'bg-yellow-100 text-yellow-600'
-                }`}>
-                  <action.icon className="w-6 h-6" />
-                </div>
-                <h3 className="font-semibold text-gray-900 mb-2">
-                  {action.title}
-                </h3>
-                <p className="text-sm text-gray-600">
-                  {action.description}
-                </p>
+              <div className="flex items-start justify-between mb-2">
+                <div className="text-3xl">{action.icon}</div>
+                {action.badge > 0 && (
+                  <span className="px-2 py-1 bg-amber-100 text-amber-700 text-xs font-semibold rounded-full">
+                    {action.badge}
+                  </span>
+                )}
               </div>
-            </Card>
+              <h3 className="font-semibold text-gray-900 mb-1">{action.title}</h3>
+              <p className="text-sm text-gray-600">{action.description}</p>
+            </button>
           ))}
         </div>
       </div>
 
       {/* Recent Activity */}
-      <Card className="p-6">
-        <h2 className="text-xl font-bold text-gray-900 mb-4">
-          {t('teacherDashboard.recentActivity')}
-        </h2>
+      <div className="bg-white rounded-2xl shadow-sm border-2 border-gray-100 p-6">
+        <h2 className="text-lg font-semibold text-gray-800 mb-4">{t('teacher.dashboard.recentActivity')}</h2>
         <div className="text-center py-8 text-gray-500">
-          <p>{t('teacherDashboard.noRecentActivity')}</p>
+          <p>{t('teacher.dashboard.noRecentActivity')}</p>
         </div>
-      </Card>
-    </PageContainer>
+      </div>
+    </div>
   );
 };
 
