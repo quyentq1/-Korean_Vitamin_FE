@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { useAuth } from '../contexts/AuthContext';
+import Swal from 'sweetalert2';
 
 const ExamPrep = () => {
     const { t } = useTranslation();
@@ -41,8 +42,8 @@ const ExamPrep = () => {
             icon: '🇰🇷',
             title: 'TOPIK',
             fullName: 'Test of Proficiency in Korean',
-            color: 'from-red-500 to-red-700',
-            borderColor: 'border-red-500',
+            color: 'from-red-600 to-red-800',
+            borderColor: 'border-red-600',
             description: t('prep.topik.desc', 'Chứng chỉ tiếng Hàn phổ biến nhất thế giới với 6 cấp độ'),
             features: [
                 t('prep.topik.feature1', 'Đề thi thử TOPIK I & II'),
@@ -57,8 +58,8 @@ const ExamPrep = () => {
             icon: '🗣️',
             title: 'OPIc',
             fullName: 'Oral Proficiency Interview - computer',
-            color: 'from-blue-600 to-blue-800',
-            borderColor: 'border-blue-600',
+            color: 'from-blue-700 to-blue-900',
+            borderColor: 'border-blue-700',
             description: t('prep.opic.desc', 'Đánh giá khả năng giao tiếp tiếng Hàn trong thực tế'),
             features: [
                 t('prep.opic.feature1', 'AI Speaking Partner'),
@@ -73,8 +74,8 @@ const ExamPrep = () => {
             icon: '👷',
             title: 'EPS-TOPIK',
             fullName: 'Employment Permit System TOPIK',
-            color: 'from-green-500 to-green-700',
-            borderColor: 'border-green-500',
+            color: 'from-green-600 to-green-800',
+            borderColor: 'border-green-600',
             description: t('prep.eps.desc', 'Chứng chỉ cho lao động Việt Nam đi làm việc tại Hàn Quốc'),
             features: [
                 t('prep.eps.feature1', 'Từ vựng chuyên ngành sản xuất'),
@@ -87,20 +88,20 @@ const ExamPrep = () => {
     ];
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-purple-50">
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
             <Navbar />
 
             <div className="pt-20">
                 {/* Hero Section */}
-                <div className="bg-gradient-to-r from-primary-600 via-purple-600 to-primary-700 text-white py-12 sm:py-20 relative overflow-hidden">
+                <div className="bg-gradient-to-r from-blue-700 to-indigo-800 text-white py-12 sm:py-20 relative overflow-hidden">
                     {/* Decorative Elements */}
-                    <div className="absolute inset-0 opacity-10">
+                    <div className="absolute inset-0 opacity-5">
                         <div className="absolute top-10 left-10 w-48 h-48 sm:w-72 sm:h-72 bg-white rounded-full blur-3xl"></div>
                         <div className="absolute bottom-10 right-10 w-64 h-64 sm:w-96 sm:h-96 bg-white rounded-full blur-3xl"></div>
                     </div>
 
                     <div className="container mx-auto px-4 sm:px-6 text-center relative z-10">
-                        <div className="text-5xl sm:text-6xl mb-4 sm:mb-6 animate-float">🎯</div>
+                        <div className="text-5xl sm:text-6xl mb-4 sm:mb-6">🎯</div>
                         <h1 className="text-3xl sm:text-5xl font-bold mb-3 sm:mb-4">
                             {t('landing.nav.prep', 'Luyện thi')}
                         </h1>
@@ -108,11 +109,33 @@ const ExamPrep = () => {
                             {t('prep.subtitle', 'Luyện thi toàn diện cho TOPIK, OPIc và EPS-TOPIK với đề thi thật và chấm điểm bằng AI')}
                         </p>
                         <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4">
-                            <button className="bg-white text-primary-600 px-6 sm:px-8 py-3 rounded-xl font-bold hover:bg-gray-100 transition-all shadow-lg transform hover:-translate-y-0.5 text-sm sm:text-base">
+                            <button
+                                onClick={() => navigate('/free-tests')}
+                                className="bg-white text-blue-700 px-6 sm:px-8 py-3 rounded-xl font-bold hover:bg-gray-100 transition-all shadow-lg transform hover:-translate-y-0.5 text-sm sm:text-base"
+                            >
                                 {t('prep.startNow', 'Bắt đầu ngay')}
                             </button>
-                            <button className="border-2 border-white text-white px-6 sm:px-8 py-3 rounded-xl font-bold hover:bg-white/10 transition-all text-sm sm:text-base">
-                                {t('prep.viewSchedule', 'Xem lịch thi')}
+                            <button
+                                onClick={() => {
+                                    if (isAuthenticated) {
+                                        navigate('/test-library');
+                                    } else {
+                                        Swal.fire({
+                                            icon: 'info',
+                                            title: 'Cần đăng nhập',
+                                            text: 'Vui lòng đăng nhập để xem lịch thi',
+                                            confirmButtonColor: '#3b82f6',
+                                            confirmButtonText: 'Đăng nhập ngay'
+                                        }).then((result) => {
+                                            if (result.isConfirmed) {
+                                                navigate('/login');
+                                            }
+                                        });
+                                    }
+                                }}
+                                className="border-2 border-white text-white px-6 sm:px-8 py-3 rounded-xl font-bold hover:bg-white/10 transition-all text-sm sm:text-base"
+                            >
+                                {t('prep.viewSchedule', 'Xem đề thi')}
                             </button>
                         </div>
                     </div>
@@ -178,7 +201,23 @@ const ExamPrep = () => {
 
                                     {/* Action Button */}
                                     <button
-                                        onClick={() => navigate(`/courses/${exam.id}`)}
+                                        onClick={() => {
+                                            if (isAuthenticated) {
+                                                navigate('/test-library');
+                                            } else {
+                                                Swal.fire({
+                                                    icon: 'info',
+                                                    title: 'Bắt đầu luyện tập',
+                                                    text: 'Bạn cần đăng nhập để luyện thi',
+                                                    confirmButtonColor: '#3b82f6',
+                                                    confirmButtonText: 'Đăng nhập ngay'
+                                                }).then((result) => {
+                                                    if (result.isConfirmed) {
+                                                        navigate('/login');
+                                                    }
+                                                });
+                                            }
+                                        }}
                                         className={`w-full py-3 sm:py-4 bg-gradient-to-r ${exam.color} text-white rounded-xl font-bold hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5 text-sm sm:text-base`}
                                     >
                                         {t('prep.startPracticing', 'Bắt đầu luyện tập')}
@@ -190,7 +229,7 @@ const ExamPrep = () => {
 
                     {/* Why Practice With Us */}
                     <div className="bg-white rounded-2xl p-6 sm:p-12 shadow-lg mb-12 sm:mb-16">
-                        <h2 className="text-2xl sm:text-3xl font-bold text-center mb-8 sm:mb-12">
+                        <h2 className="text-2xl sm:text-3xl font-bold text-center mb-8 sm:mb-12 text-gray-900">
                             {t('prep.whyUs', 'Tại sao luyện thi với chúng tôi?')}
                         </h2>
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 sm:gap-8">
@@ -202,7 +241,7 @@ const ExamPrep = () => {
                             ].map((reason, index) => (
                                 <div key={index} className="text-center">
                                     <div className="text-4xl sm:text-5xl mb-3 sm:mb-4">{reason.icon}</div>
-                                    <h3 className="font-bold text-lg mb-2">{reason.title}</h3>
+                                    <h3 className="font-bold text-lg mb-2 text-gray-900">{reason.title}</h3>
                                     <p className="text-gray-600 text-sm">{reason.desc}</p>
                                 </div>
                             ))}
@@ -210,14 +249,17 @@ const ExamPrep = () => {
                     </div>
 
                     {/* CTA Section */}
-                    <div className="bg-gradient-to-r from-primary-600 to-purple-600 rounded-2xl p-8 sm:p-12 text-white text-center shadow-xl">
+                    <div className="bg-gradient-to-r from-blue-700 to-indigo-800 rounded-2xl p-8 sm:p-12 text-white text-center shadow-xl">
                         <h2 className="text-2xl sm:text-3xl font-bold mb-3 sm:mb-4">
                             {t('prep.cta.title', 'Sẵn sàng chinh phục chứng chỉ?')}
                         </h2>
                         <p className="text-lg sm:text-xl mb-6 sm:mb-8 opacity-90">
                             {t('prep.cta.desc', 'Bắt đầu với 2 bài test miễn phí ngay hôm nay!')}
                         </p>
-                        <button className="bg-white text-primary-600 px-8 sm:px-10 py-3 sm:py-4 rounded-xl font-bold text-base sm:text-lg hover:bg-gray-100 transition-all shadow-lg transform hover:-translate-y-0.5">
+                        <button
+                            onClick={() => navigate('/free-tests')}
+                            className="bg-white text-blue-700 px-8 sm:px-10 py-3 sm:py-4 rounded-xl font-bold text-base sm:text-lg hover:bg-gray-100 transition-all shadow-lg transform hover:-translate-y-0.5"
+                        >
                             {t('prep.cta.button', 'Thi thử miễn phí')}
                         </button>
                     </div>

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import axiosClient from '../api/axiosClient';
 
 const STORAGE_KEY = 'guest_test_tracking';
 const MAX_FREE_TESTS = 2;
@@ -6,15 +7,20 @@ const MAX_FREE_TESTS = 2;
 /**
  * Custom hook for tracking guest test attempts
  * Manages free test quota and question ID tracking for duplicate prevention
+ *
+ * NOW SYNCS WITH BACKEND QUOTA!
  */
 const useTestTracking = () => {
     const [guestId, setGuestId] = useState(null);
     const [testHistory, setTestHistory] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [backendQuota, setBackendQuota] = useState(null); // Backend quota state
+    const [quotaSynced, setQuotaSynced] = useState(false);   // Whether quota is synced with backend
 
     // Initialize guest ID and load history
     useEffect(() => {
         initializeTracking();
+        syncQuotaWithBackend(); // NEW: Sync with backend on mount
 
         // Reload data when localStorage changes (sync between tabs/components)
         const handleStorageChange = (e) => {
@@ -26,6 +32,7 @@ const useTestTracking = () => {
         // Also reload when window gains focus (user comes back from another tab)
         const handleFocus = () => {
             initializeTracking();
+            syncQuotaWithBackend(); // Re-sync on focus
         };
 
         window.addEventListener('storage', handleStorageChange);
@@ -53,6 +60,46 @@ const useTestTracking = () => {
         setTestHistory(history);
 
         setLoading(false);
+    };
+
+    /**
+     * NEW: Sync quota with backend
+     * Fetches actual guest quota from backend API
+     */
+    const syncQuotaWithBackend = async () => {
+        try {
+            // Call backend API to get guest quota
+            const response = await axiosClient.get('/guest/quota');
+
+            if (response && response.remaining !== undefined) {
+                setBackendQuota(response.remaining);
+                setQuotaSynced(true);
+
+                // If backend says 0 remaining, reset local tracking
+                if (response.remaining === 0) {
+                    console.log('[useTestTracking] Backend quota exhausted. Syncing local state...');
+                    // Keep test history but ensure remainingFreeTests returns 0
+                    setQuotaSynced(true);
+                }
+            }
+        } catch (error) {
+            // If API fails (401, 404, etc.), fall back to local tracking
+            console.log('[useTestTracking] Unable to sync with backend, using local tracking');
+            setQuotaSynced(false);
+        }
+    };
+
+    /**
+     * Handle LIMIT_EXCEEDED error from backend
+     * Call this when backend returns 400 LIMIT_EXCEEDED
+     */
+    const handleLimitExceeded = () => {
+        console.log('[useTestTracking] LIMIT_EXCEEDED from backend. Resetting local quota to 0.');
+        setBackendQuota(0);
+        setQuotaSynced(true);
+
+        // Optional: Clear localStorage to force sync
+        // localStorage.removeItem(STORAGE_KEY);
     };
 
     const generateGuestId = () => {
@@ -84,6 +131,12 @@ const useTestTracking = () => {
     };
 
     const getRemainingFreeTests = () => {
+        // NEW: If backend quota is synced, use backend value
+        if (quotaSynced && backendQuota !== null) {
+            return backendQuota;
+        }
+
+        // Fallback to local tracking
         const completedCount = testHistory.filter(t => t.completed).length;
         return Math.max(0, MAX_FREE_TESTS - completedCount);
     };
@@ -119,17 +172,25 @@ const useTestTracking = () => {
         };
 
         let newHistory;
+        const isFirstAttempt = existingIndex < 0;  // Check if this is a NEW exam (first attempt)
+
         if (existingIndex >= 0) {
-            // Update existing
+            // Update existing (retake)
             newHistory = [...testHistory];
             newHistory[existingIndex] = testRecord;
         } else {
-            // Add new
+            // Add new (first attempt - should decrement quota)
             newHistory = [...testHistory, testRecord];
         }
 
         setTestHistory(newHistory);
         saveTestHistory(guestId, newHistory);
+
+        // Only decrement backend quota for FIRST attempt of an exam
+        // Retakes do NOT consume additional quota
+        if (isFirstAttempt && quotaSynced && backendQuota !== null && backendQuota > 0) {
+            setBackendQuota(backendQuota - 1);
+        }
     };
 
     const clearHistory = () => {
@@ -137,6 +198,9 @@ const useTestTracking = () => {
         if (guestId) {
             saveTestHistory(guestId, []);
         }
+        // Reset backend quota cache
+        setBackendQuota(null);
+        setQuotaSynced(false);
     };
 
     return {
@@ -149,6 +213,9 @@ const useTestTracking = () => {
         getAllUsedQuestionIds,
         recordTestCompletion,
         clearHistory,
+        handleLimitExceeded, // NEW: Export this to handle LIMIT_EXCEEDED errors
+        syncQuotaWithBackend, // NEW: Manual sync trigger
+        quotaSynced, // NEW: Whether quota is synced with backend
     };
 };
 

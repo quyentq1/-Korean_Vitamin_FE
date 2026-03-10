@@ -13,7 +13,7 @@ const TestRunner = () => {
     const { testId } = useParams();
     const { t } = useTranslation();
     const navigate = useNavigate();
-    const { recordTestCompletion } = useTestTracking();
+    const { recordTestCompletion, handleLimitExceeded } = useTestTracking();
     const { recordTestCompletion: recordGuestCompletion } = useGuestContext();
     const { isAuthenticated } = useAuth();
 
@@ -76,11 +76,37 @@ const TestRunner = () => {
 
             } catch (error) {
                 console.error("Error loading test:", error);
-                if (error?.status === 400 && error.message?.includes('LIMIT_EXCEEDED')) {
-                    alert('Bạn đã hết lượt làm bài miễn phí (2/2). Vui lòng để lại thông tin tư vấn!');
+
+                // Detailed error handling
+                let errorMessage = "Không thể tải bài thi. ";
+
+                if (error.isNetworkError) {
+                    errorMessage += error.isTimeout
+                        ? "Yêu cầu quá thời gian. Vui lòng thử lại."
+                        : "Không thể kết nối đến máy chủ. Kiểm tra kết nối mạng.";
+                } else if (error.isServerError) {
+                    errorMessage += "Lỗi máy chủ. Vui lòng thử lại sau.";
+                } else if (error.isClientError) {
+                    if (error.status === 400) {
+                        if (error.details?.code === 'LIMIT_EXCEEDED' || error.message?.includes('LIMIT_EXCEEDED')) {
+                            // Sync local quota with backend
+                            handleLimitExceeded();
+
+                            alert('🔒 Bạn đã hết lượt làm bài miễn phí (2/2).\n\nVui lòng đăng ký tài khoản để tiếp tục học!');
+                            navigate('/signup');
+                            return;
+                        }
+                        errorMessage += "Dữ liệu không hợp lệ.";
+                    } else if (error.status === 404) {
+                        errorMessage += "Không tìm thấy bài thi này.";
+                    } else {
+                        errorMessage += error.message || "Vui lòng thử lại.";
+                    }
                 } else {
-                    alert("Không thể tải bài thi. Vui lòng thử lại sau.");
+                    errorMessage += error.message || "Vui lòng thử lại.";
                 }
+
+                alert(errorMessage);
                 navigate('/free-tests');
             } finally {
                 setLoading(false);
@@ -157,8 +183,41 @@ const TestRunner = () => {
 
         } catch (error) {
             console.error("Submit error:", error);
-            alert("Lỗi nộp bài. Vui lòng kiểm tra đường truyền mạng.");
+
+            // Detailed error handling
+            let errorMessage = "Lỗi nộp bài. ";
+
+            if (error.isNetworkError) {
+                errorMessage += error.isTimeout
+                    ? "Yêu cầu quá thời gian. Vui lòng thử lại."
+                    : "Không thể kết nối đến máy chủ. Kiểm tra kết nối mạng.";
+            } else if (error.isServerError) {
+                errorMessage += "Lỗi máy chủ. Vui lòng thử lại sau.";
+            } else if (error.isClientError) {
+                if (error.status === 400) {
+                    // Check for LIMIT_EXCEEDED
+                    if (error.details?.code === 'LIMIT_EXCEEDED' || error.message?.includes('LIMIT_EXCEEDED')) {
+                        // Sync local quota with backend
+                        handleLimitExceeded();
+
+                        errorMessage = "Bạn đã hết lượt làm bài miễn phí (2/2). Vui lòng đăng ký tài khoản.";
+                    } else {
+                        errorMessage += "Dữ liệu không hợp lệ.";
+                    }
+                } else if (error.status === 404) {
+                    errorMessage += "Không tìm thấy bài thi.";
+                } else if (error.status === 409) {
+                    errorMessage += "Bài thi đã được nộp rồi.";
+                } else {
+                    errorMessage += error.message || "Vui lòng thử lại.";
+                }
+            } else {
+                errorMessage += error.message || "Vui lòng thử lại.";
+            }
+
+            alert(errorMessage);
             setIsSubmitting(false);
+            stopTimer(); // Stop timer but don't navigate
         }
     };
 
