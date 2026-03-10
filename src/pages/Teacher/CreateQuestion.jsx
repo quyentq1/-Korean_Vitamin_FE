@@ -52,6 +52,8 @@ const CreateQuestion = () => {
   const [loadingQuestion, setLoadingQuestion] = useState(isEditMode);
   const [error, setError] = useState('');
   const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
 
   // Question state
   const [question, setQuestion] = useState({
@@ -96,18 +98,44 @@ const CreateQuestion = () => {
       try {
         const response = await teacherService.getQuestion(questionId);
         const data = response.data || response;
+
+        // Handle category - can be object with id/name or string or number
+        let categoryValue = 'N1';
+        if (typeof data.category === 'object' && data.category !== null) {
+          categoryValue = data.category.name || data.category.id?.toString() || 'N1';
+        } else if (data.category) {
+          categoryValue = data.category.toString();
+        }
+
+        // Handle answers - map from various API formats
+        let mappedAnswers = [
+          { id: 1, content: '', isCorrect: false },
+          { id: 2, content: '', isCorrect: false },
+          { id: 3, content: '', isCorrect: false },
+          { id: 4, content: '', isCorrect: false },
+        ];
+
+        if (data.answers && Array.isArray(data.answers)) {
+          mappedAnswers = data.answers.map((ans, index) => ({
+            id: ans.id || ans.answerId || index + 1,
+            content: ans.answerText || ans.content || ans.text || '',
+            isCorrect: ans.isCorrect || ans.correct || false
+          }));
+        } else if (data.options && Array.isArray(data.options)) {
+          mappedAnswers = data.options.map((opt, index) => ({
+            id: opt.id || opt.optionId || index + 1,
+            content: opt.optionText || opt.content || opt.text || '',
+            isCorrect: opt.isCorrect || opt.correct || false
+          }));
+        }
+
         setQuestion({
           type: data.questionType || data.type || 'MULTIPLE_CHOICE',
-          category: typeof data.category === 'object' ? (data.category?.name || '') : (data.category || 'N1'),
+          category: categoryValue,
           difficulty: data.difficulty || 'EASY',
           content: data.questionText || data.content || '',
-          answers: data.answers || data.options || [
-            { id: 1, content: '', isCorrect: false },
-            { id: 2, content: '', isCorrect: false },
-            { id: 3, content: '', isCorrect: false },
-            { id: 4, content: '', isCorrect: false },
-          ],
-          explanation: data.explanation || '',
+          answers: mappedAnswers,
+          explanation: data.explanation || data.explain || data.solution || data.explanationText || '',
           imageFile: null,
           audioFile: null,
           videoFile: null,
@@ -226,16 +254,34 @@ const CreateQuestion = () => {
     setError('');
 
     try {
+      // Prepare request data in correct format
+      const requestData = {
+        questionType: question.type,
+        category: question.category,
+        difficulty: question.difficulty,
+        questionText: question.content,
+        content: question.content,
+        explanation: question.explanation,
+        points: 1,
+        active: true,
+        verificationStatus: 'PENDING',
+        answers: question.answers.map(ans => ({
+          answerText: ans.content,
+          content: ans.content,
+          isCorrect: ans.isCorrect,
+          correct: ans.isCorrect
+        }))
+      };
+
       if (isEditMode) {
-        // TODO: Replace with actual API call
-        // await teacherService.updateQuestion(questionId, question);
-        await new Promise(r => setTimeout(r, 800));
+        await teacherService.updateQuestion(questionId, requestData);
+        setSuccessMessage('Cập nhật câu hỏi thành công!');
       } else {
-        // TODO: Replace with actual API call
-        // await teacherService.createQuestion(question);
-        await new Promise(r => setTimeout(r, 1000));
+        await teacherService.createQuestion(requestData);
+        setSuccessMessage('Tạo câu hỏi mới thành công!');
       }
-      navigate('/teacher/question-bank');
+
+      setShowSuccessModal(true);
     } catch (err) {
       console.error('Error saving question:', err);
       setError(isEditMode
@@ -245,6 +291,12 @@ const CreateQuestion = () => {
     } finally {
       setSubmitting(false);
     }
+  };
+
+  // Handle success modal confirm
+  const handleSuccessConfirm = () => {
+    setShowSuccessModal(false);
+    navigate('/teacher/question-bank');
   };
 
   // Render step 1: Basic Info
@@ -755,6 +807,36 @@ const CreateQuestion = () => {
 
       {/* Preview Modal */}
       {renderPreviewModal()}
+
+      {/* Success Modal */}
+      <Modal
+        isOpen={showSuccessModal}
+        onClose={() => {}}
+        title="Thành công"
+        size="md"
+        footer={
+          <div className="flex justify-end gap-3">
+            <Button
+              variant="primary"
+              onClick={handleSuccessConfirm}
+            >
+              {t('common.ok', 'OK')}
+            </Button>
+          </div>
+        }
+      >
+        <div className="text-center py-6">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
+            <Check className="w-8 h-8 text-green-600" />
+          </div>
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">
+            {t('qb.success.title', 'Thành công!')}
+          </h3>
+          <p className="text-gray-600">
+            {successMessage}
+          </p>
+        </div>
+      </Modal>
     </PageContainer>
   );
 };
