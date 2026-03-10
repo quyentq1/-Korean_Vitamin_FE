@@ -16,6 +16,7 @@ export const Modal = ({
   showCloseButton = true,
   closeOnBackdropClick = true,
   closeOnEscape = true,
+  footer,
   className = '',
   overlayClassName = '',
   ...props
@@ -27,12 +28,12 @@ export const Modal = ({
         onClose();
       }
     };
-    
+
     if (isOpen) {
       document.addEventListener('keydown', handleEscape);
       document.body.style.overflow = 'hidden';
     }
-    
+
     return () => {
       document.removeEventListener('keydown', handleEscape);
       document.body.style.overflow = 'unset';
@@ -46,22 +47,22 @@ export const Modal = ({
     }
   };
 
-  // Size classes
+  // Size classes with responsive max-width and height
   const sizeClasses = {
-    sm: 'max-w-sm',
-    md: 'max-w-md',
-    lg: 'max-w-lg',
-    xl: 'max-w-xl',
-    '2xl': 'max-w-2xl',
-    '3xl': 'max-w-3xl',
-    full: 'max-w-full mx-4'
+    sm: 'max-w-sm max-h-[90vh]',
+    md: 'max-w-md max-h-[90vh]',
+    lg: 'max-w-lg max-h-[90vh]',
+    xl: 'max-w-xl max-h-[90vh]',
+    '2xl': 'max-w-2xl max-h-[90vh]',
+    '3xl': 'max-w-3xl max-h-[90vh]',
+    full: 'max-w-full mx-4 max-h-[90vh]'
   };
 
   if (!isOpen) return null;
 
   return (
     <div
-      className={`fixed inset-0 z-50 flex items-center justify-center p-4 ${overlayClassName}`}
+      className={`fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 ${overlayClassName}`}
       onClick={handleBackdropClick}
       role="dialog"
       aria-modal="true"
@@ -69,10 +70,10 @@ export const Modal = ({
     >
       {/* Backdrop */}
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity" />
-      
+
       {/* Modal Content */}
       <div
-        className={`relative bg-white rounded-2xl shadow-2xl w-full ${sizeClasses[size]} ${className}`}
+        className={`relative bg-white rounded-2xl shadow-2xl w-full ${sizeClasses[size]} flex flex-col ${className}`}
         onClick={(e) => e.stopPropagation()}
         {...props}
       >
@@ -80,22 +81,33 @@ export const Modal = ({
         {showCloseButton && (
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all"
+            className="absolute top-3 sm:top-4 right-3 sm:right-4 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all z-10"
             aria-label="Close modal"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
         )}
-        
-        {/* Modal Content */}
-        <div className="p-6">
-          {title && (
-            <h2 id="modal-title" className="text-2xl font-bold text-gray-900 mb-4 pr-8">
+
+        {/* Modal Header */}
+        {title && (
+          <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-2 sm:pb-4 pr-12 sm:pr-14 flex-shrink-0">
+            <h2 id="modal-title" className="text-xl sm:text-2xl font-bold text-gray-900">
               {title}
             </h2>
-          )}
+          </div>
+        )}
+
+        {/* Modal Body - Scrollable */}
+        <div className="px-4 sm:px-6 py-2 sm:py-4 overflow-y-auto flex-1 min-h-0">
           {children}
         </div>
+
+        {/* Modal Footer */}
+        {footer && (
+          <div className="px-4 sm:px-6 py-3 sm:py-4 border-t border-gray-200 flex-shrink-0 bg-gray-50 rounded-b-2xl">
+            {footer}
+          </div>
+        )}
       </div>
     </div>
   );
