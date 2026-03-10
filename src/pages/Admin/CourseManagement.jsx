@@ -187,6 +187,99 @@ const CourseManagement = () => {
             setLoadingStudents(false);
         }
     };
+
+    // Priority 2: Course Status Management
+    const handlePublishCourse = async (course) => {
+        try {
+            await courseService.publishCourse(course.id);
+            Swal.fire({
+                icon: 'success',
+                title: 'Thành công',
+                text: 'Đã công bố khóa học',
+                timer: 2000,
+                showConfirmButton: false
+            });
+            await fetchCourses();
+        } catch (error) {
+            console.error("Failed to publish course:", error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Lỗi',
+                text: 'Không thể công bố khóa học',
+                confirmButtonColor: '#ef4444'
+            });
+        }
+    };
+
+    const handleUnpublishCourse = async (course) => {
+        const result = await Swal.fire({
+            icon: 'question',
+            title: 'Hủy công bố?',
+            text: `Khóa học ${course.name} sẽ chuyển về trạng thái nháp`,
+            showCancelButton: true,
+            confirmButtonText: 'Hủy công bố',
+            cancelButtonText: 'Đóng',
+            confirmButtonColor: '#f59e0b',
+            cancelButtonColor: '#6b7280'
+        });
+
+        if (result.isConfirmed) {
+            try {
+                await courseService.unpublishCourse(course.id);
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Thành công',
+                    text: 'Đã hủy công bố khóa học',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+                await fetchCourses();
+            } catch (error) {
+                console.error("Failed to unpublish course:", error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi',
+                    text: 'Không thể hủy công bố khóa học',
+                    confirmButtonColor: '#ef4444'
+                });
+            }
+        }
+    };
+
+    const handleArchiveCourse = async (course) => {
+        const result = await Swal.fire({
+            icon: 'warning',
+            title: 'Lưu trữ khóa học?',
+            text: `Khóa học ${course.name} sẽ được lưu trữ và không còn hiển thị`,
+            showCancelButton: true,
+            confirmButtonText: 'Lưu trữ',
+            cancelButtonText: 'Hủy',
+            confirmButtonColor: '#6366f1',
+            cancelButtonColor: '#6b7280'
+        });
+
+        if (result.isConfirmed) {
+            try {
+                await courseService.archiveCourse(course.id);
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Thành công',
+                    text: 'Đã lưu trữ khóa học',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+                await fetchCourses();
+            } catch (error) {
+                console.error("Failed to archive course:", error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi',
+                    text: 'Không thể lưu trữ khóa học',
+                    confirmButtonColor: '#ef4444'
+                });
+            }
+        }
+    };
     
     // Reset filters
     const handleResetFilters = () => {
@@ -211,6 +304,9 @@ const CourseManagement = () => {
     // Render status badge
     const renderStatusBadge = (status) => {
         const colors = {
+            'PUBLISHED': 'bg-green-100 text-green-700',
+            'DRAFT': 'bg-yellow-100 text-yellow-700',
+            'ARCHIVED': 'bg-gray-100 text-gray-700',
             'active': 'bg-green-100 text-green-700',
             'inactive': 'bg-gray-100 text-gray-700',
             'draft': 'bg-yellow-100 text-yellow-700'
@@ -397,12 +493,12 @@ const CourseManagement = () => {
                             icon="📊"
                         >
                             <option value="all">{t('courseMgmt.allStatuses', 'Tất cả')}</option>
-                            <option value="active">{t('courseMgmt.active', 'Hoạt động')}</option>
-                            <option value="inactive">{t('courseMgmt.inactive', 'Không hoạt động')}</option>
-                            <option value="draft">{t('courseMgmt.draft', 'Bản nháp')}</option>
+                            <option value="PUBLISHED">{t('courseMgmt.published', 'Đã công bố')}</option>
+                            <option value="DRAFT">{t('courseMgmt.draft', 'Bản nháp')}</option>
+                            <option value="ARCHIVED">{t('courseMgmt.archived', 'Đã lưu trữ')}</option>
                         </Input>
                     </div>
-                    
+
                     {/* Sort */}
                     <div>
                         <Input
