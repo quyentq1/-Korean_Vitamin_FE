@@ -287,8 +287,9 @@ const FreeTestList = () => {
                                                     handleStartTest(test.id);
                                                 }
                                             }}
+                                            disabled={isLocked}
                                             className={`w-full py-3 sm:py-4 rounded-xl font-bold transition-all duration-300 text-sm sm:text-base ${isLocked
-                                                ? 'bg-gray-300 text-gray-600 cursor-pointer hover:bg-gray-400'
+                                                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                                                 : completed
                                                     ? 'bg-gradient-to-r from-success-500 to-emerald-600 text-white hover:shadow-xl transform hover:-translate-y-0.5'
                                                     : canTake
@@ -296,9 +297,7 @@ const FreeTestList = () => {
                                                         : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                                                 }`}
                                         >
-                                            {isLocked ? (
-                                                <>🔒 {t('freeTest.requestAccess', 'Yêu Cầu Truy Cập')}</>
-                                            ) : completed ? (
+                                            {completed ? (
                                                 <>📊 {t('freeTest.viewResults', 'Xem Kết Quả')}</>
                                             ) : canTake ? (
                                                 t('freeTest.start', 'Bắt đầu làm bài')
@@ -320,8 +319,14 @@ const FreeTestList = () => {
                                 {t('freeTest.noQuotaTitle', 'Bạn đã hoàn thành 2 bài test miễn phí!')}
                             </h3>
                             <p className="text-gray-700 mb-6 text-sm sm:text-base">
-                                {t('freeTest.noQuotaDesc', 'Click "Yêu Cầu Truy Cập" trên bất kỳ test nào để liên hệ tư vấn.')}
+                                {t('freeTest.noQuotaDesc', 'Để lại thông tin để nhân viên tư vấn liên hệ hỗ trợ bạn.')}
                             </p>
+                            <button
+                                onClick={() => setShowConsultationPopup(true)}
+                                className="px-8 py-3 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-xl font-bold hover:shadow-lg transition-all transform hover:-translate-y-0.5 text-sm sm:text-base"
+                            >
+                                📞 {t('freeTest.contactUs', 'Liên Hệ Tư Vấn')}
+                            </button>
                         </div>
                     )}
                 </div>

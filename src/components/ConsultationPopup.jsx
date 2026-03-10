@@ -113,10 +113,10 @@ const ConsultationPopup = ({ isOpen, onClose, onSubmit }) => {
                             </svg>
                         </div>
                         <h2 className="text-2xl font-bold text-gray-900 mb-3">
-                            {t('consultation.successTitle', 'Gửi Yêu Cầu Thành Công!')}
+                            {t('consultation.successTitle', 'Đăng Ký Tư Vấn Thành Công!')}
                         </h2>
                         <p className="text-gray-600 mb-6">
-                            {t('consultation.successMessage', 'Chúng tôi đã nhận được yêu cầu tư vấn của bạn. Nhân viên sẽ liên hệ trong vòng 24 giờ.')}
+                            {t('consultation.successMessage', 'Cảm ơn bạn đã đăng ký! Nhân viên tư vấn sẽ liên hệ hỗ trợ trong vòng 24 giờ.')}
                         </p>
                         <div className="bg-green-50 border-2 border-green-200 rounded-xl p-4 mb-6">
                             <div className="flex items-center gap-3">
@@ -145,10 +145,10 @@ const ConsultationPopup = ({ isOpen, onClose, onSubmit }) => {
                             <div className="flex items-center justify-between">
                                 <div>
                                     <h2 className="text-2xl font-bold mb-1">
-                                        {t('consultation.title', 'Mở Khóa Thêm Bài Test')}
+                                        {t('consultation.title', 'Đăng Ký Tư Vấn')}
                                     </h2>
                                     <p className="text-white/90 text-sm">
-                                        {t('consultation.subtitle', 'Bạn đã hoàn thành 2 bài test miễn phí!')}
+                                        {t('consultation.subtitle', 'Nhân viên sẽ liên hệ hỗ trợ bạn trong vòng 24 giờ')}
                                     </p>
                                 </div>
                                 <button
@@ -163,7 +163,7 @@ const ConsultationPopup = ({ isOpen, onClose, onSubmit }) => {
                         {/* Body */}
                         <form onSubmit={handleSubmit} className="p-6 space-y-4">
                             <p className="text-gray-600 text-sm mb-4">
-                                {t('consultation.description', 'Yêu cầu tư vấn để tiếp tục làm thêm bài test hoặc đăng ký khóa học.')}
+                                {t('consultation.description', 'Để lại thông tin bên dưới, chúng tôi sẽ liên hệ tư vấn về các khóa học và lộ trình học phù hợp với bạn.')}
                             </p>
 
                             {/* Full Name */}
