@@ -21,6 +21,7 @@ i18n
         resources,
         fallbackLng: 'vi',
         lng: 'vi', // default language
+        debug: false, // Set to true to debug
         detection: {
             order: ['localStorage', 'navigator', 'htmlTag'],
             caches: ['localStorage'],
