@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { ProtectedRoute, AdminRoute, TeacherRoute, StaffRoute, StudentRoute, ManagerRoute } from './components/routing/ProtectedRoute';
 import StaffLayout from './components/layouts/StaffLayout';
+import TeacherLayout from './components/layouts/TeacherLayout';
 import CourseList from './pages/Courses/CourseList';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
@@ -24,6 +25,8 @@ import WritingSubmission from './pages/Learner/WritingSubmission.jsx';
 import Forum from './pages/Shared/Forum.jsx';
 import QuestionBank from './pages/Teacher/QuestionBank.jsx';
 import GradingQueue from './pages/Teacher/GradingQueue.jsx';
+import TeacherSessions from './pages/Teacher/TeacherSessions.jsx';
+import SessionApproval from './pages/Manager/SessionApproval.jsx';
 import StudentManagement from './pages/Staff/StudentManagement.jsx';
 import CreateManualStudent from './pages/Staff/CreateManualStudent.jsx';
 import CreateOCRStudent from './pages/Staff/CreateOCRStudent.jsx';
@@ -157,66 +160,34 @@ function App() {
           } />
 
           {/* Teacher Routes - Teacher Only */}
-          <Route path="/teacher-dashboard" element={
+          <Route path="/teacher" element={
             <TeacherRoute>
-              <TeacherDashboard />
+              <TeacherLayout />
             </TeacherRoute>
-          } />
-          <Route path="/question-bank" element={
-            <TeacherRoute>
-              <QuestionBank />
-            </TeacherRoute>
-          } />
-          <Route path="/teacher/questions/create" element={
-            <TeacherRoute>
-              <CreateQuestion />
-            </TeacherRoute>
-          } />
-          <Route path="/grading-queue" element={
-            <TeacherRoute>
-              <GradingQueue />
-            </TeacherRoute>
-          } />
-          <Route path="/create-quiz" element={
-            <TeacherRoute>
-              <CreateQuiz />
-            </TeacherRoute>
-          } />
-          <Route path="/teacher-reports" element={
-            <TeacherRoute>
-              <TeacherReports />
-            </TeacherRoute>
-          } />
-          <Route path="/question-import" element={
-            <TeacherRoute>
-              <QuestionImport />
-            </TeacherRoute>
-          } />
-          <Route path="/grading/:attemptId" element={
-            <TeacherRoute>
-              <GradingDetail />
-            </TeacherRoute>
-          } />
-          <Route path="/exam-management" element={
-            <TeacherRoute>
-              <ExamManagement />
-            </TeacherRoute>
-          } />
-          <Route path="/exam-editor/:id" element={
-            <TeacherRoute>
-              <ExamEditor />
-            </TeacherRoute>
-          } />
-          <Route path="/exam-attempts/:id" element={
-            <TeacherRoute>
-              <ExamAttempts />
-            </TeacherRoute>
-          } />
-          <Route path="/teacher/questions/import" element={
-            <TeacherRoute>
-              <Navigate to="/question-import" replace />
-            </TeacherRoute>
-          } />
+          }>
+            <Route index element={<TeacherDashboard />} />
+            <Route path="dashboard" element={<TeacherDashboard />} />
+            <Route path="question-bank" element={<QuestionBank />} />
+            <Route path="questions/create" element={<CreateQuestion />} />
+            <Route path="questions/edit/:id" element={<CreateQuestion />} />
+            <Route path="grading-queue" element={<GradingQueue />} />
+            <Route path="create-quiz" element={<CreateQuiz />} />
+            <Route path="reports" element={<TeacherReports />} />
+            <Route path="question-import" element={<QuestionImport />} />
+            <Route path="grading/:attemptId" element={<GradingDetail />} />
+            <Route path="exam-management" element={<ExamManagement />} />
+            <Route path="exam-editor/:id" element={<ExamEditor />} />
+            <Route path="exam-attempts/:id" element={<ExamAttempts />} />
+            <Route path="sessions" element={<TeacherSessions />} />
+          </Route>
+
+          {/* Legacy Teacher Routes (for backwards compatibility) */}
+          <Route path="/teacher-dashboard" element={<Navigate to="/teacher/dashboard" replace />} />
+          <Route path="/question-bank" element={<Navigate to="/teacher/question-bank" replace />} />
+          <Route path="/grading-queue" element={<Navigate to="/teacher/grading-queue" replace />} />
+          <Route path="/teacher-reports" element={<Navigate to="/teacher/reports" replace />} />
+          <Route path="/teacher-sessions" element={<Navigate to="/teacher/sessions" replace />} />
+          <Route path="/exam-management" element={<Navigate to="/teacher/exam-management" replace />} />
 
           {/* Staff Routes - Staff Only */}
           <Route path="/staff" element={
@@ -287,6 +258,11 @@ function App() {
           <Route path="/manager" element={
             <ManagerRoute>
               <ManagerDashboard />
+            </ManagerRoute>
+          } />
+          <Route path="/session-approval" element={
+            <ManagerRoute>
+              <SessionApproval />
             </ManagerRoute>
           } />
           <Route path="/qb-approval" element={

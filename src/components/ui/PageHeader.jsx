@@ -74,7 +74,36 @@ export const PageHeader = ({
                 {/* Actions */}
                 {(actions || children) && (
                     <div className="flex-shrink-0">
-                        {actions}
+                        {Array.isArray(actions) ? (
+                            <div className="flex items-center gap-2">
+                                {actions.map((action, index) => {
+                                    // If action is an object with label, icon, variant, onClick
+                                    if (action && typeof action === 'object' && 'label' in action) {
+                                        const { label, icon: Icon, variant = 'default', onClick } = action;
+                                        return (
+                                            <button
+                                                key={index}
+                                                onClick={onClick}
+                                                className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
+                                                    variant === 'primary'
+                                                        ? 'bg-primary-600 text-white hover:bg-primary-700'
+                                                        : variant === 'secondary'
+                                                        ? 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                                        : 'text-gray-600 hover:bg-gray-100'
+                                                }`}
+                                            >
+                                                {Icon && <Icon className="w-4 h-4" />}
+                                                {label}
+                                            </button>
+                                        );
+                                    }
+                                    // Otherwise, render as-is (JSX element)
+                                    return <React.Fragment key={index}>{action}</React.Fragment>;
+                                })}
+                            </div>
+                        ) : (
+                            actions
+                        )}
                         {children}
                     </div>
                 )}
