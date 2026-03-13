@@ -23,7 +23,8 @@ import {
   Trophy,
   Star,
   Medal,
-  Crown
+  Crown,
+  Send
 } from 'lucide-react';
 
 // UI Components
@@ -57,6 +58,7 @@ import {
 
 // Services
 import teacherService from '../../services/teacherService';
+import SendReportModal from '../../components/Teacher/SendReportModal';
 
 const TeacherReports = () => {
   const { t } = useTranslation();
@@ -83,8 +85,36 @@ const TeacherReports = () => {
   const [exportFormat, setExportFormat] = useState('pdf');
   const [exporting, setExporting] = useState(false);
 
+  // Send to Staff state
+  const [showSendReportModal, setShowSendReportModal] = useState(false);
+  const [currentReportData, setCurrentReportData] = useState(null);
+
   // Chart colors
   const COLORS = ['#3DCBB1', '#2D3E50', '#F59E0B', '#EF4444', '#10B981', '#6366F1'];
+
+  // Handlers
+  const handleSendToStaff = () => {
+    const reportData = {
+      title: 'Báo cáo giảng dạy',
+      classId: selectedClass,
+      className: selectedClass === 'all' ? 'Tất cả lớp' : classData.find(c => c.id === selectedClass)?.name,
+      dateRange: dateRange === 'custom'
+        ? `${customStartDate} - ${customEndDate}`
+        : dateRange === 'month'
+          ? 'Tháng này'
+          : dateRange === 'week'
+            ? 'Tuần này'
+            : 'Hôm nay',
+      data: {
+        classData,
+        topStudents,
+        performanceData,
+        attendanceData
+      }
+    };
+    setCurrentReportData(reportData);
+    setShowSendReportModal(true);
+  };
 
   // Fetch data
   useEffect(() => {
@@ -206,6 +236,13 @@ const TeacherReports = () => {
               onClick={() => fetchReportsData()}
             >
               {t('common.refresh', 'Làm mới')}
+            </Button>
+            <Button
+              variant="primary"
+              icon={<Send className="w-4 h-4" />}
+              onClick={handleSendToStaff}
+            >
+              Gửi cho Staff
             </Button>
             <Button
               variant="primary"
@@ -651,6 +688,18 @@ const TeacherReports = () => {
             </div>
           </div>
         </Modal>
+      )}
+
+      {/* Send Report to Staff Modal */}
+      {showSendReportModal && (
+        <SendReportModal
+          reportData={currentReportData}
+          onClose={() => setShowSendReportModal(false)}
+          onSuccess={() => {
+            setShowSendReportModal(false);
+            setSuccess(t('reports.sendSuccess', 'Đã gửi báo cáo thành công!'));
+          }}
+        />
       )}
     </PageContainer>
   );

@@ -194,6 +194,36 @@ export const teacherService = {
 
     getClassStudents: async (classId) => {
         return await axiosClient.get(`/teacher/classes/${classId}/students`);
+    },
+
+    // Tag Management
+    getTags: async (params) => {
+        return await axiosClient.get('/teacher/tags', { params });
+    },
+
+    getTag: async (id) => {
+        return await axiosClient.get(`/teacher/tags/${id}`);
+    },
+
+    createTag: async (data) => {
+        return await axiosClient.post('/teacher/tags', data);
+    },
+
+    updateTag: async (id, data) => {
+        return await axiosClient.put(`/teacher/tags/${id}`, data);
+    },
+
+    deleteTag: async (id) => {
+        return await axiosClient.delete(`/teacher/tags/${id}`);
+    },
+
+    // Report Management - Send to Staff
+    sendReportToStaff: async (reportData) => {
+        return await axiosClient.post('/teacher/reports/send-to-staff', reportData);
+    },
+
+    getStaffList: async () => {
+        return await axiosClient.get('/teacher/reports/staff-list');
     }
 };
 

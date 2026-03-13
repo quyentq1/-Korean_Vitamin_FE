@@ -236,7 +236,7 @@ const ExamManagement = () => {
                 placeholder={t('exam.searchPlaceholder', 'Tìm kiếm theo tên hoặc mã bài kiểm tra...')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                icon={<Search className="w-4 h-4" />}
+                icon={Search}
               />
             </div>
 
