@@ -43,6 +43,7 @@ const StaffLayout = ({ children }) => {
         { icon: <Users className="w-5 h-5" />, label: t('staff.dashboard.studentManagement'), path: '/student-management' },
         { icon: <BookOpen className="w-5 h-5" />, label: t('staff.dashboard.classManagement'), path: '/class-management' },
         { icon: <ClipboardList className="w-5 h-5" />, label: t('staff.dashboard.registrationManagement'), path: '/registrations' },
+        { icon: <Settings className="w-5 h-5" />, label: t('staff.dashboard.roleManagement'), path: '/role-management' },
         { icon: <Activity className="w-5 h-5" />, label: t('staff.dashboard.reports'), path: '/reports' },
     ];
 

@@ -90,6 +90,25 @@ export const staffService = {
         }
     },
 
+    /**
+     * Upload student avatar
+     * POST /api/staff/students/upload-avatar
+     */
+    uploadStudentAvatar: async (file) => {
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+            return await axiosClient.post('/staff/students/upload-avatar', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
+        } catch (error) {
+            console.error('Error uploading student avatar:', error);
+            throw error;
+        }
+    },
+
     // ==================== OCR STUDENT CREATION ====================
 
     /**
@@ -171,6 +190,29 @@ export const staffService = {
             return await axiosClient.get(`/staff/classes/${classId}`);
         } catch (error) {
             console.error('Error fetching class details:', error);
+            throw error;
+        }
+    },
+
+    createClass: async (classData) => {
+        try {
+            return await axiosClient.post('/classes', classData);
+        } catch (error) {
+            console.error('Error creating class:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * Update class
+     * PUT /api/staff/classes/{id}
+     * Body: { courseId, classCode, className, capacity, startDate, endDate, room }
+     */
+    updateClass: async (classId, classData) => {
+        try {
+            return await axiosClient.put(`/staff/classes/${classId}`, classData);
+        } catch (error) {
+            console.error('Error updating class:', error);
             throw error;
         }
     },

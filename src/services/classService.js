@@ -43,6 +43,22 @@ export const classService = {
                 'Content-Type': 'application/json'
             }
         });
+    },
+
+    getClassSchedules: async (classId) => {
+        return await axiosClient.get(`/classes/${classId}/schedules`);
+    },
+
+    getMySchedules: async () => {
+        return await axiosClient.get('/student/my-schedules');
+    },
+
+    deleteClass: async (id) => {
+        return await axiosClient.delete(`/classes/${id}`);
+    },
+
+    removeTeacher: async (classId, teacherId) => {
+        return await axiosClient.delete(`/classes/${classId}/teachers/${teacherId}`);
     }
 };
 

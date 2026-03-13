@@ -25,15 +25,23 @@ import Input from '../../components/ui/Input';
 import { Modal } from '../../components/ui/Modal';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { PageContainer } from '../../components/ui/PageContainer';
+import { useAuth } from '../../contexts/AuthContext';
 import { Badge } from '../../components/ui/Badge';
 import { Alert } from '../../components/ui/Alert';
 import { Loading } from '../../components/ui/Loading';
+import CreateClassModal from '../../components/Staff/CreateClassModal';
 import staffService from '../../services/staffService';
+import educationManagerService from '../../services/educationManagerService';
 import courseService from '../../services/courseService';
 
 const ClassManagement = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
+  const { user } = useAuth();
+
+  // Kiểm tra quyền Education Manager
+  // Backend trả về role là "EDUCATION_MANAGER" (KHÔNG có prefix ROLE_)
+  const isManager = user?.role === 'EDUCATION_MANAGER';
 
   // Safe translation helper with fallback
   const ts = (key, fallback) => {
@@ -47,7 +55,7 @@ const ClassManagement = () => {
   const [filteredClasses, setFilteredClasses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
+
   // Filter States
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -56,7 +64,7 @@ const ClassManagement = () => {
   const [sortOrder, setSortOrder] = useState('asc');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
-  
+
   // Modal States
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
@@ -69,7 +77,7 @@ const ClassManagement = () => {
   const [schedules, setSchedules] = useState([]);
   const [attendanceList, setAttendanceList] = useState([]);
   const [courses, setCourses] = useState([]);
-  
+
   // Form States
   const [newClass, setNewClass] = useState({
     courseId: '',
@@ -90,17 +98,26 @@ const ClassManagement = () => {
   });
   const [alert, setAlert] = useState({ show: false, type: 'success', message: '' });
   const [actionLoading, setActionLoading] = useState(false);
-  
+
   // Fetch classes and courses
   useEffect(() => {
+    // Debug log
+    console.log('DEBUG ClassManagement: user =', user);
+    console.log('DEBUG ClassManagement: user.roles =', user?.roles);
+    console.log('DEBUG ClassManagement: isManager =', isManager);
+
     fetchClasses();
     fetchCourses();
   }, []);
-  
+
   const fetchClasses = async () => {
     try {
       setLoading(true);
-      const response = await staffService.getClasses();
+      // Use appropriate service based on user role
+      console.log('DEBUG fetchClasses: isManager =', isManager);
+      const response = isManager
+        ? await educationManagerService.getAllClasses()
+        : await staffService.getClasses();
       console.log('Classes response:', response);
 
       // Handle different response structures
@@ -126,10 +143,13 @@ const ClassManagement = () => {
       setLoading(false);
     }
   };
-  
+
   const fetchCourses = async () => {
     try {
-      const response = await staffService.getCourses();
+      // Education Manager uses getAllCourses, Staff uses getCourses
+      const response = isManager
+        ? await educationManagerService.getAllCourses()
+        : await staffService.getCourses();
       console.log('Courses response:', response);
 
       let coursesData = [];
@@ -146,58 +166,58 @@ const ClassManagement = () => {
       console.error('Error fetching courses:', error);
     }
   };
-  
+
   // Filter and sort classes
   useEffect(() => {
     let filtered = [...classes];
-    
+
     // Apply search
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
-      filtered = filtered.filter(cls => 
+      filtered = filtered.filter(cls =>
         cls.className?.toLowerCase().includes(term) ||
         cls.classCode?.toLowerCase().includes(term) ||
         cls.courseName?.toLowerCase().includes(term)
       );
     }
-    
+
     // Apply status filter
     if (statusFilter !== 'all') {
       filtered = filtered.filter(cls => cls.status === statusFilter);
     }
-    
+
     // Apply course filter
     if (courseFilter !== 'all') {
       filtered = filtered.filter(cls => cls.courseId === courseFilter);
     }
-    
+
     // Apply sorting
     filtered.sort((a, b) => {
       let aValue = a[sortField] || '';
       let bValue = b[sortField] || '';
-      
+
       if (typeof aValue === 'string') {
         aValue = aValue.toLowerCase();
         bValue = bValue.toLowerCase();
       }
-      
+
       if (sortOrder === 'asc') {
         return aValue > bValue ? 1 : -1;
       } else {
         return aValue < bValue ? 1 : -1;
       }
     });
-    
+
     setFilteredClasses(filtered);
     setCurrentPage(1);
   }, [classes, searchTerm, statusFilter, courseFilter, sortField, sortOrder]);
-  
+
   // Pagination
   const totalPages = Math.ceil(filteredClasses.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const paginatedClasses = filteredClasses.slice(startIndex, endIndex);
-  
+
   // Handle sorting
   const handleSort = (field) => {
     if (sortField === field) {
@@ -207,15 +227,14 @@ const ClassManagement = () => {
       setSortOrder('asc');
     }
   };
-  
+
   // Handle create class
   const handleCreateClass = async (e) => {
     e.preventDefault();
     setActionLoading(true);
     try {
-      // TODO: Implement when backend API is ready
-      // await staffService.createClass(newClass);
-      setAlert({ show: true, type: 'success', message: 'Tạo lớp thành công (Demo)' });
+      await staffService.createClass(newClass);
+      setAlert({ show: true, type: 'success', message: t('classManagement.createClassSuccess') || 'Tạo lớp thành công' });
       setIsCreateModalOpen(false);
       setNewClass({
         courseId: '',
@@ -234,12 +253,14 @@ const ClassManagement = () => {
       setActionLoading(false);
     }
   };
-  
+
   // Handle open detail page
   const handleOpenDetail = (cls) => {
-    navigate(`/classes/${cls.id}`);
+    // Education Manager uses /edu-manager/classes/:id, Staff uses /classes/:id
+    const path = isManager ? `/edu-manager/classes/${cls.id}` : `/classes/${cls.id}`;
+    navigate(path);
   };
-  
+
   // Handle add student to class
   const handleAddStudent = async (e) => {
     e.preventDefault();
@@ -256,16 +277,18 @@ const ClassManagement = () => {
       setAlert({ show: true, type: 'error', message: t('classManagement.addStudentError') || 'Không thể thêm học viên' });
     }
   };
-  
+
   // Handle assign teacher
   const handleAssignTeacher = async (e) => {
     e.preventDefault();
     const teacherId = e.target.teacherId.value;
     const isPrimary = e.target.isPrimary.checked;
     try {
-      await staffService.assignTeacherToClass(selectedClass.id, teacherId, isPrimary);
+      // Use appropriate service based on user role
+      const service = isManager ? educationManagerService : staffService;
+      await service.assignTeacherToClass(selectedClass.id, teacherId, isPrimary);
       setAlert({ show: true, type: 'success', message: t('classManagement.assignTeacherSuccess') || 'Phân công giáo viên thành công' });
-      const teachers = await staffService.getClassTeachers(selectedClass.id);
+      const teachers = await service.getClassTeachers(selectedClass.id);
       setClassTeachers(teachers || []);
       e.target.reset();
     } catch (error) {
@@ -273,7 +296,7 @@ const ClassManagement = () => {
       setAlert({ show: true, type: 'error', message: t('classManagement.assignTeacherError') || 'Không thể phân công giáo viên' });
     }
   };
-  
+
   // Handle open schedule modal
   const handleOpenSchedule = async (cls) => {
     setSelectedClass(cls);
@@ -288,7 +311,7 @@ const ClassManagement = () => {
       setSchedules([]);
     }
   };
-  
+
   // Handle create schedule
   const handleCreateSchedule = async (e) => {
     e.preventDefault();
@@ -313,7 +336,7 @@ const ClassManagement = () => {
       setActionLoading(false);
     }
   };
-  
+
   // Handle open attendance modal
   const handleOpenAttendance = async (schedule) => {
     setSelectedSchedule(schedule);
@@ -345,7 +368,7 @@ const ClassManagement = () => {
       setAttendanceList([]);
     }
   };
-  
+
   // Handle save attendance
   const handleSaveAttendance = async () => {
     setActionLoading(true);
@@ -366,7 +389,7 @@ const ClassManagement = () => {
       setActionLoading(false);
     }
   };
-  
+
   // Handle delete class
   const handleDeleteClass = async (cls) => {
     if (window.confirm(t('classManagement.deleteConfirmation') || `Bạn có chắc muốn xóa lớp ${cls.className}?`)) {
@@ -454,7 +477,7 @@ const ClassManagement = () => {
         <Badge
           variant={
             cls.status === 'ACTIVE' ? 'success' :
-            cls.status === 'INACTIVE' ? 'warning' : 'error'
+              cls.status === 'INACTIVE' ? 'warning' : 'error'
           }
         >
           {cls.status || '-'}
@@ -482,9 +505,13 @@ const ClassManagement = () => {
             <Calendar className="w-4 h-4" />
           </button>
           <button
-            onClick={() => handleDeleteClass(cls)}
-            className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-            title={ts('common.delete', 'Delete')}
+            onClick={() => isManager ? handleDeleteClass(cls) : null}
+            disabled={!isManager}
+            className={`p-1.5 rounded-lg transition-colors ${isManager
+              ? 'text-gray-500 hover:text-red-600 hover:bg-red-50'
+              : 'text-gray-300 cursor-not-allowed'
+              }`}
+            title={!isManager ? 'Chỉ Education Manager được xóa' : ts('common.delete', 'Delete')}
           >
             <Trash2 className="w-4 h-4" />
           </button>
@@ -493,7 +520,7 @@ const ClassManagement = () => {
       sortable: false
     }
   ], [t, i18n.language, ts]);
-  
+
   if (loading) {
     return (
       <PageContainer>
@@ -501,7 +528,7 @@ const ClassManagement = () => {
       </PageContainer>
     );
   }
-  
+
   if (error) {
     return (
       <PageContainer>
@@ -509,7 +536,7 @@ const ClassManagement = () => {
       </PageContainer>
     );
   }
-  
+
   return (
     <PageContainer>
       {/* Alert */}
@@ -520,7 +547,7 @@ const ClassManagement = () => {
           onClose={() => setAlert({ ...alert, show: false })}
         />
       )}
-      
+
       {/* Page Header */}
       <PageHeader
         title={t('classManagement.title')}
@@ -536,7 +563,10 @@ const ClassManagement = () => {
             </Button>
             <Button
               variant="primary"
-              onClick={() => setIsCreateModalOpen(true)}
+              onClick={() => isManager ? setIsCreateModalOpen(true) : null}
+              disabled={!isManager}
+              title={!isManager ? 'Chỉ Education Manager được tạo' : ''}
+              className={!isManager ? 'opacity-50 cursor-not-allowed' : ''}
             >
               <Plus className="w-4 h-4 mr-2" />
               {t('classManagement.createClass')}
@@ -544,35 +574,33 @@ const ClassManagement = () => {
           </div>
         }
       />
-      
+
       {/* View Toggle */}
       <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
         <div className="flex space-x-2">
           <button
             onClick={() => setView('list')}
-            className={`flex items-center px-4 py-2 rounded-lg font-medium transition-colors ${
-              view === 'list'
-                ? 'bg-primary-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
+            className={`flex items-center px-4 py-2 rounded-lg font-medium transition-colors ${view === 'list'
+              ? 'bg-primary-600 text-white'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
           >
             <Users className="w-4 h-4 mr-2" />
             {t('classManagement.listView')}
           </button>
           <button
             onClick={() => setView('calendar')}
-            className={`flex items-center px-4 py-2 rounded-lg font-medium transition-colors ${
-              view === 'calendar'
-                ? 'bg-primary-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
+            className={`flex items-center px-4 py-2 rounded-lg font-medium transition-colors ${view === 'calendar'
+              ? 'bg-primary-600 text-white'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
           >
             <Calendar className="w-4 h-4 mr-2" />
             {t('classManagement.calendarView')}
           </button>
         </div>
       </div>
-      
+
       {/* Filters */}
       <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -589,7 +617,7 @@ const ClassManagement = () => {
               />
             </div>
           </div>
-          
+
           {/* Status Filter */}
           <div>
             <select
@@ -602,7 +630,7 @@ const ClassManagement = () => {
               <option value="INACTIVE">{t('classManagement.inactive')}</option>
             </select>
           </div>
-          
+
           {/* Course Filter */}
           <div>
             <select
@@ -618,7 +646,7 @@ const ClassManagement = () => {
           </div>
         </div>
       </div>
-      
+
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
         <div className="bg-white rounded-lg shadow-sm p-4">
@@ -664,7 +692,7 @@ const ClassManagement = () => {
           </div>
         </div>
       </div>
-      
+
       {/* Content */}
       {view === 'list' ? (
         <div className="bg-white rounded-lg shadow-sm overflow-hidden" key={i18n.language}>
@@ -677,36 +705,36 @@ const ClassManagement = () => {
             <>
               <div className="overflow-x-auto lg:overflow-x-visible">
                 <table className="w-full min-w-[900px] lg:min-w-0 lg:table-auto">
-                <thead>
-                  <tr className="bg-gray-50">
-                    {columns.map(col => (
-                      <th
-                        key={col.key}
-                        onClick={() => col.sortable && handleSort(col.key)}
-                        className={`px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ${col.sortable ? 'cursor-pointer hover:bg-gray-100' : ''}`}
-                      >
-                        {col.label}
-                        {col.sortable && sortField === col.key && (
-                          <span className="ml-1">
-                            {sortOrder === 'asc' ? '↑' : '↓'}
-                          </span>
-                        )}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {paginatedClasses.map((cls) => (
-                    <tr key={cls.id} className="border-t border-gray-200 hover:bg-gray-50">
+                  <thead>
+                    <tr className="bg-gray-50">
                       {columns.map(col => (
-                        <td key={col.key} className="px-4 py-4">
-                          {col.render(cls)}
-                        </td>
+                        <th
+                          key={col.key}
+                          onClick={() => col.sortable && handleSort(col.key)}
+                          className={`px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ${col.sortable ? 'cursor-pointer hover:bg-gray-100' : ''}`}
+                        >
+                          {col.label}
+                          {col.sortable && sortField === col.key && (
+                            <span className="ml-1">
+                              {sortOrder === 'asc' ? '↑' : '↓'}
+                            </span>
+                          )}
+                        </th>
                       ))}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {paginatedClasses.map((cls) => (
+                      <tr key={cls.id} className="border-t border-gray-200 hover:bg-gray-50">
+                        {columns.map(col => (
+                          <td key={col.key} className="px-4 py-4">
+                            {col.render(cls)}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
 
               {/* Pagination */}
@@ -750,7 +778,7 @@ const ClassManagement = () => {
                     <Badge
                       variant={
                         cls.status === 'ACTIVE' ? 'success' :
-                        cls.status === 'INACTIVE' ? 'warning' : 'error'
+                          cls.status === 'INACTIVE' ? 'warning' : 'error'
                       }
                     >
                       {cls.status}
@@ -776,8 +804,13 @@ const ClassManagement = () => {
                     {ts('classManagement.schedule', 'Schedule')}
                   </button>
                   <button
-                    onClick={() => handleDeleteClass(cls)}
-                    className="flex items-center px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                    onClick={() => isManager ? handleDeleteClass(cls) : null}
+                    disabled={!isManager}
+                    className={`flex items-center px-3 py-2 rounded-lg ${isManager
+                      ? 'bg-red-600 text-white hover:bg-red-700'
+                      : 'bg-red-300 text-white cursor-not-allowed'
+                      }`}
+                    title={!isManager ? 'Chỉ Education Manager được xóa' : ''}
                   >
                     <Trash2 className="w-4 h-4 mr-2" />
                     {ts('common.delete', 'Delete')}
@@ -788,147 +821,19 @@ const ClassManagement = () => {
           ))}
         </div>
       )}
-      
+
       {/* Create Class Modal */}
-      <Modal
-        isOpen={isCreateModalOpen}
-        onClose={() => {
-          setIsCreateModalOpen(false);
-          setNewClass({
-            courseId: '',
-            classCode: '',
-            className: '',
-            capacity: 30,
-            startDate: '',
-            endDate: '',
-            room: '',
-          });
-        }}
-        title={t('classManagement.createClass')}
-        size="lg"
-      >
-        <form onSubmit={handleCreateClass} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {t('classManagement.course')} *
-              </label>
-              <select
-                value={newClass.courseId}
-                onChange={(e) => setNewClass({ ...newClass, courseId: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                required
-              >
-                <option value="">{t('classManagement.selectCourse')}</option>
-                {courses.map(course => (
-                  <option key={course.id} value={course.id}>{course.name}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {t('classManagement.classCode')} *
-              </label>
-              <Input
-                type="text"
-                value={newClass.classCode}
-                onChange={(e) => setNewClass({ ...newClass, classCode: e.target.value })}
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {t('classManagement.className')} *
-              </label>
-              <Input
-                type="text"
-                value={newClass.className}
-                onChange={(e) => setNewClass({ ...newClass, className: e.target.value })}
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {t('classManagement.capacity')} *
-              </label>
-              <Input
-                type="number"
-                value={newClass.capacity}
-                onChange={(e) => setNewClass({ ...newClass, capacity: parseInt(e.target.value) })}
-                required
-                min="1"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {t('classManagement.startDate')} *
-              </label>
-              <Input
-                type="date"
-                value={newClass.startDate}
-                onChange={(e) => setNewClass({ ...newClass, startDate: e.target.value })}
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {t('classManagement.endDate')} *
-              </label>
-              <Input
-                type="date"
-                value={newClass.endDate}
-                onChange={(e) => setNewClass({ ...newClass, endDate: e.target.value })}
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {t('classManagement.room')}
-              </label>
-              <Input
-                type="text"
-                value={newClass.room}
-                onChange={(e) => setNewClass({ ...newClass, room: e.target.value })}
-              />
-            </div>
-          </div>
-          <div className="flex justify-end space-x-3 pt-4 border-t">
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => {
-                setIsCreateModalOpen(false);
-                setNewClass({
-                  courseId: '',
-                  classCode: '',
-                  className: '',
-                  capacity: 30,
-                  startDate: '',
-                  endDate: '',
-                  room: '',
-                });
-              }}
-            >
-              {t('common.cancel')}
-            </Button>
-            <Button
-              type="submit"
-              variant="primary"
-              disabled={actionLoading}
-            >
-              {actionLoading ? (
-                <Loading type="spinner" />
-              ) : (
-                <>
-                  <Plus className="w-4 h-4 mr-2" />
-                  {t('classManagement.createClass')}
-                </>
-              )}
-            </Button>
-          </div>
-        </form>
-      </Modal>
-      
+      {isCreateModalOpen && (
+        <CreateClassModal
+          onClose={() => setIsCreateModalOpen(false)}
+          onSuccess={() => {
+            setIsCreateModalOpen(false);
+            fetchClasses();
+            setAlert({ show: true, type: 'success', message: t('classManagement.createClassSuccess', 'Tạo lớp thành công') });
+          }}
+        />
+      )}
+
       {/* Class Detail Modal */}
       <Modal
         isOpen={isDetailModalOpen}
@@ -953,7 +858,7 @@ const ClassManagement = () => {
                 <Badge
                   variant={
                     selectedClass.status === 'ACTIVE' ? 'success' :
-                    selectedClass.status === 'INACTIVE' ? 'warning' : 'error'
+                      selectedClass.status === 'INACTIVE' ? 'warning' : 'error'
                   }
                   className="mt-2"
                 >
@@ -961,7 +866,7 @@ const ClassManagement = () => {
                 </Badge>
               </div>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="flex items-center space-x-3">
                 <Users className="w-5 h-5 text-gray-400" />
@@ -996,7 +901,7 @@ const ClassManagement = () => {
                 </div>
               </div>
             </div>
-            
+
             <div className="mt-6">
               <div className="flex justify-between items-center mb-4">
                 <h4 className="text-lg font-semibold text-gray-900">
@@ -1018,7 +923,7 @@ const ClassManagement = () => {
                 </div>
               )}
             </div>
-            
+
             <div className="mt-6">
               <div className="flex justify-between items-center mb-4">
                 <h4 className="text-lg font-semibold text-gray-900">
@@ -1040,7 +945,7 @@ const ClassManagement = () => {
                 </div>
               )}
             </div>
-            
+
             <div className="flex justify-end pt-4 border-t">
               <Button
                 variant="secondary"
@@ -1057,7 +962,7 @@ const ClassManagement = () => {
           </div>
         )}
       </Modal>
-      
+
       {/* Schedule Modal */}
       <Modal
         isOpen={isScheduleModalOpen}
@@ -1102,7 +1007,7 @@ const ClassManagement = () => {
           </div>
         )}
       </Modal>
-      
+
       {/* Attendance Modal */}
       <Modal
         isOpen={isAttendanceModalOpen}
@@ -1127,12 +1032,13 @@ const ClassManagement = () => {
                     </div>
                     <select
                       value={att.status}
+                      disabled={!isManager}
                       onChange={(e) => {
                         const newStats = [...attendanceList];
                         newStats[idx].status = e.target.value;
                         setAttendanceList(newStats);
                       }}
-                      className="border rounded px-2 py-1 text-sm"
+                      className="border rounded px-2 py-1 text-sm disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
                     >
                       <option value="PRESENT">{t('classManagement.present')}</option>
                       <option value="LATE">{t('classManagement.late')}</option>
@@ -1143,12 +1049,15 @@ const ClassManagement = () => {
                 ))}
               </div>
             )}
-            
+
             <div className="mt-4 p-4 bg-gray-50 rounded-lg">
               <p className="text-sm text-gray-500 mb-2">{t('classManagement.quickActions')}</p>
               <div className="flex space-x-2">
                 <Button
                   variant="secondary"
+                  disabled={!isManager}
+                  title={!isManager ? 'Chỉ Education Manager được thao tác' : ''}
+                  className={!isManager ? 'opacity-50 cursor-not-allowed' : ''}
                   onClick={() => {
                     const newStats = attendanceList.map(a => ({ ...a, status: 'PRESENT' }));
                     setAttendanceList(newStats);
@@ -1158,6 +1067,9 @@ const ClassManagement = () => {
                 </Button>
                 <Button
                   variant="secondary"
+                  disabled={!isManager}
+                  title={!isManager ? 'Chỉ Education Manager được thao tác' : ''}
+                  className={!isManager ? 'opacity-50 cursor-not-allowed' : ''}
                   onClick={() => {
                     const newStats = attendanceList.map(a => ({ ...a, status: 'ABSENT' }));
                     setAttendanceList(newStats);
@@ -1167,12 +1079,14 @@ const ClassManagement = () => {
                 </Button>
               </div>
             </div>
-            
+
             <div className="flex justify-end pt-4 border-t">
               <Button
                 variant="primary"
                 onClick={handleSaveAttendance}
-                disabled={actionLoading}
+                disabled={actionLoading || !isManager}
+                title={!isManager ? 'Chỉ Education Manager được lưu' : ''}
+                className={!isManager ? 'opacity-50 cursor-not-allowed' : ''}
               >
                 {actionLoading ? (
                   <Loading type="spinner" />
