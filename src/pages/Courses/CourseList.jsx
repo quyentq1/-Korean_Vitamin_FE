@@ -52,6 +52,7 @@ const CourseList = () => {
             const roleRoutes = {
                 'ADMIN': '/admin',
                 'MANAGER': '/manager',
+                'EDUCATION_MANAGER': '/edu-manager',
                 'TEACHER': '/teacher-dashboard',
                 'STAFF': '/staff',
                 'STUDENT': '/learner-dashboard',

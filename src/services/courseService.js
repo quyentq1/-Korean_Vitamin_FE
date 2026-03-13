@@ -11,51 +11,54 @@ export const courseService = {
         return await axiosClient.get(`/public/courses/${id}`);
     },
 
-    // Staff/Admin methods can be added here or in a separate adminCourseService
-    // For now keeping it simple.
+    // Education Manager: Get all courses (including drafts)
     getAllCourses: async () => {
-        return await axiosClient.get('/admin/courses');
+        return await axiosClient.get('/education-manager/courses');
     },
 
+    // Education Manager: Create course
     createCourse: async (course) => {
-        return await axiosClient.post('/admin/courses', course);
+        return await axiosClient.post('/education-manager/courses', course);
     },
 
+    // Education Manager: Update course
     updateCourse: async (id, course) => {
-        return await axiosClient.put(`/admin/courses/${id}`, course);
+        return await axiosClient.put(`/education-manager/courses/${id}`, course);
     },
 
+    // Education Manager: Delete course
     deleteCourse: async (id) => {
-        return await axiosClient.delete(`/admin/courses/${id}`);
+        return await axiosClient.delete(`/education-manager/courses/${id}`);
     },
 
+    // Education Manager: Get students in course
     getCourseStudents: async (id) => {
-        return await axiosClient.get(`/admin/courses/${id}/students`);
+        return await axiosClient.get(`/education-manager/courses/${id}/students`);
     },
 
-    // Admin: Publish course
+    // Education Manager: Publish course
     publishCourse: async (id) => {
-        return await axiosClient.post(`/admin/courses/${id}/publish`);
+        return await axiosClient.post(`/education-manager/courses/${id}/publish`);
     },
 
-    // Admin: Unpublish course
+    // Education Manager: Unpublish course
     unpublishCourse: async (id) => {
-        return await axiosClient.post(`/admin/courses/${id}/unpublish`);
+        return await axiosClient.post(`/education-manager/courses/${id}/unpublish`);
     },
 
-    // Admin: Archive course
+    // Education Manager: Archive course
     archiveCourse: async (id) => {
-        return await axiosClient.post(`/admin/courses/${id}/archive`);
+        return await axiosClient.post(`/education-manager/courses/${id}/archive`);
     },
 
-    // Admin: Update course metadata
+    // Education Manager: Update course metadata
     updateCourseMetadata: async (id, metadata) => {
-        return await axiosClient.patch(`/admin/courses/${id}/metadata`, metadata);
+        return await axiosClient.patch(`/education-manager/courses/${id}/metadata`, metadata);
     },
 
-    // Admin: Get courses by status
+    // Education Manager: Get courses by status
     getCoursesByStatus: async (status) => {
-        return await axiosClient.get(`/admin/courses/status/${status}`);
+        return await axiosClient.get(`/education-manager/courses/status/${status}`);
     }
 };
 
