@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
-import studentService from '../../services/studentService';
+import classService from '../../services/classService';
 import {
   PageContainer,
   PageHeader,
@@ -51,102 +51,44 @@ const MySchedule = () => {
   const [schedules, setSchedules] = useState([]);
   const [classes, setClasses] = useState([]);
 
-  // Mock class data - will be replaced with API call
-  const mockClasses = [
-    { id: 1, name: 'TOPIK I - Grammar', code: 'TOPIK1-G' },
-    { id: 2, name: 'TOPIK I - Listening', code: 'TOPIK1-L' },
-    { id: 3, name: 'TOPIK II - Reading', code: 'TOPIK2-R' },
-    { id: 4, name: 'TOPIK II - Speaking', code: 'TOPIK2-S' },
-  ];
-
-  // Mock schedule data - will be replaced with API call
-  const mockSchedules = [
-    {
-      id: 1,
-      title: 'Grammar Advanced',
-      date: '2024-12-22',
-      time: '14:00-16:00',
-      teacher: 'Ms. Park',
-      type: 'online',
-      room: 'Zoom Room 1',
-      classId: 1,
-      attendanceStatus: 'present',
-      description: 'Advanced grammar lesson for TOPIK I'
-    },
-    {
-      id: 2,
-      title: 'Speaking Practice',
-      date: '2024-12-24',
-      time: '16:00-18:00',
-      teacher: 'Mr. Kim',
-      type: 'offline',
-      room: 'Room 301',
-      classId: 2,
-      attendanceStatus: 'absent',
-      description: 'Speaking practice session'
-    },
-    {
-      id: 3,
-      title: 'Listening Skills',
-      date: '2024-12-26',
-      time: '10:00-12:00',
-      teacher: 'Ms. Lee',
-      type: 'online',
-      room: 'Zoom Room 2',
-      classId: 1,
-      attendanceStatus: 'pending',
-      description: 'Listening comprehension practice'
-    },
-    {
-      id: 4,
-      title: 'Writing Workshop',
-      date: '2024-12-28',
-      time: '14:00-16:00',
-      teacher: 'Mr. Choi',
-      type: 'offline',
-      room: 'Room 205',
-      classId: 3,
-      attendanceStatus: 'present',
-      description: 'Writing skills workshop'
-    },
-    {
-      id: 5,
-      title: 'Reading Practice',
-      date: '2024-12-30',
-      time: '09:00-11:00',
-      teacher: 'Ms. Kim',
-      type: 'online',
-      room: 'Zoom Room 3',
-      classId: 2,
-      attendanceStatus: 'pending',
-      description: 'Reading comprehension practice'
-    },
-    {
-      id: 6,
-      title: 'Speaking Mock Test',
-      date: '2024-12-31',
-      time: '15:00-17:00',
-      teacher: 'Mr. Lee',
-      type: 'offline',
-      room: 'Room 402',
-      classId: 4,
-      attendanceStatus: 'absent',
-      description: 'Mock speaking test for TOPIK II'
-    },
-  ];
-
   // Fetch schedules from API
   const fetchSchedules = async () => {
     setLoading(true);
     setError('');
     try {
-      // TODO: Replace with actual API call
-      // const data = await studentService.getUpcomingClasses();
-      // setSchedules(data || []);
-      
-      // Using mock data for now
-      setSchedules(mockSchedules);
-      setClasses(mockClasses);
+      // Fetch user's classes
+      const classesData = await classService.getMyClasses();
+      const classesList = classesData || [];
+
+      // Extract unique classes for filter
+      const uniqueClasses = classesList.map(cls => ({
+        id: cls.classEntity?.id || cls.id,
+        name: cls.classEntity?.className || cls.className || 'Lớp học',
+        code: cls.classEntity?.classCode || cls.classCode || 'N/A'
+      }));
+
+      setClasses(uniqueClasses);
+
+      // Fetch schedules for all classes
+      const allSchedules = [];
+      for (const cls of classesList) {
+        const classId = cls.classEntity?.id || cls.id;
+        if (classId) {
+          try {
+            const schedulesData = await classService.getClassSchedules(classId);
+            const schedulesWithClassInfo = (schedulesData || []).map(schedule => ({
+              ...schedule,
+              classId: classId,
+              className: cls.classEntity?.className || cls.className
+            }));
+            allSchedules.push(...schedulesWithClassInfo);
+          } catch (err) {
+            console.warn(`Failed to fetch schedules for class ${classId}:`, err);
+          }
+        }
+      }
+
+      setSchedules(allSchedules);
     } catch (err) {
       console.error('Error fetching schedules:', err);
       setError(t('schedule.error.fetchFailed', 'Không thể tải lịch học. Vui lòng thử lại sau.'));

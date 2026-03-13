@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import authService from '../services/authService';
+import CourseStatus from '../components/Learner/CourseStatus';
 // Assuming you have a sweetalert or toast utility, we use a basic alert if not available
 // import { toast } from 'react-hot-toast';
 
@@ -83,20 +84,111 @@ const Profile = () => {
 // --- Sub Components ---
 
 const ProfileInfo = ({ user }) => {
+    const [isEditing, setIsEditing] = useState(false);
+    const [formData, setFormData] = useState({
+        fullName: user?.fullName || '',
+        phone: user?.phone || ''
+    });
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
+    const [success, setSuccess] = useState('');
+
+    const handleEdit = () => {
+        setIsEditing(true);
+        setError('');
+        setSuccess('');
+        setFormData({
+            fullName: user?.fullName || '',
+            phone: user?.phone || ''
+        });
+    };
+
+    const handleCancel = () => {
+        setIsEditing(false);
+        setError('');
+        setFormData({
+            fullName: user?.fullName || '',
+            phone: user?.phone || ''
+        });
+    };
+
+    const handleSave = async () => {
+        setError('');
+        setSuccess('');
+
+        // Validation
+        if (!formData.fullName.trim()) {
+            setError('Họ và tên không được để trống');
+            return;
+        }
+
+        if (formData.phone && formData.phone.length < 10) {
+            setError('Số điện thoại phải có ít nhất 10 số');
+            return;
+        }
+
+        setLoading(true);
+        try {
+            await authService.updateProfile({
+                fullName: formData.fullName.trim(),
+                phone: formData.phone.trim()
+            });
+            setSuccess('Cập nhật thông tin thành công!');
+            setIsEditing(false);
+            // Reload page to get updated user info
+            setTimeout(() => window.location.reload(), 1500);
+        } catch (err) {
+            setError(err.response?.data?.message || 'Không thể cập nhật thông tin. Vui lòng thử lại.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-6">Thông tin cá nhân</h3>
+            <div className="flex items-center justify-between mb-6">
+                <h3 className="text-2xl font-bold text-gray-900">Thông tin cá nhân</h3>
+                {!isEditing && (
+                    <button
+                        onClick={handleEdit}
+                        className="px-4 py-2 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 transition-colors flex items-center gap-2"
+                    >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732a2.5 2.5 0 013.536 3.536z" />
+                        </svg>
+                        Chỉnh sửa
+                    </button>
+                )}
+            </div>
+
+            {error && (
+                <div className="mb-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm flex items-start">
+                    <span className="mr-2">❌</span> {error}
+                </div>
+            )}
+            {success && (
+                <div className="mb-4 p-4 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm flex items-start">
+                    <span className="mr-2">✅</span> {success}
+                </div>
+            )}
+
             <div className="space-y-6 max-w-2xl">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Họ và tên</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Họ và tên {isEditing && <span className="text-red-500">*</span>}
+                        </label>
                         <input
                             type="text"
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 cursor-not-allowed"
-                            value={user?.fullName || ''}
-                            readOnly
+                            className={`w-full px-4 py-2 border rounded-lg transition-colors ${
+                                isEditing
+                                    ? 'border-gray-300 bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500'
+                                    : 'border-gray-300 bg-gray-50 text-gray-700 cursor-not-allowed'
+                            }`}
+                            value={isEditing ? formData.fullName : (user?.fullName || '')}
+                            onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                            readOnly={!isEditing}
                         />
-                        <p className="mt-1 text-xs text-gray-500">Liên hệ trung tâm để thay đổi họ tên hợp lệ.</p>
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Tên đăng nhập</label>
@@ -106,6 +198,7 @@ const ProfileInfo = ({ user }) => {
                             value={user?.username || ''}
                             readOnly
                         />
+                        <p className="mt-1 text-xs text-gray-500">Không thể thay đổi tên đăng nhập</p>
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
@@ -115,23 +208,54 @@ const ProfileInfo = ({ user }) => {
                             value={user?.email || ''}
                             readOnly
                         />
+                        <p className="mt-1 text-xs text-gray-500">Liên hệ admin để thay đổi email</p>
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Số điện thoại</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Số điện thoại {isEditing && <span className="text-red-500">*</span>}
+                        </label>
                         <input
-                            type="text"
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 cursor-not-allowed"
-                            value={user?.phone || 'Chưa cập nhật'}
-                            readOnly
+                            type="tel"
+                            className={`w-full px-4 py-2 border rounded-lg transition-colors ${
+                                isEditing
+                                    ? 'border-gray-300 bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500'
+                                    : 'border-gray-300 bg-gray-50 text-gray-700 cursor-not-allowed'
+                            }`}
+                            value={isEditing ? (formData.phone || '') : (user?.phone || 'Chưa cập nhật')}
+                            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                            readOnly={!isEditing}
+                            placeholder={isEditing ? 'Nhập số điện thoại' : ''}
                         />
                     </div>
                 </div>
-                {/* Save button placeholder for future editable fields */}
-                {/* <div className="pt-4 border-t border-gray-100 flex justify-end">
-                    <button className="bg-primary-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-primary-700 transition-colors">
-                        Cập nhật thông tin
-                    </button>
-                </div> */}
+
+                {isEditing && (
+                    <div className="pt-4 border-t border-gray-100 flex justify-end gap-3">
+                        <button
+                            onClick={handleCancel}
+                            disabled={loading}
+                            className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors disabled:opacity-50"
+                        >
+                            Hủy
+                        </button>
+                        <button
+                            onClick={handleSave}
+                            disabled={loading}
+                            className="px-6 py-2 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 transition-colors disabled:opacity-50 flex items-center"
+                        >
+                            {loading ? (
+                                <><span className="animate-spin mr-2">⟳</span> Đang lưu...</>
+                            ) : (
+                                <>
+                                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                    </svg>
+                                    Lưu thay đổi
+                                </>
+                            )}
+                        </button>
+                    </div>
+                )}
             </div>
         </div>
     );
@@ -358,7 +482,11 @@ const MyCourses = () => {
     return (
         <div>
             <h3 className="text-2xl font-bold text-gray-900 mb-6">Khoá học của tôi</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+            {/* Course Status & Expiration Warnings */}
+            <CourseStatus />
+
+            <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
                 {courses.map(course => (
                     <div key={course.id} className="bg-white border border-gray-100 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
                         <div className="absolute top-0 left-0 w-1 h-full bg-primary-500"></div>
