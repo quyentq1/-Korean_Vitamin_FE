@@ -1284,16 +1284,13 @@
                     "email": "Email",
                     "phone": "Số Điện Thoại",
                     "enrollmentDate": "Ngày Tham Gia",
-                    "status": {
-                        "active": "Đang Học",
-                        "dropped": "Đã Nghỉ",
-                        "completed": "Đã Hoàn Thành"
-                    },
+                    "status": "Trạng Thái",
                     "noStudents": "Chưa có học viên nào trong lớp"
                 },
                 "attendance": {
                     "title": "Điểm Danh",
                     "comingSoon": "Tính năng điểm danh sẽ sớm có!",
+                    
                     "viewFullAttendance": "Xem Điểm Danh Chi Tiết"
                 },
                 "schedule": {

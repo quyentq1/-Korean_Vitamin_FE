@@ -1293,11 +1293,7 @@
                     "email": "Email",
                     "phone": "Phone",
                     "enrollmentDate": "Enrollment Date",
-                    "status": {
-                        "active": "Active",
-                        "dropped": "Dropped",
-                        "completed": "Completed"
-                    },
+                    "status": "Status",
                     "noStudents": "No students in this class yet"
                 },
                 "attendance": {
