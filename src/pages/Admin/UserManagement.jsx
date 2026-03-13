@@ -1,10 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
+import { Lock, Unlock } from 'lucide-react';
 import userService from '../../services/userService';
 import { Table, Button, Input, Modal, Badge, Alert, PageHeader, PageActions, PageContainer } from '../../components/ui';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
+import LockAccountModal from '../../components/Admin/LockAccountModal';
+import UnlockAccountModal from '../../components/Admin/UnlockAccountModal';
 
 const UserManagement = () => {
     const { t } = useTranslation();
@@ -19,6 +22,8 @@ const UserManagement = () => {
     const [showAddUserModal, setShowAddUserModal] = useState(false);
     const [showEditUserModal, setShowEditUserModal] = useState(false);
     const [showImportModal, setShowImportModal] = useState(false);
+    const [showLockModal, setShowLockModal] = useState(false);
+    const [showUnlockModal, setShowUnlockModal] = useState(false);
     const [currentUser, setCurrentUser] = useState(null);
     const [importFile, setImportFile] = useState(null);
     const [importPreview, setImportPreview] = useState(null);
@@ -157,7 +162,41 @@ const UserManagement = () => {
             setError(t('userMgmt.toggleStatusError', 'Không thể cập nhật trạng thái người dùng'));
         }
     };
-    
+
+    // Handle lock account
+    const handleLockAccount = (user) => {
+        setCurrentUser(user);
+        setShowLockModal(true);
+    };
+
+    const handleLockSubmit = async (reason) => {
+        try {
+            await userService.lockAccount(currentUser.id, { reason });
+            setShowLockModal(false);
+            await fetchUsers();
+        } catch (error) {
+            console.error("Failed to lock account:", error);
+            setError(t('userMgmt.lockError', 'Không thể khóa tài khoản'));
+        }
+    };
+
+    // Handle unlock account
+    const handleUnlockAccount = (user) => {
+        setCurrentUser(user);
+        setShowUnlockModal(true);
+    };
+
+    const handleUnlockSubmit = async () => {
+        try {
+            await userService.unlockAccount(currentUser.id);
+            setShowUnlockModal(false);
+            await fetchUsers();
+        } catch (error) {
+            console.error("Failed to unlock account:", error);
+            setError(t('userMgmt.unlockError', 'Không thể mở khóa tài khoản'));
+        }
+    };
+
     // Handle export CSV
     const handleExportCSV = () => {
         const headers = ['ID', 'Tên', 'Email', 'Vai trò', 'Trạng thái', 'Ngày hết hạn', 'Đăng nhập cuối'];
@@ -332,17 +371,16 @@ const UserManagement = () => {
         {
             key: 'actions',
             header: t('userMgmt.actions', 'Thao tác'),
-            width: '150px',
+            width: '200px',
             render: (row) => (
-                <div className="flex gap-2">
+                <div className="flex gap-1">
                     <Button
                         variant="ghost"
                         size="sm"
                         icon="👁️"
                         onClick={() => navigate(`/user-management/${row.id}`)}
-                    >
-                        {t('userMgmt.view', 'Xem')}
-                    </Button>
+                        title={t('userMgmt.view', 'Xem')}
+                    />
                     <Button
                         variant="ghost"
                         size="sm"
@@ -351,17 +389,32 @@ const UserManagement = () => {
                             setCurrentUser(row);
                             setShowEditUserModal(true);
                         }}
-                    >
-                        {t('userMgmt.edit', 'Sửa')}
-                    </Button>
+                        title={t('userMgmt.edit', 'Sửa')}
+                    />
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        icon={<Lock className="w-4 h-4" />}
+                        onClick={() => handleLockAccount(row)}
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        title={t('userMgmt.lock', 'Khóa')}
+                    />
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        icon={<Unlock className="w-4 h-4" />}
+                        onClick={() => handleUnlockAccount(row)}
+                        className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                        title={t('userMgmt.unlock', 'Mở khóa')}
+                    />
                     <Button
                         variant="ghost"
                         size="sm"
                         icon="🗑️"
                         onClick={() => handleDelete(row)}
-                    >
-                        {t('userMgmt.delete', 'Xóa')}
-                    </Button>
+                        className="text-gray-600 hover:text-red-600 hover:bg-red-50"
+                        title={t('userMgmt.delete', 'Xóa')}
+                    />
                 </div>
             )
         }
@@ -823,7 +876,25 @@ const UserManagement = () => {
                     </div>
                 </div>
             </Modal>
-            
+
+            {/* Lock Account Modal */}
+            {showLockModal && currentUser && (
+                <LockAccountModal
+                    user={currentUser}
+                    onClose={() => setShowLockModal(false)}
+                    onSubmit={handleLockSubmit}
+                />
+            )}
+
+            {/* Unlock Account Modal */}
+            {showUnlockModal && currentUser && (
+                <UnlockAccountModal
+                    user={currentUser}
+                    onClose={() => setShowUnlockModal(false)}
+                    onSubmit={handleUnlockSubmit}
+                />
+            )}
+
             <Footer />
         </PageContainer>
     );
