@@ -1,6 +1,12 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
-import { ProtectedRoute, AdminRoute, TeacherRoute, StaffRoute, StudentRoute, ManagerRoute } from './components/routing/ProtectedRoute';
+import { ProtectedRoute, AdminRoute, TeacherRoute, StaffRoute, StudentRoute, ManagerRoute, EducationManagerRoute } from './components/routing/ProtectedRoute';
+import EducationManagerLayout from './components/layouts/EducationManagerLayout';
+import EduManagerDashboard from './pages/EducationManager/EduManagerDashboard';
+import EduCourseManagement from './pages/EducationManager/EduCourseManagement';
+import EduCourseForm from './pages/EducationManager/EduCourseForm';
+import EduTestManagement from './pages/EducationManager/EduTestManagement';
+import EduTestEditor from './pages/EducationManager/EduTestEditor';
 import StaffLayout from './components/layouts/StaffLayout';
 import TeacherLayout from './components/layouts/TeacherLayout';
 import CourseList from './pages/Courses/CourseList';
@@ -28,6 +34,8 @@ import GradingQueue from './pages/Teacher/GradingQueue.jsx';
 import TeacherSessions from './pages/Teacher/TeacherSessions.jsx';
 import SessionApproval from './pages/Manager/SessionApproval.jsx';
 import StudentManagement from './pages/Staff/StudentManagement.jsx';
+import StudentDetail from './pages/Staff/StudentDetail.jsx';
+import EditStudent from './pages/Staff/EditStudent.jsx';
 import CreateManualStudent from './pages/Staff/CreateManualStudent.jsx';
 import CreateOCRStudent from './pages/Staff/CreateOCRStudent.jsx';
 import ClassManagement from './pages/Staff/ClassManagement.jsx';
@@ -55,6 +63,7 @@ import ExamIntro from './pages/Exam/ExamIntro.jsx';
 import ExamTaking from './pages/Exam/ExamTaking.jsx';
 import QuestionImport from './pages/Teacher/QuestionImport.jsx';
 import GradingDetail from './pages/Teacher/GradingDetail.jsx';
+import TagManagement from './pages/Teacher/TagManagement.jsx';
 import Profile from './pages/Profile.jsx';
 import './App.css';
 
@@ -179,6 +188,7 @@ function App() {
             <Route path="exam-editor/:id" element={<ExamEditor />} />
             <Route path="exam-attempts/:id" element={<ExamAttempts />} />
             <Route path="sessions" element={<TeacherSessions />} />
+            <Route path="tag-management" element={<TagManagement />} />
           </Route>
 
           {/* Legacy Teacher Routes (for backwards compatibility) */}
@@ -218,6 +228,20 @@ function App() {
               </StaffLayout>
             </StaffRoute>
           } />
+          <Route path="/student-management/:id" element={
+            <StaffRoute>
+              <StaffLayout>
+                <StudentDetail />
+              </StaffLayout>
+            </StaffRoute>
+          } />
+          <Route path="/student-management/:id/edit" element={
+            <StaffRoute>
+              <StaffLayout>
+                <EditStudent />
+              </StaffLayout>
+            </StaffRoute>
+          } />
           <Route path="/class-management" element={
             <StaffRoute>
               <StaffLayout>
@@ -253,6 +277,23 @@ function App() {
               </StaffLayout>
             </StaffRoute>
           } />
+
+          {/* Education Manager Routes */}
+          <Route path="/edu-manager" element={
+            <EducationManagerRoute>
+              <EducationManagerLayout />
+            </EducationManagerRoute>
+          }>
+            <Route index element={<EduManagerDashboard />} />
+            <Route path="courses" element={<EduCourseManagement />} />
+            <Route path="courses/create" element={<EduCourseForm />} />
+            <Route path="courses/edit/:id" element={<EduCourseForm />} />
+            <Route path="tests" element={<EduTestManagement />} />
+            <Route path="classes" element={<ClassManagement />} />
+            <Route path="classes/:id" element={<ClassDetail />} />
+            <Route path="tests/create" element={<EduTestEditor />} />
+            <Route path="tests/edit/:id" element={<EduTestEditor />} />
+          </Route>
 
           {/* Manager Routes - Manager Only */}
           <Route path="/manager" element={

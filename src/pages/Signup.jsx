@@ -160,15 +160,70 @@ const Signup = () => {
                 // Clear guest context after successful signup
                 clearGuestContext();
 
-                // Show success message
-                await Swal.fire({
-                    icon: 'success',
-                    title: t('auth.registerSuccess', 'Đăng ký thành công!'),
-                    text: t('auth.registerSuccessMessage', 'Tài khoản của bạn đã được tạo. Bạn sẽ được chuyển đến trang đăng nhập trong giây lát.'),
-                    timer: 2000,
-                    timerProgressBar: true,
-                    showConfirmButton: false,
-                });
+                // Check if email verification is required
+                const requiresVerification = data.requiresVerification || data.emailVerificationRequired;
+
+                // Show success message with email verification notice
+                if (requiresVerification) {
+                    await Swal.fire({
+                        icon: 'success',
+                        title: t('auth.registerSuccess', 'Đăng ký thành công!'),
+                        html: `
+                            <div class="text-left">
+                                <p class="mb-3">${t('auth.registerSuccessMessage', 'Tài khoản của bạn đã được tạo.')}</p>
+                                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                                    <div class="flex items-start gap-3">
+                                        <svg class="w-6 h-6 text-blue-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0l2.17-6.45A2 2 0 0012.83 8.74M3 8l9 11m9-11v6m0 6V8m0-6v2m0-2h9m-9 0H3" />
+                                        </svg>
+                                        <div>
+                                            <p class="font-semibold text-blue-900 mb-1">${t('auth.verificationRequired', 'Xác minh email')}</p>
+                                            <p class="text-sm text-blue-700">${t('auth.verificationEmailSent', `Chúng tôi đã gửi email xác minh đến <strong>${email}</strong>. Vui lòng kiểm tra email và nhấn vào link xác minh để kích hoạt tài khoản.`)}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <p class="text-sm text-gray-600 mb-4">${t('auth.checkSpam', 'Nếu không thấy email, hãy kiểm tra thư mục spam.')}</p>
+                            </div>
+                        `,
+                        showConfirmButton: true,
+                        confirmButtonText: t('auth.continueToLogin', 'Tiếp tục đăng nhập'),
+                        confirmButtonColor: '#3B82F6',
+                        showDenyButton: true,
+                        denyButtonText: t('auth.resendEmail', 'Gửi lại email'),
+                        denyButtonColor: '#6B7280',
+                    }).then((result) => {
+                        if (result.isDismissed) {
+                            // User clicked Resend Email or closed
+                            // They will be redirected to login anyway
+                        }
+                    });
+
+                    // Resend verification email if user requested
+                    if (result.dismiss === Swal.DismissReason.deny) {
+                        try {
+                            await import('../services/authService').then(({ authService }) => {
+                                return authService.resendVerificationEmail(email);
+                            });
+                            await Swal.fire({
+                                icon: 'info',
+                                title: t('auth.emailSent', 'Đã gửi lại'),
+                                text: t('auth.verificationEmailResent', `Email xác minh mới đã được gửi đến ${email}. Kiểm tra hộp thư của bạn.`),
+                                confirmButtonColor: '#3B82F6',
+                            });
+                        } catch (err) {
+                            console.error('Failed to resend verification email:', err);
+                        }
+                    }
+                } else {
+                    await Swal.fire({
+                        icon: 'success',
+                        title: t('auth.registerSuccess', 'Đăng ký thành công!'),
+                        text: t('auth.registerSuccessMessage', 'Tài khoản của bạn đã được tạo. Bạn sẽ được chuyển đến trang đăng nhập trong giây lát.'),
+                        timer: 2000,
+                        timerProgressBar: true,
+                        showConfirmButton: false,
+                    });
+                }
 
                 // Auto login and redirect
                 if (login && typeof login === 'function') {
@@ -179,7 +234,7 @@ const Signup = () => {
                 const redirectPath = data.redirectPath || '/learner-dashboard';
                 setTimeout(() => {
                     navigate(redirectPath, { replace: true });
-                }, 2000);
+                }, requiresVerification ? 3000 : 2000);
             } else {
                 throw new Error(data.message || 'Registration failed');
             }

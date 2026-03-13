@@ -15,14 +15,14 @@ export const useAuth = () => {
 
 export const AuthProvider = ({ children }) => {
   const navigate = useNavigate();
-  
+
   // State quản lý người dùng và xác thực
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [authError, setAuthError] = useState(null);
-  
+
   // State quản lý session
   const [sessionTimeout, setSessionTimeout] = useState(null);
   const [lastActivity, setLastActivity] = useState(Date.now());
@@ -51,7 +51,7 @@ export const AuthProvider = ({ children }) => {
     try {
       const storedToken = localStorage.getItem('token');
       const storedUser = localStorage.getItem('user');
-      
+
       if (storedToken && storedUser) {
         const parsedUser = JSON.parse(storedUser);
         // Normalize role to uppercase
@@ -69,14 +69,14 @@ export const AuthProvider = ({ children }) => {
     } finally {
       setIsLoading(false);
     }
-    
+
     // Thiết lập listener cho activity của người dùng
     const activityEvents = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'];
     const handleActivity = () => {
       setLastActivity(Date.now());
       setIsSessionExpiring(false);
     };
-    
+
     activityEvents.forEach(event => {
       window.addEventListener(event, handleActivity);
     });
@@ -126,10 +126,10 @@ export const AuthProvider = ({ children }) => {
   const login = useCallback(async (username, password, rememberMe = false) => {
     setIsLoading(true);
     setAuthError(null);
-    
+
     try {
       const response = await authService.login(username, password);
-      
+
       // Lưu token và thông tin người dùng
       const token = response.token || response.accessToken;
       const rawRole = response.role || response.roles?.[0] || response.userInfo?.role;
@@ -224,23 +224,23 @@ export const AuthProvider = ({ children }) => {
    */
   const logout = useCallback((options = {}) => {
     const { reason = 'USER_LOGOUT', message = null } = options;
-    
+
     // Gọi API logout nếu cần
     try {
       authService.logout();
     } catch (error) {
       console.error('Lỗi khi gọi logout API:', error);
     }
-    
+
     // Xóa dữ liệu xác thực
     clearAuthData();
-    
+
     // Điều hướng về trang đăng nhập
-    navigate('/login', { 
-      state: { 
+    navigate('/login', {
+      state: {
         logoutReason: reason,
         logoutMessage: message || 'Bạn đã đăng xuất thành công.'
-      } 
+      }
     });
   }, [navigate, clearAuthData]);
 
@@ -290,10 +290,10 @@ export const AuthProvider = ({ children }) => {
    */
   const hasPermission = useCallback((permission) => {
     if (!user || !user.permissions) return false;
-    
+
     // Admin có mọi quyền
     if (user.role === 'ADMIN') return true;
-    
+
     return user.permissions.includes(permission);
   }, [user]);
 
@@ -325,6 +325,7 @@ export const AuthProvider = ({ children }) => {
     const roleRoutes = {
       'ADMIN': '/admin',
       'MANAGER': '/manager',
+      'EDUCATION_MANAGER': '/edu-manager',
       'TEACHER': '/teacher-dashboard',
       'STAFF': '/staff',
       'STUDENT': '/learner-dashboard',
@@ -344,7 +345,7 @@ export const AuthProvider = ({ children }) => {
     authError,
     isSessionExpiring,
     lastActivity,
-    
+
     // Methods
     login,
     logout,

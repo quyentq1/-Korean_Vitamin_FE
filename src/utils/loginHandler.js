@@ -66,9 +66,9 @@ export const handleLoginSubmit = async (
       const errorMessage = data.message || data.error || 'Đăng nhập thất bại';
 
       // Check for "Username not found" error
-      if (errorMessage === 'Username not found' || 
-          errorMessage.toLowerCase().includes('username not found') ||
-          errorMessage.toLowerCase().includes('tài khoản không tồn tại')) {
+      if (errorMessage === 'Username not found' ||
+        errorMessage.toLowerCase().includes('username not found') ||
+        errorMessage.toLowerCase().includes('tài khoản không tồn tại')) {
         await Swal.fire({
           icon: 'error',
           title: 'Tài khoản không tồn tại',
@@ -82,10 +82,10 @@ export const handleLoginSubmit = async (
       }
 
       // Check for "Incorrect password" error
-      if (errorMessage === 'Incorrect password' || 
-          errorMessage.toLowerCase().includes('incorrect password') ||
-          errorMessage.toLowerCase().includes('mật khẩu không đúng') ||
-          errorMessage.toLowerCase().includes('sai mật khẩu')) {
+      if (errorMessage === 'Incorrect password' ||
+        errorMessage.toLowerCase().includes('incorrect password') ||
+        errorMessage.toLowerCase().includes('mật khẩu không đúng') ||
+        errorMessage.toLowerCase().includes('sai mật khẩu')) {
         await Swal.fire({
           icon: 'error',
           title: 'Mật khẩu không hợp lệ',
@@ -158,6 +158,7 @@ export const handleLoginSubmit = async (
         const roleRoutes = {
           'ADMIN': '/admin',
           'MANAGER': '/manager',
+          'EDUCATION_MANAGER': '/edu-manager',
           'TEACHER': '/teacher-dashboard',
           'STAFF': '/staff',
           'STUDENT': '/learner-dashboard',

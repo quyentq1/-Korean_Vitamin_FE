@@ -380,6 +380,59 @@ export const authService = {
     } catch (error) {
       console.error('Lỗi khi cập nhật thông tin người dùng:', error);
     }
+  },
+
+  /**
+   * Cập nhật thông tin profile
+   * @param {Object} profileData - Dữ liệu profile cần cập nhật { fullName, phone, email }
+   * @returns {Promise<Object>} Dữ liệu phản hồi từ API
+   */
+  updateProfile: async (profileData) => {
+    try {
+      const response = await axiosClient.put('/auth/profile', profileData);
+
+      // Cập nhật thông tin user trong localStorage
+      if (response.userInfo || response.user) {
+        authService.updateCurrentUser(normalizeUserData(response));
+      }
+
+      return {
+        success: true,
+        ...response
+      };
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  /**
+   * Kiểm tra trạng thái tài khoản (bao gồm kiểm tra khóa học)
+   * @returns {Promise<Object>} Thông tin trạng thái tài khoản
+   */
+  checkAccountStatus: async () => {
+    try {
+      const response = await axiosClient.get('/auth/account-status');
+      return {
+        success: true,
+        ...response
+      };
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  /**
+   * Lấy thông tin các khóa học đang học
+   * @returns {Promise<Array>} Danh sách khóa học và ngày hết hạn
+   */
+  getEnrollments: async () => {
+    try {
+      const response = await axiosClient.get('/student/enrollments');
+      return response || [];
+    } catch (error) {
+      console.error('Error fetching enrollments:', error);
+      return [];
+    }
   }
 };
 

@@ -207,4 +207,16 @@ export const ManagerRoute = ({ children }) => {
   );
 };
 
+/**
+ * EducationManagerRoute Component
+ * Bảo vệ route chỉ dành cho Education Manager
+ */
+export const EducationManagerRoute = ({ children }) => {
+  return (
+    <ProtectedRoute allowedRoles="EDUCATION_MANAGER">
+      {children}
+    </ProtectedRoute>
+  );
+};
+
 export default ProtectedRoute;
