@@ -445,9 +445,39 @@ const ClassManagement = () => {
     {
       key: 'capacity',
       label: ts('classManagement.capacity', 'Capacity'),
-      render: (cls) => (
-        <span className="text-gray-600">{cls.capacity || '-'}</span>
-      ),
+      render: (cls) => {
+        const currentEnrollment = cls.currentEnrollment || cls.studentCount || 0;
+        const capacity = cls.capacity || 30;
+        const isFull = currentEnrollment >= capacity;
+        const isAlmostFull = currentEnrollment / capacity > 0.8 && !isFull;
+        const isExpired = cls.endDate ? new Date(cls.endDate) < new Date() : false;
+
+        return (
+          <div className="flex items-center gap-2">
+            <span className={`text-sm font-medium ${
+              isFull
+                ? 'text-red-600'
+                : isAlmostFull
+                  ? 'text-orange-600'
+                  : 'text-green-600'
+            }`}>
+              {currentEnrollment}/{capacity}
+            </span>
+
+            {/* Status Badges */}
+            {isFull && (
+              <span className="px-2 py-0.5 bg-red-100 text-red-800 text-xs rounded-full font-medium">
+                Đầy
+              </span>
+            )}
+            {isExpired && (
+              <span className="px-2 py-0.5 bg-gray-100 text-gray-800 text-xs rounded-full font-medium">
+                Hết hạn
+              </span>
+            )}
+          </div>
+        );
+      },
       sortable: true
     },
     {

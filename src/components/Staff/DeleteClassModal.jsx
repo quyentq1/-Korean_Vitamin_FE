@@ -1,7 +1,10 @@
-import { useState } from 'react';
+import { useState, useContext } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Trash2, AlertTriangle, AlertOctagon } from 'lucide-react';
+import { Trash2, AlertTriangle, AlertOctagon, Users, Calendar, Clock } from 'lucide-react';
 import Swal from 'sweetalert2';
+import { useAuth } from '../../contexts/AuthContext';
+import staffService from '../../services/staffService';
+import educationManagerService from '../../services/educationManagerService';
 
 /**
  * DeleteClassModal - Modal xác nhận xóa lớp học
@@ -11,9 +14,17 @@ import Swal from 'sweetalert2';
  */
 const DeleteClassModal = ({ classData, onClose, onSuccess }) => {
     const { t } = useTranslation();
+    const { user } = useAuth();
+    const isManager = user?.role === 'EDUCATION_MANAGER';
     const [deleting, setDeleting] = useState(false);
     const [confirmText, setConfirmText] = useState('');
     const [error, setError] = useState('');
+
+    // Count active students
+    const activeStudentCount = classData?.students?.filter(s => s.status === 'ACTIVE').length ||
+                              classData?.currentEnrollment ||
+                              classData?.studentCount ||
+                              0;
 
     const handleDelete = async () => {
         // Validate confirmation text
@@ -26,18 +37,9 @@ const DeleteClassModal = ({ classData, onClose, onSuccess }) => {
         setError('');
 
         try {
-            const response = await fetch(`/api/staff/classes/${classData.id}`, {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                }
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || 'Không thể xóa lớp học');
-            }
+            // Use appropriate service based on user role
+            const service = isManager ? educationManagerService : staffService;
+            await service.deleteClass(classData.id);
 
             // Show success message
             await Swal.fire({
@@ -52,7 +54,8 @@ const DeleteClassModal = ({ classData, onClose, onSuccess }) => {
             onClose();
         } catch (err) {
             console.error('Error deleting class:', err);
-            setError(err.message || t('class.delete.error', 'Không thể xóa lớp học. Vui lòng thử lại.'));
+            const errorMessage = err.response?.data?.message || err.message || t('class.delete.error', 'Không thể xóa lớp học. Vui lòng thử lại.');
+            setError(errorMessage);
         } finally {
             setDeleting(false);
         }
@@ -78,6 +81,30 @@ const DeleteClassModal = ({ classData, onClose, onSuccess }) => {
 
                 {/* Body */}
                 <div className="p-6">
+                    {/* Active Students Warning */}
+                    {activeStudentCount > 0 && (
+                        <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                            <div className="flex items-start gap-2">
+                                <AlertTriangle className="w-5 h-5 text-yellow-600 shrink-0 mt-0.5" />
+                                <div className="text-sm text-yellow-800">
+                                    <p className="font-semibold mb-1">⚠️ Cảnh báo: Lớp học đang có học viên</p>
+                                    <p className="text-yellow-700">
+                                        Lớp này hiện tại có <strong>{activeStudentCount} học viên</strong> đang học.
+                                        Bạn cần xóa hoặc chuyển tất cả học viên sang lớp khác trước khi xóa lớp học này.
+                                    </p>
+                                    <div className="mt-2 p-2 bg-yellow-100 rounded text-xs text-yellow-800">
+                                        <p className="font-medium">Các bước cần thực hiện:</p>
+                                        <ol className="list-decimal list-inside mt-1 space-y-1">
+                                            <li>Chuyển học viên sang lớp khác (nếu cần)</li>
+                                            <li>Xóa hết học viên khỏi lớp hiện tại</li>
+                                            <li>Sau đó mới có thể xóa lớp học</li>
+                                        </ol>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                     {/* Warning Message */}
                     <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
                         <div className="flex items-start gap-2">
@@ -88,10 +115,11 @@ const DeleteClassModal = ({ classData, onClose, onSuccess }) => {
                                     Hành động này <strong>không thể hoàn tác</strong>. Tất cả dữ liệu liên quan đến lớp học này sẽ bị xóa vĩnh viễn, bao gồm:
                                 </p>
                                 <ul className="list-disc list-inside mt-2 text-red-700 space-y-1">
-                                    <li>Danh sách học viên đã ghi danh</li>
+                                    <li>Danh sách học viên và thông tin ghi danh</li>
+                                    <li>Giáo viên được phân công</li>
                                     <li>Lịch học và các buổi học</li>
-                                    <li>Bài kiểm tra và kết quả liên quan</li>
                                     <li>Lịch sử điểm danh</li>
+                                    <li>Bài kiểm tra và kết quả</li>
                                 </ul>
                             </div>
                         </div>
@@ -150,8 +178,9 @@ const DeleteClassModal = ({ classData, onClose, onSuccess }) => {
                         <button
                             type="button"
                             onClick={handleDelete}
-                            disabled={deleting || confirmText !== 'DELETE'}
+                            disabled={deleting || confirmText !== 'DELETE' || activeStudentCount > 0}
                             className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                            title={activeStudentCount > 0 ? 'Không thể xóa lớp khi đang có học viên' : ''}
                         >
                             {deleting ? (
                                 <>

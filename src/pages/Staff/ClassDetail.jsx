@@ -69,6 +69,7 @@ const ClassDetail = () => {
   const [showAddStudentModal, setShowAddStudentModal] = useState(false);
   const [availableStudents, setAvailableStudents] = useState([]);
   const [selectedStudent, setSelectedStudent] = useState(null);
+  const [classAvailability, setClassAvailability] = useState(null);
 
   // Edit and Assign Teacher Modal States
   const [showEditModal, setShowEditModal] = useState(false);
@@ -83,9 +84,10 @@ const ClassDetail = () => {
   }, [id]);
 
   useEffect(() => {
-    // Fetch available students when opening the modal
+    // Fetch available students and class availability when opening the modal
     if (showAddStudentModal) {
       fetchAvailableStudents();
+      checkClassAvailability();
     }
   }, [showAddStudentModal]);
 
@@ -105,6 +107,17 @@ const ClassDetail = () => {
       setAvailableStudents(available);
     } catch (err) {
       console.error('Error fetching available students:', err);
+    }
+  };
+
+  const checkClassAvailability = async () => {
+    try {
+      const service = isManager ? educationManagerService : staffService;
+      const data = await service.checkClassAvailability(id);
+      setClassAvailability(data);
+    } catch (err) {
+      console.error('Error checking class availability:', err);
+      setClassAvailability(null);
     }
   };
 
@@ -780,10 +793,54 @@ const ClassDetail = () => {
         onClose={() => {
           setShowAddStudentModal(false);
           setSelectedStudent(null);
+          setClassAvailability(null);
         }}
         title={t('staff.class.detail.students.addStudent')}
       >
         <div className="space-y-4">
+          {/* Class Availability Info */}
+          {classAvailability && (
+            <div className={`p-4 rounded-lg border ${
+              !classAvailability.canEnroll
+                ? 'bg-red-50 border-red-200'
+                : classAvailability.isFull
+                  ? 'bg-orange-50 border-orange-200'
+                  : 'bg-green-50 border-green-200'
+            }`}>
+              <div className="flex items-start gap-3">
+                <div className="flex-shrink-0">
+                  {!classAvailability.canEnroll ? (
+                    <XCircle className="w-5 h-5 text-red-600" />
+                  ) : classAvailability.isFull ? (
+                    <AlertCircle className="w-5 h-5 text-orange-600" />
+                  ) : (
+                    <CheckCircle className="w-5 h-5 text-green-600" />
+                  )}
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-gray-900 mb-1">
+                    {!classAvailability.canEnroll
+                      ? (classAvailability.isExpired ? 'Lớp học đã hết hạn' : 'Không thể thêm học viên')
+                      : classAvailability.isFull
+                        ? 'Lớp học đã đầy'
+                        : 'Có thể thêm học viên'}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    Sĩ số: <strong>{classAvailability.currentEnrollment}/{classAvailability.capacity}</strong>
+                    {classAvailability.availableSlots > 0 && (
+                      <span> (Còn lại: {classAvailability.availableSlots})</span>
+                    )}
+                    {classAvailability.isExpired && classAvailability.endDate && (
+                      <span className="ml-2 text-red-600">
+                        - Hết hạn vào {new Date(classAvailability.endDate).toLocaleDateString('vi-VN')}
+                      </span>
+                    )}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               {t('staff.class.detail.students.selectStudent')}
@@ -791,7 +848,12 @@ const ClassDetail = () => {
             <select
               value={selectedStudent || ''}
               onChange={(e) => setSelectedStudent(Number(e.target.value))}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              disabled={!classAvailability?.canEnroll}
+              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
+                !classAvailability?.canEnroll
+                  ? 'bg-gray-100 cursor-not-allowed opacity-60'
+                  : 'border-gray-300'
+              }`}
             >
               <option value="">{t('staff.class.detail.students.chooseStudent')}</option>
               {availableStudents.map(student => (
@@ -800,6 +862,13 @@ const ClassDetail = () => {
                 </option>
               ))}
             </select>
+            {!classAvailability?.canEnroll && classAvailability && (
+              <p className="mt-2 text-sm text-red-600">
+                {classAvailability.isExpired
+                  ? 'Không thể thêm học viên vào lớp đã hết hạn'
+                  : 'Lớp học đã đạt sĩ số tối đa'}
+              </p>
+            )}
           </div>
 
           <div className="flex justify-end space-x-3 pt-4">
@@ -808,11 +877,17 @@ const ClassDetail = () => {
               onClick={() => {
                 setShowAddStudentModal(false);
                 setSelectedStudent(null);
+                setClassAvailability(null);
               }}
             >
               {t('common.cancel')}
             </Button>
-            <Button variant="primary" onClick={handleAddStudent}>
+            <Button
+              variant="primary"
+              onClick={handleAddStudent}
+              disabled={!classAvailability?.canEnroll || !selectedStudent}
+              className={!classAvailability?.canEnroll ? 'opacity-50 cursor-not-allowed' : ''}
+            >
               {t('common.add', 'Thêm')}
             </Button>
           </div>
