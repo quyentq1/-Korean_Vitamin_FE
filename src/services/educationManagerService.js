@@ -8,6 +8,16 @@ const educationManagerService = {
 
     // ==================== COURSE MANAGEMENT ====================
 
+    uploadCourseThumbnail: async (file) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        return await axiosClient.post('/education-manager/upload/course-thumbnail', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        });
+    },
+
     getAllCourses: async () => {
         return await axiosClient.get('/education-manager/courses');
     },
@@ -74,10 +84,8 @@ const educationManagerService = {
         return await axiosClient.get(`/classes/${classId}/students`);
     },
 
-    addStudentToClass: async (classId, studentId) => {
-        return await axiosClient.post(`/classes/${classId}/students`, studentId, {
-            headers: { 'Content-Type': 'application/json' }
-        });
+    addStudentToClass: async (classId, requestData) => {
+        return await axiosClient.post(`/classes/${classId}/students`, requestData);
     },
 
     removeStudentFromClass: async (classId, studentId) => {
@@ -92,6 +100,14 @@ const educationManagerService = {
 
     getClassDetails: async (classId) => {
         return await axiosClient.get(`/classes/${classId}`);
+    },
+
+    checkClassAvailability: async (classId) => {
+        return await axiosClient.get(`/classes/${classId}/can-enroll`);
+    },
+
+    deleteClass: async (classId) => {
+        return await axiosClient.delete(`/classes/${classId}`);
     },
 
     createSchedule: async (classId, scheduleData) => {
