@@ -102,9 +102,18 @@ const CourseDetail = () => {
                             bgColor: 'bg-blue-500',
                             desc: `${data.code || ''} - ${data.schedule || ''}`,
                             fullDesc: data.description || 'Không có mô tả',
-                            whyLearn: ['Chương trình chuẩn quốc tế', 'Giảng viên giàu kinh nghiệm'],
+                            whyLearn: data.objectives ? data.objectives.split('\n').filter(Boolean) : ['Chương trình chuẩn quốc tế', 'Giảng viên giàu kinh nghiệm'],
                             curriculum: data.modules || [],
-                            fee: data.fee
+                            fee: data.fee ? `${data.fee.toLocaleString()}đ` : null,
+                            level: data.level,
+                            duration: data.duration,
+                            startDate: data.startDate,
+                            endDate: data.endDate,
+                            capacity: data.capacity,
+                            enrolledCount: data.enrolledCount,
+                            availableSlots: data.availableSlots,
+                            requirements: data.requirements,
+                            schedule: data.schedule
                         });
 
                         // Record course interest for guest users
@@ -184,6 +193,139 @@ const CourseDetail = () => {
 
                 {/* Content Sections */}
                 <div className="container mx-auto px-4 sm:px-6 py-8 sm:py-12">
+                    {/* Course Info Cards */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                        {/* Level Badge */}
+                        {course.level && (
+                            <div className="bg-white rounded-xl shadow-sm p-4 flex items-center gap-3">
+                                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-2xl">
+                                    {course.level === 'BEGINNER' ? '🌱' : course.level === 'INTERMEDIATE' ? '📚' : '🎯'}
+                                </div>
+                                <div>
+                                    <p className="text-xs text-gray-500">Độ khó</p>
+                                    <p className="font-semibold text-gray-900">
+                                        {course.level === 'BEGINNER' ? 'Cơ bản' : course.level === 'INTERMEDIATE' ? 'Trung cấp' : 'Nâng cao'}
+                                    </p>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Duration */}
+                        {course.duration && (
+                            <div className="bg-white rounded-xl shadow-sm p-4 flex items-center gap-3">
+                                <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center text-2xl">
+                                    ⏱️
+                                </div>
+                                <div>
+                                    <p className="text-xs text-gray-500">Thời lượng</p>
+                                    <p className="font-semibold text-gray-900">{course.duration} giờ</p>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Schedule */}
+                        {course.schedule && (
+                            <div className="bg-white rounded-xl shadow-sm p-4 flex items-center gap-3">
+                                <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center text-2xl">
+                                    📅
+                                </div>
+                                <div>
+                                    <p className="text-xs text-gray-500">Lịch học</p>
+                                    <p className="font-semibold text-gray-900 text-sm">{course.schedule}</p>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Requirements */}
+                    {course.requirements && (
+                        <div className="bg-white rounded-2xl shadow-sm p-6 sm:p-8 mb-6">
+                            <h2 className="text-2xl font-bold text-gray-900 mb-4">Yêu cầu khóa học</h2>
+                            <div className="text-gray-700 leading-relaxed whitespace-pre-line">
+                                {course.requirements}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Pass Criteria - NEW */}
+                    {(course.passCriteria || (course.level && course.duration)) && (
+                        <div className="bg-white rounded-2xl shadow-sm p-6 sm:p-8 mb-6">
+                            <h2 className="text-2xl font-bold text-gray-900 mb-4">Điều kiện qua môn</h2>
+
+                            {course.passCriteria ? (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {/* Passing Score */}
+                                    <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-2xl">🎯</span>
+                                                <span className="font-medium text-gray-900">Điểm qua môn</span>
+                                            </div>
+                                            <span className="text-2xl font-bold text-green-600">
+                                                {course.passCriteria.passingScore || 70}%
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    {/* Attendance */}
+                                    <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-2xl">📋</span>
+                                                <span className="font-medium text-gray-900">Điểm danh</span>
+                                            </div>
+                                            <span className="text-2xl font-bold text-blue-600">
+                                                {course.passCriteria.requiredAttendance || 80}%
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    {/* Certificate */}
+                                    {course.passCriteria.certificateCriteria && (
+                                        <div className="md:col-span-2 p-4 bg-purple-50 rounded-lg border border-purple-200">
+                                            <div className="flex items-start gap-2">
+                                                <span className="text-2xl">🏆</span>
+                                                <div>
+                                                    <p className="font-medium text-gray-900 mb-1">Cấp chứng chỉ</p>
+                                                    <p className="text-sm text-gray-700">{course.passCriteria.certificateCriteria}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            ) : (
+                                /* Default pass criteria if not specified */
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-2xl">🎯</span>
+                                                <span className="font-medium text-gray-900">Điểm qua môn</span>
+                                            </div>
+                                            <span className="text-2xl font-bold text-green-600">70%</span>
+                                        </div>
+                                    </div>
+
+                                    <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-2xl">📋</span>
+                                                <span className="font-medium text-gray-900">Điểm danh</span>
+                                            </div>
+                                            <span className="text-2xl font-bold text-blue-600">80%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className="mt-4 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+                                <p className="text-sm text-yellow-800">
+                                    <strong>💡 Lưu ý:</strong> Đạt điểm cao hơn yêu cầu sẽ giúp hồ sơ của bạn đẹp hơn khi xin việc hoặc du học!
+                                </p>
+                            </div>
+                        </div>
+                    )}
+
                     {/* Description */}
                     <div className="bg-white rounded-2xl shadow-sm p-6 sm:p-8 mb-6">
                         <h2 className="text-2xl font-bold text-gray-900 mb-4">{t('courseDetail.about', 'Về khóa học')}</h2>
@@ -204,6 +346,16 @@ const CourseDetail = () => {
                             ))}
                         </div>
                     </div>
+
+                    {/* Requirements */}
+                    {course.requirements && (
+                        <div className="bg-white rounded-2xl shadow-sm p-6 sm:p-8 mb-6">
+                            <h2 className="text-2xl font-bold text-gray-900 mb-4">Yêu cầu khóa học</h2>
+                            <div className="text-gray-700 leading-relaxed whitespace-pre-line">
+                                {course.requirements}
+                            </div>
+                        </div>
+                    )}
 
                     {/* Curriculum */}
                     {course.curriculum && course.curriculum.length > 0 && (
