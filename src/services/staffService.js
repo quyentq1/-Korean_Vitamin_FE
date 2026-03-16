@@ -258,6 +258,34 @@ export const staffService = {
     },
 
     /**
+     * Check if class can accept new students
+     * GET /api/classes/{id}/can-enroll
+     * Returns: { canEnroll, capacity, currentEnrollment, availableSlots, isExpired, endDate, isFull }
+     */
+    checkClassAvailability: async (classId) => {
+        try {
+            return await axiosClient.get(`/classes/${classId}/can-enroll`);
+        } catch (error) {
+            console.error('Error checking class availability:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * Delete a class
+     * DELETE /api/classes/{id}
+     * Note: Cannot delete class with active students
+     */
+    deleteClass: async (classId) => {
+        try {
+            return await axiosClient.delete(`/classes/${classId}`);
+        } catch (error) {
+            console.error('Error deleting class:', error);
+            throw error;
+        }
+    },
+
+    /**
      * Assign teacher to class
      * POST /api/classes/{id}/teachers?isPrimary={boolean}
      * Body: teacherId (number)
