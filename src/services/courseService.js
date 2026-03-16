@@ -11,6 +11,26 @@ export const courseService = {
         return await axiosClient.get(`/public/courses/${id}`);
     },
 
+    // Get course with complete test and pass criteria information
+    getCourseWithTests: async (id) => {
+        return await axiosClient.get(`/public/courses/${id}/with-tests`);
+    },
+
+    // Get pass criteria for a course
+    getPassCriteria: async (id) => {
+        return await axiosClient.get(`/public/courses/${id}/pass-criteria`);
+    },
+
+    // Education Manager: Update pass criteria
+    updatePassCriteria: async (id, criteria) => {
+        return await axiosClient.put(`/education-manager/courses/${id}/pass-criteria`, criteria);
+    },
+
+    // Education Manager: Update syllabus
+    updateSyllabus: async (id, syllabus) => {
+        return await axiosClient.put(`/education-manager/courses/${id}/syllabus`, { syllabus });
+    },
+
     // Education Manager: Get all courses (including drafts)
     getAllCourses: async () => {
         return await axiosClient.get('/education-manager/courses');
