@@ -29,10 +29,22 @@ const CourseCard = ({ course, onConsultationClick, status }) => {
             'INTERMEDIATE': { color: 'intermediate', label: 'Intermediate' },
             'ADVANCED': { color: 'advanced', label: 'Advanced' },
         };
-        return levelMap[level] || { color: 'neutral', label: level };
+        return levelMap[level] || { color: 'neutral', label: level || 'Beginner' };
     };
 
     const levelBadge = getLevelBadge(course.level);
+
+    // Format date for display
+    const formatDate = (dateString) => {
+        if (!dateString) return null;
+        const date = new Date(dateString);
+        return date.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    };
+
+    // Calculate available slots
+    const availableSlots = course.capacity !== undefined && course.enrolledCount !== undefined
+        ? course.capacity - course.enrolledCount
+        : null;
 
     return (
         <div
@@ -85,15 +97,15 @@ const CourseCard = ({ course, onConsultationClick, status }) => {
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
-                            <span>{course.duration} hours</span>
+                            <span>{course.duration} giờ</span>
                         </div>
                     )}
-                    {course.studentCount !== undefined && (
+                    {course.schedule && (
                         <div className="flex items-center gap-1">
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                             </svg>
-                            <span>{course.studentCount} students</span>
+                            <span>{course.schedule}</span>
                         </div>
                     )}
                 </div>
@@ -141,6 +153,10 @@ CourseCard.propTypes = {
         fee: PropTypes.number,
         duration: PropTypes.number,
         studentCount: PropTypes.number,
+        enrolledCount: PropTypes.number,
+        capacity: PropTypes.number,
+        startDate: PropTypes.string,
+        endDate: PropTypes.string,
         imageUrl: PropTypes.string,
         status: PropTypes.oneOf(['OPENING', 'COMING_SOON', 'CLOSED']),
     }).isRequired,
