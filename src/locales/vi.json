@@ -215,7 +215,21 @@
             "module2": "Hội thoại hàng ngày",
             "module3": "Văn hóa giao tiếp",
             "module4": "Thực hành tình huống"
-        }
+        },
+        "level": "Độ khó",
+        "enrolled": "Đã đăng ký",
+        "capacity": "Sức chứa",
+        "availableSlots": "Còn lại",
+        "startDate": "Ngày bắt đầu",
+        "endDate": "Ngày kết thúc",
+        "requirements": "Yêu cầu",
+        "objectives": "Mục tiêu",
+        "beginner": "Cơ bản",
+        "intermediate": "Trung cấp",
+        "advanced": "Nâng cao",
+        "courseInfo": "Thông tin khóa học",
+        "enrollmentInfo": "Thông tin tuyển sinh",
+        "timeInfo": "Thời gian khai giảng"
     },
     "freeTest": {
         "title": "Bài Test Miễn Phí",
