@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Plus, Search, Edit2, Trash2, Eye, CheckCircle, XCircle, Archive, RefreshCw } from 'lucide-react';
 import educationManagerService from '../../services/educationManagerService';
 import Swal from 'sweetalert2';
+import CourseDetailModal from '../../components/EducationManager/CourseDetailModal';
 
 const statusConfig = {
     PUBLISHED: { label: 'Đã publish', color: 'bg-green-100 text-green-700' },
@@ -17,6 +18,7 @@ const EduCourseManagement = () => {
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
+    const [selectedCourse, setSelectedCourse] = useState(null);
 
     const fetchCourses = async () => {
         try {
@@ -152,6 +154,7 @@ const EduCourseManagement = () => {
                                         </td>
                                         <td className="px-5 py-4">
                                             <div className="flex items-center gap-1">
+                                                <button onClick={() => setSelectedCourse(course)} className="p-1.5 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50" title="Xem chi tiết"><Eye className="w-4 h-4" /></button>
                                                 <button onClick={() => navigate(`/edu-manager/courses/edit/${course.id}`)} className="p-1.5 rounded-lg text-gray-400 hover:text-violet-600 hover:bg-violet-50"><Edit2 className="w-4 h-4" /></button>
                                                 <button onClick={() => handlePublish(course)} className={`p-1.5 rounded-lg ${course.status === 'PUBLISHED' ? 'text-amber-400 hover:bg-amber-50' : 'text-green-500 hover:bg-green-50'}`} title={course.status === 'PUBLISHED' ? 'Unpublish' : 'Publish'}>
                                                     {course.status === 'PUBLISHED' ? <XCircle className="w-4 h-4" /> : <CheckCircle className="w-4 h-4" />}
@@ -166,6 +169,14 @@ const EduCourseManagement = () => {
                     </div>
                 )}
             </div>
+
+            {/* Course Detail Modal */}
+            {selectedCourse && (
+                <CourseDetailModal
+                    course={selectedCourse}
+                    onClose={() => setSelectedCourse(null)}
+                />
+            )}
         </div>
     );
 };
