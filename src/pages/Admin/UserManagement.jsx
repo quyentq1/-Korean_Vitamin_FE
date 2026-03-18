@@ -26,6 +26,10 @@ const UserManagement = () => {
     const [showUnlockModal, setShowUnlockModal] = useState(false);
     const [currentUser, setCurrentUser] = useState(null);
     const [importFile, setImportFile] = useState(null);
+
+    // Form states for Add/Edit User
+    const [newUser, setNewUser] = useState({ fullName: '', email: '', password: '', role: 'STUDENT' });
+    const [editUser, setEditUser] = useState({ fullName: '', email: '', role: '', active: true });
     const [importPreview, setImportPreview] = useState(null);
     const [importing, setImporting] = useState(false);
     
@@ -56,30 +60,39 @@ const UserManagement = () => {
             
             // Status filter
             if (statusFilter !== 'all') {
-                filtered = filtered.filter(user => user.status === statusFilter);
+                filtered = filtered.filter(user => {
+                    const isActive = user.active !== undefined ? user.active : (user.status === 'active');
+                    if (statusFilter === 'active') return isActive;
+                    if (statusFilter === 'inactive') return !isActive;
+                    return user.status === statusFilter;
+                });
             }
-            
+
             // Search filter
             if (searchTerm) {
-                filtered = filtered.filter(user => 
-                    user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                filtered = filtered.filter(user =>
+                    (user.fullName || user.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
                     user.email.toLowerCase().includes(searchTerm.toLowerCase())
                 );
             }
-            
+
             // Sort
             filtered.sort((a, b) => {
                 let comparison = 0;
                 if (sortBy === 'name') {
-                    comparison = a.name.localeCompare(b.name);
+                    const aName = a.fullName || a.name || '';
+                    const bName = b.fullName || b.name || '';
+                    comparison = aName.localeCompare(bName);
                 } else if (sortBy === 'email') {
                     comparison = a.email.localeCompare(b.email);
                 } else if (sortBy === 'role') {
                     comparison = a.role.localeCompare(b.role);
                 } else if (sortBy === 'status') {
-                    comparison = a.status.localeCompare(b.status);
+                    const aStatus = a.active !== undefined ? (a.active ? 'active' : 'inactive') : (a.status || '');
+                    const bStatus = b.active !== undefined ? (b.active ? 'active' : 'inactive') : (b.status || '');
+                    comparison = aStatus.localeCompare(bStatus);
                 } else if (sortBy === 'lastLogin') {
-                    comparison = new Date(a.lastLogin) - new Date(b.lastLogin);
+                    comparison = new Date(a.lastLogin || 0) - new Date(b.lastLogin || 0);
                 }
                 return sortOrder === 'asc' ? comparison : -comparison;
             });
@@ -194,6 +207,33 @@ const UserManagement = () => {
         } catch (error) {
             console.error("Failed to unlock account:", error);
             setError(t('userMgmt.unlockError', 'Không thể mở khóa tài khoản'));
+        }
+    };
+
+    // Handle Add User
+    const handleAddUser = async () => {
+        try {
+            await userService.createUser(newUser);
+            setNewUser({ fullName: '', email: '', password: '', role: 'STUDENT' });
+            setShowAddUserModal(false);
+            await fetchUsers();
+        } catch (error) {
+            console.error("Failed to create user:", error);
+            setError(t('userMgmt.createError', 'Không thể tạo người dùng'));
+        }
+    };
+
+    // Handle Edit User
+    const handleEditUser = async () => {
+        try {
+            await userService.updateUser(currentUser.id, editUser);
+            setEditUser({ fullName: '', email: '', role: '', active: true });
+            setShowEditUserModal(false);
+            setCurrentUser(null);
+            await fetchUsers();
+        } catch (error) {
+            console.error("Failed to update user:", error);
+            setError(t('userMgmt.updateError', 'Không thể cập nhật người dùng'));
         }
     };
 
@@ -378,7 +418,16 @@ const UserManagement = () => {
                         variant="ghost"
                         size="sm"
                         icon="👁️"
-                        onClick={() => navigate(`/user-management/${row.id}`)}
+                        onClick={() => {
+                            setCurrentUser(row);
+                            setEditUser({
+                                fullName: row.fullName || row.name || '',
+                                email: row.email || '',
+                                role: row.role || '',
+                                active: row.active !== undefined ? row.active : (row.status === 'active')
+                            });
+                            setShowEditUserModal(true);
+                        }}
                         title={t('userMgmt.view', 'Xem')}
                     />
                     <Button
@@ -387,6 +436,12 @@ const UserManagement = () => {
                         icon="✏️"
                         onClick={() => {
                             setCurrentUser(row);
+                            setEditUser({
+                                fullName: row.fullName || row.name || '',
+                                email: row.email || '',
+                                role: row.role || '',
+                                active: row.active !== undefined ? row.active : (row.status === 'active')
+                            });
                             setShowEditUserModal(true);
                         }}
                         title={t('userMgmt.edit', 'Sửa')}
@@ -503,11 +558,12 @@ const UserManagement = () => {
                             icon="👤"
                         >
                             <option value="all">{t('userMgmt.allRoles', 'Tất cả')}</option>
-                            <option value="Learner">{t('userMgmt.learner', 'Học viên')}</option>
-                            <option value="Teacher">{t('userMgmt.teacher', 'Giảng viên')}</option>
-                            <option value="Staff">{t('userMgmt.staff', 'Nhân viên')}</option>
-                            <option value="Manager">{t('userMgmt.manager', 'Quản lý')}</option>
-                            <option value="Admin">{t('userMgmt.admin', 'Quản trị viên')}</option>
+                            <option value="STUDENT">{t('userMgmt.learner', 'Học viên')}</option>
+                            <option value="TEACHER">{t('userMgmt.teacher', 'Giảng viên')}</option>
+                            <option value="STAFF">{t('userMgmt.staff', 'Nhân viên')}</option>
+                            <option value="MANAGER">{t('userMgmt.manager', 'Quản lý')}</option>
+                            <option value="EDUCATION_MANAGER">{t('userMgmt.eduManager', 'Giáo dục viên')}</option>
+                            <option value="ADMIN">{t('userMgmt.admin', 'Quản trị viên')}</option>
                         </Input>
                     </div>
                     
@@ -683,10 +739,7 @@ const UserManagement = () => {
                         <Button variant="ghost" onClick={() => setShowAddUserModal(false)}>
                             {t('common.cancel', 'Hủy')}
                         </Button>
-                        <Button variant="primary" onClick={async () => {
-                            // TODO: Implement add user logic
-                            setShowAddUserModal(false);
-                        }}>
+                        <Button variant="primary" onClick={handleAddUser}>
                             {t('common.create', 'Tạo')}
                         </Button>
                     </>
@@ -697,27 +750,35 @@ const UserManagement = () => {
                         type="text"
                         label={t('userMgmt.name', 'Tên đầy đủ')}
                         placeholder={t('userMgmt.namePlaceholder', 'Nhập tên...')}
+                        value={newUser.fullName}
+                        onChange={(e) => setNewUser({ ...newUser, fullName: e.target.value })}
                     />
                     <Input
                         type="email"
                         label={t('userMgmt.email', 'Email')}
                         placeholder={t('userMgmt.emailPlaceholder', 'Nhập email...')}
+                        value={newUser.email}
+                        onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
                     />
                     <Input
                         type="password"
                         label={t('userMgmt.password', 'Mật khẩu')}
                         placeholder={t('userMgmt.passwordPlaceholder', 'Nhập mật khẩu...')}
+                        value={newUser.password}
+                        onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
                     />
                     <Input
                         type="select"
                         label={t('userMgmt.role', 'Vai trò')}
                         placeholder={t('userMgmt.rolePlaceholder', 'Chọn vai trò...')}
+                        value={newUser.role}
+                        onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
                     >
-                        <option value="Learner">{t('userMgmt.learner', 'Học viên')}</option>
-                        <option value="Teacher">{t('userMgmt.teacher', 'Giảng viên')}</option>
-                        <option value="Staff">{t('userMgmt.staff', 'Nhân viên')}</option>
-                        <option value="Manager">{t('userMgmt.manager', 'Quản lý')}</option>
-                        <option value="Admin">{t('userMgmt.admin', 'Quản trị viên')}</option>
+                        <option value="STUDENT">{t('userMgmt.learner', 'Học viên')}</option>
+                        <option value="TEACHER">{t('userMgmt.teacher', 'Giảng viên')}</option>
+                        <option value="STAFF">{t('userMgmt.staff', 'Nhân viên')}</option>
+                        <option value="MANAGER">{t('userMgmt.manager', 'Quản lý')}</option>
+                        <option value="ADMIN">{t('userMgmt.admin', 'Quản trị viên')}</option>
                     </Input>
                 </div>
             </Modal>
@@ -739,10 +800,7 @@ const UserManagement = () => {
                         }}>
                             {t('common.cancel', 'Hủy')}
                         </Button>
-                        <Button variant="primary" onClick={async () => {
-                            // TODO: Implement edit user logic
-                            setShowEditUserModal(false);
-                        }}>
+                        <Button variant="primary" onClick={handleEditUser}>
                             {t('common.save', 'Lưu thay đổi')}
                         </Button>
                     </>
@@ -753,37 +811,40 @@ const UserManagement = () => {
                         <Input
                             type="text"
                             label={t('userMgmt.name', 'Tên đầy đủ')}
-                            defaultValue={currentUser.name}
+                            value={editUser.fullName || ''}
                             placeholder={t('userMgmt.namePlaceholder', 'Nhập tên...')}
+                            onChange={(e) => setEditUser({ ...editUser, fullName: e.target.value })}
                         />
                         <Input
                             type="email"
                             label={t('userMgmt.email', 'Email')}
-                            defaultValue={currentUser.email}
+                            value={editUser.email || ''}
                             placeholder={t('userMgmt.emailPlaceholder', 'Nhập email...')}
+                            onChange={(e) => setEditUser({ ...editUser, email: e.target.value })}
                         />
                         <Input
                             type="select"
                             label={t('userMgmt.role', 'Vai trò')}
-                            defaultValue={currentUser.role}
+                            value={editUser.role || ''}
                             placeholder={t('userMgmt.rolePlaceholder', 'Chọn vai trò...')}
+                            onChange={(e) => setEditUser({ ...editUser, role: e.target.value })}
                         >
-                            <option value="Learner">{t('userMgmt.learner', 'Học viên')}</option>
-                            <option value="Teacher">{t('userMgmt.teacher', 'Giảng viên')}</option>
-                            <option value="Staff">{t('userMgmt.staff', 'Nhân viên')}</option>
-                            <option value="Manager">{t('userMgmt.manager', 'Quản lý')}</option>
-                            <option value="Admin">{t('userMgmt.admin', 'Quản trị viên')}</option>
+                            <option value="STUDENT">{t('userMgmt.learner', 'Học viên')}</option>
+                            <option value="TEACHER">{t('userMgmt.teacher', 'Giảng viên')}</option>
+                            <option value="STAFF">{t('userMgmt.staff', 'Nhân viên')}</option>
+                            <option value="MANAGER">{t('userMgmt.manager', 'Quản lý')}</option>
+                            <option value="EDUCATION_MANAGER">{t('userMgmt.eduManager', 'Giáo dục viên')}</option>
+                            <option value="ADMIN">{t('userMgmt.admin', 'Quản trị viên')}</option>
                         </Input>
                         <Input
                             type="select"
                             label={t('userMgmt.status', 'Trạng thái')}
-                            defaultValue={currentUser.status}
+                            value={editUser.active !== undefined ? (editUser.active ? 'true' : 'false') : ''}
                             placeholder={t('userMgmt.statusPlaceholder', 'Chọn trạng thái...')}
+                            onChange={(e) => setEditUser({ ...editUser, active: e.target.value === 'true' })}
                         >
-                            <option value="active">{t('userMgmt.active', 'Hoạt động')}</option>
-                            <option value="inactive">{t('userMgmt.inactive', 'Không hoạt động')}</option>
-                            <option value="pending">{t('userMgmt.pending', 'Chờ duyệt')}</option>
-                            <option value="suspended">{t('userMgmt.suspended', 'Tạm khóa')}</option>
+                            <option value="true">{t('userMgmt.active', 'Hoạt động')}</option>
+                            <option value="false">{t('userMgmt.inactive', 'Không hoạt động')}</option>
                         </Input>
                     </div>
                 )}
