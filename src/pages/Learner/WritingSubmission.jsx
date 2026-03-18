@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { 
-  FileText, 
-  Send, 
-  Clock, 
-  CheckCircle, 
-  AlertCircle, 
-  Download, 
+import studentService from '../../services/studentService';
+import {
+  FileText,
+  Send,
+  Clock,
+  CheckCircle,
+  AlertCircle,
+  Download,
   RefreshCw,
   Bold,
   Italic,
@@ -118,15 +119,12 @@ const WritingSubmission = () => {
     setLoading(true);
     setError('');
     try {
-      // TODO: Replace with actual API call
-      // const data = await studentService.getWritingSubmissions();
-      // setSubmissions(data || []);
-      
-      // Using mock data for now
-      setSubmissions(mockSubmissions);
+      const data = await studentService.getWritingSubmissions();
+      setSubmissions(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error('Error fetching submissions:', err);
       setError(t('writing.error.fetchFailed', 'Không thể tải danh sách bài nộp. Vui lòng thử lại sau.'));
+      setSubmissions([]);
     } finally {
       setLoading(false);
     }

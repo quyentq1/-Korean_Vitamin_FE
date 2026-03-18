@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Search } from 'lucide-react';
+import studentService from '../../services/studentService';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 import {
@@ -38,129 +39,28 @@ const TestLibrary = () => {
   const [selectedDifficulty, setSelectedDifficulty] = useState('all');
   const [selectedStatus, setSelectedStatus] = useState('all');
 
-  // Mock test data - will be replaced with API call
-  const [tests, setTests] = useState([
-    {
-      id: 1,
-      title: 'TOPIK I - Listening',
-      course: 'TOPIK I',
-      category: 'Listening',
-      difficulty: 'beginner',
-      duration: 60,
-      questions: 40,
-      status: 'available',
-      attempts: 0,
-      bestScore: 0,
-      description: 'Bài test nghe hiểu cơ bản cho người mới bắt đầu học tiếng Hàn.',
-      thumbnail: '🎧',
-      tags: ['TOPIK I', 'Listening', 'Beginner']
-    },
-    {
-      id: 2,
-      title: 'TOPIK I - Reading',
-      course: 'TOPIK I',
-      category: 'Reading',
-      difficulty: 'beginner',
-      duration: 60,
-      questions: 40,
-      status: 'completed',
-      attempts: 2,
-      bestScore: 85,
-      description: 'Bài test đọc hiểu cơ bản cho người mới bắt đầu học tiếng Hàn.',
-      thumbnail: '📖',
-      tags: ['TOPIK I', 'Reading', 'Beginner']
-    },
-    {
-      id: 3,
-      title: 'TOPIK II - Listening',
-      course: 'TOPIK II',
-      category: 'Listening',
-      difficulty: 'intermediate',
-      duration: 90,
-      questions: 60,
-      status: 'available',
-      attempts: 0,
-      bestScore: 0,
-      description: 'Bài test nghe nâng cao cho người đã có nền tảng tiếng Hàn.',
-      thumbnail: '🎧',
-      tags: ['TOPIK II', 'Listening', 'Intermediate']
-    },
-    {
-      id: 4,
-      title: 'TOPIK II - Reading',
-      course: 'TOPIK II',
-      category: 'Reading',
-      difficulty: 'intermediate',
-      duration: 90,
-      questions: 60,
-      status: 'in-progress',
-      attempts: 1,
-      bestScore: 72,
-      description: 'Bài test đọc nâng cao cho người đã có nền tảng tiếng Hàn.',
-      thumbnail: '📖',
-      tags: ['TOPIK II', 'Reading', 'Intermediate']
-    },
-    {
-      id: 5,
-      title: 'TOPIK II - Writing',
-      course: 'TOPIK II',
-      category: 'Writing',
-      difficulty: 'advanced',
-      duration: 60,
-      questions: 30,
-      status: 'available',
-      attempts: 0,
-      bestScore: 0,
-      description: 'Bài test viết nâng cao cho người đã có nền tảng tiếng Hàn.',
-      thumbnail: '✍️',
-      tags: ['TOPIK II', 'Writing', 'Advanced']
-    },
-    {
-      id: 6,
-      title: 'Grammar Practice Test',
-      course: 'TOPIK II',
-      category: 'Grammar',
-      difficulty: 'intermediate',
-      duration: 45,
-      questions: 25,
-      status: 'completed',
-      attempts: 3,
-      bestScore: 88,
-      description: 'Bài tập ngữ pháp nâng cao.',
-      thumbnail: '📝',
-      tags: ['TOPIK II', 'Grammar', 'Intermediate']
-    },
-    {
-      id: 7,
-      title: 'Speaking Mock Test',
-      course: 'TOPIK II',
-      category: 'Speaking',
-      difficulty: 'advanced',
-      duration: 30,
-      questions: 20,
-      status: 'available',
-      attempts: 0,
-      bestScore: 0,
-      description: 'Bài test nói mô phỏng thi TOPIK II.',
-      thumbnail: '🗣️',
-      tags: ['TOPIK II', 'Speaking', 'Advanced']
-    },
-    {
-      id: 8,
-      title: 'TOPIK I - Listening 2',
-      course: 'TOPIK I',
-      category: 'Listening',
-      difficulty: 'beginner',
-      duration: 60,
-      questions: 40,
-      status: 'locked',
-      attempts: 0,
-      bestScore: 0,
-      description: 'Bạn cần hoàn thành bài test TOPIK I trước khi làm bài test này.',
-      thumbnail: '🔒',
-      tags: ['TOPIK I', 'Listening', 'Beginner']
-    },
-  ]);
+  // Tests from API
+  const [tests, setTests] = useState([]);
+
+  // Fetch exams from API
+  useEffect(() => {
+    const fetchExams = async () => {
+      try {
+        setLoading(true);
+        setError('');
+        const data = await studentService.getAvailableExams();
+        setTests(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error('Failed to fetch exams:', err);
+        setError(err?.message || 'Không thể tải danh sách bài test');
+        setTests([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchExams();
+  }, []);
 
   // Filter tests based on search, category, difficulty, and status
   const filteredTests = tests.filter(test => {
