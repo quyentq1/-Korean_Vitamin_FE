@@ -266,11 +266,12 @@ const ClassManagement = () => {
     e.preventDefault();
     const studentId = e.target.studentId.value;
     try {
-      // TODO: Implement when backend API is ready
-      // await staffService.addStudentToClass(selectedClass.id, studentId);
+      // BUG-16 FIX: Implemented actual API call
+      const service = isManager ? educationManagerService : staffService;
+      await service.addStudentToClass(selectedClass.id, { studentId: Number(studentId) });
       setAlert({ show: true, type: 'success', message: t('classManagement.addStudentSuccess') || 'Thêm học viên thành công' });
-      // const students = await staffService.getClassStudents(selectedClass.id);
-      // setClassStudents(students || []);
+      const students = await service.getClassStudents(selectedClass.id);
+      setClassStudents(students || []);
       e.target.reset();
     } catch (error) {
       console.error('Error adding student:', error);
@@ -302,9 +303,8 @@ const ClassManagement = () => {
     setSelectedClass(cls);
     setIsScheduleModalOpen(true);
     try {
-      // TODO: Implement when backend API is ready
-      // const data = await staffService.getClassSchedules(cls.id);
-      const data = [];
+      // BUG-14 FIX: Implemented actual API call
+      const data = await staffService.getSchedules(cls.id);
       setSchedules(data || []);
     } catch (error) {
       console.error('Error fetching schedules:', error);
@@ -317,8 +317,8 @@ const ClassManagement = () => {
     e.preventDefault();
     setActionLoading(true);
     try {
-      // TODO: Implement when backend API is ready
-      // await staffService.createSchedule(selectedClass.id, newSchedule);
+      // BUG-14 FIX: Implemented actual API call
+      await staffService.createSchedule(selectedClass.id, newSchedule);
       setAlert({ show: true, type: 'success', message: t('classManagement.createScheduleSuccess') || 'Tạo lịch học thành công' });
       setIsScheduleModalOpen(false);
       setNewSchedule({
@@ -342,9 +342,8 @@ const ClassManagement = () => {
     setSelectedSchedule(schedule);
     setIsAttendanceModalOpen(true);
     try {
-      // TODO: Implement when backend API is ready
-      // const atts = await staffService.getAttendance(schedule.id);
-      const atts = [];
+      // BUG-15 FIX: Implemented actual API call
+      const atts = await staffService.getAttendanceForSchedule(schedule.id);
       if (atts && atts.length > 0) {
         setAttendanceList(atts.map(a => ({
           studentId: a.studentId,
@@ -354,8 +353,7 @@ const ClassManagement = () => {
         })));
       } else {
         // Auto-init attendance records for all students
-        // const students = await staffService.getClassStudents(selectedClass.id);
-        const students = [];
+        const students = await staffService.getClassStudents(selectedClass.id);
         setAttendanceList((students || []).map(s => ({
           studentId: s.id,
           studentName: s.fullName,
@@ -378,8 +376,8 @@ const ClassManagement = () => {
         studentId: a.studentId,
         status: a.status
       }));
-      // TODO: Implement when backend API is ready
-      // await staffService.markAttendance(selectedSchedule.id, payload);
+      // BUG-15 FIX: Implemented actual API call
+      await staffService.markAttendance(selectedSchedule.id, payload);
       setAlert({ show: true, type: 'success', message: t('classManagement.saveAttendanceSuccess') || 'Lưu điểm danh thành công' });
       setIsAttendanceModalOpen(false);
     } catch (error) {
@@ -394,8 +392,8 @@ const ClassManagement = () => {
   const handleDeleteClass = async (cls) => {
     if (window.confirm(t('classManagement.deleteConfirmation') || `Bạn có chắc muốn xóa lớp ${cls.className}?`)) {
       try {
-        // TODO: Implement when backend API is ready
-        // await staffService.deleteClass(cls.id);
+        // BUG-13 FIX: Implemented actual API call
+        await staffService.deleteClass(cls.id);
         setAlert({ show: true, type: 'success', message: t('classManagement.deleteSuccess') || 'Xóa lớp thành công' });
         fetchClasses();
       } catch (error) {
