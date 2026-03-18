@@ -7,6 +7,8 @@ import EduCourseManagement from './pages/EducationManager/EduCourseManagement';
 import EduCourseForm from './pages/EducationManager/EduCourseForm';
 import EduTestManagement from './pages/EducationManager/EduTestManagement';
 import EduTestEditor from './pages/EducationManager/EduTestEditor';
+import EduTeacherManagement from './pages/EducationManager/EduTeacherManagement';
+import EduStudentManagement from './pages/EducationManager/EduStudentManagement';
 import StaffLayout from './components/layouts/StaffLayout';
 import TeacherLayout from './components/layouts/TeacherLayout';
 import CourseList from './pages/Courses/CourseList';
@@ -293,6 +295,9 @@ function App() {
             <Route path="classes/:id" element={<ClassDetail />} />
             <Route path="tests/create" element={<EduTestEditor />} />
             <Route path="tests/edit/:id" element={<EduTestEditor />} />
+            {/* BUG-34, EM-BUG-02, EM-BUG-15, EM-BUG-18 FIX: Added missing routes */}
+            <Route path="teachers" element={<EduTeacherManagement />} />
+            <Route path="students" element={<EduStudentManagement />} />
           </Route>
 
           {/* Manager Routes - Manager Only */}
