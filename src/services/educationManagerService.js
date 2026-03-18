@@ -120,28 +120,29 @@ const educationManagerService = {
 
     // ==================== TEST / EXAM MANAGEMENT ====================
 
+    // BUG-26, EM-BUG-07,08,09,10,11,12 FIX: Changed from /admin/exams to /education-manager/exams
     getExamsByCourse: async (courseId) => {
-        return await axiosClient.get(`/admin/exams/course/${courseId}`);
+        return await axiosClient.get(`/education-manager/exams/course/${courseId}`);
     },
 
     getExamById: async (id) => {
-        return await axiosClient.get(`/admin/exams/${id}`);
+        return await axiosClient.get(`/education-manager/exams/${id}`);
     },
 
     createExam: async (examData) => {
-        return await axiosClient.post('/admin/exams', examData);
+        return await axiosClient.post('/education-manager/exams', examData);
     },
 
     updateExam: async (id, examData) => {
-        return await axiosClient.put(`/admin/exams/${id}`, examData);
+        return await axiosClient.put(`/education-manager/exams/${id}`, examData);
     },
 
     deleteExam: async (id) => {
-        return await axiosClient.delete(`/admin/exams/${id}`);
+        return await axiosClient.delete(`/education-manager/exams/${id}`);
     },
 
     publishExam: async (id, published) => {
-        return await axiosClient.post(`/admin/exams/${id}/publish`, { published });
+        return await axiosClient.post(`/education-manager/exams/${id}/publish`, { published });
     },
 
     // Get all questions from QuestionBank (created by Teachers)
