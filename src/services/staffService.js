@@ -210,7 +210,8 @@ export const staffService = {
      */
     updateClass: async (classId, classData) => {
         try {
-            return await axiosClient.put(`/staff/classes/${classId}`, classData);
+            // BUG-01 FIX: Changed from /staff/classes/${classId} to /classes/${classId}
+            return await axiosClient.put(`/classes/${classId}`, classData);
         } catch (error) {
             console.error('Error updating class:', error);
             throw error;
@@ -223,7 +224,8 @@ export const staffService = {
      */
     getClassStudents: async (classId) => {
         try {
-            return await axiosClient.get(`/staff/classes/${classId}/students`);
+            // BUG-02 FIX: Changed from /staff/classes/${classId}/students to /classes/${classId}/students
+            return await axiosClient.get(`/classes/${classId}/students`);
         } catch (error) {
             console.error('Error fetching class students:', error);
             throw error;
