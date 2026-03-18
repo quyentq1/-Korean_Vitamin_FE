@@ -129,6 +129,58 @@ export const studentService = {
             // Return empty array if endpoint doesn't exist yet
             return { data: [] };
         }
+    },
+
+    // ==================== DASHBOARD METHODS ====================
+
+    // BUG-STU-01 FIX: Added getExamResults method
+    getExamResults: async () => {
+        try {
+            const response = await axiosClient.get('/student/results');
+            return {
+                results: response.data,
+                studyHours: 0,
+                classesAttended: 0
+            };
+        } catch (error) {
+            console.error('Error fetching exam results:', error);
+            throw error;
+        }
+    },
+
+    // BUG-STU-01 FIX: Added getLearningProgress method
+    getLearningProgress: async () => {
+        try {
+            const response = await axiosClient.get('/student/enrollments');
+            // Transform enrollments to progress format
+            return response.data.map(enrollment => ({
+                courseId: enrollment.courseId,
+                courseName: enrollment.courseName,
+                progress: enrollment.progress || 0,
+                status: enrollment.status
+            }));
+        } catch (error) {
+            console.error('Error fetching learning progress:', error);
+            throw error;
+        }
+    },
+
+    // BUG-STU-01 FIX: Added getUpcomingClasses method
+    getUpcomingClasses: async () => {
+        try {
+            const response = await axiosClient.get('/student/my-classes');
+            // Filter for upcoming classes and return formatted data
+            return response.data.map(classStudent => ({
+                id: classStudent.classId,
+                className: classStudent.className,
+                schedule: classStudent.schedule,
+                teacher: classStudent.teacher,
+                startTime: classStudent.startTime
+            }));
+        } catch (error) {
+            console.error('Error fetching upcoming classes:', error);
+            throw error;
+        }
     }
 };
 

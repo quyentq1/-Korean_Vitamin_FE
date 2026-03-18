@@ -52,7 +52,7 @@ const SpeakingSubmission = () => {
     const fetchAssignmentDetails = async () => {
         try {
             setLoading(true);
-            const response = await axiosClient.get(`/api/learner/speaking-assignments/${assignmentId}`);
+            const response = await axiosClient.get(`/api/student/speaking-assignments/${assignmentId}`);
             setAssignment(response.data);
         } catch (error) {
             Swal.fire({
@@ -68,7 +68,7 @@ const SpeakingSubmission = () => {
 
     const fetchSubmissionHistory = async () => {
         try {
-            const response = await axiosClient.get(`/api/learner/speaking-assignments/${assignmentId}/submissions`);
+            const response = await axiosClient.get(`/api/student/speaking-assignments/${assignmentId}/submissions`);
             setSubmissionHistory(response.data);
         } catch (error) {
             console.error('Error fetching submission history:', error);
@@ -224,7 +224,7 @@ const SpeakingSubmission = () => {
                 formData.append('audioFile', uploadedFile.file);
             }
 
-            await axiosClient.post(`/api/learner/speaking-assignments/${assignmentId}/submit`, formData, {
+            await axiosClient.post(`/api/student/speaking-assignments/${assignmentId}/submit`, formData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
 
