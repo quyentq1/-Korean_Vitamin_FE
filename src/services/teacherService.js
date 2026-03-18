@@ -6,12 +6,21 @@ export const teacherService = {
         return await axiosClient.get('/teacher/grading/pending');
     },
 
+    // BUG-03 FIX: Changed from /teacher/grading/${attemptId}/answers to /teacher/attempts/${attemptId}
     getGradingAnswers: async (attemptId) => {
-        return await axiosClient.get(`/teacher/grading/${attemptId}/answers`);
+        return await axiosClient.get(`/teacher/attempts/${attemptId}`);
     },
 
-    submitGrading: async (attemptId, answers) => {
-        return await axiosClient.post(`/teacher/grading/${attemptId}/submit`, answers);
+    // BUG-04 FIX: Changed endpoint and body format
+    // Old: POST /teacher/grading/${attemptId}/submit with answers array
+    // New: POST /teacher/grading/grade with { attemptId, examQuestionId, score, feedback }
+    submitGrading: async (attemptId, examQuestionId, score, feedback) => {
+        return await axiosClient.post('/teacher/grading/grade', {
+            attemptId,
+            examQuestionId,
+            score,
+            feedback
+        });
     },
 
     // Sessions
