@@ -66,24 +66,8 @@ const EduCourseForm = () => {
             }
 
             try {
-                // Create FormData for upload
-                const formData = new FormData();
-                formData.append('file', file);
-
-                // Upload to Cloudinary
-                const response = await fetch('http://localhost:8080/api/education-manager/upload/course-thumbnail', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    },
-                    body: formData
-                });
-
-                if (!response.ok) {
-                    throw new Error('Upload failed');
-                }
-
-                const data = await response.json();
+                // BUG-EM-04 FIX: Use educationManagerService instead of hardcoded fetch
+                const data = await educationManagerService.uploadCourseThumbnail(file);
 
                 console.log('[EduCourseForm] Upload successful, Cloudinary URL:', data.url);
                 console.log('[EduCourseForm] OLD form.thumbnailUrl:', form.thumbnailUrl);
