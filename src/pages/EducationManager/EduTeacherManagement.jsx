@@ -43,7 +43,7 @@ const EduTeacherManagement = () => {
         if (!selectedClass) return Swal.fire('Chú ý', 'Vui lòng chọn lớp học trước', 'warning');
         setAssigning(true);
         try {
-            await educationManagerService.assignTeacherToClass(selectedClass, teacherId, false);
+            await educationManagerService.assignTeacherToClass(selectedClass, Number(teacherId), false);
             fetchClassTeachers(selectedClass);
             Swal.fire({ icon: 'success', title: 'Đã assign!', toast: true, timer: 1500, showConfirmButton: false, position: 'top-end' });
         } catch (e) {

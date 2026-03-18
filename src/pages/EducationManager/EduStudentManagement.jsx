@@ -44,7 +44,7 @@ const EduStudentManagement = () => {
         if (!selectedClass) return Swal.fire('Chú ý', 'Vui lòng chọn lớp học trước', 'warning');
         setAssigning(true);
         try {
-            await educationManagerService.addStudentToClass(selectedClass, studentId);
+            await educationManagerService.addStudentToClass(selectedClass, { studentId: Number(studentId) });
             fetchClassStudents(selectedClass);
             Swal.fire({ icon: 'success', title: 'Đã thêm học viên!', toast: true, timer: 1500, showConfirmButton: false, position: 'top-end' });
         } catch (e) {
