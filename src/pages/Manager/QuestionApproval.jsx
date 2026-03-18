@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CheckCircle, XCircle, Eye, Filter, RefreshCw } from 'lucide-react';
+import managerService from '../../services/managerService';
 import Swal from 'sweetalert2';
 
 /**
@@ -16,8 +17,23 @@ const QuestionApproval = () => {
     const [showDetailModal, setShowDetailModal] = useState(false);
 
     const fetchPendingQuestions = async () => {
-        // In real implementation, fetch from API
-        setLoading(false);
+        try {
+            setLoading(true);
+            const data = await managerService.getPendingQuestions();
+            setQuestions(Array.isArray(data) ? data : []);
+        } catch (error) {
+            console.error('Failed to fetch questions:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Lỗi',
+                text: 'Không thể tải danh sách câu hỏi',
+                timer: 2000,
+                showConfirmButton: false
+            });
+            setQuestions([]);
+        } finally {
+            setLoading(false);
+        }
     };
 
     useEffect(() => {
@@ -37,14 +53,25 @@ const QuestionApproval = () => {
         });
 
         if (result.isConfirmed) {
-            // Call API to approve
-            Swal.fire({
-                icon: 'success',
-                title: 'Đã duyệt',
-                timer: 2000,
-                showConfirmButton: false
-            });
-            fetchPendingQuestions();
+            try {
+                await managerService.approveQuestion(question.id);
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Đã duyệt',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+                fetchPendingQuestions();
+            } catch (error) {
+                console.error('Failed to approve question:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi',
+                    text: 'Không thể duyệt câu hỏi',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+            }
         }
     };
 
@@ -66,14 +93,25 @@ const QuestionApproval = () => {
         });
 
         if (reason) {
-            // Call API to reject with reason
-            Swal.fire({
-                icon: 'success',
-                title: 'Đã từ chối',
-                timer: 2000,
-                showConfirmButton: false
-            });
-            fetchPendingQuestions();
+            try {
+                await managerService.rejectQuestion(question.id);
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Đã từ chối',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+                fetchPendingQuestions();
+            } catch (error) {
+                console.error('Failed to reject question:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi',
+                    text: 'Không thể từ chối câu hỏi',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+            }
         }
     };
 
