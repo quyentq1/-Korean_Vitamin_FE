@@ -21,7 +21,17 @@ const EduTestEditor = () => {
     const [form, setForm] = useState({
         title: '', courseId: prefillCourseId || '', duration: 30,
         passingScore: 70, description: '', shuffleQuestions: false,
+        skillType: 'MIXED',
     });
+
+    // Map skillType to question types
+    const skillTypeQuestionTypes = {
+        'LISTENING': ['LISTENING'],
+        'WRITING': ['WRITING', 'ESSAY'],
+        'READING': ['READING'],
+        'SPEAKING': ['SPEAKING'],
+        'MIXED': ['MULTIPLE_CHOICE', 'SINGLE_CHOICE', 'FILL_BLANK', 'READING', 'WRITING', 'SHORT_ANSWER', 'ESSAY', 'LISTENING', 'SPEAKING']
+    };
 
     useEffect(() => {
         Promise.all([
@@ -35,8 +45,16 @@ const EduTestEditor = () => {
         if (isEdit) {
             educationManagerService.getExamById(id)
                 .then(data => {
-                    setForm({ title: data.title || '', courseId: data.courseId || '', duration: data.duration || 30, passingScore: data.passingScore || 70, description: data.description || '', shuffleQuestions: data.shuffleQuestions || false });
-                    if (data.examQuestions) setSelectedQuestions(data.examQuestions.map(q => q.id));
+                    setForm({
+                        title: data.title || '',
+                        courseId: data.course?.id || data.courseId || '',
+                        duration: data.durationMinutes || data.duration || 30,
+                        passingScore: data.passingScore || 70,
+                        description: data.description || '',
+                        shuffleQuestions: data.shuffleQuestions || false,
+                        skillType: data.skillType || 'MIXED'
+                    });
+                    if (data.examQuestions) setSelectedQuestions(data.examQuestions.map(q => q.question?.id || q.id));
                 })
                 .catch(() => Swal.fire('Lỗi', 'Không tìm thấy bài test', 'error'));
         }
@@ -52,9 +70,10 @@ const EduTestEditor = () => {
     };
 
     const handleRandomPick = () => {
-        const shuffled = [...allQuestions].sort(() => Math.random() - 0.5);
-        setSelectedQuestions(shuffled.slice(0, randomCount).map(q => q.id));
-        Swal.fire({ icon: 'success', title: `Đã chọn ngẫu nhiên ${Math.min(randomCount, allQuestions.length)} câu!`, toast: true, timer: 1500, showConfirmButton: false, position: 'top-end' });
+        const shuffled = [...filteredQ].sort(() => Math.random() - 0.5);
+        const count = Math.min(randomCount, shuffled.length);
+        setSelectedQuestions(shuffled.slice(0, count).map(q => q.id));
+        Swal.fire({ icon: 'success', title: `Đã chọn ngẫu nhiên ${count} câu!`, toast: true, timer: 1500, showConfirmButton: false, position: 'top-end' });
     };
 
     const handleSubmit = async (e) => {
@@ -65,7 +84,16 @@ const EduTestEditor = () => {
         setSaving(true);
         try {
             const payload = {
-                exam: { ...form, totalQuestions: selectedQuestions.length },
+                exam: {
+                    title: form.title,
+                    description: form.description,
+                    durationMinutes: form.duration,
+                    totalQuestions: selectedQuestions.length,
+                    passingScore: form.passingScore,
+                    shuffleQuestions: form.shuffleQuestions,
+                    skillType: form.skillType,
+                    course: form.courseId ? { id: Number(form.courseId) } : null
+                },
                 questions: selectedQuestions.map((qId, index) => {
                     const qObj = allQuestions.find(q => q.id === qId);
                     return {
@@ -89,10 +117,16 @@ const EduTestEditor = () => {
         }
     };
 
-    const filteredQ = allQuestions.filter(q =>
-        q.content?.toLowerCase().includes(searchQ.toLowerCase()) ||
-        q.questionText?.toLowerCase().includes(searchQ.toLowerCase())
-    );
+    const filteredQ = allQuestions.filter(q => {
+        // Filter by skillType first
+        const allowedTypes = skillTypeQuestionTypes[form.skillType] || skillTypeQuestionTypes['MIXED'];
+        const questionType = q.type || q.questionType;
+        if (!allowedTypes.includes(questionType)) return false;
+
+        // Then filter by search text
+        return q.content?.toLowerCase().includes(searchQ.toLowerCase()) ||
+               q.questionText?.toLowerCase().includes(searchQ.toLowerCase());
+    });
 
     return (
         <div className="max-w-5xl mx-auto space-y-5">
@@ -117,6 +151,17 @@ const EduTestEditor = () => {
                             <select name="courseId" value={form.courseId} onChange={handleChange} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-green-400 outline-none">
                                 <option value="">-- Chọn khóa học --</option>
                                 {courses.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                            </select>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Loại bài test *</label>
+                            <select name="skillType" value={form.skillType} onChange={handleChange} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-green-400 outline-none">
+                                <option value="MIXED">Tổng hợp (nhiều kỹ năng)</option>
+                                <option value="LISTENING">Bài test Nghe</option>
+                                <option value="WRITING">Bài test Viết</option>
+                                <option value="READING">Bài test Đọc hiểu</option>
+                                <option value="SPEAKING">Bài test Nói</option>
                             </select>
                         </div>
 
@@ -169,12 +214,12 @@ const EduTestEditor = () => {
                         {selectionMode === 'random' && (
                             <div className="flex gap-3 items-center mb-4 p-3 bg-violet-50 rounded-xl">
                                 <label className="text-sm font-medium text-violet-700 shrink-0">Số câu random:</label>
-                                <input type="number" value={randomCount} onChange={e => setRandomCount(Number(e.target.value))} min={1} max={allQuestions.length}
+                                <input type="number" value={randomCount} onChange={e => setRandomCount(Number(e.target.value))} min={1} max={filteredQ.length}
                                     className="w-20 px-2 py-1.5 border border-violet-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-violet-400 bg-white" />
                                 <button type="button" onClick={handleRandomPick} className="flex items-center gap-1.5 px-4 py-1.5 bg-violet-600 text-white rounded-lg text-sm font-medium hover:bg-violet-700">
                                     <Shuffle className="w-4 h-4" /> Random ngay
                                 </button>
-                                <span className="text-xs text-violet-500">/{allQuestions.length} câu có sẵn</span>
+                                <span className="text-xs text-violet-500">/{filteredQ.length} câu có sẵn (loại: {form.skillType === 'MIXED' ? 'Tất cả' : form.skillType})</span>
                             </div>
                         )}
 

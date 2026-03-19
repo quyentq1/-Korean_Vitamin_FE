@@ -100,8 +100,13 @@ const EduTestManagement = () => {
                         <div className="p-12 text-center">
                             <p className="text-gray-400 mb-3">Chưa có bài test nào cho khóa học này</p>
                             <button
-                                onClick={() => navigate(`/edu-manager/tests/create?courseId=${selectedCourse}`)}
-                                className="text-green-600 hover:underline text-sm font-medium"
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    console.log('Navigating to:', `/edu-manager/tests/create?courseId=${selectedCourse}`);
+                                    navigate(`/edu-manager/tests/create?courseId=${selectedCourse}`);
+                                }}
+                                className="text-green-600 hover:underline text-sm font-medium cursor-pointer"
                             >
                                 + Tạo bài test đầu tiên
                             </button>
@@ -119,8 +124,8 @@ const EduTestManagement = () => {
                                 {exams.map(exam => (
                                     <tr key={exam.id} className="hover:bg-gray-50">
                                         <td className="px-5 py-4 font-medium text-gray-900">{exam.title || exam.name}</td>
-                                        <td className="px-5 py-4 text-sm text-gray-600">{exam.duration ? `${exam.duration} phút` : '—'}</td>
-                                        <td className="px-5 py-4 text-sm text-gray-600">{exam.totalQuestions || exam.examQuestions?.length || '—'}</td>
+                                        <td className="px-5 py-4 text-sm text-gray-600">{exam.durationMinutes ? `${exam.durationMinutes} phút` : '—'}</td>
+                                        <td className="px-5 py-4 text-sm text-gray-600">{exam.examQuestions?.length || exam.totalQuestions || '—'}</td>
                                         <td className="px-5 py-4">
                                             <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${exam.published ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
                                                 {exam.published ? 'Đã publish' : 'Bản nháp'}
