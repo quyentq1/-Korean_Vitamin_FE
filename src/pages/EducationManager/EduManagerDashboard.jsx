@@ -10,13 +10,18 @@ import educationManagerService from '../../services/educationManagerService';
 const EduManagerDashboard = () => {
     const navigate = useNavigate();
     const [courses, setCourses] = useState([]);
+    const [stats, setStats] = useState({ totalTeachers: 0, totalStudents: 0 });
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        educationManagerService.getAllCourses()
-            .then(data => setCourses(Array.isArray(data) ? data : []))
-            .catch(console.error)
-            .finally(() => setLoading(false));
+        Promise.all([
+            educationManagerService.getAllCourses(),
+            educationManagerService.getDashboardStats ? educationManagerService.getDashboardStats() : Promise.resolve({ data: { totalTeachers: 0, totalStudents: 0 } })
+        ]).then(([coursesData, statsData]) => {
+            setCourses(Array.isArray(coursesData) ? coursesData : []);
+            setStats(statsData.data || statsData || { totalTeachers: 0, totalStudents: 0 });
+        }).catch(console.error)
+          .finally(() => setLoading(false));
     }, []);
 
     const published = courses.filter(c => c.status === 'PUBLISHED').length;
@@ -54,7 +59,7 @@ const EduManagerDashboard = () => {
         },
         {
             label: 'Giáo viên',
-            value: '—',
+            value: stats.totalTeachers || 0,
             sub: 'Đang hoạt động',
             icon: GraduationCap,
             gradient: 'from-blue-500 to-cyan-600',
@@ -65,7 +70,7 @@ const EduManagerDashboard = () => {
         },
         {
             label: 'Học viên',
-            value: '—',
+            value: stats.totalStudents || 0,
             sub: 'Đã đăng ký',
             icon: Users,
             gradient: 'from-orange-500 to-red-600',

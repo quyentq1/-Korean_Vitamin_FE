@@ -369,14 +369,17 @@ const UserManagement = () => {
             key: 'name',
             header: t('userMgmt.name', 'Tên'),
             sortable: true,
-            render: (row) => (
-                <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-gradient-to-br from-primary-400 to-primary-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
-                        {row.name.charAt(0)}
+            render: (row) => {
+                const displayName = row.fullName || row.name || 'Unknown';
+                return (
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-gradient-to-br from-primary-400 to-primary-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                            {displayName.charAt(0)}
+                        </div>
+                        <span className="font-medium text-gray-900">{displayName}</span>
                     </div>
-                    <span className="font-medium text-gray-900">{row.name}</span>
-                </div>
-            )
+                );
+            }
         },
         {
             key: 'email',
@@ -394,7 +397,10 @@ const UserManagement = () => {
             key: 'status',
             header: t('userMgmt.status', 'Trạng thái'),
             sortable: true,
-            render: (row) => renderStatusBadge(row.status)
+            render: (row) => {
+                const statusStr = row.active !== undefined ? (row.active ? 'active' : 'inactive') : row.status;
+                return renderStatusBadge(statusStr);
+            }
         },
         {
             key: 'expirationDate',

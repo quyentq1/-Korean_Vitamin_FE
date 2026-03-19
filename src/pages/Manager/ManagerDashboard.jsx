@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CheckSquare, FileText, Calendar, ChevronRight, Clock, AlertCircle } from 'lucide-react';
+import managerService from '../../services/managerService';
 
 /**
  * BUG-04 FIX: Manager Dashboard — thay thế "Coming soon" placeholder
@@ -8,10 +9,28 @@ import { CheckSquare, FileText, Calendar, ChevronRight, Clock, AlertCircle } fro
 const ManagerDashboard = () => {
     const navigate = useNavigate();
     const [stats, setStats] = useState({ pendingQB: 0, approvedQB: 0, scheduleRequests: 0, totalQuestions: 0 });
+    const [loading, setLoading] = useState(true);
 
-    // Mock stats — sẽ kết nối API thực sau
+    // Fetch stats từ API
     useEffect(() => {
-        setStats({ pendingQB: 7, approvedQB: 243, scheduleRequests: 2, totalQuestions: 250 });
+        const fetchStats = async () => {
+            try {
+                const data = await managerService.getDashboardStats();
+                setStats({
+                    pendingQB: data.pendingQuestions || 0,
+                    approvedQB: data.approvedQuestions || 0,
+                    scheduleRequests: data.rescheduleRequests || 0,
+                    totalQuestions: data.totalQuestions || 0
+                });
+            } catch (error) {
+                console.error('Failed to fetch dashboard stats:', error);
+                // Fallback to zero stats on error
+                setStats({ pendingQB: 0, approvedQB: 0, scheduleRequests: 0, totalQuestions: 0 });
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchStats();
     }, []);
 
     const statCards = [

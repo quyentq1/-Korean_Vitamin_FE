@@ -66,7 +66,14 @@ const EduTestEditor = () => {
         try {
             const payload = {
                 exam: { ...form, totalQuestions: selectedQuestions.length },
-                questions: allQuestions.filter(q => selectedQuestions.includes(q.id)),
+                questions: selectedQuestions.map((qId, index) => {
+                    const qObj = allQuestions.find(q => q.id === qId);
+                    return {
+                        question: qObj,
+                        questionOrder: index + 1,
+                        points: qObj?.points || 1
+                    };
+                }),
             };
             if (isEdit) {
                 await educationManagerService.updateExam(id, payload.exam);
