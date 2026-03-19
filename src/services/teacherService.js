@@ -67,10 +67,11 @@ export const teacherService = {
         return await axiosClient.get('/teacher/reports/top-students', { params });
     },
 
-    exportReports: async (params) => {
+    exportReports: async (params = {}) => {
+        const { startDate, endDate, classId } = params;
         return await axiosClient.get('/teacher/reports/export', {
-            params,
-            responseType: params.format === 'excel' ? 'blob' : 'arraybuffer'
+            params: { startDate, endDate, classId },
+            responseType: 'blob'
         });
     },
 
@@ -129,18 +130,20 @@ export const teacherService = {
     },
 
     // Question Import
-    importQuestions: async (file, teacherId) => {
+    importQuestions: async (file) => {
+        // BUG-36 FIX: Removed teacherId parameter - BE gets it from Authentication
         const formData = new FormData();
         formData.append('file', file);
-        return await axiosClient.post(`/teacher/questions/import?teacherId=${teacherId}`, formData, {
+        return await axiosClient.post(`/teacher/questions/import`, formData, {
             headers: { 'Content-Type': 'multipart/form-data' },
         });
     },
 
-    importQuestionsWord: async (file, teacherId) => {
+    importQuestionsWord: async (file) => {
+        // BUG-08, BUG-36 FIX: Removed teacherId parameter
         const formData = new FormData();
         formData.append('file', file);
-        return await axiosClient.post(`/teacher/questions/import-word?teacherId=${teacherId}`, formData, {
+        return await axiosClient.post(`/teacher/questions/import-word`, formData, {
             headers: { 'Content-Type': 'multipart/form-data' },
         });
     },
@@ -170,10 +173,9 @@ export const teacherService = {
     },
 
     // Exam Generation - Generate Quiz A/B variants
-    generateQuizVariants: async (examId, teacherId) => {
-        return await axiosClient.post(`/teacher/exams/${examId}/generate-variants`, null, {
-            params: { teacherId }
-        });
+    generateQuizVariants: async (examId) => {
+        // BUG-09 FIX: Removed teacherId parameter - BE gets it from Authentication
+        return await axiosClient.post(`/teacher/exams/${examId}/generate-variants`);
     },
 
     // Auto-grading
@@ -202,7 +204,8 @@ export const teacherService = {
     },
 
     getClassStudents: async (classId) => {
-        return await axiosClient.get(`/teacher/classes/${classId}/students`);
+        // BUG-11 FIX: Changed from /teacher/classes/${classId}/students to /classes/${classId}/students
+        return await axiosClient.get(`/classes/${classId}/students`);
     },
 
     // Tag Management

@@ -334,13 +334,16 @@ export const staffService = {
     },
 
     /**
-     * Mark attendance for students
+     * Mark attendance for multiple students in a schedule
      * POST /api/staff/attendance/mark
      * Body: { scheduleId: number, attendanceRecords: [{ studentId, status, notes }] }
      */
-    markAttendance: async (attendanceData) => {
+    markAttendance: async (scheduleId, attendanceRecords) => {
         try {
-            return await axiosClient.post('/staff/attendance/mark', attendanceData);
+            return await axiosClient.post('/staff/attendance/mark', {
+                scheduleId,
+                attendanceRecords
+            });
         } catch (error) {
             console.error('Error marking attendance:', error);
             throw error;
@@ -382,6 +385,19 @@ export const staffService = {
             return await axiosClient.post(`/staff/schedules/${scheduleId}/attendance/initialize`);
         } catch (error) {
             console.error('Error initializing attendance:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * Delete a schedule
+     * DELETE /api/staff/schedules/{id}
+     */
+    deleteSchedule: async (scheduleId) => {
+        try {
+            return await axiosClient.delete(`/staff/schedules/${scheduleId}`);
+        } catch (error) {
+            console.error('Error deleting schedule:', error);
             throw error;
         }
     },

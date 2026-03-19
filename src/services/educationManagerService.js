@@ -22,6 +22,10 @@ const educationManagerService = {
         return await axiosClient.get('/education-manager/courses');
     },
 
+    getDashboardStats: async () => {
+        return await axiosClient.get('/education-manager/dashboard/stats');
+    },
+
     getCourseById: async (id) => {
         return await axiosClient.get(`/education-manager/courses/${id}`);
     },
@@ -65,7 +69,7 @@ const educationManagerService = {
     },
 
     assignTeacherToClass: async (classId, teacherId, isPrimary = false) => {
-        return await axiosClient.post(`/classes/${classId}/teachers?isPrimary=${isPrimary}`, teacherId, {
+        return await axiosClient.post(`/classes/${classId}/teachers?isPrimary=${isPrimary}`, { teacherId: Number(teacherId) }, {
             headers: { 'Content-Type': 'application/json' }
         });
     },

@@ -1,6 +1,11 @@
 import axiosClient from '../api/axiosClient';
 
 export const managerService = {
+    // Dashboard Stats
+    getDashboardStats: async () => {
+        return await axiosClient.get('/api/manager/dashboard-stats');
+    },
+
     // Session Approvals
     getPendingReschedules: async () => {
         return await axiosClient.get('/api/manager/sessions/pending');
