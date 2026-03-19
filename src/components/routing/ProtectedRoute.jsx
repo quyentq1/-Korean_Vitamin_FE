@@ -185,8 +185,9 @@ export const StaffRoute = ({ children }) => {
  * @param {React.ReactNode} props.children - Component con
  */
 export const StudentRoute = ({ children }) => {
+  // BUG-31 FIX: Changed from ['STUDENT', 'LEARNER'] to ['STUDENT'] to match BE enum
   return (
-    <ProtectedRoute allowedRoles={['STUDENT', 'LEARNER']}>
+    <ProtectedRoute allowedRoles={['STUDENT']}>
       {children}
     </ProtectedRoute>
   );

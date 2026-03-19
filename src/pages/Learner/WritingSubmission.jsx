@@ -163,24 +163,16 @@ const WritingSubmission = () => {
     setError('');
 
     try {
-      // TODO: Replace with actual API call
-      // await studentService.submitWriting({ title, content: writingText, file: selectedFile });
+      // BUG-STU-04 FIX: Implemented actual API call
+      await studentService.submitWriting({ title, content: writingText, file: selectedFile });
       
-      // Simulate AI analysis
-      setAiAnalyzing(true);
+      setTitle('');
+      setWritingText('');
+      setSelectedFile(null);
+      setActiveTab('history');
+      fetchSubmissions();
       
-      // Simulate AI feedback after 2 seconds
-      setTimeout(() => {
-        setAiAnalyzing(false);
-        setAiFeedback({
-          score: 85,
-          strengths: ['Clear structure', 'Good vocabulary'],
-          improvements: ['Add more examples', 'Expand conclusion'],
-          suggestions: ['Consider adding personal anecdotes']
-        });
-        setIsSubmitting(false);
-      }, 2000);
-      
+      setIsSubmitting(false);
     } catch (err) {
       console.error('Error submitting writing:', err);
       setError(t('writing.error.submitFailed', 'Không thể nộp bài viết. Vui lòng thử lại sau.'));

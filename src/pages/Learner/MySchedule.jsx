@@ -496,6 +496,7 @@ const MySchedule = () => {
       )}
 
       {/* Request Change Button */}
+      {/* Tính năng đổi lịch chưa sẵn sàng
       <div className="mt-6 text-center">
         <Button
           variant="secondary"
@@ -506,6 +507,7 @@ const MySchedule = () => {
           {t('schedule.requestChange', 'Yêu Cầu Đổi Lịch')}
         </Button>
       </div>
+      */}
 
       {/* Footer */}
       <Footer />
