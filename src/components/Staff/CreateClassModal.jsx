@@ -1,13 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { X, Calendar, Users, MapPin } from 'lucide-react';
+import { useAuth } from '../../contexts/AuthContext';
 import staffService from '../../services/staffService';
+import educationManagerService from '../../services/educationManagerService';
 
 const CreateClassModal = ({ onClose, onSuccess }) => {
     const { t } = useTranslation();
+    const { user } = useAuth();
     const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState({});
     const [courses, setCourses] = useState([]);
+
+    // Check if user is Education Manager
+    const isManager = user?.role === 'EDUCATION_MANAGER';
 
     const [formData, setFormData] = useState({
         courseId: '',
@@ -25,11 +31,27 @@ const CreateClassModal = ({ onClose, onSuccess }) => {
 
     const fetchCourses = async () => {
         try {
-            const response = await staffService.getCourses();
+            // Education Manager uses educationManagerService, Staff uses staffService
+            const response = isManager
+                ? await educationManagerService.getAllCourses()
+                : await staffService.getCourses();
+
+            console.log('Courses response:', response);
+
+            // Handle different response structures
+            let coursesData = [];
+            if (Array.isArray(response)) {
+                coursesData = response;
+            } else if (response?.data) {
+                coursesData = Array.isArray(response.data) ? response.data : [];
+            } else if (response?.courses) {
+                coursesData = response.courses;
+            }
+
             // Filter only active courses
-            const activeCourses = Array.isArray(response)
-                ? response.filter(c => c.status === 'PUBLISHED' || c.isActive)
-                : [];
+            const activeCourses = coursesData.filter(c =>
+                c.status === 'PUBLISHED' || c.isActive || c.status === 'ACTIVE'
+            );
             setCourses(activeCourses);
         } catch (error) {
             console.error('Error fetching courses:', error);
