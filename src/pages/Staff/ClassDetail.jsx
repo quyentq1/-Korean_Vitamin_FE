@@ -644,7 +644,8 @@ const ClassDetail = () => {
                   <h3 className="text-lg font-semibold text-gray-900">
                     {t('staff.class.detail.attendance.title')}
                   </h3>
-                  {isTeacher && (
+                  {/* BUG-28 FIX: Commented out attendance detail button - route /classes/:id/attendance doesn't exist yet */}
+                  {/* {isTeacher && (
                     <Button
                       variant="primary"
                       onClick={() => navigate(`/classes/${id}/attendance`)}
@@ -653,7 +654,7 @@ const ClassDetail = () => {
                       <CheckCircle className="w-4 h-4 mr-2" />
                       {t('staff.class.detail.attendance.viewFullAttendance')}
                     </Button>
-                  )}
+                  )} */}
                 </div>
 
             {/* Attendance Statistics Preview */}
@@ -693,7 +694,8 @@ const ClassDetail = () => {
                   ? t('staff.attendance.selectSchedule', 'Chọn buổi học để điểm danh')
                   : 'Chọn buổi học để xem chi tiết điểm danh'}
               </p>
-              {isTeacher && (
+              {/* BUG-28 FIX: Commented out attendance detail button - route doesn't exist */}
+              {/* {isTeacher && (
                 <Button
                   variant="primary"
                   onClick={() => navigate(`/classes/${id}/attendance`)}
@@ -702,7 +704,7 @@ const ClassDetail = () => {
                   <CheckCircle className="w-4 h-4 mr-2" />
                   {t('staff.class.detail.attendance.viewFullAttendance', 'Xem chi tiết điểm danh')}
                 </Button>
-              )}
+              )} */}
             </div>
               </>
             )}

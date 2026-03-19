@@ -15,8 +15,10 @@ const TeacherDashboard = () => {
     totalQuestions: 0,
     pendingGrading: 0,
     totalStudents: 0,
+    totalClasses: 0,
     upcomingSessions: 0
   });
+  const [myClasses, setMyClasses] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -28,11 +30,12 @@ const TeacherDashboard = () => {
       setLoading(true);
 
       // Fetch data from services
-      const [exams, questions, grading, sessions] = await Promise.all([
+      const [exams, questions, grading, sessions, classes] = await Promise.all([
         teacherService.getExams().catch(() => ({ data: [] })),
         teacherService.getQuestions().catch(() => ({ data: [] })),
         teacherService.getPendingGrading().catch(() => []),
-        teacherService.getUpcomingSessions().catch(() => ({ data: [] }))
+        teacherService.getUpcomingSessions().catch(() => ({ data: [] })),
+        teacherService.getTeacherClasses().catch(() => ({ data: [] }))
       ]);
 
       // Debug: log responses
@@ -40,7 +43,8 @@ const TeacherDashboard = () => {
         exams,
         questions,
         grading,
-        sessions
+        sessions,
+        classes
       });
 
       setStats({
@@ -48,8 +52,11 @@ const TeacherDashboard = () => {
         totalQuestions: Array.isArray(questions) ? questions.length : (questions.data?.length || questions.content?.length || 0),
         pendingGrading: Array.isArray(grading) ? grading.length : (grading.data?.length || grading.content?.length || 0),
         totalStudents: 0, // Will be implemented later
+        totalClasses: Array.isArray(classes) ? classes.length : (classes.data?.length || classes.content?.length || 0),
         upcomingSessions: Array.isArray(sessions) ? sessions.length : (sessions.data?.length || sessions.content?.length || 0)
       });
+      
+      setMyClasses(Array.isArray(classes) ? classes : (classes.data || classes.content || []));
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
     } finally {
@@ -75,6 +82,15 @@ const TeacherDashboard = () => {
       color: 'from-emerald-500 to-green-600',
       bg: 'bg-emerald-50',
       text: 'text-emerald-700',
+      urgent: false,
+    },
+    {
+      label: t('teacher.dashboard.totalClasses', 'My Classes'),
+      value: stats.totalClasses,
+      icon: <Users className="w-6 h-6" />,
+      color: 'from-cyan-500 to-blue-600',
+      bg: 'bg-cyan-50',
+      text: 'text-cyan-700',
       urgent: false,
     },
     {
@@ -211,12 +227,35 @@ const TeacherDashboard = () => {
         </div>
       </div>
 
-      {/* Recent Activity */}
+      {/* My Classes */}
       <div className="bg-white rounded-2xl shadow-sm border-2 border-gray-100 p-6">
-        <h2 className="text-lg font-semibold text-gray-800 mb-4">{t('teacher.dashboard.recentActivity')}</h2>
-        <div className="text-center py-8 text-gray-500">
-          <p>{t('teacher.dashboard.noRecentActivity')}</p>
-        </div>
+        <h2 className="text-lg font-semibold text-gray-800 mb-4">{t('teacher.dashboard.myClasses', 'Lớp học của tôi')}</h2>
+        {myClasses.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {myClasses.map((cls, index) => (
+              <div key={index} className="border border-gray-200 rounded-xl p-4 hover:shadow-md transition-shadow">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h3 className="font-semibold text-gray-900">{cls.className}</h3>
+                    <p className="text-sm text-gray-500">{cls.course}</p>
+                  </div>
+                  <span className="px-2 py-1 bg-blue-50 text-blue-700 text-xs font-semibold rounded-lg">
+                    {cls.classCode}
+                  </span>
+                </div>
+                {cls.isPrimary && (
+                  <div className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-1 rounded-md">
+                    <CheckCircle className="w-3.5 h-3.5" /> Giáo viên chính
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-8 text-gray-500">
+            <p>{t('teacher.dashboard.noClasses', 'Bạn chưa được phân công lớp học nào.')}</p>
+          </div>
+        )}
       </div>
     </div>
   );

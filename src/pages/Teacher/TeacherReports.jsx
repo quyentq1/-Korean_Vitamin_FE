@@ -180,14 +180,28 @@ const TeacherReports = () => {
     setExporting(true);
     try {
       const params = {
-        format: exportFormat,
         classId: selectedClass !== 'all' ? selectedClass : undefined,
-        range: dateRange,
-        startDate: customStartDate,
-        endDate: customEndDate
+        startDate: dateRange === 'custom' ? customStartDate : undefined,
+        endDate: dateRange === 'custom' ? customEndDate : undefined
       };
 
-      await teacherService.exportReports(params);
+      const response = await teacherService.exportReports(params);
+
+      // Create blob from response
+      const blob = new Blob([response], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+
+      // Download file
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `teacher-reports-${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      // Cleanup
+      window.URL.revokeObjectURL(url);
+
       setSuccess(t('reports.exportSuccess', 'Xuất báo cáo thành công!'));
       setTimeout(() => setSuccess(''), 3000);
       setShowExportModal(false);

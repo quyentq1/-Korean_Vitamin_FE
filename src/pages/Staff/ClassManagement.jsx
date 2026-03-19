@@ -388,6 +388,29 @@ const ClassManagement = () => {
     }
   };
 
+  // Handle delete schedule
+  const handleDeleteSchedule = async (scheduleId) => {
+    if (!window.confirm(t('classManagement.deleteScheduleConfirmation') || 'Bạn có chắc chắn muốn xóa lịch học này?')) {
+      return;
+    }
+
+    setActionLoading(true);
+    try {
+      await staffService.deleteSchedule(scheduleId);
+      setAlert({ show: true, type: 'success', message: t('classManagement.deleteScheduleSuccess') || 'Xóa lịch học thành công' });
+
+      // Refresh schedules for the selected class
+      if (selectedClass) {
+        handleOpenSchedule(selectedClass);
+      }
+    } catch (error) {
+      console.error('Error deleting schedule:', error);
+      setAlert({ show: true, type: 'error', message: t('classManagement.deleteScheduleError') || 'Không thể xóa lịch học' });
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   // Handle delete class
   const handleDeleteClass = async (cls) => {
     if (window.confirm(t('classManagement.deleteConfirmation') || `Bạn có chắc muốn xóa lớp ${cls.className}?`)) {
@@ -1021,13 +1044,23 @@ const ClassManagement = () => {
                         {sch.room || '-'}
                       </p>
                     </div>
-                    <button
-                      onClick={() => handleOpenAttendance(sch)}
-                      className="flex items-center px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 ml-4"
-                    >
-                      <Users className="w-4 h-4 mr-2" />
-                      {t('classManagement.attendance')}
-                    </button>
+                    <div className="flex items-center gap-2 ml-4">
+                      <button
+                        onClick={() => handleOpenAttendance(sch)}
+                        className="flex items-center px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                      >
+                        <Users className="w-4 h-4 mr-2" />
+                        {t('classManagement.attendance')}
+                      </button>
+                      <button
+                        onClick={() => handleDeleteSchedule(sch.id)}
+                        disabled={actionLoading}
+                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        title={t('common.delete') || 'Delete'}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
                 ))
               )}
