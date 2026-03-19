@@ -67,6 +67,12 @@ export const ProtectedRoute = ({
 
   // Kiểm tra role
   if (allowedRoles && !hasRole(allowedRoles)) {
+    console.log('[ProtectedRoute] Role check failed:', {
+      userRole: user?.role,
+      allowedRoles,
+      pathname: location.pathname,
+      search: location.search
+    });
     return (
       <Navigate
         to={fallbackPath}

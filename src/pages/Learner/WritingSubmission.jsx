@@ -20,7 +20,6 @@ import {
 } from 'lucide-react';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
-import studentService from '../../services/studentService';
 import { 
   PageContainer, 
   PageHeader, 
