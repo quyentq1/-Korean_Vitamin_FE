@@ -23,7 +23,8 @@ export const Badge = ({
     success: 'bg-success-100 text-success-700',
     warning: 'bg-warning-100 text-warning-700',
     error: 'bg-error-100 text-error-700',
-    info: 'bg-info-100 text-info-700'
+    info: 'bg-info-100 text-info-700',
+    neutral: 'bg-gray-50 text-gray-600 border border-gray-200'
   };
 
   const sizeClasses = {

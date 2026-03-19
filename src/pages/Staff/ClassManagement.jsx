@@ -443,24 +443,39 @@ const ClassManagement = () => {
       key: 'courseName',
       label: ts('classManagement.course', 'Course'),
       render: (cls) => (
-        <span className="text-gray-600">{cls.courseName || '-'}</span>
+        <span className="text-gray-600">
+          {cls.courseName || cls.course?.name || <span className="text-gray-400 italic">Chưa có khóa học</span>}
+        </span>
       ),
       sortable: true
     },
     {
       key: 'teacherName',
       label: ts('classManagement.teacher', 'Teacher'),
-      render: (cls) => (
-        <span className="text-gray-600">{cls.teacherName || '-'}</span>
-      ),
+      render: (cls) => {
+        const teacherNames = cls.teacherName
+          ? cls.teacherName
+          : (cls.teachers && cls.teachers.length > 0
+              ? cls.teachers.map(t => t.teacher?.fullName || t.teacher?.name).join(', ')
+              : null);
+
+        return (
+          <span className="text-gray-600">
+            {teacherNames || <span className="text-orange-600 italic">Chưa phân bổ giáo viên</span>}
+          </span>
+        );
+      },
       sortable: true
     },
     {
       key: 'studentCount',
       label: ts('classManagement.studentCount', 'Student Count'),
-      render: (cls) => (
-        <Badge variant="info">{cls.studentCount || 0}</Badge>
-      ),
+      render: (cls) => {
+        const count = cls.currentEnrollment || cls.studentCount || 0;
+        return (
+          <Badge variant="info">{count}</Badge>
+        );
+      },
       sortable: true
     },
     {
@@ -491,11 +506,6 @@ const ClassManagement = () => {
                 Đầy
               </span>
             )}
-            {isExpired && (
-              <span className="px-2 py-0.5 bg-gray-100 text-gray-800 text-xs rounded-full font-medium">
-                Hết hạn
-              </span>
-            )}
           </div>
         );
       },
@@ -524,16 +534,25 @@ const ClassManagement = () => {
     {
       key: 'status',
       label: ts('classManagement.status', 'Status'),
-      render: (cls) => (
-        <Badge
-          variant={
-            cls.status === 'ACTIVE' ? 'success' :
-              cls.status === 'INACTIVE' ? 'warning' : 'error'
-          }
-        >
-          {cls.status || '-'}
-        </Badge>
-      ),
+      render: (cls) => {
+        // Status mapping for classes
+        const statusConfig = {
+          'PLANNED': { label: 'Đang lên kế hoạch', variant: 'info' },
+          'ONGOING': { label: 'Đang diễn ra', variant: 'success' },
+          'ACTIVE': { label: 'Đang diễn ra', variant: 'success' },
+          'INACTIVE': { label: 'Ngừng hoạt động', variant: 'warning' },
+          'CANCELLED': { label: 'Đã hủy', variant: 'error' },
+          'COMPLETED': { label: 'Đã kết thúc', variant: 'neutral' }
+        };
+
+        const config = statusConfig[cls.status] || { label: cls.status, variant: 'neutral' };
+
+        return (
+          <Badge variant={config.variant}>
+            {config.label}
+          </Badge>
+        );
+      },
       sortable: true
     },
     {
@@ -574,7 +593,7 @@ const ClassManagement = () => {
 
   if (loading) {
     return (
-      <PageContainer>
+      <PageContainer variant="full">
         <Loading />
       </PageContainer>
     );
@@ -582,14 +601,14 @@ const ClassManagement = () => {
 
   if (error) {
     return (
-      <PageContainer>
+      <PageContainer variant="full">
         <Alert type="error" message={error} />
       </PageContainer>
     );
   }
 
   return (
-    <PageContainer>
+    <PageContainer variant="full">
       {/* Alert */}
       {alert.show && (
         <Alert
@@ -714,7 +733,7 @@ const ClassManagement = () => {
             <div>
               <p className="text-sm text-gray-500">{t('classManagement.activeClasses')}</p>
               <p className="text-2xl font-bold text-green-600">
-                {classes.filter(c => c.status === 'ACTIVE').length}
+                {classes.filter(c => c.status === 'ACTIVE' || c.status === 'ONGOING' || c.status === 'PLANNED').length}
               </p>
             </div>
             <CheckCircle className="w-8 h-8 text-green-600" />
@@ -725,7 +744,7 @@ const ClassManagement = () => {
             <div>
               <p className="text-sm text-gray-500">{t('classManagement.inactiveClasses')}</p>
               <p className="text-2xl font-bold text-yellow-600">
-                {classes.filter(c => c.status === 'INACTIVE').length}
+                {classes.filter(c => c.status === 'INACTIVE' || c.status === 'CANCELLED' || c.status === 'COMPLETED').length}
               </p>
             </div>
             <XCircle className="w-8 h-8 text-yellow-600" />
@@ -736,7 +755,7 @@ const ClassManagement = () => {
             <div>
               <p className="text-sm text-gray-500">{t('classManagement.totalStudents')}</p>
               <p className="text-2xl font-bold text-primary-600">
-                {classes.reduce((sum, cls) => sum + (cls.studentCount || 0), 0)}
+                {classes.reduce((sum, cls) => sum + (cls.currentEnrollment || cls.studentCount || 0), 0)}
               </p>
             </div>
             <Users className="w-8 h-8 text-primary-600" />
@@ -797,20 +816,53 @@ const ClassManagement = () => {
                   <div className="flex items-center space-x-2">
                     <Button
                       variant="secondary"
+                      size="sm"
                       onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                       disabled={currentPage === 1}
                     >
-                      {t('common.previous')}
+                      ← {t('common.previous')}
                     </Button>
-                    <span className="px-4 py-2 bg-gray-100 rounded-lg">
-                      {currentPage} / {totalPages}
-                    </span>
+
+                    {/* Page Numbers */}
+                    <div className="flex items-center space-x-1">
+                      {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                        // Show first page, last page, current page, and adjacent pages
+                        const showPage =
+                          page === 1 ||
+                          page === totalPages ||
+                          (page >= currentPage - 1 && page <= currentPage + 1);
+
+                        if (!showPage) {
+                          // Show ellipsis for hidden pages
+                          if (page === currentPage - 2 || page === currentPage + 2) {
+                            return <span key={page} className="px-2 text-gray-400">...</span>;
+                          }
+                          return null;
+                        }
+
+                        return (
+                          <button
+                            key={page}
+                            onClick={() => setCurrentPage(page)}
+                            className={`min-w-[40px] px-3 py-2 rounded-lg font-medium transition-colors ${
+                              currentPage === page
+                                ? 'bg-primary-600 text-white'
+                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            }`}
+                          >
+                            {page}
+                          </button>
+                        );
+                      })}
+                    </div>
+
                     <Button
                       variant="secondary"
+                      size="sm"
                       onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                       disabled={currentPage === totalPages}
                     >
-                      {t('common.next')}
+                      {t('common.next')} →
                     </Button>
                   </div>
                 </div>
@@ -828,11 +880,20 @@ const ClassManagement = () => {
                   <div className="flex items-center space-x-4">
                     <Badge
                       variant={
-                        cls.status === 'ACTIVE' ? 'success' :
-                          cls.status === 'INACTIVE' ? 'warning' : 'error'
+                        cls.status === 'ACTIVE' || cls.status === 'ONGOING' ? 'success' :
+                          cls.status === 'PLANNED' ? 'info' :
+                            cls.status === 'INACTIVE' ? 'warning' :
+                              cls.status === 'CANCELLED' ? 'error' : 'neutral'
                       }
+                      className="text-xs font-semibold px-3 py-1.5 shadow-sm"
                     >
-                      {cls.status}
+                      {cls.status === 'PLANNED' ? 'Đang lên kế hoạch' :
+                       cls.status === 'ONGOING' ? 'Đang diễn ra' :
+                       cls.status === 'ACTIVE' ? 'Đang diễn ra' :
+                       cls.status === 'INACTIVE' ? 'Ngừng hoạt động' :
+                       cls.status === 'CANCELLED' ? 'Đã hủy' :
+                       cls.status === 'COMPLETED' ? 'Đã kết thúc' :
+                       cls.status || '-'}
                     </Badge>
                     <span className="text-sm text-gray-500">
                       {cls.startDate} - {cls.endDate}
@@ -870,6 +931,65 @@ const ClassManagement = () => {
               </div>
             </div>
           ))}
+
+          {/* Card View Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between p-4 bg-white rounded-lg shadow-sm mt-4">
+              <div className="text-sm text-gray-500">
+                {t('classManagement.showing')} {startIndex + 1} - {Math.min(endIndex, filteredClasses.length)} {t('common.of')} {filteredClasses.length}
+              </div>
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                >
+                  ← {t('common.previous')}
+                </Button>
+
+                {/* Page Numbers */}
+                <div className="flex items-center space-x-1">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                    const showPage =
+                      page === 1 ||
+                      page === totalPages ||
+                      (page >= currentPage - 1 && page <= currentPage + 1);
+
+                    if (!showPage) {
+                      if (page === currentPage - 2 || page === currentPage + 2) {
+                        return <span key={page} className="px-2 text-gray-400">...</span>;
+                      }
+                      return null;
+                    }
+
+                    return (
+                      <button
+                        key={page}
+                        onClick={() => setCurrentPage(page)}
+                        className={`min-w-[40px] px-3 py-2 rounded-lg font-medium transition-colors ${
+                          currentPage === page
+                            ? 'bg-primary-600 text-white'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages}
+                >
+                  {t('common.next')} →
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -905,15 +1025,25 @@ const ClassManagement = () => {
               </div>
               <div>
                 <h3 className="text-xl font-semibold text-gray-900">{selectedClass.className}</h3>
-                <p className="text-gray-500">{selectedClass.courseName || '-'}</p>
+                <p className="text-gray-500">
+                  {selectedClass.courseName || selectedClass.course?.name || <span className="text-orange-600">Chưa có khóa học</span>}
+                </p>
                 <Badge
                   variant={
-                    selectedClass.status === 'ACTIVE' ? 'success' :
-                      selectedClass.status === 'INACTIVE' ? 'warning' : 'error'
+                    selectedClass.status === 'ACTIVE' || selectedClass.status === 'ONGOING' ? 'success' :
+                      selectedClass.status === 'PLANNED' ? 'info' :
+                        selectedClass.status === 'INACTIVE' ? 'warning' :
+                          selectedClass.status === 'CANCELLED' ? 'error' : 'neutral'
                   }
-                  className="mt-2"
+                  className="mt-2 text-xs font-semibold px-3 py-1.5 shadow-sm"
                 >
-                  {selectedClass.status || '-'}
+                  {selectedClass.status === 'PLANNED' ? 'Đang lên kế hoạch' :
+                   selectedClass.status === 'ONGOING' ? 'Đang diễn ra' :
+                   selectedClass.status === 'ACTIVE' ? 'Đang diễn ra' :
+                   selectedClass.status === 'INACTIVE' ? 'Ngừng hoạt động' :
+                   selectedClass.status === 'CANCELLED' ? 'Đã hủy' :
+                   selectedClass.status === 'COMPLETED' ? 'Đã kết thúc' :
+                   selectedClass.status || '-'}
                 </Badge>
               </div>
             </div>
@@ -982,7 +1112,7 @@ const ClassManagement = () => {
                 </h4>
               </div>
               {classTeachers.length === 0 ? (
-                <p className="text-gray-500">{t('classManagement.noTeachers')}</p>
+                <p className="text-orange-600 italic">Chưa phân bổ giáo viên</p>
               ) : (
                 <div className="space-y-2 max-h-60 overflow-y-auto">
                   {classTeachers.map(teacher => (
