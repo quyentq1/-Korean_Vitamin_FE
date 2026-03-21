@@ -79,6 +79,11 @@ export const courseService = {
     // Education Manager: Get courses by status
     getCoursesByStatus: async (status) => {
         return await axiosClient.get(`/education-manager/courses/status/${status}`);
+    },
+
+    // Education Manager: Get all teachers
+    getAllTeachers: async () => {
+        return await axiosClient.get('/education-manager/teachers');
     }
 };
 
