@@ -47,6 +47,7 @@ import CreateQuiz from './pages/Teacher/CreateQuiz.jsx';
 import CreateQuestion from './pages/Teacher/CreateQuestion.jsx';
 import TeacherReports from './pages/Teacher/TeacherReports.jsx';
 import TeacherDashboard from './pages/Teacher/TeacherDashboard.jsx';
+import MyCourses from './pages/Teacher/MyCourses.jsx';
 import ExamManagement from './pages/Teacher/ExamManagement.jsx';
 import ExamEditor from './pages/Teacher/ExamEditor.jsx';
 import ExamAttempts from './pages/Teacher/ExamAttempts.jsx';
@@ -178,6 +179,7 @@ function App() {
           }>
             <Route index element={<TeacherDashboard />} />
             <Route path="dashboard" element={<TeacherDashboard />} />
+            <Route path="my-courses" element={<MyCourses />} />
             <Route path="question-bank" element={<QuestionBank />} />
             <Route path="questions/create" element={<CreateQuestion />} />
             <Route path="questions/edit/:id" element={<CreateQuestion />} />
@@ -187,6 +189,7 @@ function App() {
             <Route path="question-import" element={<QuestionImport />} />
             <Route path="grading/:attemptId" element={<GradingDetail />} />
             <Route path="exam-management" element={<ExamManagement />} />
+            <Route path="exam-management/create" element={<ExamEditor />} />
             <Route path="exam-editor/:id" element={<ExamEditor />} />
             <Route path="exam-attempts/:id" element={<ExamAttempts />} />
             <Route path="sessions" element={<TeacherSessions />} />

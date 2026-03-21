@@ -47,8 +47,8 @@ const QuestionFormModal = ({ isOpen, onClose, questionId }) => {
   const [question, setQuestion] = useState({
     questionType: 'MULTIPLE_CHOICE',
     answerType: 'SINGLE', // SINGLE or MULTIPLE - determines if answers are radio or checkbox
-    category: 'N1',
-    difficulty: 'EASY',
+    category: '',
+    level: 'LEVEL_1',
     content: '',
     answers: [
       { id: 1, content: '', isCorrect: false },
@@ -62,14 +62,37 @@ const QuestionFormModal = ({ isOpen, onClose, questionId }) => {
   // Validation errors
   const [validationErrors, setValidationErrors] = useState({});
 
+  // Categories state
+  const [categories, setCategories] = useState([]);
+
+  // Load categories on mount
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const data = await teacherService.getAllCategories();
+        setCategories(data || []);
+      } catch (err) {
+        console.error('Failed to load categories:', err);
+        // Fallback to default categories if API fails
+        setCategories([
+          { id: 1, name: 'Grammar' },
+          { id: 2, name: 'Vocabulary' },
+          { id: 3, name: 'Reading' },
+          { id: 4, name: 'Listening' },
+          { id: 5, name: 'Writing' }
+        ]);
+      }
+    };
+    fetchCategories();
+  }, []);
   // Load existing question when in edit mode
   useEffect(() => {
     if (!isEditMode) {
       setQuestion({
         questionType: 'MULTIPLE_CHOICE',
         answerType: 'MULTIPLE',
-        category: 'N1',
-        difficulty: 'EASY',
+        category: '',
+        level: 'LEVEL_1',
         content: '',
         answers: [
           { id: 1, content: '', isCorrect: false },
@@ -92,9 +115,9 @@ const QuestionFormModal = ({ isOpen, onClose, questionId }) => {
         const data = response.data || response;
 
         // Handle category
-        let categoryValue = 'N1';
+        let categoryValue = '';
         if (typeof data.category === 'object' && data.category !== null) {
-          categoryValue = data.category.name || data.category.id?.toString() || 'N1';
+          categoryValue = data.category.id?.toString() || '';
         } else if (data.category) {
           categoryValue = data.category.toString();
         }
@@ -153,7 +176,7 @@ const QuestionFormModal = ({ isOpen, onClose, questionId }) => {
           questionType: questionTypeValue,
           answerType: answerTypeValue,
           category: categoryValue,
-          difficulty: data.difficulty || 'EASY',
+          level: data.level || 'LEVEL_1',
           content: data.questionText || data.content || '',
           answers: mappedAnswers,
           explanation: data.explanation || data.explain || data.solution || data.explanationText || '',
@@ -212,7 +235,7 @@ const QuestionFormModal = ({ isOpen, onClose, questionId }) => {
 
     if (!question.questionType) errors.questionType = 'Vui lòng chọn loại câu hỏi';
     if (!question.category) errors.category = 'Vui lòng chọn danh mục';
-    if (!question.difficulty) errors.difficulty = 'Vui lòng chọn độ khó';
+    if (!question.level) errors.level = 'Vui lòng chọn cấp độ';
     if (!question.content.trim()) errors.content = 'Vui lòng nhập nội dung câu hỏi';
 
     if (['MULTIPLE_CHOICE', 'SINGLE_CHOICE', 'READING', 'LISTENING'].includes(question.questionType)) {
@@ -244,7 +267,7 @@ const QuestionFormModal = ({ isOpen, onClose, questionId }) => {
     try {
       // Prepare request data with proper format for backend
       // Backend expects: { question: {...}, options: [...] }
-      const categoryNum = parseInt(question.category.replace(/\D/g, '')) || 1;
+      const categoryNum = parseInt(question.category) || 1;
 
       // Send questionType and answerType separately - backend now supports both!
       const requestData = {
@@ -254,7 +277,7 @@ const QuestionFormModal = ({ isOpen, onClose, questionId }) => {
           category: {
             id: categoryNum
           },
-          difficulty: question.difficulty,
+          level: question.level,
           questionText: question.content,
           explanation: question.explanation,
           questionMediaUrl: audioUrl || null,
@@ -539,11 +562,12 @@ const QuestionFormModal = ({ isOpen, onClose, questionId }) => {
                   value={question.category}
                   onChange={e => setQuestion({ ...question, category: e.target.value })}
                 >
-                  <option value="N1">N1 - Sơ cấp 1</option>
-                  <option value="N2">N2 - Sơ cấp 2</option>
-                  <option value="N3">N3 - Sơ cấp 3</option>
-                  <option value="N4">N4 - Sơ cấp 4</option>
-                  <option value="N5">N5 - Sơ cấp 5</option>
+                  <option value="">-- Chọn danh mục --</option>
+                  {categories.map(cat => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.name}
+                    </option>
+                  ))}
                 </select>
                 {validationErrors.category && (
                   <p className="text-red-500 text-xs sm:text-sm mt-1 flex items-center gap-1">
@@ -555,20 +579,23 @@ const QuestionFormModal = ({ isOpen, onClose, questionId }) => {
               <div>
                 <label className="block font-medium text-gray-700 mb-2 flex items-center gap-2 text-sm sm:text-base">
                   <BarChart3 className="w-4 h-4 text-gray-500" />
-                  Độ khó <span className="text-red-500">*</span>
+                  Cấp độ <span className="text-red-500">*</span>
                 </label>
                 <select
                   className="w-full px-3 sm:px-4 py-2 sm:py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition-all bg-white shadow-sm text-sm"
-                  value={question.difficulty}
-                  onChange={e => setQuestion({ ...question, difficulty: e.target.value })}
+                  value={question.level}
+                  onChange={e => setQuestion({ ...question, level: e.target.value })}
                 >
-                  <option value="EASY">Dễ</option>
-                  <option value="MEDIUM">Trung bình</option>
-                  <option value="HARD">Khó</option>
+                  <option value="LEVEL_1">Level 1 - Dễ nhất</option>
+                  <option value="LEVEL_2">Level 2 - Dễ</option>
+                  <option value="LEVEL_3">Level 3 - Trung bình</option>
+                  <option value="LEVEL_4">Level 4 - Khá</option>
+                  <option value="LEVEL_5">Level 5 - Khó</option>
+                  <option value="LEVEL_6">Level 6 - Khó nhất</option>
                 </select>
-                {validationErrors.difficulty && (
+                {validationErrors.level && (
                   <p className="text-red-500 text-xs sm:text-sm mt-1 flex items-center gap-1">
-                    <X className="w-3 h-3" />{validationErrors.difficulty}
+                    <X className="w-3 h-3" />{validationErrors.level}
                   </p>
                 )}
               </div>

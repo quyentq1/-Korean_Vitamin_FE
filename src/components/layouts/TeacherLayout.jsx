@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 import {
     BookOpen, FileText, Users, Calendar, TrendingUp, LogOut, Search,
-    Menu, X, Home, Bell, CheckCircle, Clock, FilePlus, Upload, Tag as TagIcon
+    Menu, X, Home, Bell, CheckCircle, Clock, FilePlus, Upload, Tag as TagIcon, Library
 } from 'lucide-react';
 import Swal from 'sweetalert2';
 import LanguageSwitcher from '../LanguageSwitcher';
@@ -40,6 +40,7 @@ const TeacherLayout = () => {
     // Sidebar navigation items
     const navItems = useMemo(() => [
         { icon: <Home className="w-5 h-5" />, label: t('teacher.dashboard.home'), path: '/teacher' },
+        { icon: <Library className="w-5 h-5" />, label: t('teacher.dashboard.myCourses'), path: '/teacher/my-courses' },
         { icon: <FileText className="w-5 h-5" />, label: t('teacher.dashboard.examManagement'), path: '/teacher/exam-management' },
         { icon: <BookOpen className="w-5 h-5" />, label: t('teacher.dashboard.questionBank'), path: '/teacher/question-bank' },
         { icon: <FilePlus className="w-5 h-5" />, label: t('teacher.dashboard.createQuestion'), path: '/teacher/questions/create' },
