@@ -322,19 +322,19 @@ const StudentManagement = () => {
                                             </td>
                                             <td className="px-6 py-4">
                                                 <div className="text-sm text-gray-600">
-                                                    {student.enrolledCourses?.length || 0} {t('staff.students.courses')}
+                                                    {student.enrolledCourses || 0} {t('staff.students.courses')}
                                                 </div>
                                                 <div className="text-xs text-gray-500">
-                                                    {student.activeClasses?.length || 0} {t('staff.students.activeClasses')}
+                                                    {student.activeClasses || 0} {t('staff.students.activeClasses')}
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4">
                                                 <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${
-                                                    student.active
+                                                    student.isActive
                                                         ? 'bg-green-100 text-green-700'
                                                         : 'bg-red-100 text-red-700'
                                                 }`}>
-                                                    {student.active ? (
+                                                    {student.isActive ? (
                                                         <>
                                                             <CheckCircle className="w-3 h-3" />
                                                             {t('staff.students.active')}
@@ -364,15 +364,15 @@ const StudentManagement = () => {
                                                         <Edit className="w-4 h-4" />
                                                     </button>
                                                     <button
-                                                        onClick={() => handleToggleStatus(student?.id, student?.fullName, student?.active)}
+                                                        onClick={() => handleToggleStatus(student?.id, student?.fullName, student?.isActive)}
                                                         className={`p-2 rounded-lg transition-colors ${
-                                                            student?.active
+                                                            student?.isActive
                                                                 ? 'text-red-600 hover:bg-red-50'
                                                                 : 'text-green-600 hover:bg-green-50'
                                                         }`}
-                                                        title={student?.active ? t('staff.students.deactivate') : t('staff.students.activate')}
+                                                        title={student?.isActive ? t('staff.students.deactivate') : t('staff.students.activate')}
                                                     >
-                                                        {student?.active ? <Ban className="w-4 h-4" /> : <CheckCircle className="w-4 h-4" />}
+                                                        {student?.isActive ? <Ban className="w-4 h-4" /> : <CheckCircle className="w-4 h-4" />}
                                                     </button>
                                                 </div>
                                             </td>
@@ -410,11 +410,11 @@ const StudentManagement = () => {
                                             </div>
                                         </div>
                                         <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${
-                                            student.active
+                                            student.isActive
                                                 ? 'bg-green-100 text-green-700'
                                                 : 'bg-red-100 text-red-700'
                                         }`}>
-                                            {student.active ? t('staff.students.active') : t('staff.students.inactive')}
+                                            {student.isActive ? t('staff.students.active') : t('staff.students.inactive')}
                                         </span>
                                     </div>
                                     <div className="space-y-1.5 mb-3 text-sm text-gray-600">
@@ -442,14 +442,14 @@ const StudentManagement = () => {
                                             <Edit className="w-4 h-4" />
                                         </button>
                                         <button
-                                            onClick={() => handleToggleStatus(student?.id, student?.fullName, student?.active)}
+                                            onClick={() => handleToggleStatus(student?.id, student?.fullName, student?.isActive)}
                                             className={`p-2 rounded-lg transition-colors ${
-                                                student?.active
+                                                student?.isActive
                                                     ? 'text-red-600 hover:bg-red-50'
                                                     : 'text-green-600 hover:bg-green-50'
                                             }`}
                                         >
-                                            {student?.active ? <Ban className="w-4 h-4" /> : <CheckCircle className="w-4 h-4" />}
+                                            {student?.isActive ? <Ban className="w-4 h-4" /> : <CheckCircle className="w-4 h-4" />}
                                         </button>
                                     </div>
                                 </div>

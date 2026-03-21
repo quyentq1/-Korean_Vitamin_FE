@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Save, Upload, FileText, Award, User, Tags, X } from 'lucide-react';
 import educationManagerService from '../../services/educationManagerService';
+import courseService from '../../services/courseService';
 import Swal from 'sweetalert2';
 
 const EduCourseForm = () => {
@@ -10,6 +11,7 @@ const EduCourseForm = () => {
     const isEdit = Boolean(id);
     const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);
+    const [teachers, setTeachers] = useState([]);
     const [form, setForm] = useState({
         name: '',
         code: '',
@@ -29,21 +31,48 @@ const EduCourseForm = () => {
         syllabus: '',
         testSummary: '',
         instructorInfo: '',
-        courseTags: ''
+        courseTags: '',
+        teacherId: null // New field for assigned teacher
     });
 
     useEffect(() => {
+        // Load teachers
+        courseService.getAllTeachers()
+            .then(data => setTeachers(data))
+            .catch(err => console.error('Failed to load teachers:', err));
+
         if (isEdit) {
             setLoading(true);
             educationManagerService.getCourseById(id)
                 .then(data => {
-                    setForm({ ...data });
+                    setForm({
+                        ...data,
+                        teacherId: data.assignedTeacher?.id || null
+                    });
                 })
                 .catch(() => Swal.fire('Lỗi', 'Không tìm thấy khóa học', 'error'))
                 .finally(() => setLoading(false));
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []); // Only run on mount
+
+    // Auto-fill instructorInfo when teacher is selected
+    useEffect(() => {
+        if (form.teacherId && teachers.length > 0) {
+            const selectedTeacher = teachers.find(t => t.id === parseInt(form.teacherId));
+            if (selectedTeacher) {
+                // Format as readable text (without username)
+                const parts = [
+                    `Giáo viên: ${selectedTeacher.fullName}`,
+                    `Email: ${selectedTeacher.email}`,
+                    selectedTeacher.phone ? `Điện thoại: ${selectedTeacher.phone}` : null
+                ].filter(Boolean);
+
+                const instructorInfo = parts.join('\n');
+                setForm(prev => ({ ...prev, instructorInfo }));
+            }
+        }
+    }, [form.teacherId, teachers]); // Run when teacherId or teachers change
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
@@ -189,6 +218,7 @@ const EduCourseForm = () => {
         { name: 'code', label: 'Mã khóa học', type: 'text', placeholder: 'VD: TOPIK-I-L1', required: true },
         { name: 'level', label: 'Trình độ', type: 'select', options: ['BEGINNER', 'INTERMEDIATE', 'ADVANCED'], optionLabels: ['Sơ cấp', 'Trung cấp', 'Cao cấp'] },
         { name: 'status', label: 'Trạng thái', type: 'select', options: ['DRAFT', 'PUBLISHED', 'ARCHIVED'], optionLabels: ['Bản nháp', 'Đã công bố', 'Lưu trữ'] },
+        { name: 'teacherId', label: 'Giáo viên phụ trách', type: 'teacher-select', span: 2 },
         { name: 'fee', label: 'Học phí (₫)', type: 'number', placeholder: 'VD: 2000000', required: true },
         { name: 'price', label: 'Giá niêm yết (₫)', type: 'number', placeholder: 'VD: 2500000' },
         { name: 'discountPrice', label: 'Giá ưu đãi (₫)', type: 'number', placeholder: 'VD: 1800000' },
@@ -225,6 +255,20 @@ const EduCourseForm = () => {
                                 >
                                     {f.options.map((opt, idx) => (
                                                                         <option key={opt} value={opt}>{f.optionLabels[idx]}</option>
+                                                                    ))}
+                                </select>
+                            ) : f.type === 'teacher-select' ? (
+                                <select
+                                    name={f.name}
+                                    value={form[f.name] || ''}
+                                    onChange={handleChange}
+                                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-violet-400 outline-none"
+                                >
+                                    <option value="">-- Chọn giáo viên --</option>
+                                    {teachers.map(teacher => (
+                                        <option key={teacher.id} value={teacher.id}>
+                                                                            {teacher.fullName} ({teacher.username})
+                                                                        </option>
                                                                     ))}
                                 </select>
                             ) : (
@@ -335,11 +379,18 @@ const EduCourseForm = () => {
                     <div className="sm:col-span-2">
                         <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
                             <User className="w-4 h-4" />
-                            Thông tin giáo viên
-                            <span className="text-red-500">*</span>
+                            Thông tin giảng viên (tự động điền khi chọn Teacher)
+                            <span className="text-gray-400 text-xs">(Auto-filled from selected Teacher)</span>
                         </label>
-                        <textarea name="instructorInfo" value={form.instructorInfo || ''} onChange={handleChange} rows={2}
-                            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-violet-400 outline-none resize-none" placeholder="Tên giáo viên, kinh nghiệm, bằng cấp..." />
+                        <textarea
+                            name="instructorInfo"
+                            value={form.instructorInfo || ''}
+                            onChange={handleChange}
+                            rows={3}
+                            readOnly
+                            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-violet-400 outline-none resize-none bg-gray-50 text-gray-600"
+                            placeholder="Giáo viên: [Tên]\nEmail: [email]\nĐiện thoại: [số điện thoại]"
+                        />
                     </div>
 
                     {/* NEW: Course Tags */}

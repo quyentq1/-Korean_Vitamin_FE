@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
+import { Grid3Cols, Grid2Cols } from '../../components/ui/Grid';
 import studentService from '../../services/studentService';
 import { 
   PageContainer, 
