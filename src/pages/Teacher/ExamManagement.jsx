@@ -32,13 +32,14 @@ import Input from '../../components/ui/Input';
 
 // Services
 import teacherService from '../../services/teacherService';
+import examService from '../../services/examService';
 
 const ExamManagement = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
 
   // State
-  const [exams, setExams] = useState([]);
+  const [exams, setExams] = useState([]); // Now contains ExamApproval objects
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
@@ -53,7 +54,7 @@ const ExamManagement = () => {
   const [publishing, setPublishing] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
-  // Fetch exams
+  // Fetch exams with approval status
   useEffect(() => {
     fetchExams();
   }, []);
@@ -61,7 +62,7 @@ const ExamManagement = () => {
   const fetchExams = async () => {
     setLoading(true);
     try {
-      const response = await teacherService.getExams();
+      const response = await examService.getSubmittedExams();
       setExams(response || []);
       setError('');
     } catch (err) {
@@ -72,20 +73,23 @@ const ExamManagement = () => {
     }
   };
 
-  // Filter exams
-  const filteredExams = exams.filter(exam => {
-    const matchesSearch = exam.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         exam.code?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || exam.status === statusFilter;
-    const matchesCourse = courseFilter === 'all' || exam.courseId === courseFilter;
+  // Filter exams - now works with ExamApproval objects
+  const filteredExams = exams.filter(approval => {
+    const exam = approval.exam;
+    const matchesSearch = exam?.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         exam?.code?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === 'all' || approval.status === statusFilter;
+    const matchesCourse = courseFilter === 'all' || exam?.course?.name === courseFilter;
     return matchesSearch && matchesStatus && matchesCourse;
   });
 
-  // Sort exams
+  // Sort exams - now works with ExamApproval objects
   const sortedExams = [...filteredExams].sort((a, b) => {
     let comparison = 0;
-    if (a[sortBy] < b[sortBy]) comparison = -1;
-    if (a[sortBy] > b[sortBy]) comparison = 1;
+    const aValue = sortBy === 'createdAt' ? a.submittedAt : a[sortBy];
+    const bValue = sortBy === 'createdAt' ? b.submittedAt : b[sortBy];
+    if (aValue < bValue) comparison = -1;
+    if (aValue > bValue) comparison = 1;
     return sortOrder === 'asc' ? comparison : -comparison;
   });
 
@@ -155,14 +159,17 @@ const ExamManagement = () => {
     }
   };
 
-  // Get status badge
-  const getStatusBadge = (exam) => {
-    if (exam.published) {
-      return <Badge variant="success">{t('exam.published', 'Đã đăng')}</Badge>;
-    } else if (exam.draft) {
-      return <Badge variant="warning">{t('exam.draft', 'Nháp')}</Badge>;
-    } else {
-      return <Badge variant="error">{t('exam.unpublished', 'Chưa đăng')}</Badge>;
+  // Get approval status badge
+  const getStatusBadge = (approval) => {
+    switch (approval.status) {
+      case 'PENDING':
+        return <Badge variant="warning">{t('exam.pending', 'Chờ duyệt')}</Badge>;
+      case 'APPROVED':
+        return <Badge variant="success">{t('exam.approved', 'Đã duyệt')}</Badge>;
+      case 'REJECTED':
+        return <Badge variant="error">{t('exam.rejected', 'Bị từ chối')}</Badge>;
+      default:
+        return <Badge variant="secondary">{approval.status}</Badge>;
     }
   };
 
@@ -180,8 +187,8 @@ const ExamManagement = () => {
     return <Badge variant={config.variant}>{config.label}</Badge>;
   };
 
-  // Get unique courses
-  const courses = [...new Set(exams.map(exam => exam.courseName).filter(Boolean))];
+  // Get unique courses from exam approvals
+  const courses = [...new Set(exams.map(approval => approval.exam?.course?.name).filter(Boolean))];
 
   return (
     <PageContainer>
@@ -198,12 +205,21 @@ const ExamManagement = () => {
           <Button
             variant="primary"
             icon={<Plus className="w-4 h-4" />}
-            onClick={() => navigate('/exam-management/create')}
+            onClick={() => navigate('/teacher/exam-management/create')}
           >
             {t('exam.create', 'Tạo Bài Kiểm Tra Mới')}
           </Button>
         }
       />
+
+      {/* Info Alert - Approval Workflow Notice */}
+      <Alert variant="info" icon={<AlertCircle className="w-5 h-5" />} className="mb-6">
+        <div className="font-medium mb-1">Quy trình phê duyệt đề thi</div>
+        <div className="text-sm">
+          Khi bạn tạo đề thi mới, nó sẽ ở trạng thái <strong>Chờ duyệt</strong>. Education Manager sẽ xem xét và phê duyệt trước khi đề thi được công bố.
+          Bạn sẽ nhận được email thông báo khi đề thi được duyệt hoặc từ chối.
+        </div>
+      </Alert>
 
       {/* Error Alert */}
       {error && (
@@ -248,9 +264,9 @@ const ExamManagement = () => {
                 onChange={(e) => setStatusFilter(e.target.value)}
                 options={[
                   { value: 'all', label: t('exam.allStatus', 'Tất cả trạng thái') },
-                  { value: 'published', label: t('exam.published', 'Đã đăng') },
-                  { value: 'unpublished', label: t('exam.unpublished', 'Chưa đăng') },
-                  { value: 'draft', label: t('exam.draft', 'Nháp') }
+                  { value: 'PENDING', label: t('exam.pending', 'Chờ duyệt') },
+                  { value: 'APPROVED', label: t('exam.approved', 'Đã duyệt') },
+                  { value: 'REJECTED', label: t('exam.rejected', 'Bị từ chối') }
                 ]}
               />
             </div>
@@ -286,87 +302,104 @@ const ExamManagement = () => {
             <Button
               variant="primary"
               icon={<Plus className="w-4 h-4" />}
-              onClick={() => navigate('/exam-management/create')}
+              onClick={() => navigate('/teacher/exam-management/create')}
             >
               {t('exam.createFirst', 'Tạo Bài Kiểm Tra Đầu Tiên')}
             </Button>
           </div>
         ) : (
           <div className="divide-y divide-gray-100">
-            {sortedExams.map((exam) => (
-              <div key={exam.id} className="p-6 hover:bg-gray-50 transition-colors">
-                <div className="flex items-start justify-between gap-4">
-                  {/* Exam Info */}
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h3 className="font-semibold text-gray-900 text-lg">
-                        {exam.title}
-                      </h3>
-                      <span className="text-sm text-gray-500">({exam.code})</span>
-                      {getStatusBadge(exam)}
-                      {getTypeBadge(exam.type)}
-                    </div>
+            {sortedExams.map((approval) => {
+              const exam = approval.exam;
+              if (!exam) return null;
 
-                    <p className="text-gray-600 mb-3">{exam.description}</p>
+              return (
+                <div key={approval.id} className="p-6 hover:bg-gray-50 transition-colors">
+                  <div className="flex items-start justify-between gap-4">
+                    {/* Exam Info */}
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <h3 className="font-semibold text-gray-900 text-lg">
+                          {exam.title}
+                        </h3>
+                        <span className="text-sm text-gray-500">({exam.code})</span>
+                        {getStatusBadge(approval)}
+                        {exam.examType && getTypeBadge(exam.examType)}
+                      </div>
 
-                    <div className="flex flex-wrap items-center gap-6 text-sm text-gray-500">
-                      <div className="flex items-center gap-2">
-                        <Users className="w-4 h-4" />
-                        <span>{exam.questionCount || 0} {t('exam.questions', 'câu hỏi')}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Clock className="w-4 h-4" />
-                        <span>{exam.duration} {t('exam.minutes', 'phút')}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Calendar className="w-4 h-4" />
-                        <span>
-                          {new Date(exam.createdAt).toLocaleDateString('vi-VN')}
-                        </span>
-                      </div>
-                      {exam.courseName && (
-                        <div className="flex items-center gap-2">
-                          <FileText className="w-4 h-4" />
-                          <span>{exam.courseName}</span>
-                        </div>
+                      <p className="text-gray-600 mb-3">{exam.description}</p>
+
+                      {/* Show feedback if rejected */}
+                      {approval.status === 'REJECTED' && approval.feedback && (
+                        <Alert variant="error" className="mb-3" icon={<AlertCircle className="w-4 h-4" />}>
+                          <div className="font-medium text-sm">Phản hồi từ Education Manager:</div>
+                          <div className="text-sm mt-1">{approval.feedback}</div>
+                        </Alert>
                       )}
-                    </div>
-                  </div>
 
-                  {/* Actions */}
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      icon={<Eye className="w-4 h-4" />}
-                      onClick={() => navigate(`/exam-attempts/${exam.id}`)}
-                      title={t('exam.viewAttempts', 'Xem kết quả')}
-                    />
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      icon={<Edit className="w-4 h-4" />}
-                      onClick={() => navigate(`/exam-editor/${exam.id}`)}
-                      title={t('exam.edit', 'Chỉnh sửa')}
-                    />
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      icon={exam.published ? <XCircle className="w-4 h-4" /> : <CheckCircle2 className="w-4 h-4" />}
-                      onClick={() => handlePublishToggle(exam)}
-                      title={exam.published ? t('exam.unpublish', 'Hủy đăng') : t('exam.publish', 'Đăng')}
-                    />
-                    <Button
-                      variant="danger"
-                      size="sm"
-                      icon={<Trash2 className="w-4 h-4" />}
-                      onClick={() => handleDelete(exam)}
-                      title={t('exam.delete', 'Xóa')}
-                    />
+                      <div className="flex flex-wrap items-center gap-6 text-sm text-gray-500">
+                        <div className="flex items-center gap-2">
+                          <Users className="w-4 h-4" />
+                          <span>{exam.examQuestions?.length || exam.totalQuestions || 0} {t('exam.questions', 'câu hỏi')}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Clock className="w-4 h-4" />
+                          <span>{exam.durationMinutes} {t('exam.minutes', 'phút')}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Calendar className="w-4 h-4" />
+                          <span>
+                            {new Date(approval.submittedAt).toLocaleDateString('vi-VN')}
+                          </span>
+                        </div>
+                        {exam.course?.name && (
+                          <div className="flex items-center gap-2">
+                            <FileText className="w-4 h-4" />
+                            <span>{exam.course.name}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        icon={<Eye className="w-4 h-4" />}
+                        onClick={() => navigate(`/exam-attempts/${exam.id}`)}
+                        title={t('exam.viewAttempts', 'Xem kết quả')}
+                      />
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        icon={<Edit className="w-4 h-4" />}
+                        onClick={() => navigate(`/exam-editor/${exam.id}`)}
+                        title={t('exam.edit', 'Chỉnh sửa')}
+                        disabled={approval.status === 'APPROVED'}
+                        className={approval.status === 'APPROVED' ? 'opacity-50 cursor-not-allowed' : ''}
+                      />
+                      {approval.status === 'APPROVED' && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          icon={<CheckCircle2 className="w-4 h-4" />}
+                          onClick={() => handlePublishToggle(exam)}
+                          title={exam.published ? t('exam.unpublish', 'Hủy đăng') : t('exam.publish', 'Đăng')}
+                        />
+                      )}
+                      <Button
+                        variant="danger"
+                        size="sm"
+                        icon={<Trash2 className="w-4 h-4" />}
+                        onClick={() => handleDelete(exam)}
+                        title={t('exam.delete', 'Xóa')}
+                      />
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </Card>

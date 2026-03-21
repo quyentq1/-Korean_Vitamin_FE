@@ -38,6 +38,35 @@ export const examService = {
     // Submit Exam
     submitExam: async (attemptId) => {
         return await axiosClient.post(`/student/attempts/${attemptId}/submit`);
+    },
+
+    // ==================== Education Manager APIs ====================
+
+    // Get pending exams waiting for approval
+    getPendingExams: async () => {
+        return await axiosClient.get('/education-manager/exams/pending');
+    },
+
+    // Get exams by approval status
+    getExamsByStatus: async (status) => {
+        return await axiosClient.get(`/education-manager/exams/status/${status}`);
+    },
+
+    // Approve or reject an exam
+    approveExam: async (examId, data) => {
+        return await axiosClient.post(`/education-manager/exams/${examId}/approve`, data);
+    },
+
+    // ==================== Teacher APIs ====================
+
+    // Get exams submitted by teacher with approval status
+    getSubmittedExams: async () => {
+        return await axiosClient.get('/teacher/exams/submitted');
+    },
+
+    // Get approval status for a specific exam
+    getExamApproval: async (examId) => {
+        return await axiosClient.get(`/teacher/exams/${examId}/approval`);
     }
 };
 
