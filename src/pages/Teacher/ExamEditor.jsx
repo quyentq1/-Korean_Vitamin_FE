@@ -1,19 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { 
-  Save, 
-  ArrowLeft, 
-  Plus, 
-  Trash2, 
-  Edit, 
-  Eye, 
+import {
+  Save,
+  ArrowLeft,
+  Plus,
+  Trash2,
+  Edit,
+  Eye,
   CheckCircle2,
   AlertCircle,
   FileText,
   Clock,
   Users,
-  Settings
+  Settings,
+  BookOpen,
+  Search
 } from 'lucide-react';
 
 // UI Components
@@ -35,6 +37,7 @@ const ExamEditor = () => {
   const { t } = useTranslation();
   const { id } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   // State
   const [loading, setLoading] = useState(true);
@@ -45,6 +48,10 @@ const ExamEditor = () => {
   const [activeTab, setActiveTab] = useState('details');
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [questionToDelete, setQuestionToDelete] = useState(null);
+  const [courses, setCourses] = useState([]);
+
+  // Get courseId from URL query parameter (when coming from MyCourses page)
+  const courseIdFromUrl = searchParams.get('courseId');
 
   // Form state
   const [formData, setFormData] = useState({
@@ -55,7 +62,7 @@ const ExamEditor = () => {
     passingScore: 60,
     maxAttempts: 3,
     published: false,
-    courseId: '',
+    courseId: courseIdFromUrl || '', // Pre-fill if coming from MyCourses
     type: 'MIXED'
   });
 
@@ -64,17 +71,49 @@ const ExamEditor = () => {
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [previewQuestion, setPreviewQuestion] = useState(null);
 
-  // Fetch exam details
+  // Question Bank Modal
+  const [showQuestionBankModal, setShowQuestionBankModal] = useState(false);
+  const [selectedQuestionsFromBank, setSelectedQuestionsFromBank] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  // Fetch exam details (only in edit mode)
   useEffect(() => {
-    fetchExamDetails();
+    if (id && id !== 'create') {
+      fetchExamDetails();
+    } else {
+      // Create mode - load courses and set loading to false
+      fetchCourses();
+      setLoading(false);
+    }
   }, [id]);
+
+  // Fetch assigned courses
+  const fetchCourses = async () => {
+    try {
+      const data = await teacherService.getAssignedCourses();
+      setCourses(data || []);
+
+      // If coming from MyCourses with courseId, find and store course info
+      if (courseIdFromUrl) {
+        const selectedCourse = data.find(c => c.id === parseInt(courseIdFromUrl));
+        if (selectedCourse) {
+          setSelectedCourseInfo(selectedCourse);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to load courses:', err);
+    }
+  };
+
+  // Store selected course info when coming from MyCourses
+  const [selectedCourseInfo, setSelectedCourseInfo] = useState(null);
 
   const fetchExamDetails = async () => {
     setLoading(true);
     try {
       const response = await teacherService.getExam(id);
       setExam(response);
-      
+
       // Set form data
       setFormData({
         title: response.title || '',
@@ -100,9 +139,32 @@ const ExamEditor = () => {
   };
 
   // Handle form change
-  const handleFormChange = (field, value) => {
+  const handleFormChange = async (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+
+    // Load questions when course is selected
+    if (field === 'courseId' && value) {
+      const selectedCourse = courses.find(c => c.id === parseInt(value));
+      if (selectedCourse) {
+        setSelectedCourseInfo(selectedCourse);
+        await loadQuestionsForCourse(selectedCourse);
+      }
+    }
   };
+
+  // Load questions by course level
+  const loadQuestionsForCourse = async (course) => {
+    try {
+      const questions = await teacherService.getQuestionsByCourseLevel(course.level);
+      setAvailableQuestions(questions || []);
+    } catch (err) {
+      console.error('Failed to load questions for course:', err);
+      setAvailableQuestions([]);
+    }
+  };
+
+  // Store available questions for selected course
+  const [availableQuestions, setAvailableQuestions] = useState([]);
 
   // Handle question change
   const handleQuestionChange = (index, field, value) => {
@@ -142,6 +204,49 @@ const ExamEditor = () => {
     setQuestionToDelete(null);
   };
 
+  // Open Question Bank Modal
+  const handleOpenQuestionBank = () => {
+    if (!selectedCourseInfo) {
+      setError(t('exam.selectCourseFirst', 'Vui lòng chọn khóa học trước.'));
+      return;
+    }
+    setSelectedQuestionsFromBank([]);
+    setSearchTerm('');
+    setShowQuestionBankModal(true);
+  };
+
+  // Toggle question selection from bank
+  const handleToggleQuestionFromBank = (question) => {
+    setSelectedQuestionsFromBank(prev => {
+      const exists = prev.find(q => q.id === question.id);
+      if (exists) {
+        return prev.filter(q => q.id !== question.id);
+      } else {
+        return [...prev, question];
+      }
+    });
+  };
+
+  // Add selected questions from bank to exam
+  const handleAddQuestionsFromBank = () => {
+    const newQuestions = selectedQuestionsFromBank.map(q => ({
+      id: q.id,
+      category: q.category?.name || 'N1',
+      type: q.questionType,
+      content: q.questionText || q.content,
+      answers: q.options || [],
+      correctAnswer: null,
+      level: q.level,
+      points: q.points || 1,
+      isNew: false
+    }));
+
+    setQuestions(prev => [...prev, ...newQuestions]);
+    setShowQuestionBankModal(false);
+    setSelectedQuestionsFromBank([]);
+    setActiveTab('questions');
+  };
+
   // Preview question
   const handlePreviewQuestion = (question) => {
     setPreviewQuestion(question);
@@ -152,13 +257,41 @@ const ExamEditor = () => {
   const handleSave = async () => {
     setSaving(true);
     try {
-      await teacherService.updateExam(id, {
-        ...formData,
-        questions: questions.filter(q => !q.isNew)
-      });
+      const isCreateMode = !id || id === 'create';
 
-      setSuccess(t('exam.saveSuccess', 'Đã lưu bài kiểm tra thành công!'));
-      setError('');
+      if (isCreateMode) {
+        // Validate required fields
+        if (!formData.courseId) {
+          setError(t('exam.courseRequired', 'Vui lòng chọn khóa học.'));
+          setSaving(false);
+          return;
+        }
+
+        // Create new exam - backend expects { exam: {...}, questions: [...] }
+        const requestData = {
+          exam: {
+            ...formData,
+            courseId: parseInt(formData.courseId) // Convert to number
+          },
+          questions: questions.filter(q => !q.isNew)
+        };
+
+        const response = await teacherService.createExam(requestData);
+        setSuccess(t('exam.createSuccess', 'Đã tạo bài kiểm tra thành công! Đang chờ Education Manager duyệt.'));
+        setError('');
+        // Navigate to edit mode after creation
+        setTimeout(() => {
+          navigate(`/exam-editor/${response.id}`);
+        }, 1500);
+      } else {
+        // Update existing exam
+        await teacherService.updateExam(id, {
+          ...formData,
+          questions: questions.filter(q => !q.isNew)
+        });
+        setSuccess(t('exam.saveSuccess', 'Đã lưu bài kiểm tra thành công!'));
+        setError('');
+      }
     } catch (err) {
       console.error(err);
       setError(err.response?.data?.message || t('exam.saveError', 'Lỗi khi lưu bài kiểm tra.'));
@@ -202,17 +335,19 @@ const ExamEditor = () => {
     );
   }
 
+  const isCreateMode = !id || id === 'create';
+
   return (
     <PageContainer>
       {/* Page Header */}
       <PageHeader
-        title={t('exam.edit', 'Chỉnh Sửa Bài Kiểm Tra')}
-        subtitle={exam?.code || ''}
+        title={isCreateMode ? t('exam.create', 'Tạo Bài Kiểm Tra Mới') : t('exam.edit', 'Chỉnh Sửa Bài Kiểm Tra')}
+        subtitle={exam?.code || t('exam.createSubtitle', 'Tạo bài kiểm tra mới cho khóa học')}
         breadcrumbs={[
           { label: t('nav.home', 'Trang chủ'), href: '/' },
           { label: t('nav.teacher', 'Giáo viên'), href: '/teacher' },
           { label: t('exam.management', 'Quản Lý Bài Kiểm Tra'), href: '/exam-management' },
-          { label: exam?.title || t('exam.edit', 'Chỉnh Sửa') }
+          { label: isCreateMode ? t('exam.create', 'Tạo Mới') : (exam?.title || t('exam.edit', 'Chỉnh Sửa')) }
         ]}
         actions={
           <div className="flex gap-3">
@@ -348,6 +483,47 @@ const ExamEditor = () => {
                   />
                 </div>
 
+                {/* Course Selection (Required for create mode) */}
+                {isCreateMode && !selectedCourseInfo && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {t('exam.course', 'Khóa học')} *
+                    </label>
+                    <select
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
+                      value={formData.courseId}
+                      onChange={(e) => handleFormChange('courseId', e.target.value)}
+                      required
+                    >
+                      <option value="">{t('exam.selectCourse', '-- Chọn khóa học --')}</option>
+                      {courses.map(course => (
+                        <option key={course.id} value={course.id}>
+                          {course.name} ({course.code})
+                        </option>
+                      ))}
+                    </select>
+                    {courses.length === 0 && (
+                      <p className="mt-1 text-sm text-amber-600">
+                        {t('exam.noCoursesAssigned', 'Bạn chưa được assigned vào khóa học nào.')}
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {/* Selected Course Display (when coming from MyCourses) */}
+                {isCreateMode && selectedCourseInfo && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {t('exam.course', 'Khóa học')}
+                    </label>
+                    <div className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-700">
+                      <div className="font-medium">{selectedCourseInfo.name}</div>
+                      <div className="text-sm text-gray-500">{selectedCourseInfo.code}</div>
+                    </div>
+                    <input type="hidden" name="courseId" value={formData.courseId} />
+                  </div>
+                )}
+
                 {/* Type */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -433,11 +609,22 @@ const ExamEditor = () => {
               <div className="p-6">
                 <Button
                   variant="primary"
-                  className="w-full mb-4"
+                  className="w-full mb-3"
                   icon={<Plus className="w-4 h-4" />}
                   onClick={handleAddQuestion}
                 >
                   {t('exam.addQuestion', 'Thêm Câu Hỏi Mới')}
+                </Button>
+
+                <Button
+                  variant="secondary"
+                  className="w-full mb-4"
+                  icon={<BookOpen className="w-4 h-4" />}
+                  onClick={handleOpenQuestionBank}
+                  disabled={!selectedCourseInfo}
+                >
+                  {t('exam.selectFromQuestionBank', 'Chọn từ Ngân Hàng Câu Hỏi')}
+                  {!selectedCourseInfo && ` (${t('exam.selectCourseFirst', 'Chọn khóa học trước')})`}
                 </Button>
 
                 <div className="space-y-4">
@@ -683,6 +870,139 @@ const ExamEditor = () => {
           </div>
         )}
       </Modal>
+
+      {/* Question Bank Modal */}
+      {showQuestionBankModal && (
+        <Modal
+          isOpen={showQuestionBankModal}
+          onClose={() => setShowQuestionBankModal(false)}
+          title={t('exam.questionBank', 'Ngân Hàng Câu Hỏi')}
+          size="xl"
+        >
+          <div className="space-y-4">
+            {/* Course Info */}
+            {selectedCourseInfo && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <div className="flex items-center gap-2 text-sm">
+                  <BookOpen className="w-4 h-4 text-blue-600" />
+                  <span className="font-medium text-blue-900">
+                    {selectedCourseInfo.name} ({selectedCourseInfo.level})
+                  </span>
+                </div>
+                <p className="text-xs text-blue-700 mt-1">
+                  {t('exam.showingQuestionsForLevel', 'Đang hiển thị câu hỏi phù hợp với trình độ này')}
+                </p>
+              </div>
+            )}
+
+            {/* Search */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type="text"
+                placeholder={t('exam.searchQuestions', 'Tìm kiếm câu hỏi...')}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              />
+            </div>
+
+            {/* Questions List */}
+            <div className="border border-gray-200 rounded-lg max-h-96 overflow-y-auto">
+              {availableQuestions.length === 0 ? (
+                <div className="p-8 text-center text-gray-500">
+                  <FileText className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                  <p>{t('exam.noQuestionsAvailable', 'Không có câu hỏi nào phù hợp.')}</p>
+                </div>
+              ) : (
+                <div className="divide-y divide-gray-200">
+                  {availableQuestions
+                    .filter(q =>
+                      !searchTerm ||
+                      (q.questionText || q.content || '').toLowerCase().includes(searchTerm.toLowerCase())
+                    )
+                    .map(question => {
+                      const isSelected = selectedQuestionsFromBank.find(q => q.id === question.id);
+                      const isAlreadyAdded = questions.find(q => q.id === question.id);
+
+                      return (
+                        <div
+                          key={question.id}
+                          className={`p-4 hover:bg-gray-50 transition-colors ${
+                            isSelected ? 'bg-primary-50' : ''
+                          } ${isAlreadyAdded ? 'opacity-50' : ''}`}
+                        >
+                          <div className="flex items-start gap-3">
+                            <input
+                              type="checkbox"
+                              checked={isSelected || false}
+                              onChange={() => handleToggleQuestionFromBank(question)}
+                              disabled={isAlreadyAdded}
+                              className="mt-1 w-4 h-4 text-primary-600 rounded focus:ring-primary-500"
+                            />
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-2">
+                                <Badge variant="info" size="sm">
+                                  {question.categoryName || question.category?.name || 'N/A'}
+                                </Badge>
+                                <Badge variant="warning" size="sm">
+                                  {question.level?.replace('LEVEL_', 'Level ') || 'N/A'}
+                                </Badge>
+                                {isAlreadyAdded && (
+                                  <span className="text-xs text-gray-500">
+                                    {t('exam.alreadyAdded', 'Đã thêm')}
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-sm text-gray-900">
+                                {question.questionText || question.content || 'No content'}
+                              </p>
+                              {question.options && question.options.length > 0 && (
+                                <div className="mt-2 text-xs text-gray-500">
+                                  {question.options.length} {t('exam.answers', 'đáp án')}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                </div>
+              )}
+            </div>
+
+            {/* Selected Count */}
+            {selectedQuestionsFromBank.length > 0 && (
+              <div className="bg-primary-50 border border-primary-200 rounded-lg p-3">
+                <p className="text-sm text-primary-900">
+                  {t('exam.selectedCount', 'Đã chọn {{count}} câu hỏi', {
+                    count: selectedQuestionsFromBank.length
+                  })}
+                </p>
+              </div>
+            )}
+
+            {/* Actions */}
+            <div className="flex gap-3 justify-end">
+              <Button
+                variant="secondary"
+                onClick={() => setShowQuestionBankModal(false)}
+              >
+                {t('common.cancel', 'Hủy')}
+              </Button>
+              <Button
+                variant="primary"
+                onClick={handleAddQuestionsFromBank}
+                disabled={selectedQuestionsFromBank.length === 0}
+              >
+                {t('exam.addSelected', 'Thêm {{count}} câu hỏi', {
+                  count: selectedQuestionsFromBank.length
+                })}
+              </Button>
+            </div>
+          </div>
+        </Modal>
+      )}
 
       {/* Loading Overlay */}
       {saving && (

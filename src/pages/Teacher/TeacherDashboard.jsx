@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { BookOpen, Users, FileText, TrendingUp, Calendar, Clock, AlertCircle } from 'lucide-react';
+import { BookOpen, Users, FileText, TrendingUp, Calendar, Clock, AlertCircle, CheckCircle } from 'lucide-react';
 import teacherService from '../../services/teacherService';
 
 /**
