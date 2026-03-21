@@ -104,6 +104,11 @@ export const teacherService = {
         return await axiosClient.get(`/teacher/exams/${id}/attempts`);
     },
 
+    // Course Management
+    getAssignedCourses: async () => {
+        return await axiosClient.get('/teacher/courses');
+    },
+
     // Question Management
     getQuestions: async (params) => {
         return await axiosClient.get('/teacher/questions', { params });
@@ -236,6 +241,22 @@ export const teacherService = {
 
     getStaffList: async () => {
         return await axiosClient.get('/teacher/reports/staff-list');
+    },
+
+    // Question Categories
+    getAllCategories: async () => {
+        return await axiosClient.get('/teacher/categories');
+    },
+
+    createCategory: async (category) => {
+        return await axiosClient.post('/teacher/categories', category);
+    },
+
+    // Get questions by course level
+    getQuestionsByCourseLevel: async (courseLevel) => {
+        return await axiosClient.get('/teacher/questions/by-course-level', {
+            params: { courseLevel }
+        });
     }
 };
 

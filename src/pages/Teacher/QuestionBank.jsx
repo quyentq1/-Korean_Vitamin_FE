@@ -61,7 +61,7 @@ const QuestionBank = () => {
   const [filters, setFilters] = useState({
     type: '',
     category: '',
-    difficulty: '',
+    level: '',
     search: ''
   });
   const [view, setView] = useState('list'); // 'list' or 'grid'
@@ -85,26 +85,20 @@ const QuestionBank = () => {
 
   // Mock data - will be replaced with API calls
   const mockQuestions = [
-    { id: 'Q101', content: 'Thủ đô của Hàn Quốc là gì?', category: 'N1', type: 'MULTIPLE_CHOICE', difficulty: 'EASY', status: 'Active', createdAt: '2024-12-15', options: ['A', 'B', 'C', 'D'] },
-    { id: 'Q102', content: 'Chọn từ đúng điền vào chỗ trống: "Tôi ... là học sinh"', category: 'N1', type: 'MULTIPLE_CHOICE', difficulty: 'EASY', status: 'Active', createdAt: '2024-12-14', options: ['A', 'B', 'C', 'D'] },
-    { id: 'Q103', content: 'Nghe đoạn hội thoại sau và trả lời câu hỏi...', category: 'N2', type: 'LISTENING', difficulty: 'MEDIUM', status: 'Review', createdAt: '2024-12-13', options: [] },
-    { id: 'Q104', content: 'Viết một đoạn văn ngắn về gia đình của bạn (khoảng 100 từ).', category: 'N3', type: 'WRITING', difficulty: 'HARD', status: 'Active', createdAt: '2024-12-12', options: [] },
-    { id: 'Q105', content: 'Dịch câu sau sang tiếng Hàn: "Hôm nay trời đẹp."', category: 'N1', type: 'TRANSLATION', difficulty: 'MEDIUM', status: 'Active', createdAt: '2024-12-11', options: ['A', 'B', 'C', 'D'] },
-    { id: 'Q106', content: 'Điền vào chỗ trống: Seoul ___ thủ đô của Hàn Quốc.', category: 'N2', type: 'MULTIPLE_CHOICE', difficulty: 'HARD', status: 'Active', createdAt: '2024-12-10', options: ['A', 'B', 'C', 'D'] },
-    { id: 'Q107', content: 'Chọn từ đúng: "Tôi (yêu/thích) ___ màu xanh dương."', category: 'N3', type: 'MULTIPLE_CHOICE', difficulty: 'EASY', status: 'Active', createdAt: '2024-12-09', options: ['A', 'B', 'C', 'D'] },
-    { id: 'Q108', content: 'Viết một đoạn văn ngắn về sở thích của bạn.', category: 'N3', type: 'WRITING', difficulty: 'MEDIUM', status: 'Active', createdAt: '2024-12-08', options: [] },
-    { id: 'Q109', content: 'Nghe và chọn hình ảnh đúng theo đoạn hội thoại.', category: 'N1', type: 'LISTENING', difficulty: 'EASY', status: 'Active', createdAt: '2024-12-07', options: ['A', 'B', 'C', 'D'] },
-    { id: 'Q110', content: 'Dịch: "Tôi đi học bằng xe buýt mọi ngày."', category: 'N2', type: 'TRANSLATION', difficulty: 'MEDIUM', status: 'Review', createdAt: '2024-12-06', options: ['A', 'B', 'C', 'D'] },
-    { id: 'Q111', content: 'Chọn động từ đúng: "Hôm qua tôi ___ đến công viên."', category: 'N2', type: 'MULTIPLE_CHOICE', difficulty: 'MEDIUM', status: 'Active', createdAt: '2024-12-05', options: ['A', 'B', 'C', 'D'] },
-    { id: 'Q112', content: 'Viết email giới thiệu bản thân (150-200 từ).', category: 'N3', type: 'WRITING', difficulty: 'HARD', status: 'Active', createdAt: '2024-12-04', options: [] },
+    { id: 'Q101', content: 'Thủ đô của Hàn Quốc là gì?', category: 'Grammar', type: 'MULTIPLE_CHOICE', difficulty: 'EASY', status: 'Active', createdAt: '2024-12-15', options: ['A', 'B', 'C', 'D'] },
+    { id: 'Q102', content: 'Chọn từ đúng điền vào chỗ trống: "Tôi ... là học sinh"', category: 'Vocabulary', type: 'MULTIPLE_CHOICE', difficulty: 'EASY', status: 'Active', createdAt: '2024-12-14', options: ['A', 'B', 'C', 'D'] },
+    { id: 'Q103', content: 'Nghe đoạn hội thoại sau và trả lời câu hỏi...', category: 'Listening', type: 'LISTENING', difficulty: 'MEDIUM', status: 'Review', createdAt: '2024-12-13', options: [] },
+    { id: 'Q104', content: 'Viết một đoạn văn ngắn về gia đình của bạn (khoảng 100 từ).', category: 'Writing', type: 'WRITING', difficulty: 'HARD', status: 'Active', createdAt: '2024-12-12', options: [] },
+    { id: 'Q105', content: 'Dịch câu sau sang tiếng Hàn: "Hôm nay trời đẹp."', category: 'Reading', type: 'TRANSLATION', difficulty: 'MEDIUM', status: 'Active', createdAt: '2024-12-11', options: ['A', 'B', 'C', 'D'] },
   ];
 
   const mockCategories = [
-    { id: 1, name: 'N1 - Sơ Cấp 1', questionCount: 45 },
-    { id: 2, name: 'N2 - Sơ Cấp 2', questionCount: 32 },
-    { id: 3, name: 'N3 - Sơ Cấp 3', questionCount: 28 },
-    { id: 4, name: 'N4 - Sơ Cấp 4', questionCount: 15 },
-    { id: 5, name: 'N5 - Sơ Cấp 5', questionCount: 12 },
+    { id: 1, name: 'Grammar', questionCount: 45 },
+    { id: 2, name: 'Vocabulary', questionCount: 32 },
+    { id: 3, name: 'Reading', questionCount: 28 },
+    { id: 4, name: 'Listening', questionCount: 15 },
+    { id: 5, name: 'Writing', questionCount: 12 },
+    { id: 6, name: 'Speaking', questionCount: 8 },
   ];
 
   // Fetch questions from API
@@ -146,9 +140,9 @@ const QuestionBank = () => {
       const mappedQuestions = questionsData.map(q => ({
         id: q.id?.toString() || Math.random().toString(36).substr(2, 9),
         content: q.questionText || q.content || q.text || 'No content',
-        category: q.category?.id?.toString() || q.category?.toString() || 'N/A',
+        category: q.categoryName || q.categoryId?.toString() || 'Uncategorized',
         type: q.questionType || q.type || 'MULTIPLE_CHOICE',
-        difficulty: q.difficulty || 'MEDIUM',
+        level: q.level || 'LEVEL_3',
         status: q.verificationStatus || q.status || (q.active ? 'Active' : 'Inactive'),
         createdAt: q.createdAt || q.created_at || new Date().toISOString(),
         options: q.options || [],
@@ -182,7 +176,7 @@ const QuestionBank = () => {
       const filteredQuestions = mockQuestions.filter(q => {
         if (filters.category && q.category !== filters.category) return false;
         if (filters.type && q.type !== filters.type) return false;
-        if (filters.difficulty && q.difficulty !== filters.difficulty) return false;
+        if (filters.level && q.level !== filters.level) return false;
         if (filters.search && !q.content.toLowerCase().includes(filters.search.toLowerCase())) return false;
         return true;
       });
@@ -201,10 +195,8 @@ const QuestionBank = () => {
   // Fetch categories from API
   const fetchCategories = async () => {
     try {
-      // TODO: Replace with actual API call
-      // const response = await teacherService.getCategories();
-      // setCategories(response.data);
-      setCategories(mockCategories);
+      const response = await teacherService.getAllCategories();
+      setCategories(response || []);
     } catch (err) {
       console.error('Error fetching categories:', err);
     }
@@ -234,6 +226,28 @@ const QuestionBank = () => {
     setFilters(prev => ({ ...prev, [key]: value }));
     setPage(1);
   };
+
+  // Filter questions based on filters state
+  useEffect(() => {
+    if (allQuestions.length === 0) return;
+
+    const filtered = allQuestions.filter(q => {
+      if (filters.category && q.category !== filters.category) return false;
+      if (filters.type && q.type !== filters.type) return false;
+      if (filters.level && q.level !== filters.level) return false;
+      if (filters.search && !q.content.toLowerCase().includes(filters.search.toLowerCase())) return false;
+      return true;
+    });
+
+    // Update pagination
+    setTotal(filtered.length);
+    setTotalPages(Math.ceil(filtered.length / pageSize));
+
+    // Paginate
+    const startIndex = (page - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    setQuestions(filtered.slice(startIndex, endIndex));
+  }, [allQuestions, filters, page, pageSize]);
 
   // Handle page size change
   const handlePageSizeChange = (newSize) => {
@@ -426,17 +440,43 @@ const QuestionBank = () => {
     }
   };
 
-  // Get difficulty badge variant
-  const getDifficultyBadgeVariant = (difficulty) => {
-    switch (difficulty) {
-      case 'EASY':
-        return 'success';
-      case 'MEDIUM':
-        return 'warning';
-      case 'HARD':
-        return 'error';
+  // Get category badge variant
+  const getCategoryBadgeVariant = (category) => {
+    switch (category) {
+      case 'Grammar':
+        return 'error';      // Red
+      case 'Vocabulary':
+        return 'warning';    // Yellow
+      case 'Reading':
+        return 'info';       // Blue
+      case 'Listening':
+        return 'success';    // Green
+      case 'Writing':
+        return 'purple';     // Purple
+      case 'Speaking':
+        return 'primary';     // Primary color
       default:
-        return 'info';
+        return 'secondary';  // Gray
+    }
+  };
+
+  // Get level badge variant - different color for each level
+  const getLevelBadgeVariant = (level) => {
+    switch (level) {
+      case 'LEVEL_1':
+        return 'success';     // Green - Dễ nhất
+      case 'LEVEL_2':
+        return 'info';        // Blue - Dễ
+      case 'LEVEL_3':
+        return 'warning';     // Yellow - Trung bình
+      case 'LEVEL_4':
+        return 'primary';     // Primary - Khá
+      case 'LEVEL_5':
+        return 'purple';      // Purple - Khó
+      case 'LEVEL_6':
+        return 'error';       // Red - Khó nhất
+      default:
+        return 'secondary';
     }
   };
 
@@ -575,7 +615,7 @@ const QuestionBank = () => {
 
   // Render empty state
   const renderEmptyState = () => {
-    const hasFilters = filters.search || filters.type || filters.category || filters.difficulty;
+    const hasFilters = filters.search || filters.type || filters.category || filters.level;
 
     return (
       <Card className="py-16">
@@ -677,7 +717,7 @@ const QuestionBank = () => {
 
   // Render filter bar
   const renderFilterBar = () => {
-    const hasActiveFilters = filters.search || filters.type || filters.category || filters.difficulty;
+    const hasActiveFilters = filters.search || filters.type || filters.category || filters.level;
 
     const getFilterLabel = (key, value) => {
       switch (key) {
@@ -723,7 +763,7 @@ const QuestionBank = () => {
                 >
                   <option value="">{t('qb.allCategories', 'Tất cả danh mục')}</option>
                   {categories.map(cat => (
-                    <option key={cat.id} value={cat.name.split(' - ')[0]}>{cat.name}</option>
+                    <option key={cat.id} value={cat.name}>{cat.name}</option>
                   ))}
                 </select>
                 <Filter className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
@@ -748,17 +788,20 @@ const QuestionBank = () => {
                 <Filter className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
               </div>
 
-              {/* Difficulty Filter */}
+              {/* Level Filter */}
               <div className="relative">
                 <select
                   className="appearance-none pl-4 pr-10 py-2.5 border border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition bg-white min-w-[160px] cursor-pointer hover:border-gray-300"
-                  value={filters.difficulty}
-                  onChange={(e) => handleFilterChange('difficulty', e.target.value)}
+                  value={filters.level}
+                  onChange={(e) => handleFilterChange('level', e.target.value)}
                 >
-                  <option value="">{t('qb.allDifficulties', 'Tất cả mức độ')}</option>
-                  <option value="EASY">{t('qb.easy', 'Dễ')}</option>
-                  <option value="MEDIUM">{t('qb.medium', 'Trung bình')}</option>
-                  <option value="HARD">{t('qb.hard', 'Khó')}</option>
+                  <option value="">{t('qb.allLevels', 'Tất cả cấp độ')}</option>
+                  <option value="LEVEL_1">Level 1</option>
+                  <option value="LEVEL_2">Level 2</option>
+                  <option value="LEVEL_3">Level 3</option>
+                  <option value="LEVEL_4">Level 4</option>
+                  <option value="LEVEL_5">Level 5</option>
+                  <option value="LEVEL_6">Level 6</option>
                 </select>
                 <Filter className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
               </div>
@@ -768,7 +811,7 @@ const QuestionBank = () => {
             {hasActiveFilters && (
               <button
                 onClick={() => {
-                  setFilters({ type: '', category: '', difficulty: '', search: '' });
+                  setFilters({ type: '', category: '', level: '', search: '' });
                   setPage(1);
                 }}
                 className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition whitespace-nowrap"
@@ -801,7 +844,7 @@ const QuestionBank = () => {
               ))}
               <button
                 onClick={() => {
-                  setFilters({ type: '', category: '', difficulty: '', search: '' });
+                  setFilters({ type: '', category: '', level: '', search: '' });
                   setPage(1);
                 }}
                 className="text-sm text-red-600 hover:text-red-700 font-medium hover:underline"
@@ -938,7 +981,7 @@ const QuestionBank = () => {
                     </p>
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap">
-                    <Badge variant="info" size="sm">
+                    <Badge variant={getCategoryBadgeVariant(question.category)} size="sm">
                       {question.category}
                     </Badge>
                   </td>
@@ -948,8 +991,8 @@ const QuestionBank = () => {
                     </Badge>
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap">
-                    <Badge variant={getDifficultyBadgeVariant(question.difficulty)}>
-                      {t(`qb.difficulty.${question.difficulty}`, question.difficulty)}
+                    <Badge variant={getLevelBadgeVariant(question.level)}>
+                      {(question.level || '').replace('LEVEL_', 'Level ')}
                     </Badge>
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap">
@@ -1050,14 +1093,14 @@ const QuestionBank = () => {
 
               {/* Badges */}
               <div className="flex flex-wrap items-center gap-2 mb-3">
-                <Badge variant="info" size="sm">
+                <Badge variant={getCategoryBadgeVariant(question.category)} size="sm">
                   {question.category}
                 </Badge>
                 <Badge variant={getTypeBadgeVariant(question.type)} size="sm">
                   {t(`qb.type.${question.type}`, question.type)}
                 </Badge>
-                <Badge variant={getDifficultyBadgeVariant(question.difficulty)} size="sm">
-                  {t(`qb.difficulty.${question.difficulty}`, question.difficulty)}
+                <Badge variant={getLevelBadgeVariant(question.level)} size="sm">
+                  {(question.level || '').replace('LEVEL_', 'Level ')}
                 </Badge>
               </div>
 
@@ -1261,7 +1304,7 @@ const QuestionBank = () => {
             </div>
             <div>
               <span className="font-semibold text-gray-900">{t('qb.category', 'Danh mục')}</span>
-              <Badge variant="info" size="sm">
+              <Badge variant={getCategoryBadgeVariant(previewQuestion.category)} size="sm">
                 {previewQuestion.category}
               </Badge>
             </div>
@@ -1272,9 +1315,9 @@ const QuestionBank = () => {
               </Badge>
             </div>
             <div>
-              <span className="font-semibold text-gray-900">{t('qb.difficulty', 'Độ khó')}</span>
-              <Badge variant={getDifficultyBadgeVariant(previewQuestion.difficulty)}>
-                {t(`qb.difficulty.${previewQuestion.difficulty}`, previewQuestion.difficulty)}
+              <span className="font-semibold text-gray-900">{t('qb.level', 'Cấp độ')}</span>
+              <Badge variant={getLevelBadgeVariant(previewQuestion.level)}>
+                {previewQuestion.level.replace('LEVEL_', 'Level ')}
               </Badge>
             </div>
             <div>
