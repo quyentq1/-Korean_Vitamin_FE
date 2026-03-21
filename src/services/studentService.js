@@ -151,9 +151,15 @@ export const studentService = {
     // BUG-STU-01 FIX: Added getLearningProgress method
     getLearningProgress: async () => {
         try {
-            const response = await axiosClient.get('/student/enrollments');
+            const data = await axiosClient.get('/student/enrollments');
+            // Check if data exists and is an array
+            // Note: axiosClient already returns response.data directly
+            if (!data || !Array.isArray(data)) {
+                console.warn('Learning progress data is not an array:', data);
+                return [];
+            }
             // Transform enrollments to progress format
-            return response.data.map(enrollment => ({
+            return data.map(enrollment => ({
                 courseId: enrollment.courseId,
                 courseName: enrollment.courseName,
                 progress: enrollment.progress || 0,
@@ -161,16 +167,23 @@ export const studentService = {
             }));
         } catch (error) {
             console.error('Error fetching learning progress:', error);
-            throw error;
+            // Return empty array on error instead of throwing
+            return [];
         }
     },
 
     // BUG-STU-01 FIX: Added getUpcomingClasses method
     getUpcomingClasses: async () => {
         try {
-            const response = await axiosClient.get('/student/my-classes');
+            const data = await axiosClient.get('/student/my-classes');
+            // Check if data exists and is an array
+            // Note: axiosClient already returns response.data directly
+            if (!data || !Array.isArray(data)) {
+                console.warn('Upcoming classes data is not an array:', data);
+                return [];
+            }
             // Filter for upcoming classes and return formatted data
-            return response.data.map(classStudent => ({
+            return data.map(classStudent => ({
                 id: classStudent.classId,
                 className: classStudent.className,
                 schedule: classStudent.schedule,
@@ -179,7 +192,7 @@ export const studentService = {
             }));
         } catch (error) {
             console.error('Error fetching upcoming classes:', error);
-            throw error;
+            return [];
         }
     }
 };
