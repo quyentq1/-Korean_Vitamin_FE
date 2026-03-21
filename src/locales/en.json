@@ -862,8 +862,18 @@
             "title": "Teacher Dashboard",
             "subtitle": "Manage questions, exams, and grading",
             "home": "Home",
+            "myCourses": "My Courses",
+            "examManagement": "Exam Management",
+            "questionBank": "Question Bank",
+            "createQuestion": "Create Question",
+            "questionImport": "Import Questions",
+            "tagManagement": "Tag Management",
+            "sessions": "Sessions",
+            "grading": "Grading",
+            "reports": "Reports",
             "totalExams": "Total Exams",
             "totalQuestions": "Total Questions",
+            "totalClasses": "My Classes",
             "pendingGrading": "Pending Grading",
             "totalStudents": "Total Students",
             "upcomingSessions": "Upcoming",
@@ -886,6 +896,23 @@
             "sessions": "Teaching Schedule",
             "grading": "Grading",
             "reports": "Reports"
+        },
+        "myCourses": "My Courses",
+        "myCoursesSubtitle": "Courses assigned to you",
+        "noCoursesAssigned": "No courses assigned yet",
+        "contactManager": "Please contact Education Manager to be assigned to a course.",
+        "course": {
+            "level": {
+                "beginner": "Beginner",
+                "intermediate": "Intermediate",
+                "advanced": "Advanced"
+            },
+            "status": {
+                "draft": "Draft",
+                "published": "Published",
+                "archived": "Archived"
+            },
+            "minutes": "minutes"
         },
         "questions": {
             "title": "Question Bank",
@@ -1886,6 +1913,8 @@
         "management": "Exam Management",
         "managementSubtitle": "Create, edit, and manage exams",
         "create": "Create New Exam",
+        "createForCourse": "Create Exam",
+        "viewExams": "View Exams",
         "fetchError": "Error loading exam list.",
         "allCourses": "All Courses",
         "allStatus": "All Status",
@@ -1931,7 +1960,10 @@
         "results": "Results",
         "noExams": "No exams yet",
         "noAttempts": "No attempts yet",
-        "searchPlaceholder": "Search by name or code..."
+        "searchPlaceholder": "Search by name or code...",
+        "pending": "Pending",
+        "approved": "Approved",
+        "rejected": "Rejected"
     },
     "grading": {
         "title": "Grading Queue",

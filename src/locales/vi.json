@@ -867,8 +867,18 @@
             "title": "Trang Giáo Viên",
             "subtitle": "Quản lý câu hỏi, đề thi và chấm điểm",
             "home": "Trang Chủ",
+            "myCourses": "Khóa Học Của Tôi",
+            "examManagement": "Quản Lý Đề Thi",
+            "questionBank": "Ngân Hàng Câu Hỏi",
+            "createQuestion": "Tạo Câu Hỏi",
+            "questionImport": "Import Câu Hỏi",
+            "tagManagement": "Quản Lý Tag",
+            "sessions": "Buổi Giảng",
+            "grading": "Chấm Điểm",
+            "reports": "Báo Cáo",
             "totalExams": "Tổng Đề Thi",
             "totalQuestions": "Tổng Câu Hỏi",
+            "totalClasses": "Lớp Học",
             "pendingGrading": "Chờ Chấm",
             "totalStudents": "Tổng Học Viên",
             "upcomingSessions": "Sắp Tới",
@@ -891,6 +901,23 @@
             "sessions": "Lịch Giảng Dạy",
             "grading": "Chấm Điểm",
             "reports": "Báo Cáo"
+        },
+        "myCourses": "Khóa Học Của Tôi",
+        "myCoursesSubtitle": "Các khóa học bạn được phụ trách",
+        "noCoursesAssigned": "Chưa được assigned khóa học nào",
+        "contactManager": "Vui lòng liên hệ Education Manager để được assigned vào khóa học.",
+        "course": {
+            "level": {
+                "beginner": "Sơ cấp",
+                "intermediate": "Trung cấp",
+                "advanced": "Cao cấp"
+            },
+            "status": {
+                "draft": "Bản nháp",
+                "published": "Đã công bố",
+                "archived": "Lưu trữ"
+            },
+            "minutes": "phút"
         },
         "questions": {
             "title": "Ngân Hàng Câu Hỏi",
@@ -1892,6 +1919,8 @@
         "management": "Quản Lý Bài Kiểm Tra",
         "managementSubtitle": "Tạo, chỉnh sửa và quản lý các bài kiểm tra",
         "create": "Tạo Bài Kiểm Tra Mới",
+        "createForCourse": "Tạo Đề Thi",
+        "viewExams": "Xem Đề Thi",
         "fetchError": "Lỗi khi tải danh sách bài kiểm tra.",
         "allCourses": "Tất cả khóa học",
         "allStatus": "Tất cả trạng thái",
@@ -1937,7 +1966,10 @@
         "results": "Kết quả",
         "noExams": "Chưa có bài kiểm tra nào",
         "noAttempts": "Chưa có lượt làm bài nào",
-        "searchPlaceholder": "Tìm kiếm theo tên hoặc mã..."
+        "searchPlaceholder": "Tìm kiếm theo tên hoặc mã...",
+        "pending": "Chờ duyệt",
+        "approved": "Đã duyệt",
+        "rejected": "Bị từ chối"
     },
     "grading": {
         "title": "Hàng Đợi Chấm Bài",
