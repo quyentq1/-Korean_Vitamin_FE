@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CheckSquare, FileText, Calendar, ChevronRight, Clock, AlertCircle } from 'lucide-react';
+import { CheckSquare, FileText, Calendar, ChevronRight, Clock, AlertCircle, ClipboardCheck } from 'lucide-react';
 import managerService from '../../services/managerService';
 
 /**
@@ -8,7 +8,14 @@ import managerService from '../../services/managerService';
  */
 const ManagerDashboard = () => {
     const navigate = useNavigate();
-    const [stats, setStats] = useState({ pendingQB: 0, approvedQB: 0, scheduleRequests: 0, totalQuestions: 0 });
+    const [stats, setStats] = useState({
+        pendingQB: 0,
+        approvedQB: 0,
+        scheduleRequests: 0,
+        totalQuestions: 0,
+        pendingExams: 0,
+        approvedExams: 0
+    });
     const [loading, setLoading] = useState(true);
 
     // Fetch stats từ API
@@ -20,12 +27,14 @@ const ManagerDashboard = () => {
                     pendingQB: data.pendingQuestions || 0,
                     approvedQB: data.approvedQuestions || 0,
                     scheduleRequests: data.rescheduleRequests || 0,
-                    totalQuestions: data.totalQuestions || 0
+                    totalQuestions: data.totalQuestions || 0,
+                    pendingExams: data.pendingExams || 0,
+                    approvedExams: data.approvedExams || 0
                 });
             } catch (error) {
                 console.error('Failed to fetch dashboard stats:', error);
                 // Fallback to zero stats on error
-                setStats({ pendingQB: 0, approvedQB: 0, scheduleRequests: 0, totalQuestions: 0 });
+                setStats({ pendingQB: 0, approvedQB: 0, scheduleRequests: 0, totalQuestions: 0, pendingExams: 0, approvedExams: 0 });
             } finally {
                 setLoading(false);
             }
@@ -53,6 +62,24 @@ const ManagerDashboard = () => {
             urgent: false,
         },
         {
+            label: 'Đề Thi Chờ Duyệt',
+            value: stats.pendingExams,
+            icon: <ClipboardCheck className="w-6 h-6" />,
+            color: 'from-rose-500 to-pink-600',
+            bg: 'bg-rose-50',
+            text: 'text-rose-700',
+            urgent: stats.pendingExams > 0,
+        },
+        {
+            label: 'Đề Thi Đã Duyệt',
+            value: stats.approvedExams,
+            icon: <FileText className="w-6 h-6" />,
+            color: 'from-cyan-500 to-teal-600',
+            bg: 'bg-cyan-50',
+            text: 'text-cyan-700',
+            urgent: false,
+        },
+        {
             label: 'Yêu Cầu Đổi Lịch',
             value: stats.scheduleRequests,
             icon: <Calendar className="w-6 h-6" />,
@@ -73,7 +100,8 @@ const ManagerDashboard = () => {
     ];
 
     const quickLinks = [
-        { label: 'Duyệt Ngân Hàng Câu Hỏi', desc: 'Xem xét và phê duyệt câu hỏi từ giáo viên', path: '/qb-approval', icon: '✅', color: 'hover:border-amber-400', badge: stats.pendingQB },
+        { label: 'Duyệt Ngân Hàng Câu Hỏi', desc: 'Xem xét và phê duyệt câu hỏi từ giáo viên', path: '/edu-manager/qb-approval', icon: '✅', color: 'hover:border-amber-400', badge: stats.pendingQB },
+        { label: 'Duyệt Đề Thi', desc: 'Xem xét và phê duyệt đề thi từ giáo viên', path: '/edu-manager/test-approval', icon: '📝', color: 'hover:border-rose-400', badge: stats.pendingExams },
         { label: 'Phân Công Giáo Viên', desc: 'Giao lớp và bài kiểm tra cho giáo viên', path: '/class-management', icon: '👩‍🏫', color: 'hover:border-blue-400', badge: 0 },
         { label: 'Duyệt Yêu Cầu Đổi Lịch', desc: 'Xem xét đề nghị thay đổi lịch từ giáo viên', path: '/session-approval', icon: '📅', color: 'hover:border-green-400', badge: stats.scheduleRequests },
     ];
@@ -94,7 +122,7 @@ const ManagerDashboard = () => {
             </div>
 
             {/* Stats Grid */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
                 {statCards.map((card, i) => (
                     <div key={i} className={`bg-white rounded-2xl shadow-sm border-2 p-5 hover:shadow-md transition-shadow ${card.urgent ? 'border-amber-300 animate-pulse-slow' : 'border-gray-100'}`}>
                         <div className={`w-12 h-12 ${card.bg} rounded-xl flex items-center justify-center ${card.text} mb-3`}>
@@ -144,14 +172,14 @@ const ManagerDashboard = () => {
             </div>
 
             {/* Recent QB Activity */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
                 <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2">
                         <Clock className="w-5 h-5 text-gray-400" />
                         <h2 className="text-lg font-semibold text-gray-800">Câu Hỏi Chờ Duyệt Gần Đây</h2>
                     </div>
                     <button
-                        onClick={() => navigate('/qb-approval')}
+                        onClick={() => navigate('/edu-manager/qb-approval')}
                         className="text-sm text-indigo-600 font-medium hover:underline"
                     >
                         Xem tất cả →
@@ -168,6 +196,39 @@ const ManagerDashboard = () => {
                                 <div className="text-sm font-medium text-gray-900">{item.question}</div>
                                 <div className="text-xs text-gray-500 mt-1">
                                     {item.teacher} · <span className="text-indigo-600">{item.level}</span>
+                                </div>
+                            </div>
+                            <span className="text-xs text-gray-400 shrink-0 ml-4">{item.time}</span>
+                        </div>
+                    ))}
+                </div>
+            </div>
+
+            {/* Recent Exam Approval Activity */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                        <ClipboardCheck className="w-5 h-5 text-gray-400" />
+                        <h2 className="text-lg font-semibold text-gray-800">Đề Thi Chờ Duyệt Gần Đây</h2>
+                    </div>
+                    <button
+                        onClick={() => navigate('/edu-manager/test-approval')}
+                        className="text-sm text-indigo-600 font-medium hover:underline"
+                    >
+                        Xem tất cả →
+                    </button>
+                </div>
+                <div className="space-y-3">
+                    {[
+                        { teacher: 'GV. Phạm Văn E', exam: 'Kiểm tra giữa kỳ - TOPIK I', course: 'Beginner Korean', time: '5 phút trước' },
+                        { teacher: 'GV. Nguyễn Thị F', exam: 'Kiểm tra cuối kỳ - TOPIK II', course: 'Intermediate Korean', time: '1 giờ trước' },
+                        { teacher: 'GV. Trần Văn G', exam: 'Đề thi thử - TOPIK II', course: 'Advanced Korean', time: '3 giờ trước' },
+                    ].map((item, i) => (
+                        <div key={i} className="flex items-start justify-between py-3 border-b border-gray-50 last:border-0">
+                            <div>
+                                <div className="text-sm font-medium text-gray-900">{item.exam}</div>
+                                <div className="text-xs text-gray-500 mt-1">
+                                    {item.teacher} · <span className="text-rose-600">{item.course}</span>
                                 </div>
                             </div>
                             <span className="text-xs text-gray-400 shrink-0 ml-4">{item.time}</span>

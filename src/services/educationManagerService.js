@@ -149,9 +149,114 @@ const educationManagerService = {
         return await axiosClient.post(`/education-manager/exams/${id}/publish`, { published });
     },
 
+    // ==================== EXAM APPROVAL ====================
+
+    // Get pending exams waiting for approval
+    getPendingExams: async () => {
+        return await axiosClient.get('/education-manager/exams/pending');
+    },
+
+    // Get exams by approval status
+    getExamsByStatus: async (status) => {
+        return await axiosClient.get(`/education-manager/exams/status/${status}`);
+    },
+
+    // Approve or reject an exam
+    approveExam: async (examId, data) => {
+        return await axiosClient.post(`/education-manager/exams/${examId}/approve`, data);
+    },
+
+    // Get exam details for review
+    getExamForReview: async (id) => {
+        return await axiosClient.get(`/education-manager/exams/${id}`);
+    },
+
+    // Get exam approval history
+    getExamHistory: async (id) => {
+        return await axiosClient.get(`/education-manager/exams/${id}/history`);
+    },
+
     // Get all questions from QuestionBank (created by Teachers)
     getAllQuestions: async () => {
         return await axiosClient.get('/teacher/questions');
+    },
+
+    // ==================== QUESTION APPROVAL ====================
+
+    // Get pending questions waiting for approval
+    getPendingQuestions: async () => {
+        return await axiosClient.get('/education-manager/questions/pending');
+    },
+
+    // Get questions by verification status
+    getQuestionsByStatus: async (status) => {
+        return await axiosClient.get(`/education-manager/questions/status/${status}`);
+    },
+
+    // Approve a question
+    approveQuestion: async (id, feedback = '') => {
+        return await axiosClient.post(`/education-manager/questions/${id}/approve`, { feedback });
+    },
+
+    // Reject a question
+    rejectQuestion: async (id, feedback) => {
+        return await axiosClient.post(`/education-manager/questions/${id}/reject`, { feedback });
+    },
+
+    // Check for duplicate questions
+    checkDuplicate: async (questionText) => {
+        return await axiosClient.post('/education-manager/questions/check-duplicate', {
+            text: questionText
+        });
+    },
+
+    // Batch check for duplicate questions (performance optimization)
+    checkDuplicatesBatch: async (questionTexts) => {
+        return await axiosClient.post('/education-manager/questions/check-duplicates-batch', {
+            texts: questionTexts
+        });
+    },
+
+    // Get question details for review
+    getQuestionForReview: async (id) => {
+        return await axiosClient.get(`/education-manager/questions/${id}`);
+    },
+
+    // Update question (Education Manager edit before approval)
+    updateQuestion: async (id, updates) => {
+        return await axiosClient.put(`/education-manager/questions/${id}`, updates);
+    },
+
+    // Get question approval history
+    getQuestionHistory: async (id) => {
+        return await axiosClient.get(`/education-manager/questions/${id}/history`);
+    },
+
+    // ==================== NOTIFICATIONS ====================
+
+    // Get user notifications
+    getNotifications: async () => {
+        return await axiosClient.get('/education-manager/notifications');
+    },
+
+    // Get unread notification count
+    getUnreadCount: async () => {
+        return await axiosClient.get('/education-manager/notifications/unread-count');
+    },
+
+    // Mark notification as read
+    markAsRead: async (id) => {
+        return await axiosClient.put(`/education-manager/notifications/${id}/read`);
+    },
+
+    // Mark all notifications as read
+    markAllAsRead: async () => {
+        return await axiosClient.put('/education-manager/notifications/read-all');
+    },
+
+    // Cleanup old notifications
+    cleanupNotifications: async () => {
+        return await axiosClient.delete('/education-manager/notifications/cleanup');
     },
 };
 

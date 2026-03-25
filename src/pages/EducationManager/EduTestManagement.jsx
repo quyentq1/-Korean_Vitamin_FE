@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Edit2, Trash2, CheckCircle, XCircle, BookOpen, Clock, UserCheck, AlertCircle } from 'lucide-react';
+import { Plus, Edit2, Trash2, CheckCircle, XCircle, BookOpen, Clock, UserCheck, AlertCircle, Eye, RefreshCw, FileText, Users, Calendar } from 'lucide-react';
 import educationManagerService from '../../services/educationManagerService';
 import examService from '../../services/examService';
 import Swal from 'sweetalert2';
@@ -14,6 +14,9 @@ const EduTestManagement = () => {
     const [loading, setLoading] = useState(false);
     const [coursesLoading, setCoursesLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('published'); // 'published' or 'pending'
+    const [selectedExam, setSelectedExam] = useState(null);
+    const [showDetailModal, setShowDetailModal] = useState(false);
+    const [actionLoading, setActionLoading] = useState(false);
 
     useEffect(() => {
         educationManagerService.getAllCourses()
@@ -36,12 +39,42 @@ const EduTestManagement = () => {
     // Load pending exams (all courses)
     useEffect(() => {
         if (activeTab !== 'pending') return;
-        setLoading(true);
-        examService.getPendingExams()
-            .then(data => setPendingApprovals(Array.isArray(data) ? data : []))
-            .catch(() => setPendingApprovals([]))
-            .finally(() => setLoading(false));
+        fetchPendingExams();
     }, [activeTab]);
+
+    const fetchPendingExams = async () => {
+        setLoading(true);
+        try {
+            const data = await examService.getPendingExams();
+            setPendingApprovals(Array.isArray(data) ? data : []);
+        } catch (error) {
+            console.error('Failed to fetch pending exams:', error);
+            setPendingApprovals([]);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const fetchPublishedExams = async () => {
+        if (!selectedCourse) return;
+        setLoading(true);
+        try {
+            const data = await educationManagerService.getExamsByCourse(selectedCourse);
+            setExams(Array.isArray(data) ? data : []);
+        } catch (error) {
+            console.error('Failed to fetch exams:', error);
+            setExams([]);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Load published exams by course
+    useEffect(() => {
+        if (activeTab !== 'published') return;
+        if (!selectedCourse) { setExams([]); return; }
+        fetchPublishedExams();
+    }, [selectedCourse, activeTab]);
 
     const handleTogglePublish = async (exam) => {
         try {
@@ -72,7 +105,8 @@ const EduTestManagement = () => {
 
     const handleApprove = async (approval) => {
         const { value: feedback } = await Swal.fire({
-            title: 'Phê duyệt bài thi',
+            title: '✅ Phê duyệt bài thi',
+            text: `Phê duyệt đề thi "${approval.exam.title || approval.exam.name}"?`,
             input: 'textarea',
             inputLabel: 'Nhập phản hồi (tùy chọn)',
             inputPlaceholder: 'Nhập ghi chú hoặc để trống...',
@@ -84,24 +118,29 @@ const EduTestManagement = () => {
 
         if (feedback !== undefined) {
             try {
+                setActionLoading(true);
                 await examService.approveExam(approval.exam.id, { status: 'APPROVED', feedback });
                 setPendingApprovals(prev => prev.filter(a => a.id !== approval.id));
                 Swal.fire({
                     icon: 'success',
                     title: 'Đã phê duyệt!',
-                    text: 'Bài thi đã được phê duyệt và email đã được gửi cho giáo viên.',
+                    text: 'Bài thi đã được phê duyệt. Giáo viên có thể publish bài thi này.',
                     timer: 2000,
                     showConfirmButton: false
                 });
             } catch (e) {
+                console.error('Failed to approve exam:', e);
                 Swal.fire('Lỗi', 'Không thể phê duyệt bài thi', 'error');
+            } finally {
+                setActionLoading(false);
             }
         }
     };
 
     const handleReject = async (approval) => {
         const { value: feedback } = await Swal.fire({
-            title: 'Từ chối bài thi',
+            title: '❌ Từ chối bài thi',
+            text: `Từ chối đề thi "${approval.exam.title || approval.exam.name}"?`,
             input: 'textarea',
             inputLabel: 'Nhập lý do từ chối (bắt buộc)',
             inputPlaceholder: 'Vui lòng nhập lý do từ chối...',
@@ -116,18 +155,36 @@ const EduTestManagement = () => {
 
         if (feedback) {
             try {
+                setActionLoading(true);
                 await examService.approveExam(approval.exam.id, { status: 'REJECTED', feedback });
                 setPendingApprovals(prev => prev.filter(a => a.id !== approval.id));
                 Swal.fire({
                     icon: 'success',
                     title: 'Đã từ chối!',
-                    text: 'Bài thi đã bị từ chối và email đã được gửi cho giáo viên.',
+                    text: 'Bài thi đã bị từ chối. Giáo viên sẽ nhận được thông báo.',
                     timer: 2000,
                     showConfirmButton: false
                 });
             } catch (e) {
+                console.error('Failed to reject exam:', e);
                 Swal.fire('Lỗi', 'Không thể từ chối bài thi', 'error');
+            } finally {
+                setActionLoading(false);
             }
+        }
+    };
+
+    const handleViewDetail = async (approval) => {
+        try {
+            const examDetails = await educationManagerService.getExamById(approval.exam.id);
+            setSelectedExam({
+                ...approval,
+                exam: examDetails
+            });
+            setShowDetailModal(true);
+        } catch (error) {
+            console.error('Failed to fetch exam details:', error);
+            Swal.fire('Lỗi', 'Không thể tải chi tiết bài thi', 'error');
         }
     };
 
@@ -239,68 +296,314 @@ const EduTestManagement = () => {
                     )}
                 </>
             ) : (
-                /* Pending exams tab */
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                    {loading ? (
-                        <div className="p-8 text-center text-gray-400">Đang tải đề thi chờ duyệt...</div>
-                    ) : pendingApprovals.length === 0 ? (
-                        <div className="p-12 text-center">
-                            <AlertCircle className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                            <p className="text-gray-400">Không có đề thi nào đang chờ phê duyệt</p>
+                /* Pending exams tab - IMPROVED */
+                <>
+                    {/* Header with refresh button */}
+                    <div className="flex items-center justify-between mb-4">
+                        <div>
+                            <h2 className="text-lg font-semibold text-gray-900">
+                                ⏳ Đề thi chờ phê duyệt
+                            </h2>
+                            <p className="text-sm text-gray-500 mt-1">
+                                Review và phê duyệt các đề thi do giáo viên gửi
+                            </p>
                         </div>
-                    ) : (
-                        <table className="w-full">
-                            <thead className="bg-gray-50 border-b border-gray-100">
-                                <tr>
-                                    {['Tên đề thi', 'Khóa học', 'Giáo viên', 'Ngày nộp', 'Thao tác'].map(h => (
-                                        <th key={h} className="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase">{h}</th>
-                                    ))}
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-50">
-                                {pendingApprovals.map(approval => (
-                                    <tr key={approval.id} className="hover:bg-gray-50">
-                                        <td className="px-5 py-4 font-medium text-gray-900">{approval.exam.title}</td>
-                                        <td className="px-5 py-4 text-sm text-gray-600">{approval.exam.course?.name}</td>
-                                        <td className="px-5 py-4 text-sm text-gray-600">
-                                            <div className="flex items-center gap-2">
-                                                <UserCheck className="w-4 h-4 text-gray-400" />
-                                                {approval.submittedBy?.fullName || approval.submittedBy?.username}
+                        <button
+                            onClick={fetchPendingExams}
+                            disabled={loading}
+                            className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
+                            title="Làm mới"
+                        >
+                            <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+                        </button>
+                    </div>
+
+                    <div className="space-y-4">
+                        {loading ? (
+                            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-12 text-center">
+                                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+                                <p className="text-gray-500">Đang tải đề thi chờ duyệt...</p>
+                            </div>
+                        ) : pendingApprovals.length === 0 ? (
+                            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-12 text-center">
+                                <CheckCircle className="w-16 h-16 text-green-300 mx-auto mb-4" />
+                                <p className="text-gray-500 text-lg">Không có đề thi nào chờ phê duyệt!</p>
+                                <p className="text-gray-400 text-sm mt-2">Tất cả đề thi đã được xử lý</p>
+                            </div>
+                        ) : (
+                            pendingApprovals.map(approval => (
+                                <div
+                                    key={approval.id}
+                                    className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow"
+                                >
+                                    <div className="flex items-start justify-between gap-6">
+                                        {/* Left: Exam Info */}
+                                        <div className="flex-1">
+                                            {/* Header with badges */}
+                                            <div className="flex items-center gap-3 mb-3">
+                                                <h3 className="text-lg font-bold text-gray-900">
+                                                    📝 {approval.exam.title || approval.exam.name || 'N/A'}
+                                                </h3>
+                                                <span className="px-3 py-1 text-xs font-semibold rounded-full bg-amber-100 text-amber-700">
+                                                    {approval.exam.code || 'N/A'}
+                                                </span>
                                             </div>
-                                        </td>
-                                        <td className="px-5 py-4 text-sm text-gray-600">
-                                            {new Date(approval.submittedAt).toLocaleDateString('vi-VN')}
-                                        </td>
-                                        <td className="px-5 py-4">
-                                            <div className="flex items-center gap-2">
-                                                <button
-                                                    onClick={() => handleApprove(approval)}
-                                                    className="flex items-center gap-1 px-3 py-1.5 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition-colors text-sm font-medium"
-                                                >
-                                                    <CheckCircle className="w-4 h-4" />
-                                                    Duyệt
-                                                </button>
-                                                <button
-                                                    onClick={() => handleReject(approval)}
-                                                    className="flex items-center gap-1 px-3 py-1.5 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors text-sm font-medium"
-                                                >
-                                                    <XCircle className="w-4 h-4" />
-                                                    Từ chối
-                                                </button>
-                                                <button
-                                                    onClick={() => navigate(`/edu-manager/tests/edit/${approval.exam.id}`)}
-                                                    className="p-1.5 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50"
-                                                    title="Xem chi tiết"
-                                                >
-                                                    <Edit2 className="w-4 h-4" />
-                                                </button>
+
+                                            {/* Course info */}
+                                            <div className="grid grid-cols-2 gap-4 mb-4 p-4 bg-blue-50 rounded-lg">
+                                                <div>
+                                                    <p className="text-xs text-blue-600 font-medium mb-1">📚 Khóa học:</p>
+                                                    <p className="text-sm font-semibold text-blue-900">
+                                                        {approval.exam.course?.name || 'N/A'}
+                                                    </p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-xs text-blue-600 font-medium mb-1">🎓 Cấp độ:</p>
+                                                    <p className="text-sm font-semibold text-blue-900">
+                                                        {approval.exam.course?.level || 'N/A'}
+                                                    </p>
+                                                </div>
                                             </div>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    )}
+
+                                            {/* Exam Details */}
+                                            <div className="grid grid-cols-4 gap-3 mb-4">
+                                                <div className="bg-gray-50 rounded-lg p-3">
+                                                    <div className="flex items-center gap-2 text-gray-500 text-xs mb-1">
+                                                        <Clock className="w-3 h-3" />
+                                                        Thời gian
+                                                    </div>
+                                                    <p className="text-base font-bold text-gray-900">
+                                                        {approval.exam.duration || approval.exam.durationMinutes || 0} phút
+                                                    </p>
+                                                </div>
+                                                <div className="bg-gray-50 rounded-lg p-3">
+                                                    <div className="flex items-center gap-2 text-gray-500 text-xs mb-1">
+                                                        <FileText className="w-3 h-3" />
+                                                        Số câu hỏi
+                                                    </div>
+                                                    <p className="text-base font-bold text-gray-900">
+                                                        {approval.exam.examQuestions?.length || approval.exam.totalQuestions || 0}
+                                                    </p>
+                                                </div>
+                                                <div className="bg-gray-50 rounded-lg p-3">
+                                                    <div className="flex items-center gap-2 text-gray-500 text-xs mb-1">
+                                                        ⭐ Điểm đạt
+                                                    </div>
+                                                    <p className="text-base font-bold text-gray-900">
+                                                        {approval.exam.passingScore || 0}%
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            {/* Teacher & Date */}
+                                            <div className="flex items-center gap-6 text-sm text-gray-600">
+                                                <div className="flex items-center gap-2">
+                                                    <UserCheck className="w-4 h-4" />
+                                                    <span>
+                                                        <span className="font-medium">Người tạo:</span>{' '}
+                                                        {approval.submittedBy?.fullName || approval.submittedBy?.username || 'N/A'}
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <Calendar className="w-4 h-4" />
+                                                    <span>
+                                                        <span className="font-medium">Ngày gửi:</span>{' '}
+                                                        {new Date(approval.submittedAt).toLocaleString('vi-VN')}
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            {/* Description */}
+                                            {approval.exam.description && (
+                                                <div className="mt-3 p-3 bg-gray-50 rounded-lg">
+                                                    <p className="text-xs text-gray-500 mb-1">Mô tả:</p>
+                                                    <p className="text-sm text-gray-700 line-clamp-2">{approval.exam.description}</p>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* Right: Actions */}
+                                        <div className="flex flex-col gap-2">
+                                            <button
+                                                onClick={() => handleViewDetail(approval)}
+                                                disabled={actionLoading}
+                                                className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors disabled:opacity-50"
+                                                title="Xem chi tiết đề thi"
+                                            >
+                                                <Eye className="w-5 h-5" />
+                                            </button>
+                                            <button
+                                                onClick={() => handleApprove(approval)}
+                                                disabled={actionLoading}
+                                                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow"
+                                                title="Duyệt đề thi"
+                                            >
+                                                <CheckCircle className="w-4 h-4" />
+                                                Duyệt
+                                            </button>
+                                            <button
+                                                onClick={() => handleReject(approval)}
+                                                disabled={actionLoading}
+                                                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow"
+                                                title="Từ chối đề thi"
+                                            >
+                                                <XCircle className="w-4 h-4" />
+                                                Từ chối
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))
+                        )}
+                    </div>
+                </>
+            )}
+
+            {/* Exam Detail Modal */}
+            {showDetailModal && selectedExam && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
+                    <div className="bg-white rounded-xl shadow-xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+                        {/* Header */}
+                        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 z-10">
+                            <div className="flex items-center justify-between">
+                                <h3 className="text-xl font-bold text-gray-900">Chi Tiết Đề Thi</h3>
+                                <button
+                                    onClick={() => setShowDetailModal(false)}
+                                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                                >
+                                    <XCircle className="w-5 h-5 text-gray-500" />
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Content */}
+                        <div className="p-6 space-y-6">
+                            {/* Basic Info */}
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                    <p className="text-sm font-bold text-blue-900 mb-2">📝 Tên đề thi:</p>
+                                    <p className="text-gray-900 font-medium">{selectedExam.exam.title || selectedExam.exam.name || 'N/A'}</p>
+                                </div>
+                                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                    <p className="text-sm font-bold text-blue-900 mb-2">🔢 Mã đề thi:</p>
+                                    <p className="text-gray-900 font-medium">{selectedExam.exam.code || 'N/A'}</p>
+                                </div>
+                            </div>
+
+                            {/* Course Info */}
+                            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                                <p className="text-sm font-bold text-green-900 mb-2">📚 Thông tin khóa học:</p>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <p className="text-xs text-green-600">Tên khóa học:</p>
+                                        <p className="text-gray-900 font-medium">{selectedExam.exam.course?.name || 'N/A'}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-green-600">Cấp độ:</p>
+                                        <p className="text-gray-900 font-medium">{selectedExam.exam.course?.level || 'N/A'}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Exam Parameters */}
+                            <div className="grid grid-cols-4 gap-3">
+                                <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
+                                    <p className="text-xs text-purple-600 font-medium mb-1">⏱️ Thời gian</p>
+                                    <p className="text-lg font-bold text-purple-900">{selectedExam.exam.duration || selectedExam.exam.durationMinutes || 0} phút</p>
+                                </div>
+                                <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
+                                    <p className="text-xs text-purple-600 font-medium mb-1">📄 Số câu hỏi</p>
+                                    <p className="text-lg font-bold text-purple-900">{selectedExam.exam.examQuestions?.length || selectedExam.exam.totalQuestions || 0}</p>
+                                </div>
+                                <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
+                                    <p className="text-xs text-purple-600 font-medium mb-1">⭐ Điểm đạt</p>
+                                    <p className="text-lg font-bold text-purple-900">{selectedExam.exam.passingScore || 0}%</p>
+                                </div>
+                            </div>
+
+                            {/* Description */}
+                            {selectedExam.exam.description && (
+                                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                                    <p className="text-sm font-bold text-gray-900 mb-2">📋 Mô tả:</p>
+                                    <p className="text-gray-700 whitespace-pre-wrap">{selectedExam.exam.description}</p>
+                                </div>
+                            )}
+
+                            {/* Questions Preview */}
+                            {selectedExam.exam.examQuestions && selectedExam.exam.examQuestions.length > 0 && (
+                                <div>
+                                    <p className="text-sm font-bold text-gray-900 mb-3">📝 Danh sách câu hỏi:</p>
+                                    <div className="space-y-2 max-h-64 overflow-y-auto">
+                                        {selectedExam.exam.examQuestions.slice(0, 5).map((eq, index) => (
+                                            <div key={index} className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <span className="text-xs font-bold text-blue-600">Câu {index + 1}:</span>
+                                                    <span className="text-xs px-2 py-0.5 rounded bg-gray-200 text-gray-700">
+                                                        {eq.question?.questionType || 'N/A'}
+                                                    </span>
+                                                    <span className="text-xs px-2 py-0.5 rounded bg-green-200 text-green-700">
+                                                        {eq.points || 1} điểm
+                                                    </span>
+                                                </div>
+                                                <p className="text-sm text-gray-700 line-clamp-2">{eq.question?.questionText || 'N/A'}</p>
+                                            </div>
+                                        ))}
+                                        {selectedExam.exam.examQuestions.length > 5 && (
+                                            <p className="text-center text-sm text-gray-500 italic">
+                                                ... và {selectedExam.exam.examQuestions.length - 5} câu hỏi khác
+                                            </p>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Submit Info */}
+                            <div className="grid grid-cols-2 gap-4 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                                <div>
+                                    <p className="text-xs text-yellow-600 font-medium mb-1">👤 Người gửi:</p>
+                                    <p className="text-gray-900 font-medium">{selectedExam.submittedBy?.fullName || selectedExam.submittedBy?.username || 'N/A'}</p>
+                                </div>
+                                <div>
+                                    <p className="text-xs text-yellow-600 font-medium mb-1">📅 Ngày gửi:</p>
+                                    <p className="text-gray-900 font-medium">{new Date(selectedExam.submittedAt).toLocaleString('vi-VN')}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Footer Actions */}
+                        <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4">
+                            <div className="flex items-center justify-end gap-3">
+                                <button
+                                    onClick={() => setShowDetailModal(false)}
+                                    className="px-6 py-2.5 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors font-medium"
+                                >
+                                    Đóng
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setShowDetailModal(false);
+                                        handleReject(selectedExam);
+                                    }}
+                                    disabled={actionLoading}
+                                    className="px-6 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    <XCircle className="w-4 h-4" />
+                                    Từ chối
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setShowDetailModal(false);
+                                        handleApprove(selectedExam);
+                                    }}
+                                    disabled={actionLoading}
+                                    className="px-6 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    <CheckCircle className="w-4 h-4" />
+                                    Duyệt đề thi
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             )}
         </div>
