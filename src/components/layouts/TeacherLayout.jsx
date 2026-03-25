@@ -4,10 +4,11 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 import {
     BookOpen, FileText, Users, Calendar, TrendingUp, LogOut, Search,
-    Menu, X, Home, Bell, CheckCircle, Clock, FilePlus, Upload, Tag as TagIcon, Library
+    Menu, X, Home, CheckCircle, Clock, FilePlus, Upload, Tag as TagIcon, Library
 } from 'lucide-react';
 import Swal from 'sweetalert2';
 import LanguageSwitcher from '../LanguageSwitcher';
+import NotificationBell from '../NotificationBell';
 
 /**
  * TeacherLayout - Sidebar và Topbar chung cho tất cả Teacher pages
@@ -164,10 +165,7 @@ const TeacherLayout = () => {
 
                     <div className="flex items-center gap-3">
                         {/* Notifications */}
-                        <button className="relative p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-xl transition-all">
-                            <Bell className="w-5 h-5" />
-                            <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-                        </button>
+                        <NotificationBell />
 
                         {/* Language Switcher */}
                         <LanguageSwitcher />

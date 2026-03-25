@@ -3,15 +3,26 @@ import { useNavigate, useLocation, Outlet, Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import {
     LayoutDashboard, BookOpen, Users, GraduationCap, ClipboardList,
-    LogOut, Menu, X, Bell, ChevronRight, Settings, User
+    LogOut, Menu, X, ChevronRight, Settings, User,
+    CheckCircle, FileCheck, BarChart3
 } from 'lucide-react';
 import Swal from 'sweetalert2';
+import NotificationBell from '../NotificationBell';
 
 const navItems = [
     {
         section: 'Tổng quan',
         items: [
             { icon: LayoutDashboard, label: 'Dashboard', path: '/edu-manager' },
+            { icon: BarChart3, label: 'Analytics', path: '/edu-manager/analytics' },
+        ]
+    },
+    {
+        section: 'Duyệt',
+        items: [
+            { icon: CheckCircle, label: 'Duyệt Câu Hỏi', path: '/edu-manager/qb-approval' },
+            { icon: FileCheck, label: 'Duyệt Bài Thi', path: '/edu-manager/exam-approval' },
+            { icon: FileCheck, label: 'Duyệt Đề Thi', path: '/edu-manager/test-approval' },
         ]
     },
     {
@@ -29,7 +40,6 @@ const EducationManagerLayout = () => {
     const location = useLocation();
     const { user, logout } = useAuth();
     const [sidebarOpen, setSidebarOpen] = useState(false);
-    const [notifOpen, setNotifOpen] = useState(false);
 
     const handleLogout = () => {
         Swal.fire({
@@ -147,15 +157,7 @@ const EducationManagerLayout = () => {
 
                     <div className="flex items-center gap-2">
                         {/* Notifications */}
-                        <div className="relative">
-                            <button
-                                onClick={() => setNotifOpen(!notifOpen)}
-                                className="relative p-2 rounded-xl text-gray-500 hover:bg-gray-100 transition-colors"
-                            >
-                                <Bell className="w-5 h-5" />
-                                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white" />
-                            </button>
-                        </div>
+                        <NotificationBell />
 
                         <div className="w-px h-6 bg-gray-200 mx-1" />
 
