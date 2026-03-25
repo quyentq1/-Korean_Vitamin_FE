@@ -194,6 +194,114 @@ export const studentService = {
             console.error('Error fetching upcoming classes:', error);
             return [];
         }
+    },
+
+    // ==================== EXAMS ====================
+
+    /**
+     * Get all exams with optional filter
+     * GET /student/exams?filter=ALL|AVAILABLE|COMPLETED|MISSED
+     */
+    getExams: async (filter = 'ALL') => {
+        return await axiosClient.get(`/student/exams?filter=${filter}`);
+    },
+
+    /**
+     * Get exam detail
+     * GET /student/exams/{id}
+     */
+    getExamDetail: async (examId) => {
+        return await axiosClient.get(`/student/exams/${examId}`);
+    },
+
+    /**
+     * Start an exam
+     * POST /student/exams/{id}/start
+     */
+    startExam: async (examId) => {
+        return await axiosClient.post(`/student/exams/${examId}/start`);
+    },
+
+    /**
+     * Submit exam answers
+     * POST /student/exams/{id}/submit
+     */
+    submitExam: async (examId, answers) => {
+        return await axiosClient.post(`/student/exams/${examId}/submit`, { answers });
+    },
+
+    // ==================== RESULTS ====================
+
+    /**
+     * Get all exam results
+     * GET /student/results
+     */
+    getResults: async () => {
+        return await axiosClient.get('/student/results');
+    },
+
+    /**
+     * Get result detail
+     * GET /student/results/{id}
+     */
+    getResultDetail: async (resultId) => {
+        return await axiosClient.get(`/student/results/${resultId}`);
+    },
+
+    // ==================== PROGRESS ====================
+
+    /**
+     * Get learning progress
+     * GET /student/progress
+     */
+    getProgress: async () => {
+        return await axiosClient.get('/student/progress');
+    },
+
+    // ==================== STATISTICS ====================
+
+    /**
+     * Get student statistics
+     * GET /student/statistics
+     */
+    getStatistics: async () => {
+        return await axiosClient.get('/student/statistics');
+    },
+
+    // ==================== SCHEDULE ====================
+
+    /**
+     * Get student schedule
+     * GET /student/schedule
+     */
+    getSchedule: async () => {
+        return await axiosClient.get('/student/schedule');
+    },
+
+    // ==================== PROFILE ====================
+
+    /**
+     * Get student profile
+     * GET /student/profile
+     */
+    getProfile: async () => {
+        return await axiosClient.get('/student/profile');
+    },
+
+    /**
+     * Update student profile
+     * PUT /student/profile
+     */
+    updateProfile: async (data) => {
+        return await axiosClient.put('/student/profile', data);
+    },
+
+    /**
+     * Change password
+     * POST /student/change-password
+     */
+    changePassword: async (data) => {
+        return await axiosClient.post('/student/change-password', data);
     }
 };
 

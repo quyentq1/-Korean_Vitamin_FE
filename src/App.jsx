@@ -3,6 +3,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import { ProtectedRoute, AdminRoute, TeacherRoute, StaffRoute, StudentRoute, ManagerRoute, EducationManagerRoute } from './components/routing/ProtectedRoute';
 import EducationManagerLayout from './components/layouts/EducationManagerLayout';
 import EduManagerDashboard from './pages/EducationManager/EduManagerDashboard';
+import EduAnalytics from './pages/EducationManager/EduAnalytics';
 import EduCourseManagement from './pages/EducationManager/EduCourseManagement';
 import EduCourseForm from './pages/EducationManager/EduCourseForm';
 import EduTestManagement from './pages/EducationManager/EduTestManagement';
@@ -35,6 +36,8 @@ import QuestionBank from './pages/Teacher/QuestionBank.jsx';
 import GradingQueue from './pages/Teacher/GradingQueue.jsx';
 import TeacherSessions from './pages/Teacher/TeacherSessions.jsx';
 import SessionApproval from './pages/Manager/SessionApproval.jsx';
+import QuestionApproval from './pages/Manager/QuestionApproval.jsx';
+import ExamApproval from './pages/Manager/ExamApproval.jsx';
 import StudentManagement from './pages/Staff/StudentManagement.jsx';
 import StudentDetail from './pages/Staff/StudentDetail.jsx';
 import EditStudent from './pages/Staff/EditStudent.jsx';
@@ -50,6 +53,7 @@ import TeacherDashboard from './pages/Teacher/TeacherDashboard.jsx';
 import MyCourses from './pages/Teacher/MyCourses.jsx';
 import ExamManagement from './pages/Teacher/ExamManagement.jsx';
 import ExamEditor from './pages/Teacher/ExamEditor.jsx';
+import ExamDetail from './pages/Teacher/ExamDetail.jsx';
 import ExamAttempts from './pages/Teacher/ExamAttempts.jsx';
 import QBApproval from './pages/Manager/QBApproval.jsx';
 import StaffDashboard from './pages/Staff/StaffDashboard.jsx';
@@ -67,6 +71,7 @@ import ExamTaking from './pages/Exam/ExamTaking.jsx';
 import QuestionImport from './pages/Teacher/QuestionImport.jsx';
 import GradingDetail from './pages/Teacher/GradingDetail.jsx';
 import TagManagement from './pages/Teacher/TagManagement.jsx';
+import StudentExamList from './pages/Student/StudentExamList.jsx';
 import Profile from './pages/Profile.jsx';
 import './App.css';
 
@@ -163,6 +168,11 @@ function App() {
               <WritingSubmission />
             </StudentRoute>
           } />
+          <Route path="/courses/:courseId/exams" element={
+            <StudentRoute>
+              <StudentExamList />
+            </StudentRoute>
+          } />
 
           {/* Forum - All authenticated users */}
           <Route path="/forum" element={
@@ -190,6 +200,7 @@ function App() {
             <Route path="grading/:attemptId" element={<GradingDetail />} />
             <Route path="exam-management" element={<ExamManagement />} />
             <Route path="exam-management/create" element={<ExamEditor />} />
+            <Route path="exam-detail/:id" element={<ExamDetail />} />
             <Route path="exam-editor/:id" element={<ExamEditor />} />
             <Route path="exam-attempts/:id" element={<ExamAttempts />} />
             <Route path="sessions" element={<TeacherSessions />} />
@@ -290,6 +301,7 @@ function App() {
             </EducationManagerRoute>
           }>
             <Route index element={<EduManagerDashboard />} />
+            <Route path="analytics" element={<EduAnalytics />} />
             <Route path="courses" element={<EduCourseManagement />} />
             <Route path="courses/create" element={<EduCourseForm />} />
             <Route path="courses/edit/:id" element={<EduCourseForm />} />
@@ -301,6 +313,10 @@ function App() {
             {/* BUG-34, EM-BUG-02, EM-BUG-15, EM-BUG-18 FIX: Added missing routes */}
             <Route path="teachers" element={<EduTeacherManagement />} />
             <Route path="students" element={<EduStudentManagement />} />
+            {/* Approval Routes */}
+            <Route path="qb-approval" element={<QuestionApproval />} />
+            <Route path="exam-approval" element={<ExamApproval />} />
+            <Route path="test-approval" element={<EduTestManagement />} />
           </Route>
 
           {/* Manager Routes - Manager Only */}

@@ -293,12 +293,12 @@ axiosClient.interceptors.response.use(
     }
     
     // Xử lý lỗi 403 - Không có quyền truy cập
-    if (errorObj.status === 403) {
-      // Có thể redirect về trang unauthorized
-      if (typeof window !== 'undefined' && !window.location.pathname.includes('/unauthorized')) {
-        window.location.href = '/unauthorized';
-      }
-    }
+    // KHÔNG redirect tự động, để component xử lý error
+    // if (errorObj.status === 403) {
+    //   if (typeof window !== 'undefined' && !window.location.pathname.includes('/unauthorized')) {
+    //     window.location.href = '/unauthorized';
+    //   }
+    // }
     
     // Xử lý lỗi 429 - Quá nhiều request
     if (errorObj.status === 429) {

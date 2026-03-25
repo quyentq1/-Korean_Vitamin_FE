@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate } from 'react-router-dom';
+import { BookOpen, FileText, Clock, ArrowRight } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import ContactModal from '../components/ContactModal';
@@ -8,6 +9,7 @@ import CoursePreview from '../components/CoursePreview';
 import { useAuth } from '../contexts/AuthContext';
 import { useGuestContext } from '../hooks/useGuestContext';
 import courseService from '../services/courseService';
+import examService from '../services/examService';
 
 const CourseDetail = () => {
     const { id } = useParams();
@@ -19,6 +21,8 @@ const CourseDetail = () => {
     const [course, setCourse] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [practiceExams, setPracticeExams] = useState([]);
+    const [examsLoading, setExamsLoading] = useState(false);
 
     // Legacy static data for fallback
     const staticCourseData = {
@@ -148,6 +152,33 @@ const CourseDetail = () => {
 
         fetchCourse();
     }, [id, isAuthenticated, recordCourseInterest]);
+
+    // Fetch practice exams when course is loaded
+    useEffect(() => {
+        if (course && course.id && !isNaN(course.id)) {
+            fetchPracticeExams();
+        }
+    }, [course]);
+
+    const fetchPracticeExams = async () => {
+        if (!course || !course.id || isNaN(course.id)) return;
+
+        setExamsLoading(true);
+        try {
+            const response = await examService.getPracticeExamsByCourse(course.id);
+            const exams = Array.isArray(response) ? response : [];
+            // Filter only PRACTICE exams and published
+            const practiceExams = exams.filter(exam =>
+                exam.examCategory === 'PRACTICE' && exam.published
+            );
+            setPracticeExams(practiceExams);
+        } catch (err) {
+            console.error('Failed to fetch practice exams:', err);
+            setPracticeExams([]);
+        } finally {
+            setExamsLoading(false);
+        }
+    };
 
     if (loading) return (
         <div className="min-h-screen flex items-center justify-center">
@@ -373,6 +404,72 @@ const CourseDetail = () => {
                                     </div>
                                 ))}
                             </div>
+                        </div>
+                    )}
+
+                    {/* Practice Exams Section - NEW */}
+                    {practiceExams.length > 0 && (
+                        <div className="bg-white rounded-2xl shadow-sm p-6 sm:p-8 mb-6">
+                            <div className="flex items-center justify-between mb-6">
+                                <div>
+                                    <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                                        📚 Bài Luyện Tập
+                                    </h2>
+                                    <p className="text-gray-600">
+                                        Làm các bài luyện tập để cải thiện kỹ năng của bạn
+                                    </p>
+                                </div>
+                                <button
+                                    onClick={() => navigate(`/courses/${course.id}/exams`)}
+                                    className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-semibold hover:shadow-lg transition-all"
+                                >
+                                    Xem tất cả
+                                    <ArrowRight className="w-4 h-4" />
+                                </button>
+                            </div>
+
+                            {/* Exam Preview Cards (max 3) */}
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                {practiceExams.slice(0, 3).map((exam) => (
+                                    <div
+                                        key={exam.id}
+                                        className="border border-gray-200 rounded-xl p-4 hover:border-indigo-300 hover:shadow-md transition-all cursor-pointer"
+                                        onClick={() => navigate(`/courses/${course.id}/exams`)}
+                                    >
+                                        <div className="flex items-start justify-between mb-3">
+                                            <h3 className="font-semibold text-gray-900 line-clamp-2">
+                                                {exam.title}
+                                            </h3>
+                                            <span className="px-2 py-1 text-xs font-semibold rounded-full bg-indigo-100 text-indigo-700 shrink-0 ml-2">
+                                                {exam.examType?.replace('_', ' ') || 'MIXED'}
+                                            </span>
+                                        </div>
+
+                                        <div className="space-y-2 text-sm text-gray-600">
+                                            <div className="flex items-center gap-2">
+                                                <Clock className="w-4 h-4" />
+                                                <span>{exam.durationMinutes} phút</span>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <FileText className="w-4 h-4" />
+                                                <span>{exam.examQuestions?.length || exam.totalQuestions || 0} câu hỏi</span>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <BookOpen className="w-4 h-4" />
+                                                <span>Đạt: {exam.passingScore || 60}%</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {practiceExams.length > 3 && (
+                                <div className="text-center mt-4">
+                                    <p className="text-gray-500 text-sm">
+                                        Và {practiceExams.length - 3} bài luyện tập khác...
+                                    </p>
+                                </div>
+                            )}
                         </div>
                     )}
 
