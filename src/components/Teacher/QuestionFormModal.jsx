@@ -49,6 +49,8 @@ const QuestionFormModal = ({ isOpen, onClose, questionId }) => {
     answerType: 'SINGLE', // SINGLE or MULTIPLE - determines if answers are radio or checkbox
     category: '',
     level: 'LEVEL_1',
+    topikType: '', // NEW: TOPIK type (R1, L1, W51...)
+    points: 1, // NEW: Default points
     content: '',
     answers: [
       { id: 1, content: '', isCorrect: false },
@@ -93,6 +95,7 @@ const QuestionFormModal = ({ isOpen, onClose, questionId }) => {
         answerType: 'MULTIPLE',
         category: '',
         level: 'LEVEL_1',
+        topikType: '', // NEW: Reset topikType
         content: '',
         answers: [
           { id: 1, content: '', isCorrect: false },
@@ -114,12 +117,38 @@ const QuestionFormModal = ({ isOpen, onClose, questionId }) => {
         const response = await teacherService.getQuestion(questionId);
         const data = response.data || response;
 
+        console.log('=== LOAD QUESTION DATA ===');
+        console.log('Raw response:', response);
+        console.log('Data keys:', Object.keys(data));
+        console.log('Answers from API:', data.answers);
+        console.log('Options from API:', data.options);
+        console.log('Answers count:', data.answers?.length);
+        console.log('Options count:', data.options?.length);
+
         // Handle category
         let categoryValue = '';
         if (typeof data.category === 'object' && data.category !== null) {
-          categoryValue = data.category.id?.toString() || '';
+          // Category could be {id: 1, name: 'Grammar'} or just an ID wrapped in object
+          categoryValue = data.category.id?.toString() ||
+                         data.category.id ||
+                         data.category.categoryId?.toString() ||
+                         data.category.name?.toString() ||
+                         '';
+          console.log('Category object:', data.category, 'Mapped to:', categoryValue);
         } else if (data.category) {
           categoryValue = data.category.toString();
+          console.log('Category primitive:', data.category, 'Mapped to:', categoryValue);
+        }
+
+        // Also try to get category from categoryName or categoryId
+        if (!categoryValue && data.categoryName) {
+          // Try to find category by name
+          const matchingCat = categories.find(c =>
+            c.name === data.categoryName ||
+            c.name.split(' - ')[0] === data.categoryName
+          );
+          categoryValue = matchingCat?.id?.toString() || '';
+          console.log('Category from categoryName:', data.categoryName, 'Found:', matchingCat);
         }
 
         // Handle answers
@@ -165,9 +194,23 @@ const QuestionFormModal = ({ isOpen, onClose, questionId }) => {
           }
         }
 
+        // Handle topikType - could be enum object {name: "R1"} or string "R1"
+        let topikTypeValue = '';
+        if (typeof data.topikType === 'object' && data.topikType !== null) {
+          topikTypeValue = data.topikType.name || '';
+        } else if (data.topikType) {
+          topikTypeValue = data.topikType;
+        } else if (data.topik_type) {
+          topikTypeValue = data.topik_type;
+        }
+
         console.log('Setting question state with:', {
           questionType: questionTypeValue,
           answerType: answerTypeValue,
+          category: categoryValue,
+          level: data.level,
+          topikType: topikTypeValue,
+          topikTypeRaw: data.topikType,
           answersCount: mappedAnswers.length,
           answers: mappedAnswers
         });
@@ -177,6 +220,8 @@ const QuestionFormModal = ({ isOpen, onClose, questionId }) => {
           answerType: answerTypeValue,
           category: categoryValue,
           level: data.level || 'LEVEL_1',
+          topikType: topikTypeValue, // NEW: Load topikType
+          points: data.points || 1, // NEW: Load points
           content: data.questionText || data.content || '',
           answers: mappedAnswers,
           explanation: data.explanation || data.explain || data.solution || data.explanationText || '',
@@ -236,6 +281,13 @@ const QuestionFormModal = ({ isOpen, onClose, questionId }) => {
     if (!question.questionType) errors.questionType = 'Vui lòng chọn loại câu hỏi';
     if (!question.category) errors.category = 'Vui lòng chọn danh mục';
     if (!question.level) errors.level = 'Vui lòng chọn cấp độ';
+
+    // Only validate topikType for NEW questions (not edit mode)
+    // Old questions might not have topikType
+    if (!isEditMode && !question.topikType) {
+      errors.topikType = 'Vui lòng chọn Topik Type';
+    }
+
     if (!question.content.trim()) errors.content = 'Vui lòng nhập nội dung câu hỏi';
 
     if (['MULTIPLE_CHOICE', 'SINGLE_CHOICE', 'READING', 'LISTENING'].includes(question.questionType)) {
@@ -278,10 +330,11 @@ const QuestionFormModal = ({ isOpen, onClose, questionId }) => {
             id: categoryNum
           },
           level: question.level,
+          topikType: question.topikType || null, // NEW: Include topikType
           questionText: question.content,
           explanation: question.explanation,
           questionMediaUrl: audioUrl || null,
-          points: 1,
+          points: question.points || 1, // Use points from state or default to 1
           active: true
         },
         options: question.answers.map(ans => ({
@@ -291,6 +344,9 @@ const QuestionFormModal = ({ isOpen, onClose, questionId }) => {
       };
 
       console.log('=== SUBMIT FORM ===');
+      console.log('Question state:', question);
+      console.log('topikType value:', question.topikType);
+      console.log('topikType type:', typeof question.topikType);
       console.log('Current audioUrl state:', audioUrl);
       console.log('questionMediaUrl being sent:', requestData.question.questionMediaUrl);
       console.log('Full request data:', JSON.stringify(requestData, null, 2));
@@ -459,7 +515,7 @@ const QuestionFormModal = ({ isOpen, onClose, questionId }) => {
         isOpen={isOpen}
         onClose={handleClose}
         title={isEditMode ? 'Chỉnh sửa câu hỏi' : 'Tạo câu hỏi mới'}
-        size="2xl"
+        size="full"
         footer={
           <div className="flex flex-col sm:flex-row justify-end gap-3 pt-2">
             <Button
@@ -598,6 +654,63 @@ const QuestionFormModal = ({ isOpen, onClose, questionId }) => {
                     <X className="w-3 h-3" />{validationErrors.level}
                   </p>
                 )}
+              </div>
+
+              {/* TopikType */}
+              <div>
+                <label className="block font-medium text-gray-700 mb-2 flex items-center gap-2 text-sm sm:text-base">
+                  <FileText className="w-4 h-4 text-gray-500" />
+                  Topik Type <span className="text-red-500">*</span>
+                </label>
+                <select
+                  className="w-full px-3 sm:px-4 py-2 sm:py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition-all bg-white shadow-sm text-sm"
+                  value={question.topikType}
+                  onChange={e => setQuestion({ ...question, topikType: e.target.value })}
+                >
+                  <option value="">-- Chọn Topik Type --</option>
+                  <option value="R1">R1 - Ngữ pháp/Từ vựng</option>
+                  <option value="R2">R2 - Đọc hiểu văn bản thực tế</option>
+                  <option value="R3">R3 - Đọc biểu đồ/bảng biểu</option>
+                  <option value="R4">R4 - Sắp xếp thứ tự câu</option>
+                  <option value="R5">R5 - Đọc đoạn văn cơ bản</option>
+                  <option value="R6">R6 - Đọc bài viết ngắn</option>
+                  <option value="R7">R7 - Đọc đoạn văn dài</option>
+                  <option value="R8">R8 - Chọn tiêu đề/chủ đề chính</option>
+                  <option value="R9">R9 - Đọc bài viết chuyên sâu</option>
+                  <option value="L1">L1 - Nghe chọn hình/biểu đồ</option>
+                  <option value="L2">L2 - Nghe chọn câu trả lời</option>
+                  <option value="L3">L3 - Nghe chọn hành động</option>
+                  <option value="L4">L4 - Nghe chọn nội dung giống</option>
+                  <option value="L5">L5 - Nghe chọn suy nghĩ/ý định</option>
+                  <option value="L6">L6 - Nghe hội thoại dài</option>
+                  <option value="L7">L7 - Nghe bài giảng chuyên môn</option>
+                  <option value="W51">W51 - Điền vào chỗ trống - Đời sống</option>
+                  <option value="W52">W52 - Điền vào chỗ trống - Giải thích</option>
+                  <option value="W53">W53 - Viết bài luận ngắn - Biểu đồ</option>
+                  <option value="W54">W54 - Viết bài luận dài - Nghị luận</option>
+                </select>
+                {validationErrors.topikType && (
+                  <p className="text-red-500 text-xs sm:text-sm mt-1 flex items-center gap-1">
+                    <X className="w-3 h-3" />{validationErrors.topikType}
+                  </p>
+                )}
+              </div>
+
+              {/* Points */}
+              <div>
+                <label className="block font-medium text-gray-700 mb-2 flex items-center gap-2 text-sm sm:text-base">
+                  <Lightbulb className="w-4 h-4 text-gray-500" />
+                  Điểm <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  max="100"
+                  className="w-full px-3 sm:px-4 py-2 sm:py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition-all bg-white shadow-sm text-sm"
+                  value={question.points}
+                  onChange={e => setQuestion({ ...question, points: parseInt(e.target.value) || 1 })}
+                  placeholder="Nhập điểm cho câu hỏi"
+                />
               </div>
             </div>
           </div>

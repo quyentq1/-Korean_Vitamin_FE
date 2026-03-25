@@ -80,6 +80,11 @@ export const teacherService = {
         return await axiosClient.get('/teacher/exams', { params });
     },
 
+    // Get exams by course ID (includes both published and draft)
+    getExamsByCourse: async (courseId) => {
+        return await axiosClient.get(`/teacher/courses/${courseId}/exams`);
+    },
+
     getExam: async (id) => {
         return await axiosClient.get(`/teacher/exams/${id}`);
     },
@@ -103,6 +108,50 @@ export const teacherService = {
     getExamAttempts: async (id) => {
         return await axiosClient.get(`/teacher/exams/${id}/attempts`);
     },
+
+    // Exam Approval - Get submitted exams with approval status
+    getSubmittedExams: async () => {
+        return await axiosClient.get('/teacher/exams/submitted');
+    },
+
+    getExamApproval: async (examId) => {
+        return await axiosClient.get(`/teacher/exams/${examId}/approval`);
+    },
+
+    submitExamForApproval: async (examId) => {
+        return await axiosClient.post(`/teacher/exams/${examId}/submit`);
+    },
+
+    getExamApprovalHistory: async (examId) => {
+        return await axiosClient.get(`/teacher/exams/${examId}/approval-history`);
+    },
+
+    // ==================== NEW: Exam Generation & Question Methods ====================
+
+    // Generate exam from TOPIK structure blueprint
+    generateExamFromBlueprint: async (requestData) => {
+        return await axiosClient.post('/teacher/exams/generate-blueprint', requestData);
+    },
+
+    // Get questions by course for Structure Builder
+    getCourseQuestions: async (courseId) => {
+        return await axiosClient.get(`/teacher/courses/${courseId}/questions`);
+    },
+
+    // Get questions by TOPIK type (R1, R2, L1, etc.)
+    getQuestionsByTopikType: async (type, courseId) => {
+        return await axiosClient.get(`/teacher/questions/topik-type/${type}`, {
+            params: { courseId }
+        });
+    },
+
+    // Search question by code
+    searchQuestionByCode: async (code) => {
+        return await axiosClient.get('/teacher/questions/search', {
+            params: { code }
+        });
+    },
+
 
     // Course Management
     getAssignedCourses: async () => {
@@ -132,6 +181,10 @@ export const teacherService = {
 
     deleteQuestion: async (id) => {
         return await axiosClient.delete(`/teacher/questions/${id}`);
+    },
+
+    getQuestionApprovalHistory: async (id) => {
+        return await axiosClient.get(`/teacher/questions/${id}/approval-history`);
     },
 
     // Question Import

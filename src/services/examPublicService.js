@@ -1,9 +1,11 @@
 import axiosClient from '../api/axiosClient';
 
 export const examPublicService = {
-    // Get all guest exams
+    // Get all guest exams (MOCK exams only for FreeTest)
     getGuestExams: async () => {
-        return await axiosClient.get('/guest/exams');
+        return await axiosClient.get('/guest/exams', {
+            params: { examCategory: 'MOCK' } // Only get MOCK exams for FreeTest page
+        });
     },
 
     // Exam details for public/guest access

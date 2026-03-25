@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import Swal from 'sweetalert2';
 import {
   Save,
   ArrowLeft,
@@ -15,7 +16,14 @@ import {
   Users,
   Settings,
   BookOpen,
-  Search
+  Search,
+  Wand2,
+  CheckSquare,
+  Square,
+  BarChart3,
+  Lightbulb,
+  Loader2,
+  X
 } from 'lucide-react';
 
 // UI Components
@@ -27,11 +35,23 @@ import Alert from '../../components/ui/Alert';
 import Loading from '../../components/ui/Loading';
 import Modal from '../../components/ui/Modal';
 import Badge from '../../components/ui/Badge';
-import Input from '../../components/ui/Input';
+import { Input } from '../../components/ui/Input';
 import Section from '../../components/ui/Section';
 
 // Services
 import teacherService from '../../services/teacherService';
+
+// New Components
+import ExamStructureBuilder from '../../components/Teacher/ExamStructureBuilder';
+import QuestionReplacerModal from '../../components/Teacher/QuestionReplacerModal';
+import QuestionBankModal from '../../components/Teacher/QuestionBankModal';
+
+// Utils
+import { validateExamBeforePublish, canEditExam } from '../../utils/examValidator';
+import { getQuestionStructure } from '../../constants/topikStructure';
+
+// Styles
+import styles from './ExamEditor.module.css';
 
 const ExamEditor = () => {
   const { t } = useTranslation();
@@ -58,12 +78,12 @@ const ExamEditor = () => {
     title: '',
     code: '',
     description: '',
-    duration: 60,
-    passingScore: 60,
-    maxAttempts: 3,
+    duration: 70,
+    passingScore: 80,
     published: false,
     courseId: courseIdFromUrl || '', // Pre-fill if coming from MyCourses
-    type: 'MIXED'
+    examType: 'MIXED', // Default exam type
+    examCategory: 'PRACTICE' // NEW: MOCK (for Guest FreeTest) or PRACTICE (for Students in course)
   });
 
   // Questions state
@@ -75,6 +95,16 @@ const ExamEditor = () => {
   const [showQuestionBankModal, setShowQuestionBankModal] = useState(false);
   const [selectedQuestionsFromBank, setSelectedQuestionsFromBank] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
+
+  // NEW: Auto-generate mode states
+  const [autoGenerateMode, setAutoGenerateMode] = useState(false);
+  const [showStructureBuilder, setShowStructureBuilder] = useState(false);
+  const [courseQuestions, setCourseQuestions] = useState([]); // Questions from course for filtering
+
+  // NEW: Question replacement states
+  const [showReplaceModal, setShowReplaceModal] = useState(false);
+  const [selectedQuestionIndices, setSelectedQuestionIndices] = useState([]);
+  const [selectedQuestions, setSelectedQuestions] = useState(new Set()); // For checkbox selection
 
   // Fetch exam details (only in edit mode)
   useEffect(() => {
@@ -98,6 +128,8 @@ const ExamEditor = () => {
         const selectedCourse = data.find(c => c.id === parseInt(courseIdFromUrl));
         if (selectedCourse) {
           setSelectedCourseInfo(selectedCourse);
+          // FIX: Also load questions for this course
+          await loadQuestionsForCourse(selectedCourse);
         }
       }
     } catch (err) {
@@ -119,20 +151,35 @@ const ExamEditor = () => {
         title: response.title || '',
         code: response.code || '',
         description: response.description || '',
-        duration: response.duration || 60,
-        passingScore: response.passingScore || 60,
-        maxAttempts: response.maxAttempts || 3,
+        duration: response.durationMinutes || response.duration || 70,
+        passingScore: response.passingScore || 80,
         published: response.published || false,
         courseId: response.courseId || '',
-        type: response.type || 'MIXED'
+        examType: response.examType || response.type || 'MIXED', // Default to MIXED if missing
+        examCategory: response.examCategory || 'PRACTICE' // NEW: Load examCategory from API
       });
 
       // Set questions
       setQuestions(response.questions || []);
       setError('');
     } catch (err) {
-      console.error(err);
-      setError(t('exam.fetchError', 'Lỗi khi tải thông tin bài kiểm tra.'));
+      console.error('Failed to load exam:', err);
+      const errorMessage = err.response?.data?.message || err.message || 'Lỗi khi tải thông tin bài kiểm tra.';
+
+      // Show error alert instead of silent error
+      await Swal.fire({
+        icon: 'error',
+        title: 'Lỗi!',
+        text: errorMessage + (err.response?.status === 404 ? '\n\nBài kiểm tra không tồn tại hoặc bạn không có quyền truy cập.' : ''),
+        confirmButtonColor: '#ef4444',
+        footer: '<a href="/teacher/exam-management" class="text-blue-600 underline">Về danh sách bài kiểm tra</a>'
+      });
+
+      setError(errorMessage);
+      // Navigate back to exam management after error
+      setTimeout(() => {
+        navigate('/teacher/exam-management');
+      }, 3000);
     } finally {
       setLoading(false);
     }
@@ -157,9 +204,12 @@ const ExamEditor = () => {
     try {
       const questions = await teacherService.getQuestionsByCourseLevel(course.level);
       setAvailableQuestions(questions || []);
+      // NEW: Also load for Structure Builder
+      setCourseQuestions(questions || []);
     } catch (err) {
       console.error('Failed to load questions for course:', err);
       setAvailableQuestions([]);
+      setCourseQuestions([]);
     }
   };
 
@@ -262,44 +312,297 @@ const ExamEditor = () => {
       if (isCreateMode) {
         // Validate required fields
         if (!formData.courseId) {
-          setError(t('exam.courseRequired', 'Vui lòng chọn khóa học.'));
+          Swal.fire({
+            icon: 'warning',
+            title: 'Thiếu thông tin',
+            text: t('exam.courseRequired', 'Vui lòng chọn khóa học.'),
+            confirmButtonColor: '#3b82f6'
+          });
           setSaving(false);
           return;
         }
 
-        // Create new exam - backend expects { exam: {...}, questions: [...] }
+        // Validate title
+        if (!formData.title || formData.title.trim() === '') {
+          Swal.fire({
+            icon: 'warning',
+            title: 'Thiếu thông tin',
+            text: t('exam.titleRequired', 'Vui lòng nhập tên bài kiểm tra.'),
+            confirmButtonColor: '#3b82f6'
+          });
+          setSaving(false);
+          return;
+        }
+
+        // Validate duration
+        if (!formData.duration || formData.duration <= 0) {
+          Swal.fire({
+            icon: 'warning',
+            title: 'Thiếu thông tin',
+            text: t('exam.durationRequired', 'Vui lòng nhập thời gian làm bài (phút).'),
+            confirmButtonColor: '#3b82f6'
+          });
+          setSaving(false);
+          return;
+        }
+
+        // Validate passingScore
+        if (!formData.passingScore || formData.passingScore <= 0 || formData.passingScore > 100) {
+          Swal.fire({
+            icon: 'warning',
+            title: 'Thiếu thông tin',
+            text: t('exam.passingScoreRequired', 'Vui lòng nhập điểm đạt (0-100).'),
+            confirmButtonColor: '#3b82f6'
+          });
+          setSaving(false);
+          return;
+        }
+
+        // Validate examType
+        if (!formData.examType) {
+          Swal.fire({
+            icon: 'warning',
+            title: 'Thiếu thông tin',
+            text: t('exam.examTypeRequired', 'Vui lòng chọn hình thức bài thi.'),
+            confirmButtonColor: '#3b82f6'
+          });
+          setSaving(false);
+          return;
+        }
+
+        // Validate examCategory
+        if (!formData.examCategory) {
+          Swal.fire({
+            icon: 'warning',
+            title: 'Thiếu thông tin',
+            text: t('exam.examCategoryRequired', 'Vui lòng chọn loại đề thi.'),
+            confirmButtonColor: '#3b82f6'
+          });
+          setSaving(false);
+          return;
+        }
+
+        // Validate questions - must have at least one question
+        if (!questions || questions.length === 0) {
+          Swal.fire({
+            icon: 'warning',
+            title: 'Thiếu câu hỏi',
+            text: t('exam.questionsRequired', 'Vui lòng thêm ít nhất một câu hỏi vào bài kiểm tra.'),
+            confirmButtonColor: '#3b82f6'
+          });
+          setSaving(false);
+          return;
+        }
+
+        // Create new exam - backend expects { exam: {...}, courseId: ..., questions: [...] }
+        // courseId is sent separately (not nested in exam) because backend needs to convert it to Course entity
+        const { courseId, duration, code, ...examData } = formData; // Extract courseId and unused fields
+
+        // Calculate totalPoints from questions if not provided
+        const totalPoints = questions.filter(q => !q.isNew).reduce((sum, q) => sum + (q.points || 1), 0);
+
         const requestData = {
           exam: {
-            ...formData,
-            courseId: parseInt(formData.courseId) // Convert to number
+            ...examData,
+            durationMinutes: duration, // Map frontend 'duration' to backend 'durationMinutes'
+            totalPoints: totalPoints > 0 ? totalPoints : 100 // Set from questions or default to 100
           },
+          courseId: parseInt(courseId), // Send courseId at request level
           questions: questions.filter(q => !q.isNew)
         };
 
         const response = await teacherService.createExam(requestData);
-        setSuccess(t('exam.createSuccess', 'Đã tạo bài kiểm tra thành công! Đang chờ Education Manager duyệt.'));
+
+        // Auto-submit exam for approval after creation
+        try {
+          await teacherService.submitExamForApproval(response.id);
+          console.log('Exam submitted for approval:', response.id);
+        } catch (submitError) {
+          console.warn('Failed to auto-submit exam for approval:', submitError);
+          // Don't fail the entire flow if submission fails
+        }
+
+        // Show success alert
+        await Swal.fire({
+          icon: 'success',
+          title: 'Thành công!',
+          text: t('exam.createSuccess', 'Đã tạo bài kiểm tra thành công! Đang chờ Education Manager duyệt.'),
+          confirmButtonColor: '#10b981'
+        });
+
         setError('');
         // Navigate to edit mode after creation
-        setTimeout(() => {
-          navigate(`/exam-editor/${response.id}`);
-        }, 1500);
+        navigate(`/exam-editor/${response.id}`);
       } else {
+        // Validate required fields for update mode
+        if (!formData.title || formData.title.trim() === '') {
+          Swal.fire({
+            icon: 'warning',
+            title: 'Thiếu thông tin',
+            text: t('exam.titleRequired', 'Vui lòng nhập tên bài kiểm tra.'),
+            confirmButtonColor: '#3b82f6'
+          });
+          setSaving(false);
+          return;
+        }
+
+        if (!formData.duration || formData.duration <= 0) {
+          Swal.fire({
+            icon: 'warning',
+            title: 'Thiếu thông tin',
+            text: t('exam.durationRequired', 'Vui lòng nhập thời gian làm bài (phút).'),
+            confirmButtonColor: '#3b82f6'
+          });
+          setSaving(false);
+          return;
+        }
+
+        if (!formData.passingScore || formData.passingScore <= 0 || formData.passingScore > 100) {
+          Swal.fire({
+            icon: 'warning',
+            title: 'Thiếu thông tin',
+            text: t('exam.passingScoreRequired', 'Vui lòng nhập điểm đạt (0-100).'),
+            confirmButtonColor: '#3b82f6'
+          });
+          setSaving(false);
+          return;
+        }
+
         // Update existing exam
         await teacherService.updateExam(id, {
           ...formData,
           questions: questions.filter(q => !q.isNew)
         });
-        setSuccess(t('exam.saveSuccess', 'Đã lưu bài kiểm tra thành công!'));
+
+        // Show success alert
+        await Swal.fire({
+          icon: 'success',
+          title: 'Thành công!',
+          text: t('exam.saveSuccess', 'Đã lưu bài kiểm tra thành công!'),
+          confirmButtonColor: '#10b981'
+        });
+
         setError('');
       }
     } catch (err) {
       console.error(err);
-      setError(err.response?.data?.message || t('exam.saveError', 'Lỗi khi lưu bài kiểm tra.'));
+
+      // Show error alert
+      await Swal.fire({
+        icon: 'error',
+        title: 'Lỗi!',
+        text: err.response?.data?.message || t('exam.saveError', 'Lỗi khi lưu bài kiểm tra.'),
+        confirmButtonColor: '#ef4444'
+      });
+
       setSuccess('');
     } finally {
       setSaving(false);
     }
   };
+
+  // ==================== NEW HANDLERS ====================
+
+  // Handle auto-generate exam from TOPIK structure
+  const handleAutoGenerate = async (blueprint) => {
+    try {
+      // Call API để random questions theo blueprint
+      const requestData = {
+        blueprint,
+        courseId: parseInt(formData.courseId),
+        examCategory: formData.examCategory
+      };
+
+      const response = await teacherService.generateExamFromBlueprint(requestData);
+
+      // Set questions vào state với orderNumber
+      const questionsWithOrder = (response.questions || []).map((q, index) => ({
+        ...q,
+        orderNumber: index + 1
+      }));
+
+      setQuestions(questionsWithOrder);
+
+      // Tự động set thời gian dựa trên TOPIK level
+      const newDuration = blueprint.topikLevel === 'TOPIK_I' ? 100 : 180;
+      setFormData(prev => ({
+        ...prev,
+        duration: newDuration
+      }));
+
+      setShowStructureBuilder(false);
+      setAutoGenerateMode(false);
+      setSuccess(`Đã tạo đề thi tự động theo cấu trúc ${blueprint.topikLevel}! (${questionsWithOrder.length} câu hỏi)`);
+      setError('');
+
+      // Switch to questions tab
+      setActiveTab('questions');
+    } catch (err) {
+      console.error('Error generating exam:', err);
+      setError('Không thể tạo đề thi tự động: ' + (err.response?.data?.message || err.message));
+    }
+  };
+
+  // Handle replace questions
+  const handleReplaceQuestions = (replacements) => {
+    const newQuestions = [...questions];
+
+    replacements.forEach(({ old, new: newQ, index }) => {
+      newQuestions[index] = {
+        ...newQ,
+        orderNumber: index + 1
+      };
+    });
+
+    setQuestions(newQuestions);
+    setSuccess(`Đã đổi ${replacements.length} câu hỏi thành công!`);
+    setError('');
+  };
+
+  // Handle publish toggle with validation
+  const handlePublishToggle = async (value) => {
+    if (value) {
+      // Validate trước khi publish
+      const validation = validateExamBeforePublish(formData, questions);
+
+      if (!validation.valid) {
+        setError('Không thể publish đề thi:\n' + validation.errors.join('\n'));
+        return;
+      }
+
+      if (validation.warnings.length > 0) {
+        const confirmed = window.confirm(
+          'Cảnh báo:\n' + validation.warnings.join('\n') + '\n\nBạn có chắc muốn publish?'
+        );
+        if (!confirmed) return;
+      }
+    }
+
+    // Set published value
+    handleFormChange('published', value);
+  };
+
+  // Toggle question selection (for bulk replace)
+  const toggleQuestionSelection = (index) => {
+    const newSelected = new Set(selectedQuestions);
+    if (newSelected.has(index)) {
+      newSelected.delete(index);
+    } else {
+      newSelected.add(index);
+    }
+    setSelectedQuestions(newSelected);
+  };
+
+  // Check if exam can be edited
+  const checkCanEdit = () => {
+    if (exam && exam.published) {
+      setError('Đề thi đã published. Không thể chỉnh sửa. Vui lòng unpublish trước.');
+      return false;
+    }
+    return true;
+  };
+
+  // ==================== END NEW HANDLERS ====================
 
   // Get question type badge
   const getQuestionTypeBadge = (type) => {
@@ -338,268 +641,464 @@ const ExamEditor = () => {
   const isCreateMode = !id || id === 'create';
 
   return (
-    <PageContainer>
-      {/* Page Header */}
-      <PageHeader
-        title={isCreateMode ? t('exam.create', 'Tạo Bài Kiểm Tra Mới') : t('exam.edit', 'Chỉnh Sửa Bài Kiểm Tra')}
-        subtitle={exam?.code || t('exam.createSubtitle', 'Tạo bài kiểm tra mới cho khóa học')}
-        breadcrumbs={[
-          { label: t('nav.home', 'Trang chủ'), href: '/' },
-          { label: t('nav.teacher', 'Giáo viên'), href: '/teacher' },
-          { label: t('exam.management', 'Quản Lý Bài Kiểm Tra'), href: '/exam-management' },
-          { label: isCreateMode ? t('exam.create', 'Tạo Mới') : (exam?.title || t('exam.edit', 'Chỉnh Sửa')) }
-        ]}
-        actions={
-          <div className="flex gap-3">
-            <Button
-              variant="secondary"
-              icon={<ArrowLeft className="w-4 h-4" />}
-              onClick={() => navigate('/exam-management')}
-            >
-              {t('common.back', 'Quay lại')}
-            </Button>
-            <Button
-              variant="primary"
-              icon={<Save className="w-4 h-4" />}
-              onClick={handleSave}
-              disabled={saving}
-            >
-              {saving ? (
-                <>
-                  <Loading.Spinner size="sm" />
-                  {t('exam.saving', 'Đang lưu...')}
-                </>
-              ) : (
-                t('exam.save', 'Lưu')
-              )}
-            </Button>
-          </div>
-        }
-      />
-
-      {/* Success Alert */}
-      {success && (
-        <Alert
-          variant="success"
-          icon={<CheckCircle2 className="w-5 h-5" />}
-          className="mb-6"
-          dismissible
-          onDismiss={() => setSuccess('')}
-        >
-          {success}
-        </Alert>
-      )}
-
-      {/* Error Alert */}
-      {error && (
-        <Alert
-          variant="error"
-          icon={<AlertCircle className="w-5 h-5" />}
-          className="mb-6"
-          dismissible
-          onDismiss={() => setError('')}
-        >
-          {error}
-        </Alert>
-      )}
-
-      {/* Main Content */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column - Exam Details */}
-        <div className="lg:col-span-1">
-          <Card className="mb-6">
-            {/* Tabs */}
-            <div className="border-b border-gray-200">
-              <div className="flex">
+    <PageContainer className="bg-gradient-to-br from-gray-50 to-blue-50 min-h-screen">
+      {/* Optimized Page Header with Progress */}
+      <div className="bg-white shadow-sm border-b border-gray-200 rounded-t-xl">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <div className="flex items-center gap-3 mb-2">
                 <button
-                  className={`flex-1 py-4 px-6 font-medium text-sm transition-colors ${
+                  onClick={() => navigate('/exam-management')}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <ArrowLeft className="w-5 h-5 text-gray-600" />
+                </button>
+                <h1 className="text-2xl font-bold text-gray-900">
+                  {isCreateMode ? t('exam.create', 'Tạo Bài Kiểm Tra Mới') : t('exam.edit', 'Chỉnh Sửa Bài Kiểm Tra')}
+                </h1>
+              </div>
+              <p className="text-sm text-gray-500 ml-10">
+                {exam?.code || t('exam.createSubtitle', 'Tạo bài kiểm tra mới cho khóa học')}
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              {/* Progress Indicator */}
+              <div className="hidden md:flex items-center gap-2 px-4 py-2 bg-blue-50 rounded-lg">
+                <div className={`w-3 h-3 rounded-full ${formData.title ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                <div className={`w-3 h-3 rounded-full ${formData.courseId ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                <div className={`w-3 h-3 rounded-full ${questions.length > 0 ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                <span className="text-xs text-gray-600 ml-2">
+                  {questions.length > 0 ? 'Hoàn thành' : 'Đang tạo'}
+                </span>
+              </div>
+              <Button
+                variant="primary"
+                icon={<Save className="w-4 h-4" />}
+                onClick={handleSave}
+                disabled={saving}
+                className="shadow-lg"
+              >
+                {saving ? (
+                  <>
+                    <Loading.Spinner size="sm" />
+                    {t('exam.saving', 'Đang lưu...')}
+                  </>
+                ) : (
+                  t('exam.save', 'Lưu')
+                )}
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Alerts with improved styling */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-4">
+        {success && (
+          <Alert
+            variant="success"
+            icon={<CheckCircle2 className="w-5 h-5" />}
+            className="shadow-lg border-l-4 border-green-500"
+            dismissible
+            onDismiss={() => setSuccess('')}
+          >
+            {success}
+          </Alert>
+        )}
+
+        {error && (
+          <Alert
+            variant="error"
+            icon={<AlertCircle className="w-5 h-5" />}
+            className="shadow-lg border-l-4 border-red-500"
+            dismissible
+            onDismiss={() => setError('')}
+          >
+            {error}
+          </Alert>
+        )}
+      </div>
+
+      {/* Main Content - Optimized 3-column layout */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+        <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
+
+          {/* Left Column - Main Form (2 columns wide) */}
+          <div className="xl:col-span-3">
+            <Card className="shadow-xl border-0 overflow-hidden">
+              {/* Modern Tabs */}
+              <div className="border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white">
+                <div className="flex">
+                <button
+                  className={`flex-1 py-4 px-8 font-semibold text-sm transition-all duration-200 relative ${
                     activeTab === 'details'
-                      ? 'text-primary-600 border-b-2 border-primary-600 bg-primary-50'
-                      : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                      ? 'text-blue-600'
+                      : 'text-gray-500 hover:text-gray-700'
                   }`}
                   onClick={() => setActiveTab('details')}
                 >
                   <div className="flex items-center justify-center gap-2">
-                    <Settings className="w-5 h-5" />
-                    {t('exam.details', 'Thông Tin')}
+                    <Settings className={`w-5 h-5 ${activeTab === 'details' ? 'animate-pulse' : ''}`} />
+                    <span>{t('exam.details', 'Thông Tin')}</span>
                   </div>
+                  {activeTab === 'details' && (
+                    <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-blue-600 rounded-t-full"></div>
+                  )}
                 </button>
                 <button
-                  className={`flex-1 py-4 px-6 font-medium text-sm transition-colors ${
+                  className={`flex-1 py-4 px-8 font-semibold text-sm transition-all duration-200 relative ${
                     activeTab === 'questions'
-                      ? 'text-primary-600 border-b-2 border-primary-600 bg-primary-50'
-                      : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                      ? 'text-blue-600'
+                      : 'text-gray-500 hover:text-gray-700'
                   }`}
                   onClick={() => setActiveTab('questions')}
                 >
                   <div className="flex items-center justify-center gap-2">
-                    <FileText className="w-5 h-5" />
-                    {t('exam.questions', 'Câu Hỏi')} ({questions.length})
+                    <FileText className={`w-5 h-5 ${activeTab === 'questions' ? 'animate-pulse' : ''}`} />
+                    <span>{t('exam.questions', 'Câu Hỏi')}</span>
+                    <span className={`ml-2 px-2 py-0.5 rounded-full text-xs font-bold ${
+                      questions.length > 0 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'
+                    }`}>
+                      {questions.length}
+                    </span>
                   </div>
+                  {activeTab === 'questions' && (
+                    <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-blue-600 rounded-t-full"></div>
+                  )}
                 </button>
+                </div>
               </div>
-            </div>
 
-            {/* Details Tab Content */}
-            {activeTab === 'details' && (
-              <div className="p-6 space-y-6">
-                {/* Title */}
+              {/* Details Tab Content - Optimized Layout */}
+              {activeTab === 'details' && (
+                <div className="p-8 space-y-8">
+
+                {/* Section: Basic Info */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('exam.title', 'Tiêu đề')} *
-                  </label>
-                  <Input
-                    type="text"
-                    value={formData.title}
-                    onChange={(e) => handleFormChange('title', e.target.value)}
-                    placeholder={t('exam.titlePlaceholder', 'Nhập tiêu đề bài kiểm tra...')}
-                  />
-                </div>
+                  <div className="flex items-center gap-2 mb-6">
+                    <div className="w-1 h-6 bg-gradient-to-b from-blue-500 to-blue-600 rounded-full"></div>
+                    <h3 className="text-lg font-semibold text-gray-900">Thông tin cơ bản</h3>
+                  </div>
 
-                {/* Code */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('exam.code', 'Mã bài kiểm tra')} *
-                  </label>
-                  <Input
-                    type="text"
-                    value={formData.code}
-                    onChange={(e) => handleFormChange('code', e.target.value)}
-                    placeholder={t('exam.codePlaceholder', 'VD: EXAM-001')}
-                  />
-                </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Title */}
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        {t('exam.title', 'Tiêu đề')} *
+                      </label>
+                      <Input
+                        type="text"
+                        value={formData.title}
+                        onChange={(e) => handleFormChange('title', e.target.value)}
+                        placeholder={t('exam.titlePlaceholder', 'Nhập tiêu đề bài kiểm tra...')}
+                        className="text-lg font-medium"
+                      />
+                    </div>
 
-                {/* Description */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('exam.description', 'Mô tả')}
-                  </label>
-                  <textarea
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
-                    rows="4"
-                    value={formData.description}
-                    onChange={(e) => handleFormChange('description', e.target.value)}
-                    placeholder={t('exam.descriptionPlaceholder', 'Nhập mô tả bài kiểm tra...')}
-                  />
-                </div>
+                    {/* Code */}
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        {t('exam.code', 'Mã bài kiểm tra')} *
+                      </label>
+                      <Input
+                        type="text"
+                        value={formData.code}
+                        onChange={(e) => handleFormChange('code', e.target.value)}
+                        placeholder={t('exam.codePlaceholder', 'VD: EXAM-001')}
+                      />
+                    </div>
 
-                {/* Course Selection (Required for create mode) */}
-                {isCreateMode && !selectedCourseInfo && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {t('exam.course', 'Khóa học')} *
-                    </label>
-                    <select
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
-                      value={formData.courseId}
-                      onChange={(e) => handleFormChange('courseId', e.target.value)}
-                      required
-                    >
-                      <option value="">{t('exam.selectCourse', '-- Chọn khóa học --')}</option>
-                      {courses.map(course => (
-                        <option key={course.id} value={course.id}>
-                          {course.name} ({course.code})
-                        </option>
-                      ))}
-                    </select>
-                    {courses.length === 0 && (
-                      <p className="mt-1 text-sm text-amber-600">
-                        {t('exam.noCoursesAssigned', 'Bạn chưa được assigned vào khóa học nào.')}
-                      </p>
+                    {/* Course Selection */}
+                    {isCreateMode && !selectedCourseInfo && (
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          {t('exam.course', 'Khóa học')} *
+                        </label>
+                        <select
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm"
+                          value={formData.courseId}
+                          onChange={(e) => handleFormChange('courseId', e.target.value)}
+                          required
+                        >
+                          <option value="">{t('exam.selectCourse', '-- Chọn khóa học --')}</option>
+                          {courses.map(course => (
+                            <option key={course.id} value={course.id}>
+                              {course.name} ({course.code})
+                            </option>
+                          ))}
+                        </select>
+                        {courses.length === 0 && (
+                          <p className="mt-1 text-sm text-amber-600 flex items-center gap-1">
+                            <AlertCircle className="w-4 h-4" />
+                            {t('exam.noCoursesAssigned', 'Bạn chưa được assigned vào khóa học nào.')}
+                          </p>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Selected Course Display */}
+                    {isCreateMode && selectedCourseInfo && (
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          {t('exam.course', 'Khóa học')}
+                        </label>
+                        <div className="w-full px-4 py-3 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg text-gray-700">
+                          <div className="font-semibold text-blue-900">{selectedCourseInfo.name}</div>
+                          <div className="text-sm text-blue-600">{selectedCourseInfo.code}</div>
+                        </div>
+                        <input type="hidden" name="courseId" value={formData.courseId} />
+                      </div>
                     )}
                   </div>
-                )}
 
-                {/* Selected Course Display (when coming from MyCourses) */}
-                {isCreateMode && selectedCourseInfo && (
+                  {/* Description */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {t('exam.course', 'Khóa học')}
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      {t('exam.description', 'Mô tả')}
                     </label>
-                    <div className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-700">
-                      <div className="font-medium">{selectedCourseInfo.name}</div>
-                      <div className="text-sm text-gray-500">{selectedCourseInfo.code}</div>
-                    </div>
-                    <input type="hidden" name="courseId" value={formData.courseId} />
-                  </div>
-                )}
-
-                {/* Type */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('exam.type', 'Loại bài kiểm tra')}
-                  </label>
-                  <Input
-                    type="select"
-                    value={formData.type}
-                    onChange={(e) => handleFormChange('type', e.target.value)}
-                    options={[
-                      { value: 'MULTIPLE_CHOICE', label: t('exam.type.multipleChoice', 'Trắc nghiệm') },
-                      { value: 'WRITING', label: t('exam.type.writing', 'Viết') },
-                      { value: 'LISTENING', label: t('exam.type.listening', 'Nghe') },
-                      { value: 'READING', label: t('exam.type.reading', 'Đọc hiểu') },
-                      { value: 'MIXED', label: t('exam.type.mixed', 'Hỗn hợp') }
-                    ]}
-                  />
-                </div>
-
-                {/* Duration */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('exam.duration', 'Thời gian (phút)')}
-                  </label>
-                  <Input
-                    type="number"
-                    value={formData.duration}
-                    onChange={(e) => handleFormChange('duration', parseInt(e.target.value))}
-                    min={1}
-                    max={300}
-                  />
-                </div>
-
-                {/* Passing Score */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('exam.passingScore', 'Điểm đạt (%)')}
-                  </label>
-                  <Input
-                    type="number"
-                    value={formData.passingScore}
-                    onChange={(e) => handleFormChange('passingScore', parseInt(e.target.value))}
-                    min={0}
-                    max={100}
-                  />
-                </div>
-
-                {/* Max Attempts */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('exam.maxAttempts', 'Số lần thi tối đa')}
-                  </label>
-                  <Input
-                    type="number"
-                    value={formData.maxAttempts}
-                    onChange={(e) => handleFormChange('maxAttempts', parseInt(e.target.value))}
-                    min={1}
-                    max={10}
-                  />
-                </div>
-
-                {/* Published */}
-                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                  <div>
-                    <p className="font-medium text-gray-900">{t('exam.published', 'Đăng bài kiểm tra')}</p>
-                    <p className="text-sm text-gray-500">{t('exam.publishedInfo', 'Cho phép sinh viên tham gia')}</p>
-                  </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      className="sr-only peer"
-                      checked={formData.published}
-                      onChange={(e) => handleFormChange('published', e.target.checked)}
+                    <textarea
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm"
+                      rows="3"
+                      value={formData.description}
+                      onChange={(e) => handleFormChange('description', e.target.value)}
+                      placeholder={t('exam.descriptionPlaceholder', 'Nhập mô tả bài kiểm tra...')}
                     />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary-500 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white peer-checked:after:border-t-2 peer-checked:bg-primary-600 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full peer-checked:after:border-white"></div>
-                  </label>
+                  </div>
+                </div>
+
+                {/* Section: Exam Configuration */}
+                <div>
+                  <div className="flex items-center gap-2 mb-6">
+                    <div className="w-1 h-6 bg-gradient-to-b from-purple-500 to-purple-600 rounded-full"></div>
+                    <h3 className="text-lg font-semibold text-gray-900">Cấu hình bài thi</h3>
+                  </div>
+
+                  {/* Exam Type & Category in one row */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    {/* Exam Type */}
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        {t('exam.examType', 'Hình thức bài thi')}
+                      </label>
+                      <select
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all shadow-sm"
+                        value={formData.examType}
+                        onChange={(e) => handleFormChange('examType', e.target.value)}
+                      >
+                        <option value="MULTIPLE_CHOICE">{t('exam.type.multipleChoice', 'Trắc nghiệm')}</option>
+                        <option value="WRITING">{t('exam.type.writing', 'Viết')}</option>
+                        <option value="LISTENING">{t('exam.type.listening', 'Nghe hiểu')}</option>
+                        <option value="READING">{t('exam.type.reading', 'Đọc hiểu')}</option>
+                        <option value="MIXED">{t('exam.type.mixed', 'Hỗn hợp')}</option>
+                      </select>
+                    </div>
+
+                    {/* Exam Category - Visual Card Selection */}
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        {t('exam.examCategory', 'Phân loại bài thi')}
+                      </label>
+                      <div className="grid grid-cols-2 gap-3">
+                        <button
+                          type="button"
+                          onClick={() => handleFormChange('examCategory', 'PRACTICE')}
+                          className={`p-4 rounded-xl border-2 text-left transition-all duration-200 ${
+                            formData.examCategory === 'PRACTICE'
+                              ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-blue-100 shadow-md'
+                              : 'border-gray-200 hover:border-blue-300 bg-white'
+                          }`}
+                        >
+                          <div className="flex flex-col items-center text-center">
+                            <span className="text-3xl mb-2">📚</span>
+                            <div className={`font-semibold text-sm mb-1 ${
+                              formData.examCategory === 'PRACTICE' ? 'text-blue-700' : 'text-gray-700'
+                            }`}>
+                              Bài luyện tập
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              Cho học viên trong khóa
+                            </div>
+                          </div>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => handleFormChange('examCategory', 'MOCK')}
+                          className={`p-4 rounded-xl border-2 text-left transition-all duration-200 ${
+                            formData.examCategory === 'MOCK'
+                              ? 'border-purple-500 bg-gradient-to-br from-purple-50 to-purple-100 shadow-md'
+                              : 'border-gray-200 hover:border-purple-300 bg-white'
+                          }`}
+                        >
+                          <div className="flex flex-col items-center text-center">
+                            <span className="text-3xl mb-2">🎯</span>
+                            <div className={`font-semibold text-sm mb-1 ${
+                              formData.examCategory === 'MOCK' ? 'text-purple-700' : 'text-gray-700'
+                            }`}>
+                              Mock Test
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              Cho Guest/FreeTest
+                            </div>
+                          </div>
+                        </button>
+                      </div>
+                      <p className="mt-2 text-xs text-gray-500 flex items-center gap-1">
+                        <CheckCircle2 className="w-3 h-3" />
+                        {formData.examCategory === 'MOCK'
+                          ? 'Bài Mock sẽ hiển thị cho khách (Guest) trong trang FreeTest'
+                          : 'Bài luyện tập chỉ hiển thị cho học viên đã đăng ký khóa học'}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Mode Selection (Auto vs Manual) - Enhanced */}
+                  {isCreateMode && selectedCourseInfo && (
+                    <div className="mt-8 p-6 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl border-2 border-indigo-100">
+                      <div className="flex items-center gap-2 mb-4">
+                        <Wand2 className="w-5 h-5 text-indigo-600" />
+                        <h4 className="font-bold text-gray-900">Chọn chế độ tạo đề thi</h4>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {/* Manual Mode */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setAutoGenerateMode(false);
+                            setShowStructureBuilder(false);
+                          }}
+                          className={`p-5 border-2 rounded-xl text-left transition-all duration-200 group ${
+                            !autoGenerateMode
+                              ? 'border-indigo-500 bg-white shadow-lg scale-105'
+                              : 'border-gray-200 hover:border-indigo-300 bg-white/50 hover:bg-white'
+                          }`}
+                        >
+                          <div className="flex items-start gap-4">
+                            <div className={`w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 transition-all ${
+                              !autoGenerateMode
+                                ? 'bg-gradient-to-br from-indigo-500 to-indigo-600 shadow-lg'
+                                : 'bg-gray-300 group-hover:bg-indigo-200'
+                            }`}>
+                              <Edit className="w-7 h-7 text-white" />
+                            </div>
+                            <div className="flex-1">
+                              <div className={`font-bold mb-1 ${!autoGenerateMode ? 'text-indigo-700' : 'text-gray-700'}`}>
+                                ✋ Tự chọn câu hỏi
+                              </div>
+                              <div className="text-sm text-gray-600">
+                                Tự động chọn từng câu hỏi từ Question Bank theo ý muốn
+                              </div>
+                              {!autoGenerateMode && (
+                                <div className="mt-2 flex items-center gap-1 text-xs text-indigo-600 font-semibold">
+                                  <CheckCircle2 className="w-3 h-3" />
+                                  Đang chọn
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </button>
+
+                        {/* Auto Mode */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setAutoGenerateMode(true);
+                            setShowStructureBuilder(true);
+                          }}
+                          className={`p-5 border-2 rounded-xl text-left transition-all duration-200 group ${
+                            autoGenerateMode
+                              ? 'border-purple-500 bg-white shadow-lg scale-105'
+                              : 'border-gray-200 hover:border-purple-300 bg-white/50 hover:bg-white'
+                          }`}
+                        >
+                          <div className="flex items-start gap-4">
+                            <div className={`w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 transition-all ${
+                              autoGenerateMode
+                                ? 'bg-gradient-to-br from-purple-500 to-purple-600 shadow-lg'
+                                : 'bg-gray-300 group-hover:bg-purple-200'
+                            }`}>
+                              <Wand2 className="w-7 h-7 text-white" />
+                            </div>
+                            <div className="flex-1">
+                              <div className={`font-bold mb-1 ${autoGenerateMode ? 'text-purple-700' : 'text-gray-700'}`}>
+                                ✨ Tạo tự động
+                              </div>
+                              <div className="text-sm text-gray-600">
+                                Random câu hỏi theo cấu trúc TOPIK tự động
+                              </div>
+                              {autoGenerateMode && (
+                                <div className="mt-2 flex items-center gap-1 text-xs text-purple-600 font-semibold">
+                                  <CheckCircle2 className="w-3 h-3" />
+                                  Đang chọn
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Exam Structure Builder (when auto mode is selected) */}
+                  {autoGenerateMode && showStructureBuilder && selectedCourseInfo && (
+                    <div className="mt-6 p-6 bg-white rounded-xl border-2 border-purple-200 shadow-lg">
+                      <ExamStructureBuilder
+                        topikLevel={selectedCourseInfo?.level === 'BEGINNER' ? 'TOPIK_I' : 'TOPIK_II'}
+                        onGenerate={handleAutoGenerate}
+                        questionBank={courseQuestions || []}
+                        courseLevel={selectedCourseInfo?.level}
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* Section: Exam Settings */}
+                <div>
+                  <div className="flex items-center gap-2 mb-6">
+                    <div className="w-1 h-6 bg-gradient-to-b from-green-500 to-green-600 rounded-full"></div>
+                    <h3 className="text-lg font-semibold text-gray-900">Cài đặt bài thi</h3>
+                  </div>
+
+                  {/* Duration, Passing Score, Max Attempts */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        <div className="flex items-center gap-2">
+                          <Clock className="w-4 h-4 text-blue-500" />
+                          {t('exam.duration', 'Thời gian (phút)')}
+                        </div>
+                      </label>
+                      <Input
+                        type="number"
+                        value={formData.duration}
+                        onChange={(e) => handleFormChange('duration', e.target.value ? parseInt(e.target.value) : 70)}
+                        min={1}
+                        max={300}
+                        className="text-lg font-semibold"
+                      />
+                    </div>
+
+                    {/* Passing Score */}
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        <div className="flex items-center gap-2">
+                          <CheckCircle2 className="w-4 h-4 text-green-500" />
+                          {t('exam.passingScore', 'Điểm đạt (%)')}
+                        </div>
+                      </label>
+                      <Input
+                        type="number"
+                        value={formData.passingScore}
+                        onChange={(e) => handleFormChange('passingScore', e.target.value ? parseInt(e.target.value) : 80)}
+                        min={0}
+                        max={100}
+                        className="text-lg font-semibold"
+                      />
+                    </div>
+
+                  </div>
                 </div>
               </div>
             )}
@@ -607,175 +1106,300 @@ const ExamEditor = () => {
             {/* Questions Tab Content */}
             {activeTab === 'questions' && (
               <div className="p-6">
-                <Button
-                  variant="primary"
-                  className="w-full mb-3"
-                  icon={<Plus className="w-4 h-4" />}
-                  onClick={handleAddQuestion}
-                >
-                  {t('exam.addQuestion', 'Thêm Câu Hỏi Mới')}
-                </Button>
+                {/* Action Buttons */}
+                <div className="space-y-3 mb-6">
+                  <Button
+                    variant="primary"
+                    className="w-full"
+                    icon={<Plus className="w-4 h-4" />}
+                    onClick={handleAddQuestion}
+                    disabled={exam?.published} // Disable if published
+                  >
+                    {t('exam.addQuestion', 'Thêm Câu Hỏi Mới')}
+                  </Button>
 
-                <Button
-                  variant="secondary"
-                  className="w-full mb-4"
-                  icon={<BookOpen className="w-4 h-4" />}
-                  onClick={handleOpenQuestionBank}
-                  disabled={!selectedCourseInfo}
-                >
-                  {t('exam.selectFromQuestionBank', 'Chọn từ Ngân Hàng Câu Hỏi')}
-                  {!selectedCourseInfo && ` (${t('exam.selectCourseFirst', 'Chọn khóa học trước')})`}
-                </Button>
+                  <Button
+                    variant="secondary"
+                    className="w-full"
+                    icon={<BookOpen className="w-4 h-4" />}
+                    onClick={handleOpenQuestionBank}
+                    disabled={!selectedCourseInfo || exam?.published}
+                  >
+                    {t('exam.selectFromQuestionBank', 'Chọn từ Ngân Hàng Câu Hỏi')}
+                    {!selectedCourseInfo && ` (${t('exam.selectCourseFirst', 'Chọn khóa học trước')})`}
+                  </Button>
 
-                <div className="space-y-4">
-                  {questions.map((question, index) => (
-                    <div
-                      key={question.id}
-                      className={`p-4 rounded-lg border transition-colors ${
-                        question.isNew
-                          ? 'border-primary-200 bg-primary-50'
-                          : 'border-gray-200 bg-white'
-                      }`}
-                    >
-                      <div className="flex items-start justify-between gap-4 mb-3">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <span className="text-sm font-medium text-gray-500">#{index + 1}</span>
-                            {getQuestionTypeBadge(question.type)}
-                            {getDifficultyBadge(question.difficulty)}
-                          </div>
-                          <p className="text-sm text-gray-900">{question.content}</p>
+                  {/* NEW: Replace Questions Buttons */}
+                  {questions.length > 0 && !exam?.published && (
+                    <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200">
+                      <div className="flex items-center justify-between mb-3">
+                        <div>
+                          <h4 className="font-semibold text-gray-900">🔄 Đổi câu hỏi</h4>
+                          <p className="text-xs text-gray-600">
+                            Chọn câu hỏi để thay thế bằng câu hỏi khác từ Question Bank
+                          </p>
                         </div>
-                        <div className="flex gap-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            icon={<Eye className="w-4 h-4" />}
-                            onClick={() => handlePreviewQuestion(question)}
-                            title={t('exam.preview', 'Xem trước')}
-                          />
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            icon={<Edit className="w-4 h-4" />}
-                            onClick={() => navigate(`/teacher/questions/${question.id}/edit`)}
-                            title={t('exam.edit', 'Chỉnh sửa')}
-                          />
-                          <Button
-                            variant="danger"
-                            size="sm"
-                            icon={<Trash2 className="w-4 h-4" />}
-                            onClick={() => handleDeleteQuestion(question)}
-                            title={t('exam.delete', 'Xóa')}
-                          />
-                        </div>
+                        {selectedQuestions.size > 0 && (
+                          <span className="text-sm font-medium text-indigo-600">
+                            {selectedQuestions.size} đã chọn
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => {
+                            if (selectedQuestions.size > 0) {
+                              setSelectedQuestionIndices(Array.from(selectedQuestions));
+                              setShowReplaceModal(true);
+                            } else {
+                              setError('Vui lòng chọn ít nhất 1 câu hỏi để đổi');
+                            }
+                          }}
+                          disabled={selectedQuestions.size === 0}
+                          className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                            selectedQuestions.size > 0
+                              ? 'bg-indigo-600 text-white hover:bg-indigo-700'
+                              : 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                          }`}
+                        >
+                          Đổi câu đã chọn
+                        </button>
+
+                        <button
+                          onClick={() => {
+                            setSelectedQuestionIndices(questions.map((_, i) => i));
+                            setShowReplaceModal(true);
+                          }}
+                          className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-all"
+                        >
+                          Đổi tất cả
+                        </button>
+
+                        {selectedQuestions.size > 0 && (
+                          <button
+                            onClick={() => setSelectedQuestions(new Set())}
+                            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-300 transition-all"
+                          >
+                            Bỏ chọn
+                          </button>
+                        )}
                       </div>
                     </div>
-                  ))}
+                  )}
+                </div>
+
+                {/* Questions List */}
+                <div className="space-y-4">
+                  {questions.map((question, index) => {
+                    const isSelected = selectedQuestions.has(index);
+
+                    return (
+                      <div
+                        key={question.id}
+                        className={`p-4 rounded-lg border transition-all ${
+                          question.isNew
+                            ? 'border-primary-200 bg-primary-50'
+                            : isSelected
+                              ? 'border-indigo-500 bg-indigo-50 shadow-md'
+                              : 'border-gray-200 bg-white hover:border-gray-300'
+                        } ${exam?.published ? 'opacity-75' : ''}`}
+                      >
+                        <div className="flex items-start gap-3">
+                          {/* NEW: Checkbox for selection */}
+                          {!exam?.published && (
+                            <button
+                              onClick={() => toggleQuestionSelection(index)}
+                              className="mt-1 flex-shrink-0"
+                            >
+                              {isSelected ? (
+                                <CheckSquare className="w-5 h-5 text-indigo-600" />
+                              ) : (
+                                <Square className="w-5 h-5 text-gray-400 hover:text-gray-600" />
+                              )}
+                            </button>
+                          )}
+
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-2 flex-wrap">
+                              <span className="text-sm font-medium text-gray-500">
+                                #{index + 1}
+                              </span>
+                              {question.topikType && (
+                                <span className="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-medium">
+                                  {question.topikType}
+                                </span>
+                              )}
+                              {getQuestionTypeBadge(question.category || question.type)}
+                              {getDifficultyBadge(question.difficulty)}
+                              {question.verificationStatus === 'APPROVED' && (
+                                <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700 font-medium">
+                                  ✓ Đã duyệt
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-sm text-gray-900 line-clamp-2">{question.content}</p>
+                          </div>
+
+                          <div className="flex gap-2 flex-shrink-0">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              icon={<Eye className="w-4 h-4" />}
+                              onClick={() => handlePreviewQuestion(question)}
+                              title={t('exam.preview', 'Xem trước')}
+                            />
+                            {!exam?.published && (
+                              <>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  icon={<Edit className="w-4 h-4" />}
+                                  onClick={() => navigate(`/teacher/questions/${question.id}/edit`)}
+                                  title={t('exam.edit', 'Chỉnh sửa')}
+                                />
+                                <Button
+                                  variant="danger"
+                                  size="sm"
+                                  icon={<Trash2 className="w-4 h-4" />}
+                                  onClick={() => handleDeleteQuestion(question)}
+                                  title={t('exam.delete', 'Xóa')}
+                                />
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+
+                  {questions.length === 0 && (
+                    <div className="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+                      <FileText className="w-16 h-16 text-gray-300 mx-auto mb-3" />
+                      <p className="text-gray-500">Chưa có câu hỏi nào</p>
+                      <p className="text-sm text-gray-400 mt-1">
+                        Thêm câu hỏi mới hoặc chọn từ Question Bank
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
           </Card>
+          </div>
 
-          {/* Exam Stats */}
-          <Card>
-            <div className="p-6 space-y-4">
-              <h3 className="font-semibold text-gray-900 mb-4">
-                {t('exam.stats', 'Thống Kê')}
-              </h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="p-4 bg-blue-50 rounded-lg text-center">
-                  <p className="text-2xl font-bold text-blue-600">{questions.length}</p>
-                  <p className="text-sm text-blue-700">{t('exam.totalQuestions', 'Tổng câu hỏi')}</p>
-                </div>
-                <div className="p-4 bg-green-50 rounded-lg text-center">
-                  <p className="text-2xl font-bold text-green-600">{formData.duration}</p>
-                  <p className="text-sm text-green-700">{t('exam.duration', 'Phút')}</p>
-                </div>
-                <div className="p-4 bg-purple-50 rounded-lg text-center">
-                  <p className="text-2xl font-bold text-purple-600">{formData.passingScore}%</p>
-                  <p className="text-sm text-purple-700">{t('exam.passingScore', 'Điểm đạt')}</p>
-                </div>
-                <div className="p-4 bg-orange-50 rounded-lg text-center">
-                  <p className="text-2xl font-bold text-orange-600">{formData.maxAttempts}</p>
-                  <p className="text-sm text-orange-700">{t('exam.maxAttempts', 'Lần thi')}</p>
-                </div>
-              </div>
-            </div>
-          </Card>
-        </div>
+          {/* Right Sidebar - Quick Stats & Preview */}
+          <div className="xl:col-span-1 space-y-6">
 
-        {/* Right Column - Preview */}
-        <div className="lg:col-span-2">
-          <Card>
-            <div className="p-6">
-              <h3 className="font-semibold text-gray-900 mb-4">
-                {t('exam.preview', 'Xem Trước')}
-              </h3>
-              
-              <div className="bg-gray-50 rounded-lg p-6">
-                <h4 className="text-lg font-bold text-gray-900 mb-2">{formData.title}</h4>
-                <p className="text-sm text-gray-500 mb-4">{formData.code}</p>
-                
-                <Section title={t('exam.examInfo', 'Thông Tin Bài Kiểm Tra')}>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">{t('exam.type', 'Loại')}</span>
-                      <span className="font-medium">{getQuestionTypeBadge(formData.type)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">{t('exam.duration', 'Thời gian')}</span>
-                      <span className="font-medium">{formData.duration} {t('exam.minutes', 'phút')}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">{t('exam.passingScore', 'Điểm đạt')}</span>
-                      <span className="font-medium">{formData.passingScore}%</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">{t('exam.maxAttempts', 'Số lần thi')}</span>
-                      <span className="font-medium">{formData.maxAttempts}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">{t('exam.published', 'Trạng thái')}</span>
-                      <span className="font-medium">
-                        {formData.published ? (
-                          <Badge variant="success">{t('exam.published', 'Đã đăng')}</Badge>
-                        ) : (
-                          <Badge variant="warning">{t('exam.unpublished', 'Chưa đăng')}</Badge>
-                        )}
-                      </span>
-                    </div>
-                  </div>
-                </Section>
+            {/* Quick Stats Card */}
+            <Card className="shadow-lg border-0 bg-gradient-to-br from-blue-600 to-indigo-700 text-white">
+              <div className="p-6 space-y-4">
+                <div className="flex items-center gap-2 mb-4">
+                  <BarChart3 className="w-5 h-5" />
+                  <h3 className="font-bold text-lg">Thống kê nhanh</h3>
+                </div>
 
-                {formData.description && (
-                  <Section title={t('exam.description', 'Mô tả')}>
-                    <p className="text-sm text-gray-700">{formData.description}</p>
-                  </Section>
-                )}
-
-                <Section title={t('exam.questions', 'Câu Hỏi')}>
-                  <div className="space-y-3">
-                    {questions.slice(0, 5).map((question, index) => (
-                      <div key={question.id} className="p-3 bg-white rounded border border-gray-200">
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className="text-sm font-medium text-gray-500">#{index + 1}</span>
-                          {getQuestionTypeBadge(question.type)}
-                          {getDifficultyBadge(question.difficulty)}
-                        </div>
-                        <p className="text-sm text-gray-900">{question.content}</p>
+                <div className="space-y-4">
+                  {/* Question Count */}
+                  <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-blue-100 text-sm">Số câu hỏi</p>
+                        <p className="text-3xl font-bold">{questions.length}</p>
                       </div>
-                    ))}
-                    {questions.length > 5 && (
-                      <p className="text-sm text-gray-500 text-center">
-                        {t('exam.moreQuestions', '... và {{count}} câu hỏi khác', { count: questions.length - 5 })}
-                      </p>
+                      <FileText className="w-10 h-10 text-white/30" />
+                    </div>
+                    {questions.length > 0 && (
+                      <div className="mt-2 text-xs text-blue-100">
+                        {questions.filter(q => q.type === 'MULTIPLE_CHOICE').length} Trắc nghiệm,
+                        {' '}{questions.filter(q => q.type === 'WRITING').length} Tự luận
+                      </div>
                     )}
                   </div>
-                </Section>
+
+                  {/* Duration */}
+                  <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-blue-100 text-sm">Thời lượng</p>
+                        <p className="text-3xl font-bold">{formData.duration}</p>
+                      </div>
+                      <Clock className="w-10 h-10 text-white/30" />
+                    </div>
+                    <p className="mt-2 text-xs text-blue-100">phút</p>
+                  </div>
+
+                  {/* Total Points */}
+                  <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-blue-100 text-sm">Điểm đạt</p>
+                        <p className="text-3xl font-bold">{formData.passingScore}%</p>
+                      </div>
+                      <CheckCircle2 className="w-10 h-10 text-white/30" />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Exam Category Badge */}
+                <div className={`mt-4 p-3 rounded-lg text-center font-semibold ${
+                  formData.examCategory === 'MOCK'
+                    ? 'bg-purple-500 text-white'
+                    : 'bg-green-500 text-white'
+                }`}>
+                  {formData.examCategory === 'MOCK' ? '🎯 Mock Test' : '📚 Bài Luyện Tập'}
+                </div>
               </div>
-            </div>
-          </Card>
+            </Card>
+
+            {/* Exam Type Badge */}
+            <Card className="shadow-md border-0">
+              <div className="p-6">
+                <h4 className="text-sm font-semibold text-gray-700 mb-3">Hình thức thi</h4>
+                <div className="flex flex-wrap gap-2">
+                  {getQuestionTypeBadge(formData.examType)}
+                </div>
+                <div className="mt-4 pt-4 border-t border-gray-100">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-600">Trạng thái</span>
+                    {formData.published ? (
+                      <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold">
+                        ✅ Đã đăng
+                      </span>
+                    ) : (
+                      <span className="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-semibold">
+                        ⏳ Nháp
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </Card>
+
+            {/* Quick Tips */}
+            <Card className="shadow-md border-0 bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200">
+              <div className="p-6">
+                <h4 className="font-semibold text-amber-900 mb-3 flex items-center gap-2">
+                  <Lightbulb className="w-5 h-5" />
+                  Mẹo nhanh
+                </h4>
+                <ul className="space-y-2 text-sm text-amber-800">
+                  <li className="flex items-start gap-2">
+                    <span className="text-amber-600 mt-0.5">•</span>
+                    <span>Chọn "Tạo tự động" để random theo cấu trúc TOPIK</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-amber-600 mt-0.5">•</span>
+                    <span>Bài Mock hiển thị cho Guest, Practice cho Student</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-amber-600 mt-0.5">•</span>
+                    <span>Published exam không thể chỉnh sửa</span>
+                  </li>
+                </ul>
+              </div>
+            </Card>
+          </div>
         </div>
       </div>
 
@@ -873,136 +1497,38 @@ const ExamEditor = () => {
 
       {/* Question Bank Modal */}
       {showQuestionBankModal && (
-        <Modal
+        <QuestionBankModal
           isOpen={showQuestionBankModal}
-          onClose={() => setShowQuestionBankModal(false)}
-          title={t('exam.questionBank', 'Ngân Hàng Câu Hỏi')}
-          size="xl"
-        >
-          <div className="space-y-4">
-            {/* Course Info */}
-            {selectedCourseInfo && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                <div className="flex items-center gap-2 text-sm">
-                  <BookOpen className="w-4 h-4 text-blue-600" />
-                  <span className="font-medium text-blue-900">
-                    {selectedCourseInfo.name} ({selectedCourseInfo.level})
-                  </span>
-                </div>
-                <p className="text-xs text-blue-700 mt-1">
-                  {t('exam.showingQuestionsForLevel', 'Đang hiển thị câu hỏi phù hợp với trình độ này')}
-                </p>
-              </div>
-            )}
-
-            {/* Search */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <input
-                type="text"
-                placeholder={t('exam.searchQuestions', 'Tìm kiếm câu hỏi...')}
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-              />
-            </div>
-
-            {/* Questions List */}
-            <div className="border border-gray-200 rounded-lg max-h-96 overflow-y-auto">
-              {availableQuestions.length === 0 ? (
-                <div className="p-8 text-center text-gray-500">
-                  <FileText className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                  <p>{t('exam.noQuestionsAvailable', 'Không có câu hỏi nào phù hợp.')}</p>
-                </div>
-              ) : (
-                <div className="divide-y divide-gray-200">
-                  {availableQuestions
-                    .filter(q =>
-                      !searchTerm ||
-                      (q.questionText || q.content || '').toLowerCase().includes(searchTerm.toLowerCase())
-                    )
-                    .map(question => {
-                      const isSelected = selectedQuestionsFromBank.find(q => q.id === question.id);
-                      const isAlreadyAdded = questions.find(q => q.id === question.id);
-
-                      return (
-                        <div
-                          key={question.id}
-                          className={`p-4 hover:bg-gray-50 transition-colors ${
-                            isSelected ? 'bg-primary-50' : ''
-                          } ${isAlreadyAdded ? 'opacity-50' : ''}`}
-                        >
-                          <div className="flex items-start gap-3">
-                            <input
-                              type="checkbox"
-                              checked={isSelected || false}
-                              onChange={() => handleToggleQuestionFromBank(question)}
-                              disabled={isAlreadyAdded}
-                              className="mt-1 w-4 h-4 text-primary-600 rounded focus:ring-primary-500"
-                            />
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-2">
-                                <Badge variant="info" size="sm">
-                                  {question.categoryName || question.category?.name || 'N/A'}
-                                </Badge>
-                                <Badge variant="warning" size="sm">
-                                  {question.level?.replace('LEVEL_', 'Level ') || 'N/A'}
-                                </Badge>
-                                {isAlreadyAdded && (
-                                  <span className="text-xs text-gray-500">
-                                    {t('exam.alreadyAdded', 'Đã thêm')}
-                                  </span>
-                                )}
-                              </div>
-                              <p className="text-sm text-gray-900">
-                                {question.questionText || question.content || 'No content'}
-                              </p>
-                              {question.options && question.options.length > 0 && (
-                                <div className="mt-2 text-xs text-gray-500">
-                                  {question.options.length} {t('exam.answers', 'đáp án')}
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                </div>
-              )}
-            </div>
-
-            {/* Selected Count */}
-            {selectedQuestionsFromBank.length > 0 && (
-              <div className="bg-primary-50 border border-primary-200 rounded-lg p-3">
-                <p className="text-sm text-primary-900">
-                  {t('exam.selectedCount', 'Đã chọn {{count}} câu hỏi', {
-                    count: selectedQuestionsFromBank.length
-                  })}
-                </p>
-              </div>
-            )}
-
-            {/* Actions */}
-            <div className="flex gap-3 justify-end">
-              <Button
-                variant="secondary"
-                onClick={() => setShowQuestionBankModal(false)}
-              >
-                {t('common.cancel', 'Hủy')}
-              </Button>
-              <Button
-                variant="primary"
-                onClick={handleAddQuestionsFromBank}
-                disabled={selectedQuestionsFromBank.length === 0}
-              >
-                {t('exam.addSelected', 'Thêm {{count}} câu hỏi', {
-                  count: selectedQuestionsFromBank.length
-                })}
-              </Button>
-            </div>
-          </div>
-        </Modal>
+          onClose={() => {
+            setShowQuestionBankModal(false);
+            setSelectedQuestionsFromBank([]);
+            setSearchTerm('');
+          }}
+          availableQuestions={availableQuestions}
+          selectedQuestions={selectedQuestionsFromBank}
+          onToggleSelection={handleToggleQuestionFromBank}
+          onAddSelected={() => {
+            handleAddQuestionsFromBank();
+            setShowQuestionBankModal(false);
+          }}
+          courseInfo={selectedCourseInfo}
+        />
       )}
+
+      {/* NEW: Question Replacer Modal */}
+      <QuestionReplacerModal
+        isOpen={showReplaceModal}
+        onClose={() => {
+          setShowReplaceModal(false);
+          setSelectedQuestionIndices([]);
+        }}
+        onReplace={handleReplaceQuestions}
+        currentQuestions={questions}
+        questionBank={courseQuestions || []}
+        selectedIndices={selectedQuestionIndices}
+        examCategory={formData.examCategory}
+        courseLevel={selectedCourseInfo?.level}
+      />
 
       {/* Loading Overlay */}
       {saving && (

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Search,
   Filter,
@@ -22,7 +22,8 @@ import {
   FileQuestion,
   AlertCircle,
   Info,
-  CheckCircle
+  CheckCircle,
+  Calendar
 } from 'lucide-react';
 import teacherService from '../../services/teacherService';
 import {
@@ -51,6 +52,7 @@ import QuestionFormModal from '../../components/Teacher/QuestionFormModal';
 const QuestionBank = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
 
   // State
   const [loading, setLoading] = useState(true);
@@ -58,11 +60,14 @@ const QuestionBank = () => {
   const [success, setSuccess] = useState('');
   const [questions, setQuestions] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [highlightedQuestionId, setHighlightedQuestionId] = useState(null); // For scrolling to specific question
   const [filters, setFilters] = useState({
     type: '',
     category: '',
     level: '',
-    search: ''
+    topikType: '', // NEW: Filter by TopikType (R1, L1, W51...)
+    search: '',
+    verificationStatus: 'ALL' // NEW: Filter by verification status
   });
   const [view, setView] = useState('list'); // 'list' or 'grid'
   const [page, setPage] = useState(1);
@@ -82,14 +87,15 @@ const QuestionBank = () => {
   const [deleteSuccessCount, setDeleteSuccessCount] = useState(1); // For showing count in success modal
   const [showQuestionModal, setShowQuestionModal] = useState(false);
   const [editingQuestionId, setEditingQuestionId] = useState(null);
+  const [approvalHistory, setApprovalHistory] = useState([]); // Approval history for preview
 
   // Mock data - will be replaced with API calls
   const mockQuestions = [
-    { id: 'Q101', content: 'Thủ đô của Hàn Quốc là gì?', category: 'Grammar', type: 'MULTIPLE_CHOICE', difficulty: 'EASY', status: 'Active', createdAt: '2024-12-15', options: ['A', 'B', 'C', 'D'] },
-    { id: 'Q102', content: 'Chọn từ đúng điền vào chỗ trống: "Tôi ... là học sinh"', category: 'Vocabulary', type: 'MULTIPLE_CHOICE', difficulty: 'EASY', status: 'Active', createdAt: '2024-12-14', options: ['A', 'B', 'C', 'D'] },
-    { id: 'Q103', content: 'Nghe đoạn hội thoại sau và trả lời câu hỏi...', category: 'Listening', type: 'LISTENING', difficulty: 'MEDIUM', status: 'Review', createdAt: '2024-12-13', options: [] },
-    { id: 'Q104', content: 'Viết một đoạn văn ngắn về gia đình của bạn (khoảng 100 từ).', category: 'Writing', type: 'WRITING', difficulty: 'HARD', status: 'Active', createdAt: '2024-12-12', options: [] },
-    { id: 'Q105', content: 'Dịch câu sau sang tiếng Hàn: "Hôm nay trời đẹp."', category: 'Reading', type: 'TRANSLATION', difficulty: 'MEDIUM', status: 'Active', createdAt: '2024-12-11', options: ['A', 'B', 'C', 'D'] },
+    { id: 'Q101', content: 'Thủ đô của Hàn Quốc là gì?', category: 'Grammar', type: 'MULTIPLE_CHOICE', difficulty: 'EASY', status: 'Active', verificationStatus: 'APPROVED', createdAt: '2024-12-15', options: ['A', 'B', 'C', 'D'] },
+    { id: 'Q102', content: 'Chọn từ đúng điền vào chỗ trống: "Tôi ... là học sinh"', category: 'Vocabulary', type: 'MULTIPLE_CHOICE', difficulty: 'EASY', status: 'Active', verificationStatus: 'PENDING', createdAt: '2024-12-14', options: ['A', 'B', 'C', 'D'] },
+    { id: 'Q103', content: 'Nghe đoạn hội thoại sau và trả lời câu hỏi...', category: 'Listening', type: 'LISTENING', difficulty: 'MEDIUM', status: 'Review', verificationStatus: 'PENDING', createdAt: '2024-12-13', options: [] },
+    { id: 'Q104', content: 'Viết một đoạn văn ngắn về gia đình của bạn (khoảng 100 từ).', category: 'Writing', type: 'WRITING', difficulty: 'HARD', status: 'Active', verificationStatus: 'REJECTED', createdAt: '2024-12-12', options: [] },
+    { id: 'Q105', content: 'Dịch câu sau sang tiếng Hàn: "Hôm nay trời đẹp."', category: 'Reading', type: 'TRANSLATION', difficulty: 'MEDIUM', status: 'Active', verificationStatus: 'APPROVED', createdAt: '2024-12-11', options: ['A', 'B', 'C', 'D'] },
   ];
 
   const mockCategories = [
@@ -143,12 +149,32 @@ const QuestionBank = () => {
         category: q.categoryName || q.categoryId?.toString() || 'Uncategorized',
         type: q.questionType || q.type || 'MULTIPLE_CHOICE',
         level: q.level || 'LEVEL_3',
-        status: q.verificationStatus || q.status || (q.active ? 'Active' : 'Inactive'),
+        status: q.active ? 'Active' : 'Inactive',
+        verificationStatus: q.verificationStatus || 'PENDING',
         createdAt: q.createdAt || q.created_at || new Date().toISOString(),
         options: q.options || [],
         points: q.points || 1,
         active: q.active !== undefined ? q.active : true
       }));
+
+      // Debug: Log first question to check verificationStatus
+      if (mappedQuestions.length > 0) {
+        // Debug: Log API response structure
+      console.log('=== Question Bank Debug ===');
+      console.log('API Response format:', Array.isArray(response) ? 'Array' : response?.data ? 'Object with data' : 'Other');
+      console.log('Total questions:', questionsData.length);
+      if (questionsData.length > 0) {
+        console.log('Raw question from API:', questionsData[0]);
+        console.log('All verificationStatus values:', questionsData.map(q => ({
+          id: q.id,
+          verificationStatus: q.verificationStatus,
+          verification_status: q.verification_status, // Check snake_case
+          status: q.status
+        })));
+      }
+      console.log('Mapped question sample:', mappedQuestions[0]);
+      console.log('========================');
+      }
 
       // Store all questions for client-side pagination
       setAllQuestions(mappedQuestions);
@@ -178,6 +204,11 @@ const QuestionBank = () => {
         if (filters.type && q.type !== filters.type) return false;
         if (filters.level && q.level !== filters.level) return false;
         if (filters.search && !q.content.toLowerCase().includes(filters.search.toLowerCase())) return false;
+        if (filters.verificationStatus && filters.verificationStatus !== 'ALL') {
+          if (filters.verificationStatus === 'PENDING' && q.verificationStatus !== 'PENDING') return false;
+          if (filters.verificationStatus === 'APPROVED' && q.verificationStatus !== 'APPROVED') return false;
+          if (filters.verificationStatus === 'REJECTED' && q.verificationStatus !== 'REJECTED') return false;
+        }
         return true;
       });
       setAllQuestions(filteredQuestions);
@@ -202,10 +233,41 @@ const QuestionBank = () => {
     }
   };
 
-  // Fetch data on component mount and when filters change
+  // Fetch data on component mount only (not when filters change)
   useEffect(() => {
     fetchQuestions();
-  }, [filters]);
+  }, []); // Empty dependency array = only run once on mount
+
+  // Handle URL query params for navigation from notifications
+  useEffect(() => {
+    if (!loading && questions.length > 0) {
+      const params = new URLSearchParams(location.search);
+      const questionId = params.get('questionId');
+      const verificationStatus = params.get('verificationStatus');
+
+      if (questionId && verificationStatus) {
+        // Set filter to the verification status from notification
+        setFilters(prev => ({ ...prev, verificationStatus: verificationStatus.toUpperCase() }));
+        setHighlightedQuestionId(questionId);
+
+        // Scroll to the question after a short delay
+        setTimeout(() => {
+          const element = document.getElementById(`question-${questionId}`);
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            // Add highlight effect
+            element.classList.add('ring-4', 'ring-blue-500', 'bg-blue-50');
+            setTimeout(() => {
+              element.classList.remove('ring-4', 'ring-blue-500', 'bg-blue-50');
+            }, 3000);
+          }
+        }, 500);
+
+        // Clear URL params to avoid re-triggering
+        navigate(location.pathname, { replace: true });
+      }
+    }
+  }, [loading, questions, location.search, navigate]);
 
   // Handle client-side pagination when page or pageSize changes
   useEffect(() => {
@@ -236,6 +298,12 @@ const QuestionBank = () => {
       if (filters.type && q.type !== filters.type) return false;
       if (filters.level && q.level !== filters.level) return false;
       if (filters.search && !q.content.toLowerCase().includes(filters.search.toLowerCase())) return false;
+      // NEW: Filter by verification status
+      if (filters.verificationStatus && filters.verificationStatus !== 'ALL') {
+        if (filters.verificationStatus === 'PENDING' && q.verificationStatus !== 'PENDING') return false;
+        if (filters.verificationStatus === 'APPROVED' && q.verificationStatus !== 'APPROVED') return false;
+        if (filters.verificationStatus === 'REJECTED' && q.verificationStatus !== 'REJECTED') return false;
+      }
       return true;
     });
 
@@ -247,6 +315,9 @@ const QuestionBank = () => {
     const startIndex = (page - 1) * pageSize;
     const endIndex = startIndex + pageSize;
     setQuestions(filtered.slice(startIndex, endIndex));
+
+    // Debug log
+    console.log(`Filter: ${filters.verificationStatus} | Total: ${allQuestions.length} | Filtered: ${filtered.length} | Showing: ${filtered.slice(startIndex, endIndex).length}`);
   }, [allQuestions, filters, page, pageSize]);
 
   // Handle page size change
@@ -383,10 +454,19 @@ const QuestionBank = () => {
   };
 
   // Handle preview question
-  const handlePreviewQuestion = (questionId) => {
+  const handlePreviewQuestion = async (questionId) => {
     const question = questions.find(q => q.id === questionId);
     setPreviewQuestion(question);
     setShowPreviewModal(true);
+
+    // Fetch approval history
+    try {
+      const history = await teacherService.getQuestionApprovalHistory(questionId);
+      setApprovalHistory(Array.isArray(history) ? history : []);
+    } catch (err) {
+      console.error('Error fetching approval history:', err);
+      setApprovalHistory([]);
+    }
   };
 
   // Handle create category
@@ -437,6 +517,20 @@ const QuestionBank = () => {
         return 'error';
       default:
         return 'info';
+    }
+  };
+
+  // Get verification status badge (variant, icon, and label)
+  const getVerificationStatusBadge = (status) => {
+    switch (status) {
+      case 'PENDING':
+        return { variant: 'warning', icon: '⏳', label: 'Chờ duyệt' };
+      case 'APPROVED':
+        return { variant: 'success', icon: '✅', label: 'Đã duyệt' };
+      case 'REJECTED':
+        return { variant: 'error', icon: '❌', label: 'Bị từ chối' };
+      default:
+        return { variant: 'info', icon: '📝', label: status || 'N/A' };
     }
   };
 
@@ -717,7 +811,7 @@ const QuestionBank = () => {
 
   // Render filter bar
   const renderFilterBar = () => {
-    const hasActiveFilters = filters.search || filters.type || filters.category || filters.level;
+    const hasActiveFilters = filters.search || filters.type || filters.category || filters.level || filters.topikType;
 
     const getFilterLabel = (key, value) => {
       switch (key) {
@@ -727,6 +821,8 @@ const QuestionBank = () => {
           return t(`qb.type.${value}`, value);
         case 'difficulty':
           return t(`qb.difficulty.${value}`, value);
+        case 'topikType':
+          return `TOPIK ${value}`;
         case 'search':
           return value;
         default:
@@ -805,13 +901,45 @@ const QuestionBank = () => {
                 </select>
                 <Filter className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
               </div>
+
+              {/* TopikType Filter */}
+              <div className="relative">
+                <select
+                  className="appearance-none pl-4 pr-10 py-2.5 border border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition bg-white min-w-[200px] cursor-pointer hover:border-gray-300"
+                  value={filters.topikType}
+                  onChange={(e) => handleFilterChange('topikType', e.target.value)}
+                >
+                  <option value="">All TOPIK</option>
+                  <option value="R1">R1 - Ngữ pháp/Từ vựng</option>
+                  <option value="R2">R2 - Đọc hiểu văn bản thực tế</option>
+                  <option value="R3">R3 - Đọc biểu đồ/bảng biểu</option>
+                  <option value="R4">R4 - Sắp xếp thứ tự câu</option>
+                  <option value="R5">R5 - Đọc đoạn văn cơ bản</option>
+                  <option value="R6">R6 - Đọc bài viết ngắn</option>
+                  <option value="R7">R7 - Đọc đoạn văn dài</option>
+                  <option value="R8">R8 - Chọn tiêu đề/chủ đề chính</option>
+                  <option value="R9">R9 - Đọc bài viết chuyên sâu</option>
+                  <option value="L1">L1 - Nghe chọn hình/biểu đồ</option>
+                  <option value="L2">L2 - Nghe chọn câu trả lời</option>
+                  <option value="L3">L3 - Nghe chọn hành động</option>
+                  <option value="L4">L4 - Nghe chọn nội dung giống</option>
+                  <option value="L5">L5 - Nghe chọn suy nghĩ/ý định</option>
+                  <option value="L6">L6 - Nghe hội thoại dài</option>
+                  <option value="L7">L7 - Nghe bài giảng chuyên môn</option>
+                  <option value="W51">W51 - Điền vào chỗ trống - Đời sống</option>
+                  <option value="W52">W52 - Điền vào chỗ trống - Giải thích</option>
+                  <option value="W53">W53 - Viết bài luận ngắn - Biểu đồ</option>
+                  <option value="W54">W54 - Viết bài luận dài - Nghị luận</option>
+                </select>
+                <Filter className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+              </div>
             </div>
 
             {/* Clear Filters Button */}
             {hasActiveFilters && (
               <button
                 onClick={() => {
-                  setFilters({ type: '', category: '', level: '', search: '' });
+                  setFilters({ type: '', category: '', level: '', topikType: '', search: '' });
                   setPage(1);
                 }}
                 className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition whitespace-nowrap"
@@ -844,7 +972,7 @@ const QuestionBank = () => {
               ))}
               <button
                 onClick={() => {
-                  setFilters({ type: '', category: '', level: '', search: '' });
+                  setFilters({ type: '', category: '', level: '', topikType: '', search: '' });
                   setPage(1);
                 }}
                 className="text-sm text-red-600 hover:text-red-700 font-medium hover:underline"
@@ -946,6 +1074,9 @@ const QuestionBank = () => {
                 <th className="px-4 py-3.5 font-bold text-gray-700 text-xs uppercase tracking-wider min-w-[100px]">
                   {t('qb.status', 'Trạng thái')}
                 </th>
+                <th className="px-4 py-3.5 font-bold text-gray-700 text-xs uppercase tracking-wider min-w-[140px]">
+                  Trạng thái duyệt
+                </th>
                 <th className="px-4 py-3.5 font-bold text-gray-700 text-xs uppercase tracking-wider min-w-[110px]">
                   {t('qb.createdAt', 'Ngày tạo')}
                 </th>
@@ -958,6 +1089,7 @@ const QuestionBank = () => {
               {questions.map((question) => (
                 <tr
                   key={question.id}
+                  id={`question-${question.id}`}
                   className={`hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-transparent transition-all duration-200 group ${
                     selectedQuestions.includes(question.id) ? 'bg-blue-50/80' : ''
                   }`}
@@ -999,6 +1131,16 @@ const QuestionBank = () => {
                     <Badge variant={getStatusBadgeVariant(question.status)}>
                       {t(`qb.status.${question.status}`, question.status)}
                     </Badge>
+                  </td>
+                  <td className="px-4 py-4 whitespace-nowrap">
+                    {(() => {
+                      const vBadge = getVerificationStatusBadge(question.verificationStatus);
+                      return (
+                        <Badge variant={vBadge.variant} size="sm">
+                          {vBadge.icon} {vBadge.label}
+                        </Badge>
+                      );
+                    })()}
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap">
                     <span className="text-sm text-gray-600 font-medium">
@@ -1069,6 +1211,7 @@ const QuestionBank = () => {
         {questions.map((question) => (
           <Card
             key={question.id}
+            id={`question-${question.id}`}
             className="hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer group relative overflow-hidden"
           >
             {/* Status indicator bar */}
@@ -1106,10 +1249,18 @@ const QuestionBank = () => {
 
               {/* Footer with status, date and actions */}
               <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <Badge variant={getStatusBadgeVariant(question.status)} size="sm">
                     {t(`qb.status.${question.status}`, question.status)}
                   </Badge>
+                  {(() => {
+                    const vBadge = getVerificationStatusBadge(question.verificationStatus);
+                    return (
+                      <Badge variant={vBadge.variant} size="sm">
+                        {vBadge.icon} {vBadge.label}
+                      </Badge>
+                    );
+                  })()}
                 </div>
                 <span className="text-xs text-gray-500 font-medium">
                   {new Date(question.createdAt).toLocaleDateString('vi-VN', {
@@ -1162,7 +1313,7 @@ const QuestionBank = () => {
 
   if (loading) {
     return (
-      <PageContainer>
+      <PageContainer variant="wide">
         <PageHeader
           title={t('qb.title', 'Ngân Hàng Câu Hỏi')}
           subtitle={t('qb.subtitle', 'Quản lý, tìm kiếm và chỉnh sửa câu hỏi thi')}
@@ -1173,7 +1324,7 @@ const QuestionBank = () => {
   }
 
   return (
-    <PageContainer>
+    <PageContainer variant="wide">
       {/* Page Header */}
       <PageHeader
         title={t('qb.title', 'Ngân Hàng Câu Hỏi')}
@@ -1226,6 +1377,52 @@ const QuestionBank = () => {
         </Alert>
       )}
 
+      {/* Verification Status Tabs */}
+      <Card className="mb-4">
+        <div className="flex flex-wrap gap-2 p-2">
+          <button
+            onClick={() => handleFilterChange('verificationStatus', 'ALL')}
+            className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
+              filters.verificationStatus === 'ALL'
+                ? 'bg-blue-600 text-white shadow-md'
+                : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
+            }`}
+          >
+            📚 Tất cả
+          </button>
+          <button
+            onClick={() => handleFilterChange('verificationStatus', 'PENDING')}
+            className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
+              filters.verificationStatus === 'PENDING'
+                ? 'bg-amber-500 text-white shadow-md'
+                : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
+            }`}
+          >
+            ⏳ Chờ duyệt
+          </button>
+          <button
+            onClick={() => handleFilterChange('verificationStatus', 'APPROVED')}
+            className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
+              filters.verificationStatus === 'APPROVED'
+                ? 'bg-green-600 text-white shadow-md'
+                : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
+            }`}
+          >
+            ✅ Đã duyệt
+          </button>
+          <button
+            onClick={() => handleFilterChange('verificationStatus', 'REJECTED')}
+            className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
+              filters.verificationStatus === 'REJECTED'
+                ? 'bg-red-600 text-white shadow-md'
+                : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
+            }`}
+          >
+            ❌ Bị từ chối
+          </button>
+        </div>
+      </Card>
+
       {/* Filter Bar */}
       {renderFilterBar()}
 
@@ -1274,80 +1471,191 @@ const QuestionBank = () => {
 
       {/* Preview Modal */}
       {showPreviewModal && previewQuestion && (
-        <Modal
-          isOpen={showPreviewModal}
-          onClose={handleCloseModal}
-          title={t('qb.previewTitle', 'Xem chi tiết câu hỏi')}
-          size="2xl"
-          footer={
-            <div className="flex justify-end gap-3">
-              <Button
-                variant="secondary"
-                onClick={handleCloseModal}
-              >
-                {t('common.close', 'Đóng')}
-              </Button>
-              <Button
-                variant="primary"
-                icon={<Edit className="w-5 h-5" />}
-                onClick={() => handleEditQuestion(previewQuestion.id)}
-              >
-                {t('qb.edit', 'Chỉnh sửa')}
-              </Button>
-            </div>
-          }
-        >
-          <div className="space-y-4">
-            <div>
-              <span className="font-semibold text-gray-900">{t('qb.content', 'Nội dung')}</span>
-              <p className="text-gray-700 mt-2">{previewQuestion.content}</p>
-            </div>
-            <div>
-              <span className="font-semibold text-gray-900">{t('qb.category', 'Danh mục')}</span>
-              <Badge variant={getCategoryBadgeVariant(previewQuestion.category)} size="sm">
-                {previewQuestion.category}
-              </Badge>
-            </div>
-            <div>
-              <span className="font-semibold text-gray-900">{t('qb.type', 'Loại câu hỏi')}</span>
-              <Badge variant={getTypeBadgeVariant(previewQuestion.type)}>
-                {t(`qb.type.${previewQuestion.type}`, previewQuestion.type)}
-              </Badge>
-            </div>
-            <div>
-              <span className="font-semibold text-gray-900">{t('qb.level', 'Cấp độ')}</span>
-              <Badge variant={getLevelBadgeVariant(previewQuestion.level)}>
-                {previewQuestion.level.replace('LEVEL_', 'Level ')}
-              </Badge>
-            </div>
-            <div>
-              <span className="font-semibold text-gray-900">{t('qb.status', 'Trạng thái')}</span>
-              <Badge variant={getStatusBadgeVariant(previewQuestion.status)}>
-                {t(`qb.status.${previewQuestion.status}`, previewQuestion.status)}
-              </Badge>
-            </div>
-            <div>
-              <span className="font-semibold text-gray-900">{t('qb.options', 'Các lựa chọn')}</span>
-              <div className="mt-2">
-                {previewQuestion.options && previewQuestion.options.map((opt, index) => (
-                  <Badge key={index} variant="info" size="sm" className="mr-2">
-                    {opt}
-                  </Badge>
-                ))}
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
+          <div className="bg-white rounded-xl shadow-xl max-w-5xl w-full max-h-[90vh] overflow-y-auto">
+            {/* Header */}
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 z-10">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xl font-bold text-gray-900">Chi Tiết Câu Hỏi</h3>
+                <button
+                  onClick={handleCloseModal}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <X className="w-5 h-5 text-gray-500" />
+                </button>
               </div>
             </div>
-            <div>
-              <span className="font-semibold text-gray-900">{t('qb.createdAt', 'Ngày tạo')}</span>
-              <p className="text-gray-700">
-                {new Date(previewQuestion.createdAt).toLocaleDateString('vi-VN', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric'
-                })}
-              </p>
+
+            {/* Content */}
+            <div className="p-6 space-y-6">
+              {/* Question Info Grid */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm font-medium text-gray-500 mb-1">Loại câu hỏi:</p>
+                  <p className="text-gray-900 font-medium">{previewQuestion.type?.replace('_', ' ') || 'N/A'}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500 mb-1">Cấp độ:</p>
+                  <p className="text-gray-900 font-medium">Level {(previewQuestion.level || '').replace('LEVEL_', '') || 'N/A'}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500 mb-1">Danh mục:</p>
+                  <p className="text-gray-900 font-medium">{previewQuestion.category || 'N/A'}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500 mb-1">Điểm:</p>
+                  <p className="text-gray-900 font-medium">{previewQuestion.points || 1}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500 mb-1">Trạng thái:</p>
+                  <p className={`font-medium ${
+                    previewQuestion.status === 'Active' ? 'text-green-600' : 'text-gray-600'
+                  }`}>
+                    {previewQuestion.status === 'Active' ? '✅ Hoạt động' : '❌ Không hoạt động'}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500 mb-1">Trạng thái duyệt:</p>
+                  <p className={`font-medium ${
+                    previewQuestion.verificationStatus === 'PENDING' ? 'text-amber-600' :
+                    previewQuestion.verificationStatus === 'APPROVED' ? 'text-green-600' :
+                    previewQuestion.verificationStatus === 'REJECTED' ? 'text-red-600' :
+                    'text-gray-600'
+                  }`}>
+                    {previewQuestion.verificationStatus === 'PENDING' ? '⏳ Chờ duyệt' :
+                     previewQuestion.verificationStatus === 'APPROVED' ? '✅ Đã duyệt' :
+                     previewQuestion.verificationStatus === 'REJECTED' ? '❌ Đã từ chối' : 'N/A'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Question Content */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <p className="text-sm font-bold text-blue-900 mb-2">📝 Nội dung câu hỏi:</p>
+                <p className="text-gray-900 text-base leading-relaxed">{previewQuestion.content}</p>
+              </div>
+
+              {/* Media (Audio) */}
+              {previewQuestion.questionMediaUrl && (
+                <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                  <p className="text-sm font-bold text-orange-900 mb-2">🎵 Audio:</p>
+                  <audio controls src={previewQuestion.questionMediaUrl} className="w-full" />
+                </div>
+              )}
+
+              {/* Options for Multiple Choice */}
+              {previewQuestion.options && previewQuestion.options.length > 0 && (
+                <div>
+                  <p className="text-sm font-bold text-gray-900 mb-3">✅ Các lựa chọn:</p>
+                  <div className="space-y-2">
+                    {previewQuestion.options.map((opt, index) => {
+                      const isCorrect = opt.isCorrect;
+                      return (
+                        <div
+                          key={index}
+                          className={`p-3 rounded-lg border-2 transition-all ${
+                            isCorrect
+                              ? 'bg-green-50 border-green-300'
+                              : 'bg-gray-50 border-gray-200'
+                          }`}
+                        >
+                          <div className="flex items-start gap-3">
+                            <span className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold ${
+                              isCorrect ? 'bg-green-600 text-white' : 'bg-gray-300 text-gray-700'
+                            }`}>
+                              {String.fromCharCode(65 + index)}
+                            </span>
+                            <div className="flex-1">
+                              <p className="text-gray-900 font-medium">{opt.optionText || opt}</p>
+                              {isCorrect && (
+                                <span className="inline-block mt-1 px-2 py-0.5 text-xs font-semibold bg-green-600 text-white rounded">
+                                  Đáp án đúng
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Explanation */}
+              {previewQuestion.explanation && previewQuestion.explanation !== 'null' && (
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                  <p className="text-sm font-bold text-yellow-900 mb-2">💡 Giải thích:</p>
+                  <p className="text-gray-700 whitespace-pre-wrap">{previewQuestion.explanation}</p>
+                </div>
+              )}
+
+              {/* Rejection Info - Show if question was rejected */}
+              {previewQuestion.verificationStatus === 'REJECTED' && approvalHistory.length > 0 && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                  <p className="text-sm font-bold text-red-900 mb-3">❌ Thông tin từ chối:</p>
+                  <div className="space-y-2">
+                    {approvalHistory.map((history) => (
+                      <div key={history.id} className="bg-white rounded-lg p-3 border border-red-200">
+                        <div className="flex items-start justify-between gap-2 mb-2">
+                          <div className="flex-1">
+                            <p className="text-sm font-semibold text-gray-900">
+                              {history.action === 'REJECTED' ? '❌ Đã từ chối' : 'ℹ️ ' + history.action}
+                            </p>
+                            <p className="text-sm text-gray-600 mt-1">
+                              <span className="font-medium">Lý do:</span> {history.feedback || 'Không có lý do cụ thể'}
+                            </p>
+                            <p className="text-xs text-gray-500 mt-1">
+                              <span className="font-medium">Người duyệt:</span> {history.performedByUser?.fullName || history.performedByUser?.username || 'N/A'}
+                            </p>
+                          </div>
+                          <p className="text-xs text-gray-500 whitespace-nowrap">
+                            {new Date(history.createdAt).toLocaleString('vi-VN')}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Metadata */}
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div className="bg-gray-50 rounded-lg p-3">
+                  <p className="text-gray-500">Ngày tạo:</p>
+                  <p className="text-gray-900 font-medium">{new Date(previewQuestion.createdAt).toLocaleString('vi-VN')}</p>
+                </div>
+                {previewQuestion.updatedAt && (
+                  <div className="bg-gray-50 rounded-lg p-3">
+                    <p className="text-gray-500">Cập nhật:</p>
+                    <p className="text-gray-900 font-medium">{new Date(previewQuestion.updatedAt).toLocaleString('vi-VN')}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Footer Actions */}
+            <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4">
+              <div className="flex items-center justify-end gap-3">
+                <Button
+                  variant="secondary"
+                  onClick={handleCloseModal}
+                >
+                  {t('common.close', 'Đóng')}
+                </Button>
+                <Button
+                  variant="primary"
+                  icon={<Edit className="w-5 h-5" />}
+                  onClick={() => {
+                    handleCloseModal();
+                    handleEditQuestion(previewQuestion.id);
+                  }}
+                >
+                  {t('qb.edit', 'Chỉnh sửa')}
+                </Button>
+              </div>
             </div>
           </div>
-        </Modal>
+        </div>
       )}
 
       {/* Category Modal */}

@@ -60,6 +60,8 @@ const CreateQuestion = () => {
     type: 'MULTIPLE_CHOICE',
     category: 'N1',
     difficulty: 'EASY',
+    topikType: '', // NEW: TOPIK type (R1, L1, W51, etc.)
+    points: 1, // NEW: Default points
     content: '',
     answers: [
       { id: 1, content: '', isCorrect: false },
@@ -103,8 +105,13 @@ const CreateQuestion = () => {
         let categoryValue = 'N1';
         if (typeof data.category === 'object' && data.category !== null) {
           categoryValue = data.category.name || data.category.id?.toString() || 'N1';
+          console.log('Category object:', data.category, 'Mapped to:', categoryValue);
         } else if (data.category) {
           categoryValue = data.category.toString();
+          console.log('Category primitive:', data.category, 'Mapped to:', categoryValue);
+        } else if (data.categoryId) {
+          categoryValue = data.categoryId.toString();
+          console.log('Category ID:', data.categoryId, 'Mapped to:', categoryValue);
         }
 
         // Handle answers - map from various API formats
@@ -129,10 +136,24 @@ const CreateQuestion = () => {
           }));
         }
 
+        // Handle topikType - could be enum object {name: "R1"} or string "R1"
+        let topikTypeValue = '';
+        if (typeof data.topikType === 'object' && data.topikType !== null) {
+          topikTypeValue = data.topikType.name || '';
+        } else if (data.topikType) {
+          topikTypeValue = data.topikType;
+        } else if (data.topik_type) {
+          topikTypeValue = data.topik_type;
+        }
+
+        console.log('Loaded topikType:', topikTypeValue, 'from:', data.topikType);
+
         setQuestion({
           type: data.questionType || data.type || 'MULTIPLE_CHOICE',
           category: categoryValue,
           difficulty: data.difficulty || 'EASY',
+          topikType: topikTypeValue, // NEW: Load topikType
+          points: data.points || 1, // NEW: Load points
           content: data.questionText || data.content || '',
           answers: mappedAnswers,
           explanation: data.explanation || data.explain || data.solution || data.explanationText || '',
@@ -172,6 +193,12 @@ const CreateQuestion = () => {
       if (!question.type) errors.type = t('qb.error.required', 'Vui lòng chọn loại câu hỏi');
       if (!question.category) errors.category = t('qb.error.required', 'Vui lòng chọn danh mục');
       if (!question.difficulty) errors.difficulty = t('qb.error.required', 'Vui lòng chọn độ khó');
+
+      // Only validate topikType for NEW questions (not edit mode)
+      // Old questions might not have topikType
+      if (!isEditMode && !question.topikType) {
+        errors.topikType = t('qb.error.required', 'Vui lòng chọn Topik Type');
+      }
     }
 
     if (step === 2) {
@@ -259,10 +286,11 @@ const CreateQuestion = () => {
         questionType: question.type,
         category: question.category,
         difficulty: question.difficulty,
+        topikType: question.topikType || null, // NEW: Include topikType
         questionText: question.content,
         content: question.content,
         explanation: question.explanation,
-        points: 1,
+        points: question.points || 1, // Use points from state or default to 1
         active: true,
         verificationStatus: 'PENDING',
         answers: question.answers.map(ans => ({
@@ -377,6 +405,62 @@ const CreateQuestion = () => {
                   {validationErrors.difficulty}
                 </p>
               )}
+            </div>
+
+            {/* TopikType */}
+            <div>
+              <label className="block font-medium text-gray-700 mb-2 flex items-center gap-2">
+                Topik Type <span className="text-red-500">*</span>
+              </label>
+              <select
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-primary-500 focus:outline-none transition"
+                value={question.topikType}
+                onChange={e => setQuestion({ ...question, topikType: e.target.value })}
+              >
+                <option value="">-- Chọn Topik Type --</option>
+                <option value="R1">R1 - Ngữ pháp/Từ vựng</option>
+                <option value="R2">R2 - Đọc hiểu văn bản thực tế</option>
+                <option value="R3">R3 - Đọc biểu đồ/bảng biểu</option>
+                <option value="R4">R4 - Sắp xếp thứ tự câu</option>
+                <option value="R5">R5 - Đọc đoạn văn cơ bản</option>
+                <option value="R6">R6 - Đọc bài viết ngắn</option>
+                <option value="R7">R7 - Đọc đoạn văn dài</option>
+                <option value="R8">R8 - Chọn tiêu đề/chủ đề chính</option>
+                <option value="R9">R9 - Đọc bài viết chuyên sâu</option>
+                <option value="L1">L1 - Nghe chọn hình/biểu đồ</option>
+                <option value="L2">L2 - Nghe chọn câu trả lời</option>
+                <option value="L3">L3 - Nghe chọn hành động</option>
+                <option value="L4">L4 - Nghe chọn nội dung giống</option>
+                <option value="L5">L5 - Nghe chọn suy nghĩ/ý định</option>
+                <option value="L6">L6 - Nghe hội thoại dài</option>
+                <option value="L7">L7 - Nghe bài giảng chuyên môn</option>
+                <option value="W51">W51 - Điền vào chỗ trống - Đời sống</option>
+                <option value="W52">W52 - Điền vào chỗ trống - Giải thích</option>
+                <option value="W53">W53 - Viết bài luận ngắn - Biểu đồ</option>
+                <option value="W54">W54 - Viết bài luận dài - Nghị luận</option>
+              </select>
+              {validationErrors.topikType && (
+                <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+                  <AlertCircle className="w-4 h-4" />
+                  {validationErrors.topikType}
+                </p>
+              )}
+            </div>
+
+            {/* Points */}
+            <div>
+              <label className="block font-medium text-gray-700 mb-2 flex items-center gap-2">
+                Điểm <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="number"
+                min="1"
+                max="100"
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-primary-500 focus:outline-none transition"
+                value={question.points}
+                onChange={e => setQuestion({ ...question, points: parseInt(e.target.value) || 1 })}
+                placeholder="Nhập điểm cho câu hỏi"
+              />
             </div>
           </div>
         </div>

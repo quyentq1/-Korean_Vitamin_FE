@@ -47,6 +47,25 @@ export const examService = {
         return await axiosClient.get('/education-manager/exams/pending');
     },
 
+    // Get exams by category (MOCK vs PRACTICE)
+    getExamsByCategory: async (category) => {
+        return await axiosClient.get('/education-manager/exams/category/' + category);
+    },
+
+    // Get PRACTICE exams for a specific course (for students)
+    getPracticeExamsByCourse: async (courseId) => {
+        return await axiosClient.get(`/education-manager/exams/course/${courseId}`, {
+            params: { examCategory: 'PRACTICE' }
+        });
+    },
+
+    // Get MOCK exams for public/guest (for FreeTest)
+    getMockExams: async () => {
+        return await axiosClient.get('/guest/exams', {
+            params: { examCategory: 'MOCK' }
+        });
+    },
+
     // Get exams by approval status
     getExamsByStatus: async (status) => {
         return await axiosClient.get(`/education-manager/exams/status/${status}`);
@@ -60,8 +79,8 @@ export const examService = {
     // ==================== Teacher APIs ====================
 
     // Get exams submitted by teacher with approval status
-    getSubmittedExams: async () => {
-        return await axiosClient.get('/teacher/exams/submitted');
+    getSubmittedExams: async (params = {}) => {
+        return await axiosClient.get('/teacher/exams/submitted', { params });
     },
 
     // Get approval status for a specific exam

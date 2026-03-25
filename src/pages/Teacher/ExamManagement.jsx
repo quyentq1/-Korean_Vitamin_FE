@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   Plus,
@@ -11,12 +11,11 @@ import {
   Clock,
   Filter,
   Search,
-  MoreHorizontal,
   CheckCircle2,
   XCircle,
   AlertCircle,
-  Download,
-  FileText
+  FileText,
+  X
 } from 'lucide-react';
 
 // UI Components
@@ -28,7 +27,6 @@ import Alert from '../../components/ui/Alert';
 import Loading from '../../components/ui/Loading';
 import Modal from '../../components/ui/Modal';
 import Badge from '../../components/ui/Badge';
-import Input from '../../components/ui/Input';
 
 // Services
 import teacherService from '../../services/teacherService';
@@ -37,16 +35,18 @@ import examService from '../../services/examService';
 const ExamManagement = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const courseIdFromUrl = searchParams.get('courseId');
 
   // State
-  const [exams, setExams] = useState([]); // Now contains ExamApproval objects
+  const [exams, setExams] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [courseFilter, setCourseFilter] = useState('all');
-  const [sortBy, setSortBy] = useState('createdAt');
-  const [sortOrder, setSortOrder] = useState('desc');
+  const [courseFilter, setCourseFilter] = useState(courseIdFromUrl || 'all');
+  const [activeTab, setActiveTab] = useState('PRACTICE'); // 'MOCK' or 'PRACTICE'
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [examToDelete, setExamToDelete] = useState(null);
   const [showPublishModal, setShowPublishModal] = useState(false);
@@ -54,55 +54,152 @@ const ExamManagement = () => {
   const [publishing, setPublishing] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
+  // Debounced search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
   // Fetch exams with approval status
   useEffect(() => {
     fetchExams();
-  }, []);
+  }, [courseIdFromUrl]);
 
   const fetchExams = async () => {
     setLoading(true);
     try {
-      const response = await examService.getSubmittedExams();
-      setExams(response || []);
+      const params = courseIdFromUrl ? { courseId: courseIdFromUrl } : {};
+      const submittedExams = await examService.getSubmittedExams(params);
+
+      // DEBUG: Log chi tiết
+      window.examsDebug = submittedExams;
+      console.table('Fetched exams:', submittedExams);
+
+      if (!submittedExams || submittedExams.length === 0) {
+        console.warn('NO EXAMS');
+        setExams([]);
+        setLoading(false);
+        return;
+      }
+
+      const firstItem = submittedExams[0];
+      console.log('First item keys:', Object.keys(firstItem));
+      console.log('Has exam nested?', firstItem.exam ? 'YES' : 'NO');
+
+      // Transform - handle both structures
+      const examsData = submittedExams.map((approval) => {
+        if (approval.exam) {
+          return {
+            ...approval.exam,
+            courseId: approval.exam.course?.id, // Extract courseId from nested course object
+            approvalStatus: approval.status,
+            submittedAt: approval.submittedAt,
+            feedback: approval.feedback
+          };
+        } else {
+          return {
+            ...approval,
+            courseId: approval.course?.id, // Extract courseId from nested course object
+            approvalStatus: approval.status,
+            submittedAt: approval.submittedAt,
+            feedback: approval.feedback
+          };
+        }
+      });
+
+      console.table('Transformed exams:', examsData);
+      setExams(examsData || []);
       setError('');
     } catch (err) {
-      console.error(err);
+      console.error('Error fetching exams:', err);
       setError(t('exam.fetchError', 'Lỗi khi tải danh sách bài kiểm tra.'));
+      setExams([]);
     } finally {
       setLoading(false);
     }
   };
 
-  // Filter exams - now works with ExamApproval objects
-  const filteredExams = exams.filter(approval => {
-    const exam = approval.exam;
-    const matchesSearch = exam?.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         exam?.code?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || approval.status === statusFilter;
-    const matchesCourse = courseFilter === 'all' || exam?.course?.name === courseFilter;
-    return matchesSearch && matchesStatus && matchesCourse;
+  // Filter exams - works with both approval status and published status
+  const filteredExams = exams.filter(exam => {
+    if (!exam) return false;
+
+    // Use debounced search
+    const matchesSearch = !debouncedSearch ||
+                         exam?.title?.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+                         exam?.code?.toLowerCase().includes(debouncedSearch.toLowerCase());
+
+    // Filter by examCategory (MOCK vs PRACTICE)
+    const matchesCategory = exam?.examCategory === activeTab;
+
+    let matchesStatus = true;
+    if (statusFilter === 'all') {
+      matchesStatus = true;
+    } else if (statusFilter === 'published') {
+      matchesStatus = exam?.published === true;
+    } else if (statusFilter === 'draft') {
+      matchesStatus = exam?.published !== true;
+    } else if (statusFilter === 'pending') {
+      // Case-insensitive comparison and null check
+      matchesStatus = exam?.approvalStatus?.toUpperCase() === 'PENDING';
+    } else if (statusFilter === 'approved') {
+      matchesStatus = exam?.approvalStatus?.toUpperCase() === 'APPROVED';
+    } else if (statusFilter === 'rejected') {
+      matchesStatus = exam?.approvalStatus?.toUpperCase() === 'REJECTED';
+    }
+
+    // Filter by course - prioritize courseIdFromUrl from URL
+    let matchesCourse = true;
+    if (courseIdFromUrl) {
+      matchesCourse = exam?.courseId == courseIdFromUrl;
+    } else if (courseFilter !== 'all') {
+      matchesCourse = exam?.course?.name === courseFilter;
+    }
+
+    return matchesSearch && matchesCategory && matchesStatus && matchesCourse;
   });
 
-  // Sort exams - now works with ExamApproval objects
+  // Sort exams by createdAt descending
   const sortedExams = [...filteredExams].sort((a, b) => {
-    let comparison = 0;
-    const aValue = sortBy === 'createdAt' ? a.submittedAt : a[sortBy];
-    const bValue = sortBy === 'createdAt' ? b.submittedAt : b[sortBy];
-    if (aValue < bValue) comparison = -1;
-    if (aValue > bValue) comparison = 1;
-    return sortOrder === 'asc' ? comparison : -comparison;
+    const dateA = new Date(a.submittedAt || a.createdAt);
+    const dateB = new Date(b.submittedAt || b.createdAt);
+    return dateB - dateA;
   });
+
+  // Debug log
+  console.log('=== EXAM DEBUG ===');
+  console.log('Total exams:', exams.length);
+  console.log('Filtered exams:', filteredExams.length);
+  console.log('Sorted exams:', sortedExams.length);
+  console.log('Search term:', searchTerm, '→ Debounced:', debouncedSearch);
+  console.log('Status filter:', statusFilter);
+  console.log('Course filter:', courseFilter);
+  console.log('CourseId from URL:', courseIdFromUrl);
+
+  // Log each exam with filter status
+  exams.forEach(exam => {
+    console.log(`Exam ${exam.id}:`, {
+      title: exam.title,
+      approvalStatus: exam.approvalStatus,
+      published: exam.published,
+      courseId: exam.courseId,
+      matchesSearch: !debouncedSearch || exam?.title?.toLowerCase().includes(debouncedSearch.toLowerCase()),
+      matchesStatus: statusFilter === 'all' || exam?.approvalStatus === statusFilter,
+      matchesCourse: !courseIdFromUrl || exam?.courseId == courseIdFromUrl
+    });
+  });
+
+  // Debug log
+  console.log('Total exams:', exams.length);
+  console.log('Filtered exams:', filteredExams.length);
+  console.log('Sorted exams:', sortedExams.length);
+  console.log('Course filter:', courseFilter);
+  console.log('Status filter:', statusFilter);
+  console.log('CourseId from URL:', courseIdFromUrl);
+  console.log('First exam:', exams[0]);
 
   // Handle sort
-  const handleSort = (field) => {
-    if (sortBy === field) {
-      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortBy(field);
-      setSortOrder('asc');
-    }
-  };
-
   // Handle publish/unpublish
   const handlePublishToggle = (exam) => {
     setExamToPublish(exam);
@@ -160,16 +257,22 @@ const ExamManagement = () => {
   };
 
   // Get approval status badge
-  const getStatusBadge = (approval) => {
-    switch (approval.status) {
-      case 'PENDING':
-        return <Badge variant="warning">{t('exam.pending', 'Chờ duyệt')}</Badge>;
-      case 'APPROVED':
-        return <Badge variant="success">{t('exam.approved', 'Đã duyệt')}</Badge>;
-      case 'REJECTED':
-        return <Badge variant="error">{t('exam.rejected', 'Bị từ chối')}</Badge>;
-      default:
-        return <Badge variant="secondary">{approval.status}</Badge>;
+  const getPublishedBadge = (exam) => {
+    // Show approval status first, then published status
+    if (exam.approvalStatus === 'PENDING') {
+      return <Badge variant="warning">{t('exam.pending', 'Chờ duyệt')}</Badge>;
+    } else if (exam.approvalStatus === 'APPROVED') {
+      if (exam.published) {
+        return <Badge variant="success">{t('exam.published', 'Đã xuất bản')}</Badge>;
+      } else {
+        return <Badge variant="info">{t('exam.approved', 'Đã duyệt')}</Badge>;
+      }
+    } else if (exam.approvalStatus === 'REJECTED') {
+      return <Badge variant="error">{t('exam.rejected', 'Bị từ chối')}</Badge>;
+    } else if (exam.published) {
+      return <Badge variant="success">{t('exam.published', 'Đã xuất bản')}</Badge>;
+    } else {
+      return <Badge variant="secondary">{t('exam.draft', 'Nháp')}</Badge>;
     }
   };
 
@@ -180,46 +283,124 @@ const ExamManagement = () => {
       WRITING: { variant: 'info', label: t('exam.type.writing', 'Viết') },
       LISTENING: { variant: 'warning', label: t('exam.type.listening', 'Nghe') },
       READING: { variant: 'purple', label: t('exam.type.reading', 'Đọc hiểu') },
-      MIXED: { variant: 'primary', label: t('exam.type.mixed', 'Hỗn hợp') }
+      MIXED: { variant: 'primary', label: t('exam.type.mixed', 'Hỗn hợp') },
+      MULTIPLE_CHOICE: { variant: 'success', label: t('exam.type.multipleChoice', 'Trắc nghiệm') }
     };
-    
+
     const config = typeConfig[type] || typeConfig.MIXED;
     return <Badge variant={config.variant}>{config.label}</Badge>;
   };
 
-  // Get unique courses from exam approvals
-  const courses = [...new Set(exams.map(approval => approval.exam?.course?.name).filter(Boolean))];
+  // Get unique courses from exams
+  const courses = [...new Set(exams.map(exam => exam?.course?.name).filter(Boolean))];
 
   return (
     <PageContainer>
       {/* Page Header */}
       <PageHeader
-        title={t('exam.management', 'Quản Lý Bài Kiểm Tra')}
-        subtitle={t('exam.managementSubtitle', 'Tạo, chỉnh sửa và quản lý các bài kiểm tra')}
+        title={activeTab === 'MOCK' ? 'Quản Lý FreeTest' : 'Quản Lý Đề Luyện Thi'}
+        subtitle={activeTab === 'MOCK'
+          ? 'Tạo và quản lý các đề thi thử miễn phí (FreeTest)'
+          : 'Tạo, chỉnh sửa và quản lý các đề luyện thi cho học viên'}
         breadcrumbs={[
           { label: t('nav.home', 'Trang chủ'), href: '/' },
           { label: t('nav.teacher', 'Giáo viên'), href: '/teacher' },
-          { label: t('exam.management', 'Quản Lý Bài Kiểm Tra') }
+          { label: activeTab === 'MOCK' ? 'Quản Lý FreeTest' : 'Quản Lý Đề Luyện Thi' }
         ]}
         actions={
           <Button
             variant="primary"
             icon={<Plus className="w-4 h-4" />}
-            onClick={() => navigate('/teacher/exam-management/create')}
+            onClick={() => navigate(
+              courseIdFromUrl
+                ? `/teacher/exam-management/create?courseId=${courseIdFromUrl}&examCategory=${activeTab}`
+                : `/teacher/exam-management/create?examCategory=${activeTab}`
+            )}
           >
-            {t('exam.create', 'Tạo Bài Kiểm Tra Mới')}
+            {t('exam.create', `Tạo ${activeTab === 'MOCK' ? 'FreeTest' : 'Đề Luyện Thi'} Mới`)}
           </Button>
         }
       />
 
       {/* Info Alert - Approval Workflow Notice */}
       <Alert variant="info" icon={<AlertCircle className="w-5 h-5" />} className="mb-6">
-        <div className="font-medium mb-1">Quy trình phê duyệt đề thi</div>
+        <div className="font-medium mb-1">
+          {activeTab === 'MOCK' ? 'Quy trình phê duyệt FreeTest' : 'Quy trình phê duyệt đề luyện thi'}
+        </div>
         <div className="text-sm">
-          Khi bạn tạo đề thi mới, nó sẽ ở trạng thái <strong>Chờ duyệt</strong>. Education Manager sẽ xem xét và phê duyệt trước khi đề thi được công bố.
-          Bạn sẽ nhận được email thông báo khi đề thi được duyệt hoặc từ chối.
+          {activeTab === 'MOCK' ? (
+            <>
+              FreeTest là <strong>đề thi thử miễn phí</strong> dành cho tất cả người dùng (không cần đăng ký).
+              Khi tạo FreeTest mới, nó sẽ ở trạng thái <strong>Chờ duyệt</strong>. Education Manager sẽ xem xét và phê duyệt.
+            </>
+          ) : (
+            <>
+              Đề luyện thi dành cho <strong>học viên đã đăng ký khóa học</strong>.
+              Khi tạo đề mới, nó sẽ ở trạng thái <strong>Chờ duyệt</strong>. Education Manager sẽ xem xét và phê duyệt trước khi đề thi được công bố.
+            </>
+          )}
         </div>
       </Alert>
+
+      {/* Course Filter Indicator */}
+      {courseFilter !== 'all' && courseIdFromUrl && (
+        <div className="mb-6 flex items-center justify-between p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="flex items-center gap-2">
+            <FileText className="w-5 h-5 text-blue-600" />
+            <span className="font-medium text-blue-900">
+              Đang lọc theo khóa học (Course ID: {courseIdFromUrl})
+            </span>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate('/teacher/exam-management')}
+          >
+            Xóa bộ lọc
+          </Button>
+        </div>
+      )}
+
+      {/* Exam Category Tabs */}
+      <div className="mb-6">
+        <div className="border-b border-gray-200">
+          <nav className="flex -mb-px gap-2">
+            <button
+              onClick={() => setActiveTab('PRACTICE')}
+              className={`px-6 py-3 font-medium text-sm border-b-2 transition-colors ${
+                activeTab === 'PRACTICE'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <FileText className="w-4 h-4" />
+                <span>Luyện Thi (PRACTICE)</span>
+              </div>
+            </button>
+            <button
+              onClick={() => setActiveTab('MOCK')}
+              className={`px-6 py-3 font-medium text-sm border-b-2 transition-colors ${
+                activeTab === 'MOCK'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4" />
+                <span>FreeTest (MOCK)</span>
+              </div>
+            </button>
+          </nav>
+        </div>
+        <div className="mt-3 text-sm text-gray-600">
+          {activeTab === 'PRACTICE' ? (
+            <p>Đề thi luyện thi cho học viên đã đăng ký khóa học</p>
+          ) : (
+            <p>Đề thi thử miễn phí cho tất cả người dùng (FreeTest)</p>
+          )}
+        </div>
+      </div>
 
       {/* Error Alert */}
       {error && (
@@ -237,52 +418,112 @@ const ExamManagement = () => {
       {/* Filters Card */}
       <Card className="mb-6">
         <div className="p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <Filter className="w-5 h-5 text-gray-500" />
-            <h3 className="font-semibold text-gray-900">
-              {t('exam.filters', 'Bộ Lọc')}
-            </h3>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <Filter className="w-5 h-5 text-gray-500" />
+              <h3 className="font-semibold text-gray-900">
+                {t('exam.filters', 'Bộ Lọc')}
+              </h3>
+            </div>
+
+            {/* Active Filters Display */}
+            <div className="flex items-center gap-2">
+              {searchTerm && (
+                <div className="inline-flex items-center gap-1 px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm">
+                  <Search className="w-3 h-3" />
+                  <span>{searchTerm}</span>
+                  <button
+                    onClick={() => setSearchTerm('')}
+                    className="hover:text-blue-900"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              )}
+              {statusFilter !== 'all' && (
+                <div className="inline-flex items-center gap-1 px-3 py-1 bg-green-50 text-green-700 rounded-full text-sm">
+                  <span>{statusFilter === 'pending' ? 'Chờ duyệt' : statusFilter === 'approved' ? 'Đã duyệt' : statusFilter === 'rejected' ? 'Bị từ chối' : statusFilter === 'published' ? 'Đã xuất bản' : 'Nháp'}</span>
+                  <button
+                    onClick={() => setStatusFilter('all')}
+                    className="hover:text-green-900"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              )}
+              {courseFilter !== 'all' && (
+                <div className="inline-flex items-center gap-1 px-3 py-1 bg-purple-50 text-purple-700 rounded-full text-sm">
+                  <span>{courseFilter}</span>
+                  <button
+                    onClick={() => setCourseFilter('all')}
+                    className="hover:text-purple-900"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {/* Search */}
-            <div className="md:col-span-2">
-              <Input
+            <div className="md:col-span-2 relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+              <input
                 type="text"
                 placeholder={t('exam.searchPlaceholder', 'Tìm kiếm theo tên hoặc mã bài kiểm tra...')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                icon={Search}
+                className="w-full pl-10 pr-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
               />
+              {searchTerm && (
+                <button
+                  onClick={() => setSearchTerm('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <X className="w-4 h-4 text-gray-400" />
+                </button>
+              )}
             </div>
 
             {/* Status Filter */}
-            <div>
-              <Input
-                type="select"
+            <div className="relative">
+              <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                options={[
-                  { value: 'all', label: t('exam.allStatus', 'Tất cả trạng thái') },
-                  { value: 'PENDING', label: t('exam.pending', 'Chờ duyệt') },
-                  { value: 'APPROVED', label: t('exam.approved', 'Đã duyệt') },
-                  { value: 'REJECTED', label: t('exam.rejected', 'Bị từ chối') }
-                ]}
-              />
+                className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 appearance-none bg-white pr-10"
+              >
+                <option value="all">{t('exam.allStatus', 'Tất cả trạng thái')}</option>
+                <option value="pending">{t('exam.pending', 'Chờ duyệt')}</option>
+                <option value="approved">{t('exam.approved', 'Đã duyệt')}</option>
+                <option value="rejected">{t('exam.rejected', 'Bị từ chối')}</option>
+                <option value="published">{t('exam.published', 'Đã xuất bản')}</option>
+                <option value="draft">{t('exam.draft', 'Nháp')}</option>
+              </select>
+              <Filter className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
             </div>
 
             {/* Course Filter */}
-            <div>
-              <Input
-                type="select"
+            <div className="relative">
+              <select
                 value={courseFilter}
                 onChange={(e) => setCourseFilter(e.target.value)}
-                options={[
-                  { value: 'all', label: t('exam.allCourses', 'Tất cả khóa học') },
-                  ...courses.map(course => ({ value: course, label: course }))
-                ]}
-              />
+                className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 appearance-none bg-white pr-10"
+              >
+                <option value="all">{t('exam.allCourses', 'Tất cả khóa học')}</option>
+                {courses.map(course => (
+                  <option key={course} value={course}>{course}</option>
+                ))}
+              </select>
+              <FileText className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
             </div>
+          </div>
+
+          {/* Results Count */}
+          <div className="mt-4 pt-4 border-t border-gray-200">
+            <p className="text-sm text-gray-600">
+              Hiển thị <span className="font-semibold text-gray-900">{sortedExams.length}</span> / <span className="font-semibold text-gray-900">{exams.length}</span> bài kiểm tra
+            </p>
           </div>
         </div>
       </Card>
@@ -297,59 +538,84 @@ const ExamManagement = () => {
           <div className="p-12 text-center">
             <FileText className="w-16 h-16 mx-auto mb-4 text-gray-300" />
             <p className="text-gray-500 mb-4">
-              {t('exam.noExams', 'Không tìm thấy bài kiểm tra nào')}
+              {activeTab === 'MOCK'
+                ? 'Không tìm thấy đề FreeTest nào'
+                : 'Không tìm thấy đề luyện thi nào'}
             </p>
             <Button
               variant="primary"
               icon={<Plus className="w-4 h-4" />}
-              onClick={() => navigate('/teacher/exam-management/create')}
+              onClick={() => navigate(
+                courseIdFromUrl
+                  ? `/teacher/exam-management/create?courseId=${courseIdFromUrl}&examCategory=${activeTab}`
+                  : `/teacher/exam-management/create?examCategory=${activeTab}`
+              )}
             >
-              {t('exam.createFirst', 'Tạo Bài Kiểm Tra Đầu Tiên')}
+              {activeTab === 'MOCK' ? 'Tạo FreeTest Đầu Tiên' : 'Tạo Đề Luyện Thi Đầu Tiên'}
             </Button>
           </div>
         ) : (
           <div className="divide-y divide-gray-100">
-            {sortedExams.map((approval) => {
-              const exam = approval.exam;
+            {sortedExams.map((exam) => {
               if (!exam) return null;
 
+              // Debug log
+              console.log('Rendering exam:', exam.id, exam);
+
               return (
-                <div key={approval.id} className="p-6 hover:bg-gray-50 transition-colors">
+                <div key={exam.id} className="p-6 hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-b-0">
                   <div className="flex items-start justify-between gap-4">
                     {/* Exam Info */}
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-3 mb-2 flex-wrap">
                         <h3 className="font-semibold text-gray-900 text-lg">
-                          {exam.title}
+                          {exam.title || 'Không có tiêu đề'}
                         </h3>
-                        <span className="text-sm text-gray-500">({exam.code})</span>
-                        {getStatusBadge(approval)}
+                        {exam.code && (
+                          <span className="text-sm text-gray-500">({exam.code})</span>
+                        )}
+                        {getPublishedBadge(exam)}
+                        {exam.examCategory && (
+                          <Badge
+                            variant={exam.examCategory === 'MOCK' ? 'primary' : 'info'}
+                            size="sm"
+                            className={exam.examCategory === 'MOCK' ? 'bg-purple-100 text-purple-700' : ''}
+                          >
+                            {exam.examCategory === 'MOCK' ? 'FreeTest' : 'Luyện Thi'}
+                          </Badge>
+                        )}
                         {exam.examType && getTypeBadge(exam.examType)}
                       </div>
 
-                      <p className="text-gray-600 mb-3">{exam.description}</p>
+                      {exam.description && (
+                        <p className="text-gray-600 mb-3">{exam.description}</p>
+                      )}
 
                       {/* Show feedback if rejected */}
-                      {approval.status === 'REJECTED' && approval.feedback && (
+                      {exam.approvalStatus === 'REJECTED' && exam.feedback && (
                         <Alert variant="error" className="mb-3" icon={<AlertCircle className="w-4 h-4" />}>
                           <div className="font-medium text-sm">Phản hồi từ Education Manager:</div>
-                          <div className="text-sm mt-1">{approval.feedback}</div>
+                          <div className="text-sm mt-1">{exam.feedback}</div>
                         </Alert>
                       )}
 
                       <div className="flex flex-wrap items-center gap-6 text-sm text-gray-500">
                         <div className="flex items-center gap-2">
                           <Users className="w-4 h-4" />
-                          <span>{exam.examQuestions?.length || exam.totalQuestions || 0} {t('exam.questions', 'câu hỏi')}</span>
+                          <span>
+                            {exam.examQuestions?.length || exam.totalQuestions || exam.questions?.length || 0} {t('exam.questions', 'câu hỏi')}
+                          </span>
                         </div>
                         <div className="flex items-center gap-2">
                           <Clock className="w-4 h-4" />
-                          <span>{exam.durationMinutes} {t('exam.minutes', 'phút')}</span>
+                          <span>
+                            {exam.durationMinutes || exam.duration || 0} {t('exam.minutes', 'phút')}
+                          </span>
                         </div>
                         <div className="flex items-center gap-2">
                           <Calendar className="w-4 h-4" />
                           <span>
-                            {new Date(approval.submittedAt).toLocaleDateString('vi-VN')}
+                            {new Date(exam.submittedAt || exam.createdAt).toLocaleDateString('vi-VN')}
                           </span>
                         </div>
                         {exam.course?.name && (
@@ -358,28 +624,32 @@ const ExamManagement = () => {
                             <span>{exam.course.name}</span>
                           </div>
                         )}
+                        {exam.passingScore && (
+                          <div className="flex items-center gap-2">
+                            <CheckCircle2 className="w-4 h-4" />
+                            <span>Đạt: {exam.passingScore}%</span>
+                          </div>
+                        )}
                       </div>
                     </div>
 
                     {/* Actions */}
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-shrink-0">
                       <Button
                         variant="ghost"
                         size="sm"
                         icon={<Eye className="w-4 h-4" />}
-                        onClick={() => navigate(`/exam-attempts/${exam.id}`)}
-                        title={t('exam.viewAttempts', 'Xem kết quả')}
+                        onClick={() => navigate(`/teacher/exam-detail/${exam.id}`)}
+                        title={t('exam.viewDetail', 'Xem chi tiết')}
                       />
                       <Button
                         variant="ghost"
                         size="sm"
                         icon={<Edit className="w-4 h-4" />}
-                        onClick={() => navigate(`/exam-editor/${exam.id}`)}
+                        onClick={() => navigate(`/teacher/exam-editor/${exam.id}`)}
                         title={t('exam.edit', 'Chỉnh sửa')}
-                        disabled={approval.status === 'APPROVED'}
-                        className={approval.status === 'APPROVED' ? 'opacity-50 cursor-not-allowed' : ''}
                       />
-                      {approval.status === 'APPROVED' && (
+                      {(exam.approvalStatus === 'APPROVED' || exam.published) && (
                         <Button
                           variant="ghost"
                           size="sm"
