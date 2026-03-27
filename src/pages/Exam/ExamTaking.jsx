@@ -114,9 +114,8 @@ const ExamTaking = () => {
 
         try {
             await examService.submitExam(attemptId);
-            alert("Nộp bài thành công!");
-            // In future, you'd navigate to Results page. For now, sending back to dashboard.
-            navigate('/dashboard');
+            // Navigate to result page
+            navigate(`/exam/result/${attemptId}`);
         } catch (error) {
             console.error("Submit error", error);
             alert("Lỗi nộp bài. Vui lòng thử lại.");

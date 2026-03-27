@@ -56,8 +56,16 @@ const ExamIntro = () => {
                             <span className="font-bold text-lg text-blue-900">{exam?.durationMinutes} phút</span>
                         </div>
                         <div>
+                            <span className="block text-sm text-gray-500">Số câu hỏi</span>
+                            <span className="font-bold text-lg text-blue-900">{exam?.examQuestions?.length || exam?.totalQuestions || 0} câu</span>
+                        </div>
+                        <div>
                             <span className="block text-sm text-gray-500">Tổng điểm</span>
-                            <span className="font-bold text-lg text-blue-900">{exam?.totalPoints}</span>
+                            <span className="font-bold text-lg text-blue-900">{exam?.totalPoints || 100} điểm</span>
+                        </div>
+                        <div>
+                            <span className="block text-sm text-gray-500">Điểm đạt</span>
+                            <span className="font-bold text-lg text-blue-900">{exam?.passingScore || 60}%</span>
                         </div>
                         <div className="col-span-2">
                             <span className="block text-sm text-gray-500 mb-1">Lưu ý quan trọng</span>
