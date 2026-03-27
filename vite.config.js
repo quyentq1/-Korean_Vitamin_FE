@@ -26,8 +26,8 @@ export default defineConfig({
           // Pages
           'pages': [
             './src/pages/HomePage/HomePage.jsx',
-            './src/pages/Login/Login.jsx',
-            './src/pages/Learner/LearnerDashboard.jsx',
+            './src/pages/Login.jsx',
+            './src/pages/Student/StudentDashboard.jsx',
           ],
 
           // Services
@@ -41,13 +41,7 @@ export default defineConfig({
     
     chunkSizeWarningLimit: 1000,
     // Optimize chunks
-    minify: 'terser',
-    terserOptions: {
-      compress: {
-        drop_console: true,
-        drop_debugger: true,
-      },
-    },
+    minify: 'esbuild',
   },
 
   // Optimize dependencies
