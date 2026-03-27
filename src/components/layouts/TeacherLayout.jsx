@@ -43,6 +43,7 @@ const TeacherLayout = () => {
         { icon: <Home className="w-5 h-5" />, label: t('teacher.dashboard.home'), path: '/teacher' },
         { icon: <Library className="w-5 h-5" />, label: t('teacher.dashboard.myCourses'), path: '/teacher/my-courses' },
         { icon: <FileText className="w-5 h-5" />, label: t('teacher.dashboard.examManagement'), path: '/teacher/exam-management' },
+        { icon: <Users className="w-5 h-5" />, label: 'Bài Kiểm Tra Lớp', path: '/teacher/class-exams' },
         { icon: <BookOpen className="w-5 h-5" />, label: t('teacher.dashboard.questionBank'), path: '/teacher/question-bank' },
         { icon: <FilePlus className="w-5 h-5" />, label: t('teacher.dashboard.createQuestion'), path: '/teacher/questions/create' },
         { icon: <Upload className="w-5 h-5" />, label: t('teacher.dashboard.questionImport'), path: '/teacher/question-import' },

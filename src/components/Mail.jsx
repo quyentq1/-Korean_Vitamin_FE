@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  Mail,
+  Mail as MailIcon,
   Inbox,
   Send,
   FileText,
@@ -328,7 +328,7 @@ const Mail = ({ userRole = 'student' }) => {
             ))
           ) : (
             <div className="flex flex-col items-center justify-center h-full text-gray-500">
-              <Mail className="w-16 h-16 mb-4 text-gray-300" />
+              <MailIcon className="w-16 h-16 mb-4 text-gray-300" />
               <p className="text-sm">{t('mail.noMails', 'Không có email nào')}</p>
             </div>
           )}
@@ -428,7 +428,7 @@ const Mail = ({ userRole = 'student' }) => {
         ) : (
           <div className="flex-1 flex items-center justify-center text-gray-500">
             <div className="text-center">
-              <Mail className="w-20 h-20 mx-auto mb-4 text-gray-300" />
+              <MailIcon className="w-20 h-20 mx-auto mb-4 text-gray-300" />
               <p className="text-lg font-medium">{t('mail.selectMail', 'Chọn một email để đọc')}</p>
             </div>
           </div>
