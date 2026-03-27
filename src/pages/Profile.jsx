@@ -490,10 +490,10 @@ const MyCourses = () => {
                 {courses.map(course => (
                     <div key={course.id} className="bg-white border border-gray-100 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
                         <div className="absolute top-0 left-0 w-1 h-full bg-primary-500"></div>
-                        <h4 className="font-bold text-gray-900 text-lg mb-1">{course.classEntity?.className || 'Lớp học'}</h4>
+                        <h4 className="font-bold text-gray-900 text-lg mb-1">{course.className || course.classEntity?.className || 'Lớp học'}</h4>
                         <div className="text-sm text-gray-500 space-y-1 mt-3">
-                            <p>🏷️ Mã lớp: <span className="font-medium">{course.classEntity?.classCode}</span></p>
-                            <p>📅 Ngày học: {new Date(course.classEntity?.startDate).toLocaleDateString('vi-VN')} - {new Date(course.classEntity?.endDate).toLocaleDateString('vi-VN')}</p>
+                            <p>🏷️ Mã lớp: <span className="font-medium">{course.classCode || course.classEntity?.classCode}</span></p>
+                            <p>📅 Ngày học: {new Date(course.classEntity?.startDate || course.startDate).toLocaleDateString('vi-VN')} - {new Date(course.classEntity?.endDate || course.endDate).toLocaleDateString('vi-VN')}</p>
                             <p>📊 Trạng thái: <span className={`font-semibold ${course.status === 'ACTIVE' ? 'text-green-600' : 'text-gray-600'}`}>
                                 {course.status === 'ACTIVE' ? 'Đang học' : 'Đã kết thúc'}
                             </span></p>
