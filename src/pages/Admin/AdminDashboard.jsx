@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Users,
@@ -14,13 +14,16 @@ import {
   AlertCircle,
   ArrowRight,
   Calendar,
-  Clock
+  Clock,
+  RefreshCw
 } from 'lucide-react';
-import { PageHeader, Card } from '../../components/ui';
+import { PageHeader, Card, Button, Alert } from '../../components/ui';
+import adminService from '../../services/adminService';
 
 /**
  * Admin Dashboard Component
  * Trang tổng quan cho Admin với thống kê, biểu đồ và hoạt động gần đây
+ * Senior-level implementation with real API integration
  */
 const AdminDashboard = () => {
   // State cho thống kê
@@ -30,31 +33,59 @@ const AdminDashboard = () => {
     totalTeachers: 0,
     totalCourses: 0,
     totalExams: 0,
-    totalRevenue: 0,
+    publishedExams: 0,
+    pendingApprovals: 0,
+    activeUsers: 0,
     newUsersThisMonth: 0,
-    activeUsers: 0
+    revenue: 0
   });
 
   // State cho hoạt động gần đây
   const [recentActivities, setRecentActivities] = useState([]);
 
-  // State cho loading
+  // State cho loading và error
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [lastUpdated, setLastUpdated] = useState(null);
 
-  // Giả lập dữ liệu thống kê
+  // Fetch dashboard statistics from API
+  const fetchDashboardStats = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await adminService.getDashboardStats();
+      const data = response.data;
+
+      // Transform API response to match state structure
+      setStats({
+        totalUsers: data.totalUsers || 0,
+        totalStudents: data.totalStudents || 0,
+        totalTeachers: data.totalTeachers || 0,
+        totalCourses: data.totalCourses || 0,
+        totalExams: data.totalExams || 0,
+        publishedExams: data.publishedExams || 0,
+        pendingApprovals: data.pendingApprovals || 0,
+        activeUsers: data.activeUsers || 0,
+        newUsersThisMonth: data.newUsersThisMonth || 0,
+        revenue: data.revenue || 0
+      });
+
+      setLastUpdated(new Date());
+    } catch (err) {
+      console.error('Failed to fetch dashboard stats:', err);
+      setError('Không thể tải dữ liệu thống kê. Vui lòng thử lại.');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Fetch data on mount
   useEffect(() => {
-    // Trong thực tế, bạn sẽ gọi API để lấy dữ liệu
-    const mockStats = {
-      totalUsers: 1250,
-      totalStudents: 980,
-      totalTeachers: 45,
-      totalCourses: 32,
-      totalExams: 156,
-      totalRevenue: 45000000,
-      newUsersThisMonth: 125,
-      activeUsers: 856
-    };
+    fetchDashboardStats();
+  }, [fetchDashboardStats]);
 
+  // Mock activities for now (can be replaced with real API later)
+  useEffect(() => {
     const mockActivities = [
       {
         id: 1,
@@ -99,19 +130,17 @@ const AdminDashboard = () => {
       {
         id: 5,
         type: 'alert',
-        action: 'Cảnh báo hệ thống',
+        action: `${stats.pendingApprovals} bài thi chờ duyệt`,
         user: 'Hệ thống',
-        time: '2 giờ trước',
+        time: 'Vừa xong',
         icon: AlertCircle,
-        color: 'text-red-600',
-        bgColor: 'bg-red-100'
+        color: 'text-amber-600',
+        bgColor: 'bg-amber-100'
       }
     ];
 
-    setStats(mockStats);
     setRecentActivities(mockActivities);
-    setLoading(false);
-  }, []);
+  }, [stats.pendingApprovals]);
 
   // Format số tiền
   const formatCurrency = (amount) => {
@@ -126,34 +155,48 @@ const AdminDashboard = () => {
     return new Intl.NumberFormat('vi-VN').format(num);
   };
 
-  // Quick links
+  // Quick links - Updated with new admin routes
   const quickLinks = [
     {
       title: 'Quản lý người dùng',
       description: 'Thêm, sửa, xóa người dùng',
       icon: Users,
-      path: '/user-management',
+      path: '/admin/users',
       color: 'bg-blue-500'
+    },
+    {
+      title: 'Quản lý giáo viên',
+      description: 'Quản lý thông tin giáo viên',
+      icon: GraduationCap,
+      path: '/admin/teachers',
+      color: 'bg-indigo-500'
     },
     {
       title: 'Quản lý khóa học',
       description: 'Quản lý nội dung khóa học',
       icon: BookOpen,
-      path: '/course-management',
+      path: '/admin/courses',
       color: 'bg-green-500'
     },
     {
-      title: 'Quản lý đăng ký',
-      description: 'Xem và duyệt đăng ký',
-      icon: FileText,
-      path: '/registration-management',
+      title: 'Phê duyệt',
+      description: `${stats.pendingApprovals} bài thi chờ duyệt`,
+      icon: CheckCircle,
+      path: '/admin/approvals',
+      color: stats.pendingApprovals > 0 ? 'bg-amber-500' : 'bg-gray-500'
+    },
+    {
+      title: 'Thống kê',
+      description: 'Xem báo cáo và thống kê',
+      icon: TrendingUp,
+      path: '/admin/statistics',
       color: 'bg-purple-500'
     },
     {
       title: 'Cài đặt hệ thống',
       description: 'Cấu hình hệ thống',
       icon: Settings,
-      path: '/system-settings',
+      path: '/admin/settings',
       color: 'bg-gray-500'
     }
   ];

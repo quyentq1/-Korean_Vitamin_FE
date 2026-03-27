@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { CheckCircle, XCircle, Eye, Filter, RefreshCw, FileText, Clock, User, AlertTriangle, BookOpen, List, Calendar } from 'lucide-react';
+import { CheckCircle, XCircle, Eye, Filter, RefreshCw, FileText, Clock, User, AlertTriangle, BookOpen, List, Calendar, ChevronDown, ChevronRight } from 'lucide-react';
 import examService from '../../services/examService';
 import Swal from 'sweetalert2';
 
@@ -16,6 +16,8 @@ const ExamApproval = () => {
     const [selectedExam, setSelectedExam] = useState(null);
     const [showDetailModal, setShowDetailModal] = useState(false);
     const [actionLoading, setActionLoading] = useState(false);
+    const [expandedQuestions, setExpandedQuestions] = useState({}); // Track which questions are expanded
+    const [loadingExamDetails, setLoadingExamDetails] = useState(false); // Loading state for exam details
 
     const fetchPendingExams = async () => {
         try {
@@ -24,9 +26,13 @@ const ExamApproval = () => {
 
             // Fetch based on filter
             if (filter === 'ALL') {
-                // For ALL, we need to fetch from different statuses or combine them
-                // For now, just fetch pending as default
-                data = await examService.getPendingExams();
+                const pending = await examService.getPendingExams();
+                const approved = await examService.getExamsByStatus('APPROVED');
+                const rejected = await examService.getExamsByStatus('REJECTED');
+                data = [...(Array.isArray(pending) ? pending : []), 
+                        ...(Array.isArray(approved) ? approved : []), 
+                        ...(Array.isArray(rejected) ? rejected : [])]
+                        .sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
             } else if (filter === 'PENDING') {
                 data = await examService.getPendingExams();
             } else {
@@ -72,7 +78,7 @@ const ExamApproval = () => {
             try {
                 setActionLoading(true);
                 // examApproval contains { id, exam, status, submittedAt, feedback }
-                await examService.approveExam(examApproval.id, { feedback: feedback || '', approved: true });
+                await examService.approveExam(examApproval.exam.id, { feedback: feedback || '', status: 'APPROVED' });
                 Swal.fire({
                     icon: 'success',
                     title: 'Đã duyệt!',
@@ -116,7 +122,7 @@ const ExamApproval = () => {
         if (reason) {
             try {
                 setActionLoading(true);
-                await examService.approveExam(examApproval.id, { feedback: reason, approved: false });
+                await examService.approveExam(examApproval.exam.id, { feedback: reason, status: 'REJECTED' });
                 Swal.fire({
                     icon: 'success',
                     title: 'Đã từ chối',
@@ -140,9 +146,30 @@ const ExamApproval = () => {
         }
     };
 
-    const handleViewDetail = (examApproval) => {
-        setSelectedExam(examApproval);
-        setShowDetailModal(true);
+    const handleViewDetail = async (examApproval) => {
+        try {
+            setLoadingExamDetails(true);
+            // Fetch full exam details with questions
+            const response = await examService.getExamDetailsForApproval(examApproval.exam.id);
+            // Update the exam object in selectedExam with the detailed one
+            const updatedExamApproval = {
+                ...examApproval,
+                exam: response
+            };
+            setSelectedExam(updatedExamApproval);
+            setShowDetailModal(true);
+        } catch (error) {
+            console.error('Failed to fetch exam details:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Lỗi',
+                text: 'Không thể tải chi tiết bài thi',
+                timer: 2000,
+                showConfirmButton: false
+            });
+        } finally {
+            setLoadingExamDetails(false);
+        }
     };
 
     const getExamTypeBadge = (type) => {
@@ -253,7 +280,7 @@ const ExamApproval = () => {
                                             </span>
 
                                             <span className="px-3 py-1 text-xs font-semibold rounded-full bg-indigo-100 text-indigo-700">
-                                                {exam.code || 'N/A'}
+                                                {exam.id ? `EXAM-${exam.id}` : 'N/A'}
                                             </span>
 
                                             <span className="px-3 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-700">
@@ -354,6 +381,11 @@ const ExamApproval = () => {
             {/* Detail Modal */}
             {showDetailModal && selectedExam && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
+                    {loadingExamDetails && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-90 z-10">
+                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+                        </div>
+                    )}
                     <div className="bg-white rounded-xl shadow-xl max-w-5xl w-full max-h-[90vh] overflow-y-auto">
                         {/* Header */}
                         <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 z-10">
@@ -380,7 +412,7 @@ const ExamApproval = () => {
                                         <div className="grid grid-cols-2 gap-4">
                                             <div>
                                                 <p className="text-sm font-medium text-gray-500 mb-1">Mã bài thi:</p>
-                                                <p className="text-gray-900 font-medium">{exam.code || 'N/A'}</p>
+                                                <p className="text-gray-900 font-medium">{exam.id ? `EXAM-${exam.id}` : 'N/A'}</p>
                                             </div>
                                             <div>
                                                 <p className="text-sm font-medium text-gray-500 mb-1">Loại bài thi:</p>
@@ -431,35 +463,183 @@ const ExamApproval = () => {
                                             )}
                                         </div>
 
-                                        {/* Questions Preview */}
+                                        {/* Questions with Expand/Collapse */}
                                         {exam.examQuestions && exam.examQuestions.length > 0 && (
                                             <div>
-                                                <p className="text-sm font-bold text-gray-900 mb-3">✅ Danh sách câu hỏi:</p>
-                                                <div className="space-y-2">
-                                                    {exam.examQuestions.slice(0, 5).map((q, index) => (
-                                                        <div key={q.id || index} className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                                                            <div className="flex items-start gap-3">
-                                                                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-indigo-600 text-white flex items-center justify-center text-sm font-bold">
-                                                                    {index + 1}
-                                                                </span>
-                                                                <div className="flex-1">
-                                                                    <p className="text-gray-900 text-sm font-medium">
-                                                                        {q.questionText || q.content || 'N/A'}
-                                                                    </p>
-                                                                    {q.questionType && (
-                                                                        <span className="inline-block mt-1 px-2 py-0.5 text-xs font-semibold bg-indigo-100 text-indigo-700 rounded">
-                                                                            {q.questionType.replace('_', ' ')}
-                                                                        </span>
-                                                                    )}
+                                                <div className="flex items-center justify-between mb-3">
+                                                    <p className="text-sm font-bold text-gray-900">✅ Danh sách câu hỏi ({exam.examQuestions.length}):</p>
+                                                    <button
+                                                        onClick={() => {
+                                                            const currentExpanded = expandedQuestions[exam.id] || {};
+                                                            const allExpanded = Object.keys(currentExpanded).length === exam.examQuestions.length &&
+                                                                Object.values(currentExpanded).every(v => v);
+
+                                                            if (allExpanded) {
+                                                                // Collapse all
+                                                                setExpandedQuestions({
+                                                                    ...expandedQuestions,
+                                                                    [exam.id]: {}
+                                                                });
+                                                            } else {
+                                                                // Expand all
+                                                                const newState = {};
+                                                                exam.examQuestions.forEach((_, idx) => {
+                                                                    newState[idx] = true;
+                                                                });
+                                                                setExpandedQuestions({
+                                                                    ...expandedQuestions,
+                                                                    [exam.id]: newState
+                                                                });
+                                                            }
+                                                        }}
+                                                        className="px-3 py-1.5 text-xs font-medium bg-indigo-100 text-indigo-700 rounded-lg hover:bg-indigo-200 transition-colors flex items-center gap-1"
+                                                    >
+                                                        <List className="w-3 h-3" />
+                                                        {(() => {
+                                                            const currentExpanded = expandedQuestions[exam.id] || {};
+                                                            const allExpanded = Object.keys(currentExpanded).length === exam.examQuestions.length &&
+                                                                Object.values(currentExpanded).every(v => v);
+                                                            return allExpanded ? 'Thu gọn tất cả' : 'Mở rộng tất cả';
+                                                        })()}
+                                                    </button>
+                                                </div>
+                                                <div className="space-y-3">
+                                                    {exam.examQuestions.map((q, index) => {
+                                                        const isExpanded = expandedQuestions[exam.id]?.[index] || false;
+
+                                                        return (
+                                                            <div key={q.id || index} className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                                                                {/* Question Header - Click to Expand */}
+                                                                <div
+                                                                    onClick={() => {
+                                                                        const currentExpanded = expandedQuestions[exam.id] || {};
+                                                                        setExpandedQuestions({
+                                                                            ...expandedQuestions,
+                                                                            [exam.id]: {
+                                                                                ...currentExpanded,
+                                                                                [index]: !currentExpanded[index]
+                                                                            }
+                                                                        });
+                                                                    }}
+                                                                    className="flex items-start gap-3 p-4 bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer"
+                                                                >
+                                                                    <span className="flex-shrink-0 w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center text-sm font-bold">
+                                                                        {index + 1}
+                                                                    </span>
+                                                                    <div className="flex-1 min-w-0">
+                                                                        <div 
+                                                                            className="text-gray-900 text-sm font-medium line-clamp-2"
+                                                                            dangerouslySetInnerHTML={{ __html: q.question?.questionText || q.questionText || q.content || 'N/A' }}
+                                                                        />
+                                                                        <div className="flex items-center gap-2 mt-1">
+                                                                            {q.questionType && (
+                                                                                <span className="inline-block px-2 py-0.5 text-xs font-semibold bg-indigo-100 text-indigo-700 rounded">
+                                                                                    {q.questionType.replace(/_/g, ' ')}
+                                                                                </span>
+                                                                            )}
+                                                                            {q.points && (
+                                                                                <span className="inline-block px-2 py-0.5 text-xs font-semibold bg-green-100 text-green-700 rounded">
+                                                                                    {q.points} điểm
+                                                                                </span>
+                                                                            )}
+                                                                            {q.questionOrder !== undefined && (
+                                                                                <span className="inline-block px-2 py-0.5 text-xs font-semibold bg-gray-100 text-gray-700 rounded">
+                                                                                    STT: {q.questionOrder}
+                                                                                </span>
+                                                                            )}
+                                                                        </div>
+                                                                    </div>
+                                                                    <ChevronDown className={`w-5 h-5 text-gray-500 flex-shrink-0 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
                                                                 </div>
+
+                                                                {/* Expanded Content */}
+                                                                {isExpanded && (
+                                                                    <div className="p-4 border-t border-gray-200 space-y-3">
+                                                                        {/* Question Details */}
+                                                                        <div className="grid grid-cols-2 gap-3 text-sm">
+                                                                            {q.question?.category && (
+                                                                                <div className="bg-purple-50 rounded-lg p-2">
+                                                                                    <p className="text-purple-700 font-medium">Danh mục:</p>
+                                                                                    <p className="text-purple-900">{q.question.category}</p>
+                                                                                </div>
+                                                                            )}
+                                                                            {q.question?.level && (
+                                                                                <div className="bg-blue-50 rounded-lg p-2">
+                                                                                    <p className="text-blue-700 font-medium">Độ khó:</p>
+                                                                                    <p className="text-blue-900">{q.question.level}</p>
+                                                                                </div>
+                                                                            )}
+                                                                        </div>
+
+                                                                        {/* Explanation */}
+                                                                        {q.question?.explanation && (
+                                                                            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                                                                                <p className="text-sm font-bold text-amber-900 mb-1">💡 Giải thích:</p>
+                                                                                <p className="text-sm text-amber-800">{q.question.explanation}</p>
+                                                                            </div>
+                                                                        )}
+
+                                                                        {/* Audio File */}
+                                                                        {q.question?.audioFile && (
+                                                                            <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-3">
+                                                                                <p className="text-sm font-bold text-indigo-900 mb-2">🎵 File âm thanh:</p>
+                                                                                <audio controls className="w-full">
+                                                                                    <source src={q.question.audioFile} type="audio/mpeg" />
+                                                                                    Trình duyệt không hỗ trợ audio
+                                                                                </audio>
+                                                                            </div>
+                                                                        )}
+
+                                                                        {/* Options/Answers */}
+                                                                        {q.question?.options && q.question.options.length > 0 ? (
+                                                                            <div className="space-y-2">
+                                                                                <p className="text-sm font-bold text-gray-900">📝 Đáp án:</p>
+                                                                                {q.question.options.map((opt, optIdx) => {
+                                                                                    const isCorrect = opt.isCorrect || opt.is_right_answer;
+                                                                                    return (
+                                                                                        <div
+                                                                                            key={opt.id || optIdx}
+                                                                                            className={`p-3 rounded-lg border-2 transition-all ${
+                                                                                                isCorrect
+                                                                                                    ? 'bg-green-50 border-green-400'
+                                                                                                    : 'bg-white border-gray-200 hover:border-gray-300'
+                                                                                            }`}
+                                                                                        >
+                                                                                            <div className="flex items-start gap-3">
+                                                                                                <span className={`flex-shrink-0 w-6 h-6 rounded flex items-center justify-center text-xs font-bold ${
+                                                                                                    isCorrect ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-700'
+                                                                                                }`}>
+                                                                                                    {String.fromCharCode(65 + optIdx)}
+                                                                                                </span>
+                                                                                                <div className="flex-1">
+                                                                                                    <div 
+                                                                                                        className={`text-sm font-medium ${isCorrect ? 'text-green-900' : 'text-gray-900'}`}
+                                                                                                        dangerouslySetInnerHTML={{ __html: opt.optionText || opt.text || 'N/A' }}
+                                                                                                    />
+                                                                                                    {isCorrect && (
+                                                                                                        <span className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 text-xs font-semibold bg-green-600 text-white rounded">
+                                                                                                            <CheckCircle className="w-3 h-3" />
+                                                                                                            Đáp án đúng
+                                                                                                        </span>
+                                                                                                    )}
+                                                                                                </div>
+                                                                                                {isCorrect && <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />}
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    );
+                                                                                })}
+                                                                            </div>
+                                                                        ) : q.question?.correctAnswer && (
+                                                                            <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                                                                                <p className="text-sm font-bold text-green-900 mb-1">✅ Đáp án đúng:</p>
+                                                                                <p className="text-green-800">{q.question.correctAnswer}</p>
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+                                                                )}
                                                             </div>
-                                                        </div>
-                                                    ))}
-                                                    {exam.examQuestions.length > 5 && (
-                                                        <p className="text-sm text-gray-500 text-center pt-2">
-                                                            ... và {exam.examQuestions.length - 5} câu hỏi khác
-                                                        </p>
-                                                    )}
+                                                        );
+                                                    })}
                                                 </div>
                                             </div>
                                         )}

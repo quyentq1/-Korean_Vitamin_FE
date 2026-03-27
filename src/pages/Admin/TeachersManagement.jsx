@@ -1,239 +1,185 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import {
   Users,
+  UserPlus,
   Search,
   Filter,
-  Plus,
+  BookOpen,
+  Calendar,
+  Mail,
+  Phone,
+  Shield,
+  Lock,
+  Unlock,
   Edit,
   Trash2,
   Eye,
-  Mail,
-  Shield,
   CheckCircle,
   XCircle,
-  Clock,
-  GraduationCap,
-  BookOpen,
-  Calendar,
-  Award,
-  TrendingUp
+  RefreshCw
 } from 'lucide-react';
-import {
-  PageContainer,
-  PageHeader,
-  Card,
-  Button,
-  Badge,
-  Table
-} from '../../components/ui';
+import axiosClient from '../../api/axiosClient';
+import { PageHeader, Card, Button, Badge, Table, Modal, Alert } from '../../components/ui';
 import Swal from 'sweetalert2';
 
 /**
- * TeachersManagement - Quản lý Teachers cho Admin
+ * TeachersManagement - Advanced Teacher Management for Admin
+ * Optimized UI/UX with modern design patterns
  */
 const TeachersManagement = () => {
   const { t } = useTranslation();
-  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+
+  // State
   const [teachers, setTeachers] = useState([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filterStatus, setFilterStatus] = useState('ALL');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [selectedTeacher, setSelectedTeacher] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
 
-  useEffect(() => {
-    fetchTeachers();
-  }, []);
+  // Filters
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [sortBy, setSortBy] = useState('name');
+  const [sortOrder, setSortOrder] = useState('asc');
 
-  const fetchTeachers = async () => {
+  // Fetch teachers
+  const fetchTeachers = useCallback(async () => {
+    setLoading(true);
+    setError(null);
     try {
-      setLoading(true);
-      // TODO: Gọi API thực tế
-      // const data = await adminService.getTeachers();
-
-      // Mock data
-      const mockTeachers = [
-        {
-          id: 1,
-          username: 'teacher.kim',
-          fullName: 'Kim Min Jun',
-          email: 'kim.minjun@koreanvitamin.com',
-          phone: '0901234567',
-          status: 'ACTIVE',
-          specialization: 'TOPIK I, TOPIK II',
-          courses: 5,
-          students: 156,
-          rating: 4.8,
-          experience: 5,
-          joinDate: '2021-03-15',
-          lastActive: '2026-03-23T09:30:00',
-          qualifications: ['Chứng chỉ TOPIK Level 6', 'Bằng Cử nhân Ngôn ngữ Hàn'],
-          bio: 'Giảng viên giàu kinh nghiệm với phương pháp giảng dạy hiện đại.'
-        },
-        {
-          id: 2,
-          username: 'teacher.lee',
-          fullName: 'Lee Su Jin',
-          email: 'lee.sujin@koreanvitamin.com',
-          phone: '0901234568',
-          status: 'ACTIVE',
-          specialization: 'Ngữ pháp, Chữ Hán',
-          courses: 3,
-          students: 89,
-          rating: 4.9,
-          experience: 7,
-          joinDate: '2019-06-20',
-          lastActive: '2026-03-23T08:15:00',
-          qualifications: ['Thạc sĩ Ngôn ngữ Hàn', 'Chứng chỉ sư phạm'],
-          bio: 'Chuyên gia về ngữ pháp và chữ Hán Hàn Quốc.'
-        },
-        {
-          id: 3,
-          username: 'teacher.park',
-          fullName: 'Park Ji Hoon',
-          email: 'park.jihoon@koreanvitamin.com',
-          phone: '0901234569',
-          status: 'INACTIVE',
-          specialization: 'Nghe hiểu, Nói',
-          courses: 2,
-          students: 45,
-          rating: 4.7,
-          experience: 3,
-          joinDate: '2023-01-10',
-          lastActive: '2026-03-20T14:20:00',
-          qualifications: ['Chứng chỉ TOPIK Level 6'],
-          bio: 'Giảng viên chuyên về kỹ năng nghe và nói.'
-        },
-        {
-          id: 4,
-          username: 'teacher.choi',
-          fullName: 'Choi Soo Young',
-          email: 'choi.sooyoung@koreanvitamin.com',
-          phone: '0901234570',
-          status: 'PENDING',
-          specialization: 'Đọc hiểu, Viết',
-          courses: 0,
-          students: 0,
-          rating: 0,
-          experience: 2,
-          joinDate: '2026-03-22',
-          lastActive: null,
-          qualifications: ['Chứng chỉ TOPIK Level 5'],
-          bio: 'Giảng viên mới đăng ký.'
-        }
-      ];
-
-      setTeachers(mockTeachers);
-    } catch (error) {
-      console.error('Error fetching teachers:', error);
+      const response = await axiosClient.get('/admin/teachers');
+      setTeachers(response.data || []);
+    } catch (err) {
+      console.error('Failed to fetch teachers:', err);
+      setError('Không thể tải danh sách giáo viên');
     } finally {
       setLoading(false);
     }
+  }, []);
+
+  useEffect(() => {
+    fetchTeachers();
+  }, [fetchTeachers]);
+
+  // Filter and sort teachers
+  const filteredTeachers = teachers
+    .filter(teacher => {
+      // Search filter
+      const matchesSearch =
+        (teacher.fullName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (teacher.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (teacher.username || '').toLowerCase().includes(searchTerm.toLowerCase());
+
+      // Status filter
+      const matchesStatus =
+        statusFilter === 'all' ||
+        (statusFilter === 'active' && teacher.active) ||
+        (statusFilter === 'inactive' && !teacher.active);
+
+      return matchesSearch && matchesStatus;
+    })
+    .sort((a, b) => {
+      let comparison = 0;
+      if (sortBy === 'name') {
+        comparison = (a.fullName || '').localeCompare(b.fullName || '');
+      } else if (sortBy === 'email') {
+        comparison = (a.email || '').localeCompare(b.email || '');
+      } else if (sortBy === 'courses') {
+        comparison = (a.assignedCourses || 0) - (b.assignedCourses || 0);
+      } else if (sortBy === 'createdAt') {
+        comparison = new Date(a.createdAt || 0) - new Date(b.createdAt || 0);
+      }
+      return sortOrder === 'asc' ? comparison : -comparison;
+    });
+
+  // Handle view details
+  const handleViewDetails = (teacher) => {
+    setSelectedTeacher(teacher);
+    setShowDetailModal(true);
   };
 
-  const handleStatusChange = async (teacherId, newStatus) => {
-    try {
-      // TODO: Gọi API thực tế
-      // await adminService.updateTeacherStatus(teacherId, newStatus);
-
-      Swal.fire({
-        icon: 'success',
-        title: 'Thành công',
-        text: `Đã ${newStatus === 'ACTIVE' ? 'kích hoạt' : 'vô hiệu hóa'} giáo viên`,
-        confirmButtonColor: '#667eea',
-      });
-
-      fetchTeachers();
-    } catch (error) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Lỗi',
-        text: 'Không thể cập nhật trạng thái giáo viên',
-        confirmButtonColor: '#d33',
-      });
-    }
-  };
-
-  const handleDeleteTeacher = async (teacherId) => {
+  // Handle lock/unlock
+  const handleToggleStatus = async (teacher) => {
+    const action = teacher.active ? 'khóa' : 'mở khóa';
     const result = await Swal.fire({
-      icon: 'warning',
-      title: 'Xác nhận xóa',
-      text: 'Bạn có chắc chắn muốn xóa giáo viên này không?',
+      icon: 'question',
+      title: `${action.charAt(0).toUpperCase() + action.slice(1)} tài khoản?`,
+      text: `Bạn có chắc chắn muốn ${action} tài khoản của ${teacher.fullName}?`,
       showCancelButton: true,
-      confirmButtonText: 'Xóa',
+      confirmButtonText: 'Có, đồng ý',
       cancelButtonText: 'Hủy',
-      confirmButtonColor: '#d33',
-      cancelButtonColor: '#667eea',
+      confirmButtonColor: teacher.active ? '#dc3545' : '#28a745',
     });
 
     if (result.isConfirmed) {
       try {
-        // TODO: Gọi API thực tế
-        // await adminService.deleteTeacher(teacherId);
-
-        Swal.fire({
-          icon: 'success',
-          title: 'Đã xóa',
-          text: 'Giáo viên đã được xóa thành công',
-          confirmButtonColor: '#667eea',
-        });
-
-        fetchTeachers();
-      } catch (error) {
-        Swal.fire({
-          icon: 'error',
-          title: 'Lỗi',
-          text: 'Không thể xóa giáo viên',
-          confirmButtonColor: '#d33',
-        });
+        if (teacher.active) {
+          await axiosClient.post(`/admin/users/${teacher.id}/lock`, {
+            reason: 'Locked by Admin',
+            adminId: 1
+          });
+        } else {
+          await axiosClient.post(`/admin/users/${teacher.id}/unlock`);
+        }
+        await fetchTeachers();
+        Swal.fire('Thành công', `Đã ${action} tài khoản`, 'success');
+      } catch (err) {
+        Swal.fire('Lỗi', 'Không thể thay đổi trạng thái tài khoản', 'error');
       }
     }
   };
 
-  const getStatusBadge = (status) => {
-    switch (status) {
-      case 'ACTIVE':
-        return <Badge variant="success" size="sm">✅ Hoạt động</Badge>;
-      case 'INACTIVE':
-        return <Badge variant="secondary" size="sm">⏸️ Không hoạt động</Badge>;
-      case 'PENDING':
-        return <Badge variant="warning" size="sm">⏳ Chờ duyệt</Badge>;
-      default:
-        return <Badge variant="secondary" size="sm">{status}</Badge>;
+  // Handle delete
+  const handleDelete = async (teacher) => {
+    const result = await Swal.fire({
+      icon: 'warning',
+      title: 'Xóa giáo viên?',
+      text: `Bạn có chắc chắn muốn xóa ${teacher.fullName}? Hành động này không thể hoàn tác.`,
+      showCancelButton: true,
+      confirmButtonText: 'Xóa',
+      cancelButtonText: 'Hủy',
+      confirmButtonColor: '#dc3545',
+    });
+
+    if (result.isConfirmed) {
+      try {
+        await axiosClient.delete(`/admin/users/${teacher.id}`);
+        await fetchTeachers();
+        Swal.fire('Thành công', 'Đã xóa giáo viên', 'success');
+      } catch (err) {
+        Swal.fire('Lỗi', 'Không thể xóa giáo viên', 'error');
+      }
     }
   };
 
-  const filteredTeachers = teachers.filter(teacher => {
-    const matchesSearch =
-      teacher.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      teacher.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      teacher.username.toLowerCase().includes(searchQuery.toLowerCase());
-
-    const matchesFilter = filterStatus === 'ALL' || teacher.status === filterStatus;
-
-    return matchesSearch && matchesFilter;
-  });
-
   if (loading) {
     return (
-      <PageContainer>
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-        </div>
-      </PageContainer>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-700"></div>
+      </div>
     );
   }
 
   return (
-    <PageContainer variant="wide">
+    <div className="p-6 lg:p-8 space-y-6">
+      {/* Page Header */}
       <PageHeader
-        title={t('admin.teachers.title', 'Quản lý Giáo viên')}
-        subtitle={t('admin.teachers.subtitle', 'Quản lý thông tin và hoạt động của giáo viên')}
+        title="Quản lý Giáo viên"
+        subtitle="Quản lý thông tin và phân công giáo viên"
+        icon={<Users className="w-8 h-8" />}
       />
 
+      {error && (
+        <Alert type="error" message={error} onClose={() => setError(null)} />
+      )}
+
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-        <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white border-0">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-blue-100 text-sm font-medium">Tổng giáo viên</p>
@@ -243,293 +189,295 @@ const TeachersManagement = () => {
           </div>
         </Card>
 
-        <Card className="bg-gradient-to-br from-green-500 to-green-600 text-white border-0">
+        <Card className="bg-gradient-to-br from-green-500 to-green-600 text-white">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-green-100 text-sm font-medium">Đang hoạt động</p>
-              <p className="text-3xl font-bold mt-1">{teachers.filter(t => t.status === 'ACTIVE').length}</p>
+              <p className="text-3xl font-bold mt-1">{teachers.filter(t => t.active).length}</p>
             </div>
             <CheckCircle className="w-12 h-12 text-green-200" />
           </div>
         </Card>
 
-        <Card className="bg-gradient-to-br from-amber-500 to-amber-600 text-white border-0">
+        <Card className="bg-gradient-to-br from-amber-500 to-amber-600 text-white">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-amber-100 text-sm font-medium">Chờ duyệt</p>
-              <p className="text-3xl font-bold mt-1">{teachers.filter(t => t.status === 'PENDING').length}</p>
+              <p className="text-amber-100 text-sm font-medium">Tài khoản bị khóa</p>
+              <p className="text-3xl font-bold mt-1">{teachers.filter(t => !t.active).length}</p>
             </div>
-            <Clock className="w-12 h-12 text-amber-200" />
+            <Lock className="w-12 h-12 text-amber-200" />
           </div>
         </Card>
 
-        <Card className="bg-gradient-to-br from-purple-500 to-purple-600 text-white border-0">
+        <Card className="bg-gradient-to-br from-purple-500 to-purple-600 text-white">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-purple-100 text-sm font-medium">Đánh giá TB</p>
+              <p className="text-purple-100 text-sm font-medium">Đang phân công</p>
               <p className="text-3xl font-bold mt-1">
-                {teachers.length > 0
-                  ? (teachers.reduce((sum, t) => sum + (t.rating || 0), 0) / teachers.length).toFixed(1)
-                  : '0'}
+                {teachers.reduce((sum, t) => sum + (t.assignedCourses || 0), 0)}
               </p>
             </div>
-            <Award className="w-12 h-12 text-purple-200" />
+            <BookOpen className="w-12 h-12 text-purple-200" />
           </div>
         </Card>
       </div>
 
       {/* Filters & Actions */}
-      <Card className="mb-6">
-        <div className="flex flex-wrap items-center gap-4">
-          <div className="flex-1 min-w-64">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Tìm kiếm giáo viên..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              />
-            </div>
+      <Card className="p-6">
+        <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
+          {/* Search */}
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <input
+              type="text"
+              placeholder="Tìm kiếm giáo viên..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
           </div>
 
-          <div className="flex items-center gap-2">
-            <Filter className="w-5 h-5 text-gray-400" />
+          {/* Filters */}
+          <div className="flex gap-3 items-center">
             <select
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
-              <option value="ALL">Tất cả trạng thái</option>
-              <option value="ACTIVE">Hoạt động</option>
-              <option value="INACTIVE">Không hoạt động</option>
-              <option value="PENDING">Chờ duyệt</option>
+              <option value="all">Tất cả trạng thái</option>
+              <option value="active">Đang hoạt động</option>
+              <option value="inactive">Bị khóa</option>
             </select>
-          </div>
 
-          <Button variant="primary">
-            <Plus className="w-4 h-4 mr-2" />
-            Thêm giáo viên
-          </Button>
+            <select
+              value={`${sortBy}-${sortOrder}`}
+              onChange={(e) => {
+                const [field, order] = e.target.value.split('-');
+                setSortBy(field);
+                setSortOrder(order);
+              }}
+              className="px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="name-asc">Tên A-Z</option>
+              <option value="name-desc">Tên Z-A</option>
+              <option value="courses-desc">Số khóa học ↓</option>
+              <option value="courses-asc">Số khóa học ↑</option>
+              <option value="createdAt-desc">Mới nhất</option>
+              <option value="createdAt-asc">Cũ nhất</option>
+            </select>
+
+            <Button
+              variant="outline"
+              onClick={fetchTeachers}
+              className="flex items-center gap-2"
+            >
+              <RefreshCw className="w-4 h-4" />
+              Làm mới
+            </Button>
+          </div>
         </div>
       </Card>
 
-      {/* Teachers List */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {filteredTeachers.map((teacher) => (
-          <Card
-            key={teacher.id}
-            className="hover:shadow-lg transition-all duration-300"
-          >
-            <div className="p-6">
-              {/* Header */}
-              <div className="flex items-start gap-4 mb-4">
-                <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl flex items-center justify-center text-white font-bold text-2xl shrink-0">
-                  {teacher.fullName.charAt(0)}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h3 className="text-lg font-bold text-gray-900 truncate">
-                      {teacher.fullName}
-                    </h3>
-                    {getStatusBadge(teacher.status)}
-                  </div>
-                  <p className="text-sm text-gray-600">@{teacher.username}</p>
-                  <p className="text-xs text-gray-500">{teacher.email}</p>
-                </div>
-              </div>
-
-              {/* Stats */}
-              <div className="grid grid-cols-4 gap-4 mb-4 p-4 bg-gray-50 rounded-lg">
-                <div className="text-center">
-                  <BookOpen className="w-5 h-5 text-indigo-600 mx-auto mb-1" />
-                  <p className="text-xs text-gray-500">Khóa học</p>
-                  <p className="text-sm font-bold text-gray-900">{teacher.courses}</p>
-                </div>
-                <div className="text-center">
-                  <Users className="w-5 h-5 text-green-600 mx-auto mb-1" />
-                  <p className="text-xs text-gray-500">Học viên</p>
-                  <p className="text-sm font-bold text-gray-900">{teacher.students}</p>
-                </div>
-                <div className="text-center">
-                  <Award className="w-5 h-5 text-amber-600 mx-auto mb-1" />
-                  <p className="text-xs text-gray-500">Đánh giá</p>
-                  <p className="text-sm font-bold text-gray-900">{teacher.rating || 'N/A'}</p>
-                </div>
-                <div className="text-center">
-                  <TrendingUp className="w-5 h-5 text-purple-600 mx-auto mb-1" />
-                  <p className="text-xs text-gray-500">Kinh nghiệm</p>
-                  <p className="text-sm font-bold text-gray-900">{teacher.exams} năm</p>
-                </div>
-              </div>
-
-              {/* Specialization */}
-              <div className="mb-4">
-                <p className="text-xs text-gray-500 mb-1">Chuyên môn:</p>
-                <div className="flex flex-wrap gap-1">
-                  {teacher.specialization.split(',').map((spec, index) => (
-                    <span
-                      key={index}
-                      className="px-2 py-1 bg-indigo-50 text-indigo-700 text-xs rounded-lg"
-                    >
-                      {spec.trim()}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              {/* Actions */}
-              <div className="flex items-center gap-2 pt-4 border-t border-gray-200">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="flex-1"
-                  onClick={() => {
-                    setSelectedTeacher(teacher);
-                    setShowDetailModal(true);
-                  }}
-                >
-                  <Eye className="w-4 h-4 mr-1" />
-                  Chi tiết
-                </Button>
-                <Button variant="secondary" size="sm">
-                  <Edit className="w-4 h-4" />
-                </Button>
-                {teacher.status === 'ACTIVE' && (
-                  <Button
-                    variant="warning"
-                    size="sm"
-                    onClick={() => handleStatusChange(teacher.id, 'INACTIVE')}
-                  >
-                    <XCircle className="w-4 h-4" />
-                  </Button>
-                )}
-                {teacher.status === 'INACTIVE' && (
-                  <Button
-                    variant="success"
-                    size="sm"
-                    onClick={() => handleStatusChange(teacher.id, 'ACTIVE')}
-                  >
-                    <CheckCircle className="w-4 h-4" />
-                  </Button>
-                )}
-                {teacher.status === 'PENDING' && (
-                  <>
-                    <Button
-                      variant="success"
-                      size="sm"
-                      onClick={() => handleStatusChange(teacher.id, 'ACTIVE')}
-                    >
-                      <CheckCircle className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant="error"
-                      size="sm"
-                      onClick={() => handleDeleteTeacher(teacher.id)}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </>
-                )}
-              </div>
-            </div>
-          </Card>
-        ))}
-      </div>
-
-      {filteredTeachers.length === 0 && (
-        <Card className="text-center py-12">
-          <GraduationCap className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <p className="text-gray-500 text-lg">Không tìm thấy giáo viên nào</p>
-          <p className="text-gray-400 text-sm mt-2">Thử thay đổi bộ lọc hoặc thêm giáo viên mới</p>
-        </Card>
-      )}
+      {/* Teachers Table */}
+      <Card className="overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50 border-b border-gray-200">
+              <tr>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  Giáo viên
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  Liên hệ
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  Khóa học
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  Trạng thái
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  Ngày tham gia
+                </th>
+                <th className="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  Hành động
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {filteredTeachers.length === 0 ? (
+                <tr>
+                  <td colSpan="6" className="px-6 py-12 text-center text-gray-500">
+                    <Users className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                    <p className="text-lg font-medium">Không tìm thấy giáo viên nào</p>
+                    <p className="text-sm">Thử thay đổi điều kiện tìm kiếm</p>
+                  </td>
+                </tr>
+              ) : (
+                filteredTeachers.map((teacher) => (
+                  <tr key={teacher.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                          {(teacher.fullName || teacher.username || 'T').charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                          <p className="font-semibold text-gray-900">{teacher.fullName || teacher.username}</p>
+                          <p className="text-sm text-gray-500">@{teacher.username}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2 text-sm text-gray-600">
+                          <Mail className="w-4 h-4" />
+                          {teacher.email}
+                        </div>
+                        {teacher.phone && (
+                          <div className="flex items-center gap-2 text-sm text-gray-600">
+                            <Phone className="w-4 h-4" />
+                            {teacher.phone}
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2">
+                        <BookOpen className="w-4 h-4 text-gray-400" />
+                        <span className="font-semibold text-gray-900">{teacher.assignedCourses || 0}</span>
+                        <span className="text-sm text-gray-500">khóa học</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <Badge
+                        type={teacher.active ? 'success' : 'danger'}
+                        className="inline-flex items-center gap-1"
+                      >
+                        {teacher.active ? (
+                          <>
+                            <CheckCircle className="w-3 h-3" />
+                            Hoạt động
+                          </>
+                        ) : (
+                          <>
+                            <Lock className="w-3 h-3" />
+                            Đã khóa
+                          </>
+                        )}
+                      </Badge>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <Calendar className="w-4 h-4" />
+                        {teacher.createdAt ? new Date(teacher.createdAt).toLocaleDateString('vi-VN') : 'N/A'}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center justify-end gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleViewDetails(teacher)}
+                          title="Xem chi tiết"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleToggleStatus(teacher)}
+                          title={teacher.active ? 'Khóa tài khoản' : 'Mở khóa'}
+                          className={teacher.active ? 'text-amber-600 hover:text-amber-700' : 'text-green-600 hover:text-green-700'}
+                        >
+                          {teacher.active ? <Lock className="w-4 h-4" /> : <Unlock className="w-4 h-4" />}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDelete(teacher)}
+                          title="Xóa"
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </Card>
 
       {/* Detail Modal */}
       {showDetailModal && selectedTeacher && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-gray-200">
-              <div className="flex items-center justify-between">
-                <h3 className="text-xl font-bold text-gray-900">Chi tiết giáo viên</h3>
-                <button
-                  onClick={() => setShowDetailModal(false)}
-                  className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg"
-                >
-                  ✕
-                </button>
+        <Modal onClose={() => setShowDetailModal(false)}>
+          <div className="p-6">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-2xl">
+                {(selectedTeacher.fullName || selectedTeacher.username || 'T').charAt(0).toUpperCase()}
+              </div>
+              <div>
+                <h3 className="text-2xl font-bold text-gray-900">
+                  {selectedTeacher.fullName || selectedTeacher.username}
+                </h3>
+                <p className="text-gray-500">@{selectedTeacher.username}</p>
               </div>
             </div>
 
-            <div className="p-6 space-y-6">
-              {/* Basic Info */}
-              <div className="flex items-center gap-4">
-                <div className="w-20 h-20 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl flex items-center justify-center text-white font-bold text-3xl">
-                  {selectedTeacher.fullName.charAt(0)}
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm text-gray-500 mb-1">Email</p>
+                  <p className="font-medium">{selectedTeacher.email}</p>
                 </div>
                 <div>
-                  <h4 className="text-xl font-bold text-gray-900">{selectedTeacher.fullName}</h4>
-                  <p className="text-gray-600">@{selectedTeacher.username}</p>
-                  {getStatusBadge(selectedTeacher.status)}
+                  <p className="text-sm text-gray-500 mb-1">Số điện thoại</p>
+                  <p className="font-medium">{selectedTeacher.phone || 'N/A'}</p>
                 </div>
-              </div>
-
-              {/* Contact Info */}
-              <div>
-                <h5 className="font-semibold text-gray-900 mb-2">Thông tin liên hệ</h5>
-                <div className="space-y-2 text-sm">
-                  <p><span className="text-gray-500">Email:</span> {selectedTeacher.email}</p>
-                  <p><span className="text-gray-500">SĐT:</span> {selectedTeacher.phone}</p>
+                <div>
+                  <p className="text-sm text-gray-500 mb-1">Số khóa học</p>
+                  <p className="font-medium">{selectedTeacher.assignedCourses || 0}</p>
                 </div>
-              </div>
-
-              {/* Teaching Info */}
-              <div>
-                <h5 className="font-semibold text-gray-900 mb-2">Thông tin giảng dạy</h5>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <p><span className="text-gray-500">Chuyên môn:</span> {selectedTeacher.specialization}</p>
-                  <p><span className="text-gray-500">Kinh nghiệm:</span> {selectedTeacher.experience} năm</p>
-                  <p><span className="text-gray-500">Số khóa học:</span> {selectedTeacher.courses}</p>
-                  <p><span className="text-gray-500">Học viên:</span> {selectedTeacher.students}</p>
-                  <p><span className="text-gray-500">Đánh giá:</span> {selectedTeacher.rating}/5.0</p>
-                  <p><span className="text-gray-500">Ngày tham gia:</span> {new Date(selectedTeacher.joinDate).toLocaleDateString('vi-VN')}</p>
+                <div>
+                  <p className="text-sm text-gray-500 mb-1">Trạng thái</p>
+                  <Badge type={selectedTeacher.active ? 'success' : 'danger'}>
+                    {selectedTeacher.active ? 'Hoạt động' : 'Đã khóa'}
+                  </Badge>
                 </div>
-              </div>
-
-              {/* Qualifications */}
-              <div>
-                <h5 className="font-semibold text-gray-900 mb-2">Bằng cấp</h5>
-                <div className="space-y-1">
-                  {selectedTeacher.qualifications.map((qual, index) => (
-                    <div key={index} className="flex items-center gap-2 text-sm">
-                      <CheckCircle className="w-4 h-4 text-green-500" />
-                      <span>{qual}</span>
-                    </div>
-                  ))}
+                <div>
+                  <p className="text-sm text-gray-500 mb-1">Ngày tham gia</p>
+                  <p className="font-medium">
+                    {selectedTeacher.createdAt ? new Date(selectedTeacher.createdAt).toLocaleDateString('vi-VN') : 'N/A'}
+                  </p>
                 </div>
-              </div>
-
-              {/* Bio */}
-              <div>
-                <h5 className="font-semibold text-gray-900 mb-2">Giới thiệu</h5>
-                <p className="text-sm text-gray-600">{selectedTeacher.bio}</p>
+                <div>
+                  <p className="text-sm text-gray-500 mb-1">Đăng nhập lần cuối</p>
+                  <p className="font-medium">
+                    {selectedTeacher.lastLogin ? new Date(selectedTeacher.lastLogin).toLocaleString('vi-VN') : 'Chưa đăng nhập'}
+                  </p>
+                </div>
               </div>
             </div>
 
-            <div className="p-6 border-t border-gray-200 flex justify-end gap-3">
-              <Button variant="ghost" onClick={() => setShowDetailModal(false)}>
+            <div className="flex justify-end gap-3 mt-6">
+              <Button variant="outline" onClick={() => setShowDetailModal(false)}>
                 Đóng
               </Button>
-              <Button variant="primary">
-                <Edit className="w-4 h-4 mr-2" />
+              <Button
+                onClick={() => {
+                  setShowDetailModal(false);
+                  navigate(`/admin/teachers/${selectedTeacher.id}`);
+                }}
+              >
                 Chỉnh sửa
               </Button>
             </div>
           </div>
-        </div>
+        </Modal>
       )}
-    </PageContainer>
+    </div>
   );
 };
 
