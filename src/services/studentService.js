@@ -114,6 +114,19 @@ export const studentService = {
         }
     },
 
+    /**
+     * Get class details for student
+     * GET /api/student/classes/{classId}
+     */
+    getClassDetails: async (classId) => {
+        try {
+            return await axiosClient.get(`/student/classes/${classId}`);
+        } catch (error) {
+            console.error('Error fetching class details:', error);
+            throw error;
+        }
+    },
+
     // ==================== STAFF ====================
 
     /**
