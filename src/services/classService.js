@@ -59,6 +59,19 @@ export const classService = {
 
     removeTeacher: async (classId, teacherId) => {
         return await axiosClient.delete(`/classes/${classId}/teachers/${teacherId}`);
+    },
+
+    // Teacher-specific endpoints
+    getTeacherClasses: async () => {
+        return await axiosClient.get('/teacher/classes');
+    },
+
+    getClassExams: async (classId) => {
+        return await axiosClient.get(`/teacher/classes/${classId}/exams`);
+    },
+
+    createClassExam: async (classId, examData) => {
+        return await axiosClient.post(`/teacher/classes/${classId}/exams`, examData);
     }
 };
 

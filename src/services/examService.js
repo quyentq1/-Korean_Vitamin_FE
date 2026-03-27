@@ -59,6 +59,17 @@ export const examService = {
         });
     },
 
+    // Get all exams by course (used by StudentExamList)
+    getExamsByCourse: async (courseId) => {
+        return await axiosClient.get(`/education-manager/exams/course/${courseId}`);
+    },
+
+    // Get available exams for student (course-level + class-level)
+    // Returns: { courseExams: [...], classExams: [...] }
+    getAvailableExamsForStudent: async (courseId) => {
+        return await axiosClient.get(`/student/exams/course/${courseId}`);
+    },
+
     // Get MOCK exams for public/guest (for FreeTest)
     getMockExams: async () => {
         return await axiosClient.get('/guest/exams', {
@@ -74,6 +85,11 @@ export const examService = {
     // Approve or reject an exam
     approveExam: async (examId, data) => {
         return await axiosClient.post(`/education-manager/exams/${examId}/approve`, data);
+    },
+
+    // Get exam details with questions for approval review
+    getExamDetailsForApproval: async (examId) => {
+        return await axiosClient.get(`/education-manager/exams/${examId}/details`);
     },
 
     // ==================== Teacher APIs ====================
