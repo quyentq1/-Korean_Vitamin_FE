@@ -1,7 +1,8 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
+import studentService from '../../services/studentService';
 import {
   BookOpen,
   FileText,
@@ -34,6 +35,35 @@ const StudentLayout = () => {
   const location = useLocation();
   const { user, logout } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [stats, setStats] = useState({
+    totalCourses: 0,
+    completedExams: 0,
+    averageScore: 0
+  });
+
+  // Fetch student stats for sidebar
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const [dashboardData, examResults] = await Promise.all([
+          studentService.getDashboardData().catch(() => null),
+          studentService.getExamResults().catch(() => ({ results: [] }))
+        ]);
+
+        setStats({
+          totalCourses: dashboardData?.totalCourses || 0,
+          completedExams: examResults?.results?.length || 0,
+          averageScore: examResults?.results?.length > 0
+            ? Math.round(examResults.results.reduce((sum, r) => sum + (r.totalScore || 0), 0) / examResults.results.length)
+            : 0
+        });
+      } catch (error) {
+        console.error('Error fetching stats:', error);
+      }
+    };
+
+    fetchStats();
+  }, []);
 
   // Handle logout
   const handleLogout = () => {
@@ -55,14 +85,14 @@ const StudentLayout = () => {
 
   // Sidebar navigation items
   const navItems = useMemo(() => [
-    { icon: <Home className="w-5 h-5" />, label: t('student.dashboard.home'), path: '/student' },
-    { icon: <BookOpen className="w-5 h-5" />, label: t('student.dashboard.myCourses'), path: '/student/my-courses' },
-    { icon: <FileText className="w-5 h-5" />, label: t('student.dashboard.exams'), path: '/student/exams' },
-    { icon: <ClipboardCheck className="w-5 h-5" />, label: t('student.dashboard.results'), path: '/student/results' },
-    { icon: <GraduationCap className="w-5 h-5" />, label: t('student.dashboard.progress'), path: '/student/progress' },
-    { icon: <BarChart3 className="w-5 h-5" />, label: t('student.dashboard.statistics'), path: '/student/statistics' },
-    { icon: <Calendar className="w-5 h-5" />, label: t('student.dashboard.schedule'), path: '/student/schedule' },
-  ], [t]);
+    { icon: <Home className="w-5 h-5" />, label: 'Trang chủ', path: '/student' },
+    { icon: <BookOpen className="w-5 h-5" />, label: 'Khóa học', path: '/student/my-courses' },
+    { icon: <FileText className="w-5 h-5" />, label: 'Bài kiểm tra', path: '/student/exams' },
+    { icon: <ClipboardCheck className="w-5 h-5" />, label: 'Kết quả', path: '/student/results' },
+    { icon: <GraduationCap className="w-5 h-5" />, label: 'Tiến độ', path: '/student/progress' },
+    { icon: <BarChart3 className="w-5 h-5" />, label: 'Thống kê', path: '/student/statistics' },
+    { icon: <Calendar className="w-5 h-5" />, label: 'Lịch học', path: '/student/schedule' },
+  ], []);
 
   // Check if current path is active
   const isActive = (path) => {
@@ -104,26 +134,26 @@ const StudentLayout = () => {
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-bold text-gray-900 truncate">
-                {user?.fullName || user?.username || 'Student'}
+                {user?.fullName || user?.username || 'Học viên'}
               </p>
               <p className="text-xs text-indigo-600 truncate">
-                {t('role.student')}
+                Học viên
               </p>
             </div>
           </div>
           {/* Stats */}
           <div className="grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-indigo-200">
             <div className="text-center">
-              <p className="text-xs text-gray-500">Courses</p>
-              <p className="text-sm font-bold text-indigo-600">3</p>
+              <p className="text-xs text-gray-500">Khóa học</p>
+              <p className="text-sm font-bold text-indigo-600">{stats.totalCourses}</p>
             </div>
             <div className="text-center">
-              <p className="text-xs text-gray-500">Exams</p>
-              <p className="text-sm font-bold text-purple-600">12</p>
+              <p className="text-xs text-gray-500">Bài kiểm tra</p>
+              <p className="text-sm font-bold text-purple-600">{stats.completedExams}</p>
             </div>
             <div className="text-center">
-              <p className="text-xs text-gray-500">Score</p>
-              <p className="text-sm font-bold text-pink-600">85%</p>
+              <p className="text-xs text-gray-500">Điểm TB</p>
+              <p className="text-sm font-bold text-pink-600">{stats.averageScore}%</p>
             </div>
           </div>
         </div>
