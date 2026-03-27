@@ -12,8 +12,8 @@ const StudentMail = () => {
   return (
     <PageContainer variant="wide">
       <PageHeader
-        title={t('student.mail.title', 'Hộp thư')}
-        subtitle={t('student.mail.subtitle', 'Quản lý email và thông báo')}
+        title="Hộp thư"
+        subtitle="Quản lý email và thông báo"
       />
       <Mail userRole="student" />
     </PageContainer>

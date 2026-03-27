@@ -11,7 +11,8 @@ import {
   TrendingUp,
   Calendar,
   Award,
-  Filter
+  Filter,
+  Users
 } from 'lucide-react';
 import examService from '../../services/examService';
 import { useAuth } from '../../contexts/AuthContext';
@@ -26,7 +27,8 @@ const StudentExamList = () => {
   const { courseId } = useParams();
   const { user } = useAuth();
 
-  const [exams, setExams] = useState([]);
+  const [courseExams, setCourseExams] = useState([]);  // Course-level exams (all students)
+  const [classExams, setClassExams] = useState([]);    // Class-specific exams
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [courseInfo, setCourseInfo] = useState(null);
@@ -47,52 +49,28 @@ const StudentExamList = () => {
   const fetchPracticeExams = async () => {
     setLoading(true);
     try {
-      // Fetch PRACTICE exams for this course
-      const response = await examService.getExamsByCourse(courseId);
+      // Fetch both course-level and class-level exams
+      const response = await examService.getAvailableExamsForStudent(courseId);
 
-      // Filter only PRACTICE exams (backend should also filter, but frontend double-checks)
-      const practiceExams = Array.isArray(response)
-        ? response.filter(exam => exam.examCategory === 'PRACTICE' && exam.published)
-        : [];
+      const courseLevelExams = response.courseExams || [];
+      const classLevelExams = response.classExams || [];
 
-      // Get exam attempts for each exam to determine status
-      const examsWithStatus = await Promise.all(
-        practiceExams.map(async (exam) => {
-          try {
-            const attempts = await examService.getExamAttempts(exam.id);
-            const completedAttempts = attempts.filter(a => a.completedAt);
+      // Process course-level exams
+      const courseExamsWithStatus = await processExamList(courseLevelExams);
 
-            return {
-              ...exam,
-              attempts: attempts || [],
-              completedAttempts: completedAttempts.length,
-              bestScore: completedAttempts.length > 0
-                ? Math.max(...completedAttempts.map(a => a.score || 0))
-                : null,
-              status: getExamStatus(exam, attempts || []),
-              canStart: canStartExam(exam, attempts || [])
-            };
-          } catch (err) {
-            return {
-              ...exam,
-              attempts: [],
-              completedAttempts: 0,
-              bestScore: null,
-              status: 'available',
-              canStart: true
-            };
-          }
-        })
-      );
+      // Process class-level exams
+      const classExamsWithStatus = await processExamList(classLevelExams);
 
-      setExams(examsWithStatus);
+      setCourseExams(courseExamsWithStatus);
+      setClassExams(classExamsWithStatus);
 
-      // Calculate stats
+      // Calculate combined stats
+      const allExams = [...courseExamsWithStatus, ...classExamsWithStatus];
       const stats = {
-        total: examsWithStatus.length,
-        completed: examsWithStatus.filter(e => e.status === 'completed').length,
-        inProgress: examsWithStatus.filter(e => e.status === 'in_progress').length,
-        locked: examsWithStatus.filter(e => e.status === 'locked').length
+        total: allExams.length,
+        completed: allExams.filter(e => e.status === 'completed').length,
+        inProgress: allExams.filter(e => e.status === 'in_progress').length,
+        locked: allExams.filter(e => e.status === 'locked').length
       };
       setStats(stats);
 
@@ -144,9 +122,46 @@ const StudentExamList = () => {
       'WRITING': { label: 'Viết', color: 'bg-green-100 text-green-700' },
       'LISTENING': { label: 'Nghe', color: 'bg-purple-100 text-purple-700' },
       'READING': { label: 'Đọc hiểu', color: 'bg-orange-100 text-orange-700' },
+      'SPEAKING': { label: 'Nói', color: 'bg-pink-100 text-pink-700' },
       'MIXED': { label: 'Hỗn hợp', color: 'bg-indigo-100 text-indigo-700' }
     };
     return config[type] || config.MIXED;
+  };
+
+  // Helper function to process exam list and add status
+  const processExamList = async (exams) => {
+    const examsWithStatus = await Promise.all(
+      exams.map(async (exam) => {
+        try {
+          // Get attempts for this exam (if available)
+          const attempts = await examService.getExamAttempts(exam.id);
+          const completedAttempts = attempts.filter(a => a.completedAt);
+
+          return {
+            ...exam,
+            attempts: attempts || [],
+            completedAttempts: completedAttempts.length,
+            bestScore: completedAttempts.length > 0
+              ? Math.max(...completedAttempts.map(a => a.totalScore || 0))
+              : null,
+            status: getExamStatus(exam, attempts || []),
+            canStart: canStartExam(exam, attempts || [])
+          };
+        } catch (err) {
+          // If getting attempts fails, still show the exam
+          return {
+            ...exam,
+            attempts: [],
+            completedAttempts: 0,
+            bestScore: null,
+            status: 'available',
+            canStart: true
+          };
+        }
+      })
+    );
+
+    return examsWithStatus;
   };
 
   const getStatusBadge = (status) => {
@@ -291,107 +306,250 @@ const StudentExamList = () => {
           </div>
         </div>
 
-        {/* Exam List */}
-        {filteredExams.length === 0 ? (
-          <div className="bg-white rounded-xl p-12 text-center shadow-sm border border-gray-100">
-            <FileText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-500 text-lg">Không có bài luyện tập nào</p>
-            <p className="text-gray-400 text-sm mt-2">Thử đổi bộ lọc hoặc quay lại sau</p>
+        {/* Course-Level Exams Section */}
+        <div className="mb-8">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-4">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
+                <BookOpen className="w-5 h-5 text-blue-600" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">
+                  📚 Bài Luyện Tập Khóa Học
+                </h2>
+                <p className="text-sm text-gray-600">
+                  Dành cho tất cả học viên trong khóa học
+                </p>
+              </div>
+            </div>
           </div>
-        ) : (
-          <div className="space-y-4">
-            {filteredExams.map((exam) => {
-              const typeBadge = getExamTypeBadge(exam.examType);
-              const statusBadge = getStatusBadge(exam.status);
 
-              return (
-                <div
-                  key={exam.id}
-                  className={`bg-white rounded-xl p-6 shadow-sm border-2 transition-all hover:shadow-md ${
-                    exam.canStart
-                      ? 'border-gray-100 hover:border-indigo-200'
-                      : 'border-gray-100 opacity-75'
-                  }`}
-                >
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1">
-                      {/* Header */}
-                      <div className="flex items-start gap-3 mb-3">
-                        <h3 className="text-lg font-bold text-gray-900">{exam.title}</h3>
-                        <span className={`px-2.5 py-0.5 text-xs font-semibold rounded-full ${typeBadge.color}`}>
-                          {typeBadge.label}
-                        </span>
-                        <span className={`px-2.5 py-0.5 text-xs font-semibold rounded-full flex items-center gap-1 ${statusBadge.color}`}>
-                          {statusBadge.icon}
-                          {statusBadge.label}
-                        </span>
-                      </div>
+          {courseExams.length === 0 ? (
+            <div className="bg-white rounded-xl p-8 text-center shadow-sm border border-gray-100 mb-6">
+              <FileText className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+              <p className="text-gray-500">Không có bài luyện tập khóa học nào</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {courseExams.map((exam) => {
+                const typeBadge = getExamTypeBadge(exam.skillType || exam.examType);
+                const statusBadge = getStatusBadge(exam.status);
 
-                      {/* Description */}
-                      {exam.description && (
-                        <p className="text-gray-600 text-sm mb-3">{exam.description}</p>
-                      )}
+                return (
+                  <div
+                    key={exam.id}
+                    className={`bg-white rounded-xl p-6 shadow-sm border-2 transition-all hover:shadow-md ${
+                      exam.canStart
+                        ? 'border-blue-100 hover:border-blue-200'
+                        : 'border-gray-100 opacity-75'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1">
+                        {/* Header with Badge */}
+                        <div className="flex items-start gap-3 mb-3">
+                          <h3 className="text-lg font-bold text-gray-900">{exam.title}</h3>
+                          <span className="px-3 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-700">
+                            Khóa học
+                          </span>
+                          <span className={`px-2.5 py-0.5 text-xs font-semibold rounded-full ${typeBadge.color}`}>
+                            {typeBadge.label}
+                          </span>
+                          <span className={`px-2.5 py-0.5 text-xs font-semibold rounded-full flex items-center gap-1 ${statusBadge.color}`}>
+                            {statusBadge.icon}
+                            {statusBadge.label}
+                          </span>
+                        </div>
 
-                      {/* Info */}
-                      <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
-                        <div className="flex items-center gap-1.5">
-                          <Clock className="w-4 h-4" />
-                          <span>{exam.durationMinutes} phút</span>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          <FileText className="w-4 h-4" />
-                          <span>{exam.examQuestions?.length || exam.totalQuestions || 0} câu hỏi</span>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          <TrendingUp className="w-4 h-4" />
-                          <span>Đạt: {exam.passingScore || 60}%</span>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          <Award className="w-4 h-4" />
-                          <span>Lần làm: {exam.completedAttempts}</span>
-                        </div>
-                        {exam.bestScore !== null && (
-                          <div className="flex items-center gap-1.5 text-green-600 font-medium">
-                            <CheckCircle2 className="w-4 h-4" />
-                            <span>Điểm cao nhất: {exam.bestScore}</span>
-                          </div>
+                        {/* Description */}
+                        {exam.description && (
+                          <p className="text-gray-600 text-sm mb-3">{exam.description}</p>
                         )}
-                      </div>
-                    </div>
 
-                    {/* Action Button */}
-                    <button
-                      onClick={() => handleStartExam(exam)}
-                      disabled={!exam.canStart}
-                      className={`px-6 py-3 rounded-xl font-semibold transition-all flex items-center gap-2 whitespace-nowrap ${
-                        exam.canStart
-                          ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:shadow-lg hover:-translate-y-0.5'
-                          : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                      }`}
-                    >
-                      {exam.status === 'completed' ? (
-                        <>
-                          <CheckCircle2 className="w-4 h-4" />
-                          Đã hoàn thành
-                        </>
-                      ) : exam.status === 'in_progress' ? (
-                        <>
-                          <Play className="w-4 h-4" />
-                          Tiếp tục
-                        </>
-                      ) : (
-                        <>
-                          <Play className="w-4 h-4" />
-                          Bắt đầu
-                        </>
-                      )}
-                    </button>
+                        {/* Info */}
+                        <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
+                          <div className="flex items-center gap-1.5">
+                            <Clock className="w-4 h-4" />
+                            <span>{exam.durationMinutes} phút</span>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <FileText className="w-4 h-4" />
+                            <span>{exam.examQuestions?.length || exam.totalQuestions || 0} câu hỏi</span>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <TrendingUp className="w-4 h-4" />
+                            <span>Đạt: {exam.passingScore || 60}%</span>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <Award className="w-4 h-4" />
+                            <span>Lần làm: {exam.completedAttempts || 0}</span>
+                          </div>
+                          {exam.bestScore !== null && (
+                            <div className="flex items-center gap-1.5 text-green-600 font-medium">
+                              <CheckCircle2 className="w-4 h-4" />
+                              <span>Điểm cao nhất: {exam.bestScore}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Action Button */}
+                      <button
+                        onClick={() => handleStartExam(exam)}
+                        disabled={!exam.canStart}
+                        className={`px-6 py-3 rounded-xl font-semibold transition-all flex items-center gap-2 whitespace-nowrap ${
+                          exam.canStart
+                            ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:shadow-lg hover:-translate-y-0.5'
+                            : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                        }`}
+                      >
+                        {exam.status === 'completed' ? (
+                          <>
+                            <CheckCircle2 className="w-4 h-4" />
+                            Đã hoàn thành
+                          </>
+                        ) : exam.status === 'in_progress' ? (
+                          <>
+                            <Play className="w-4 h-4" />
+                            Tiếp tục
+                          </>
+                        ) : (
+                          <>
+                            <Play className="w-4 h-4" />
+                            Bắt đầu
+                          </>
+                        )}
+                      </button>
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Class-Specific Exams Section */}
+        <div>
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-4">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center">
+                <Users className="w-5 h-5 text-purple-600" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">
+                  🎯 Bài Luyện Tập Theo Lớp
+                </h2>
+                <p className="text-sm text-gray-600">
+                  Dành riêng cho lớp học của bạn
+                </p>
+              </div>
+            </div>
           </div>
-        )}
+
+          {classExams.length === 0 ? (
+            <div className="bg-white rounded-xl p-8 text-center shadow-sm border border-gray-100">
+              <Users className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+              <p className="text-gray-500">Không có bài luyện tập theo lớp nào</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {classExams.map((exam) => {
+                const typeBadge = getExamTypeBadge(exam.skillType || exam.examType);
+                const statusBadge = getStatusBadge(exam.status);
+                const className = exam.classEntity?.className || 'Lớp học';
+
+                return (
+                  <div
+                    key={exam.id}
+                    className={`bg-white rounded-xl p-6 shadow-sm border-2 transition-all hover:shadow-md ${
+                      exam.canStart
+                        ? 'border-purple-100 hover:border-purple-200'
+                        : 'border-gray-100 opacity-75'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1">
+                        {/* Header with Badge */}
+                        <div className="flex items-start gap-3 mb-3">
+                          <h3 className="text-lg font-bold text-gray-900">{exam.title}</h3>
+                          <span className="px-3 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-700">
+                            {className}
+                          </span>
+                          <span className={`px-2.5 py-0.5 text-xs font-semibold rounded-full ${typeBadge.color}`}>
+                            {typeBadge.label}
+                          </span>
+                          <span className={`px-2.5 py-0.5 text-xs font-semibold rounded-full flex items-center gap-1 ${statusBadge.color}`}>
+                            {statusBadge.icon}
+                            {statusBadge.label}
+                          </span>
+                        </div>
+
+                        {/* Description */}
+                        {exam.description && (
+                          <p className="text-gray-600 text-sm mb-3">{exam.description}</p>
+                        )}
+
+                        {/* Info */}
+                        <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
+                          <div className="flex items-center gap-1.5">
+                            <Clock className="w-4 h-4" />
+                            <span>{exam.durationMinutes} phút</span>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <FileText className="w-4 h-4" />
+                            <span>{exam.examQuestions?.length || exam.totalQuestions || 0} câu hỏi</span>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <TrendingUp className="w-4 h-4" />
+                            <span>Đạt: {exam.passingScore || 60}%</span>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <Award className="w-4 h-4" />
+                            <span>Lần làm: {exam.completedAttempts || 0}</span>
+                          </div>
+                          {exam.bestScore !== null && (
+                            <div className="flex items-center gap-1.5 text-green-600 font-medium">
+                              <CheckCircle2 className="w-4 h-4" />
+                              <span>Điểm cao nhất: {exam.bestScore}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Action Button */}
+                      <button
+                        onClick={() => handleStartExam(exam)}
+                        disabled={!exam.canStart}
+                        className={`px-6 py-3 rounded-xl font-semibold transition-all flex items-center gap-2 whitespace-nowrap ${
+                          exam.canStart
+                            ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white hover:shadow-lg hover:-translate-y-0.5'
+                            : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                        }`}
+                      >
+                        {exam.status === 'completed' ? (
+                          <>
+                            <CheckCircle2 className="w-4 h-4" />
+                            Đã hoàn thành
+                          </>
+                        ) : exam.status === 'in_progress' ? (
+                          <>
+                            <Play className="w-4 h-4" />
+                            Tiếp tục
+                          </>
+                        ) : (
+                          <>
+                            <Play className="w-4 h-4" />
+                            Bắt đầu
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
