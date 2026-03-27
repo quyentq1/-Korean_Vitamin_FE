@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { ProtectedRoute, AdminRoute, TeacherRoute, StaffRoute, StudentRoute, ManagerRoute, EducationManagerRoute } from './components/routing/ProtectedRoute';
 import EducationManagerLayout from './components/layouts/EducationManagerLayout';
+import AdminLayout from './components/layouts/AdminLayout';
 import EduManagerDashboard from './pages/EducationManager/EduManagerDashboard';
 import EduAnalytics from './pages/EducationManager/EduAnalytics';
 import EduCourseManagement from './pages/EducationManager/EduCourseManagement';
@@ -10,6 +11,7 @@ import EduTestManagement from './pages/EducationManager/EduTestManagement';
 import EduTestEditor from './pages/EducationManager/EduTestEditor';
 import EduTeacherManagement from './pages/EducationManager/EduTeacherManagement';
 import EduStudentManagement from './pages/EducationManager/EduStudentManagement';
+import StudentLayout from './components/layouts/StudentLayout';
 import StaffLayout from './components/layouts/StaffLayout';
 import TeacherLayout from './components/layouts/TeacherLayout';
 import CourseList from './pages/Courses/CourseList';
@@ -27,10 +29,6 @@ import FAQ from './pages/FAQ.jsx';
 import SearchPage from './pages/SearchPage.jsx';
 import TestRunner from './pages/Test/TestRunner.jsx';
 import TestResult from './pages/Test/TestResult.jsx';
-import LearnerDashboard from './pages/Learner/LearnerDashboard.jsx';
-import TestLibrary from './pages/Learner/TestLibrary.jsx';
-import MySchedule from './pages/Learner/MySchedule.jsx';
-import WritingSubmission from './pages/Learner/WritingSubmission.jsx';
 import Forum from './pages/Shared/Forum.jsx';
 import QuestionBank from './pages/Teacher/QuestionBank.jsx';
 import GradingQueue from './pages/Teacher/GradingQueue.jsx';
@@ -50,11 +48,12 @@ import CreateQuiz from './pages/Teacher/CreateQuiz.jsx';
 import CreateQuestion from './pages/Teacher/CreateQuestion.jsx';
 import TeacherReports from './pages/Teacher/TeacherReports.jsx';
 import TeacherDashboard from './pages/Teacher/TeacherDashboard.jsx';
-import MyCourses from './pages/Teacher/MyCourses.jsx';
+import TeacherMyCourses from './pages/Teacher/MyCourses.jsx';
 import ExamManagement from './pages/Teacher/ExamManagement.jsx';
 import ExamEditor from './pages/Teacher/ExamEditor.jsx';
 import ExamDetail from './pages/Teacher/ExamDetail.jsx';
 import ExamAttempts from './pages/Teacher/ExamAttempts.jsx';
+import ClassExamManagement from './pages/Teacher/ClassExamManagement.jsx';
 import QBApproval from './pages/Manager/QBApproval.jsx';
 import StaffDashboard from './pages/Staff/StaffDashboard.jsx';
 import StaffRegistrationManagement from './pages/Staff/RegistrationManagement.jsx';
@@ -65,13 +64,27 @@ import UserManagement from './pages/Admin/UserManagement.jsx';
 import CourseManagement from './pages/Admin/CourseManagement.jsx';
 import RegistrationManagement from './pages/Admin/RegistrationManagement.jsx';
 import AdminDashboard from './pages/Admin/AdminDashboard.jsx';
+import TeachersManagement from './pages/Admin/TeachersManagement.jsx';
+import ApprovalsManagement from './pages/Admin/ApprovalsManagement.jsx';
+import ReportsManagement from './pages/Admin/ReportsManagement.jsx';
+import AdminStatistics from './pages/Admin/AdminStatistics.jsx';
+import AdminGrowth from './pages/Admin/AdminGrowth.jsx';
 import AIChatbot from './components/AIChatbot.jsx';
 import ExamIntro from './pages/Exam/ExamIntro.jsx';
 import ExamTaking from './pages/Exam/ExamTaking.jsx';
+import ExamResult from './pages/Exam/ExamResult.jsx';
 import QuestionImport from './pages/Teacher/QuestionImport.jsx';
 import GradingDetail from './pages/Teacher/GradingDetail.jsx';
 import TagManagement from './pages/Teacher/TagManagement.jsx';
 import StudentExamList from './pages/Student/StudentExamList.jsx';
+import StudentDashboard from './pages/Student/StudentDashboard.jsx';
+import StudentExams from './pages/Student/StudentExams.jsx';
+import StudentMail from './pages/Student/StudentMail.jsx';
+import StudentCourseDetail from './pages/Student/StudentCourseDetail.jsx';
+import StudentClassDetail from './pages/Student/StudentClassDetail.jsx';
+import MySchedule from './pages/Student/MySchedule.jsx';
+import MyCourses from './pages/Student/MyCourses.jsx';
+import TestLibrary from './pages/Student/TestLibrary.jsx';
 import Profile from './pages/Profile.jsx';
 import './App.css';
 
@@ -146,33 +159,46 @@ function App() {
               <ExamTaking />
             </ProtectedRoute>
           } />
+          <Route path="/exam/result/:attemptId" element={
+            <ProtectedRoute>
+              <ExamResult />
+            </ProtectedRoute>
+          } />
 
-          {/* Learner Routes - Student/Learner Only */}
-          <Route path="/learner-dashboard" element={
+          {/* Student Routes - Student Only with Nested Layout */}
+          <Route path="/student" element={
             <StudentRoute>
-              <LearnerDashboard />
+              <StudentLayout />
             </StudentRoute>
-          } />
-          <Route path="/test-library" element={
-            <StudentRoute>
-              <TestLibrary />
-            </StudentRoute>
-          } />
-          <Route path="/my-schedule" element={
-            <StudentRoute>
-              <MySchedule />
-            </StudentRoute>
-          } />
-          <Route path="/writing-submission" element={
-            <StudentRoute>
-              <WritingSubmission />
-            </StudentRoute>
-          } />
+          }>
+            <Route index element={<StudentDashboard />} />
+            <Route path="dashboard" element={<StudentDashboard />} />
+            <Route path="my-courses" element={<MyCourses />} />
+            <Route path="courses/:courseId" element={<StudentCourseDetail />} />
+            <Route path="classes/:classId" element={<StudentClassDetail />} />
+            <Route path="exams" element={<StudentExams />} />
+            <Route path="results" element={<TestResult />} />
+            <Route path="progress" element={<TestLibrary />} />
+            <Route path="statistics" element={<StudentDashboard />} />
+            <Route path="schedule" element={<MySchedule />} />
+            <Route path="mail" element={<StudentMail />} />
+            <Route path="profile" element={<Profile />} />
+          </Route>
+
+          {/* Student Exam List by Course */}
           <Route path="/courses/:courseId/exams" element={
             <StudentRoute>
-              <StudentExamList />
+              <StudentLayout>
+                <StudentExamList />
+              </StudentLayout>
             </StudentRoute>
           } />
+
+          {/* Legacy Routes - Redirect to new Student routes */}
+          <Route path="/learner-dashboard" element={<Navigate to="/student/dashboard" replace />} />
+          <Route path="/test-library" element={<Navigate to="/student/progress" replace />} />
+          <Route path="/my-schedule" element={<Navigate to="/student/schedule" replace />} />
+          <Route path="/writing-submission" element={<Navigate to="/student/mail" replace />} />
 
           {/* Forum - All authenticated users */}
           <Route path="/forum" element={
@@ -189,7 +215,7 @@ function App() {
           }>
             <Route index element={<TeacherDashboard />} />
             <Route path="dashboard" element={<TeacherDashboard />} />
-            <Route path="my-courses" element={<MyCourses />} />
+            <Route path="my-courses" element={<TeacherMyCourses />} />
             <Route path="question-bank" element={<QuestionBank />} />
             <Route path="questions/create" element={<CreateQuestion />} />
             <Route path="questions/edit/:id" element={<CreateQuestion />} />
@@ -203,6 +229,8 @@ function App() {
             <Route path="exam-detail/:id" element={<ExamDetail />} />
             <Route path="exam-editor/:id" element={<ExamEditor />} />
             <Route path="exam-attempts/:id" element={<ExamAttempts />} />
+            <Route path="class-exams" element={<ClassExamManagement />} />
+            <Route path="class-exams/:classId" element={<ClassExamManagement />} />
             <Route path="sessions" element={<TeacherSessions />} />
             <Route path="tag-management" element={<TagManagement />} />
           </Route>
@@ -336,32 +364,29 @@ function App() {
             </ManagerRoute>
           } />
 
-          {/* Admin Routes - Admin Only */}
+          {/* Admin Routes - Admin Only with Nested Layout */}
           <Route path="/admin" element={
             <AdminRoute>
-              <AdminDashboard />
+              <AdminLayout />
             </AdminRoute>
-          } />
-          <Route path="/system-settings" element={
-            <AdminRoute>
-              <SystemSettings />
-            </AdminRoute>
-          } />
-          <Route path="/user-management" element={
-            <AdminRoute>
-              <UserManagement />
-            </AdminRoute>
-          } />
-          <Route path="/course-management" element={
-            <AdminRoute>
-              <CourseManagement />
-            </AdminRoute>
-          } />
-          <Route path="/registration-management" element={
-            <AdminRoute>
-              <RegistrationManagement />
-            </AdminRoute>
-          } />
+          }>
+            <Route index element={<AdminDashboard />} />
+            <Route path="users" element={<UserManagement />} />
+            <Route path="teachers" element={<TeachersManagement />} />
+            <Route path="students" element={<StudentManagement />} />
+            <Route path="approvals" element={<ApprovalsManagement />} />
+            <Route path="reports" element={<ReportsManagement />} />
+            <Route path="statistics" element={<AdminStatistics />} />
+            <Route path="courses" element={<CourseManagement />} />
+            <Route path="growth" element={<AdminGrowth />} />
+            <Route path="settings" element={<SystemSettings />} />
+          </Route>
+
+          {/* Legacy Admin Routes (for backwards compatibility) */}
+          <Route path="/system-settings" element={<Navigate to="/admin/settings" replace />} />
+          <Route path="/user-management" element={<Navigate to="/admin/users" replace />} />
+          <Route path="/course-management" element={<Navigate to="/admin/courses" replace />} />
+          <Route path="/registration-management" element={<Navigate to="/admin/users" replace />} />
 
           {/* Profile Route - All authenticated users */}
           <Route path="/profile" element={
