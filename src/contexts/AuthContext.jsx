@@ -326,10 +326,10 @@ export const AuthProvider = ({ children }) => {
       'ADMIN': '/admin',
       'MANAGER': '/manager',
       'EDUCATION_MANAGER': '/edu-manager',
-      'TEACHER': '/teacher-dashboard',
+      'TEACHER': '/teacher',
       'STAFF': '/staff',
-      'STUDENT': '/learner-dashboard',
-      'LEARNER': '/learner-dashboard'
+      'STUDENT': '/student',
+      'LEARNER': '/student'
     };
 
     return roleRoutes[user.role] || '/';

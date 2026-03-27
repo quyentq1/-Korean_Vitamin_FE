@@ -159,10 +159,10 @@ export const handleLoginSubmit = async (
           'ADMIN': '/admin',
           'MANAGER': '/manager',
           'EDUCATION_MANAGER': '/edu-manager',
-          'TEACHER': '/teacher-dashboard',
+          'TEACHER': '/teacher',
           'STAFF': '/staff',
-          'STUDENT': '/learner-dashboard',
-          'LEARNER': '/learner-dashboard'
+          'STUDENT': '/student',
+          'LEARNER': '/student'
         };
 
         const redirectPath = roleRoutes[userRole] || '/dashboard';
