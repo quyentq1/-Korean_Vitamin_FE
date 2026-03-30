@@ -75,8 +75,8 @@ const StudentExamList = () => {
       setStats(stats);
 
       // Get course info if available
-      if (practiceExams.length > 0 && practiceExams[0].course) {
-        setCourseInfo(practiceExams[0].course);
+      if (allExams.length > 0 && allExams[0].course) {
+        setCourseInfo(allExams[0].course);
       }
 
       setError('');
@@ -105,15 +105,24 @@ const StudentExamList = () => {
   };
 
   const handleStartExam = (exam) => {
+    console.log('handleStartExam called with:', exam);
     if (!exam.canStart) {
+      console.log('Cannot start exam, canStart = false');
       return;
     }
+    if (!exam.id) {
+      console.error('Exam ID is missing!', exam);
+      alert('Lỗi: Thiếu ID bài thi');
+      return;
+    }
+    console.log('Navigating to:', `/exam/${exam.id}/intro`);
     navigate(`/exam/${exam.id}/intro`);
   };
 
   const getFilteredExams = () => {
-    if (filterStatus === 'all') return exams;
-    return exams.filter(exam => exam.status === filterStatus);
+    const allExams = [...courseExams, ...classExams];
+    if (filterStatus === 'all') return allExams;
+    return allExams.filter(exam => exam.status === filterStatus);
   };
 
   const getExamTypeBadge = (type) => {
@@ -181,8 +190,6 @@ const StudentExamList = () => {
       </div>
     );
   }
-
-  const filteredExams = getFilteredExams();
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
