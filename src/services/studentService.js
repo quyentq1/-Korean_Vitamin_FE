@@ -8,7 +8,7 @@ export const studentService = {
     // Get writing submissions
     getWritingSubmissions: async () => {
         try {
-            const response = await axiosClient.get('/api/student/writing-submissions');
+            const response = await axiosClient.get('/student/writing-submissions');
             return response.data;
         } catch (error) {
             console.error('Error fetching writing submissions:', error);
@@ -26,7 +26,7 @@ export const studentService = {
                 formData.append('file', data.file);
             }
 
-            const response = await axiosClient.post('/api/student/writing-submissions', formData, {
+            const response = await axiosClient.post('/student/writing-submissions', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
@@ -41,7 +41,7 @@ export const studentService = {
     // Get student dashboard data
     getDashboardData: async () => {
         try {
-            const response = await axiosClient.get('/api/student/dashboard');
+            const response = await axiosClient.get('/student/dashboard');
             return response.data;
         } catch (error) {
             console.error('Error fetching dashboard data:', error);
@@ -52,7 +52,7 @@ export const studentService = {
     // Get student courses
     getCourses: async () => {
         try {
-            const response = await axiosClient.get('/api/student/courses');
+            const response = await axiosClient.get('/student/courses');
             return response.data;
         } catch (error) {
             console.error('Error fetching courses:', error);
@@ -63,7 +63,7 @@ export const studentService = {
     // Get student tests
     getTests: async () => {
         try {
-            const response = await axiosClient.get('/api/student/tests');
+            const response = await axiosClient.get('/student/tests');
             return response.data;
         } catch (error) {
             console.error('Error fetching tests:', error);
@@ -75,7 +75,7 @@ export const studentService = {
 
     /**
      * Create a student report/feedback
-     * POST /api/student/reports
+     * POST /student/reports
      */
     createStudentReport: async (reportData) => {
         try {
@@ -88,7 +88,7 @@ export const studentService = {
 
     /**
      * Get all reports submitted by current student
-     * GET /api/student/reports
+     * GET /student/reports
      */
     getMyReports: async () => {
         try {
@@ -103,7 +103,7 @@ export const studentService = {
 
     /**
      * Get student's classes
-     * GET /api/student/my-classes
+     * GET /student/my-classes
      */
     getMyClasses: async () => {
         try {
@@ -116,7 +116,7 @@ export const studentService = {
 
     /**
      * Get class details for student
-     * GET /api/student/classes/{classId}
+     * GET /student/classes/{classId}
      */
     getClassDetails: async (classId) => {
         try {

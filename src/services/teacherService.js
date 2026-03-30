@@ -158,6 +158,11 @@ export const teacherService = {
         return await axiosClient.get('/teacher/courses');
     },
 
+    // NEW: Get class info by ID (for creating exam from class)
+    getClassInfo: async (classId) => {
+        return await axiosClient.get(`/teacher/classes/${classId}`);
+    },
+
     // Question Management
     getQuestions: async (params) => {
         return await axiosClient.get('/teacher/questions', { params });
