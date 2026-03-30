@@ -72,6 +72,8 @@ const ExamEditor = () => {
 
   // Get courseId from URL query parameter (when coming from MyCourses page)
   const courseIdFromUrl = searchParams.get('courseId');
+  // Get classId from URL query parameter (when coming from ClassExamManagement page)
+  const classIdFromUrl = searchParams.get('classId');
 
   // Form state
   const [formData, setFormData] = useState({
@@ -82,6 +84,7 @@ const ExamEditor = () => {
     passingScore: 80,
     published: false,
     courseId: courseIdFromUrl || '', // Pre-fill if coming from MyCourses
+    classId: classIdFromUrl || '', // NEW: Pre-fill if coming from ClassExamManagement
     examType: 'MIXED', // Default exam type
     examCategory: 'PRACTICE' // NEW: MOCK (for Guest FreeTest) or PRACTICE (for Students in course)
   });
@@ -132,19 +135,64 @@ const ExamEditor = () => {
           await loadQuestionsForCourse(selectedCourse);
         }
       }
+
+      // NEW: If coming from ClassExamManagement with classId, fetch class info
+      if (classIdFromUrl) {
+        await fetchClassInfo(classIdFromUrl);
+      }
     } catch (err) {
       console.error('Failed to load courses:', err);
     }
   };
 
+  // NEW: Fetch class info when creating exam from class
+  const fetchClassInfo = async (classId) => {
+    try {
+      const classData = await teacherService.getClassInfo(classId);
+      setSelectedClassInfo(classData);
+
+      // Load questions for the class's course
+      if (classData.course) {
+        await loadQuestionsForCourse(classData.course);
+      }
+    } catch (err) {
+      console.error('Failed to load class info:', err);
+    }
+  };
+
   // Store selected course info when coming from MyCourses
   const [selectedCourseInfo, setSelectedCourseInfo] = useState(null);
+  // Store selected class info when coming from ClassExamManagement
+  const [selectedClassInfo, setSelectedClassInfo] = useState(null);
 
   const fetchExamDetails = async () => {
     setLoading(true);
     try {
       const response = await teacherService.getExam(id);
       setExam(response);
+
+      // Check if this exam belongs to a class
+      if (response.classId || response.classEntity) {
+        // Load class info
+        const classId = response.classId || response.classEntity?.id;
+        try {
+          const classData = await teacherService.getClassInfo(classId);
+          setSelectedClassInfo(classData);
+        } catch (err) {
+          console.error('Failed to load class info:', err);
+        }
+      } else if (response.courseId) {
+        // Load course info for non-class exams
+        try {
+          const data = await teacherService.getAssignedCourses();
+          const selectedCourse = data.find(c => c.id === response.courseId);
+          if (selectedCourse) {
+            setSelectedCourseInfo(selectedCourse);
+          }
+        } catch (err) {
+          console.error('Failed to load course info:', err);
+        }
+      }
 
       // Set form data
       setFormData({
@@ -155,6 +203,7 @@ const ExamEditor = () => {
         passingScore: response.passingScore || 80,
         published: response.published || false,
         courseId: response.courseId || '',
+        classId: response.classId || response.classEntity?.id || '', // NEW: Include classId
         examType: response.examType || response.type || 'MIXED', // Default to MIXED if missing
         examCategory: response.examCategory || 'PRACTICE' // NEW: Load examCategory from API
       });
@@ -394,9 +443,9 @@ const ExamEditor = () => {
           return;
         }
 
-        // Create new exam - backend expects { exam: {...}, courseId: ..., questions: [...] }
-        // courseId is sent separately (not nested in exam) because backend needs to convert it to Course entity
-        const { courseId, duration, code, ...examData } = formData; // Extract courseId and unused fields
+        // Create new exam - backend expects { exam: {...}, courseId: ..., classId: ..., questions: [...] }
+        // courseId/classId is sent separately (not nested in exam) because backend needs to convert it to Course/Class entity
+        const { courseId, classId, duration, code, ...examData } = formData; // Extract courseId, classId and unused fields
 
         // Calculate totalPoints from questions if not provided
         const totalPoints = questions.filter(q => !q.isNew).reduce((sum, q) => sum + (q.points || 1), 0);
@@ -407,7 +456,8 @@ const ExamEditor = () => {
             durationMinutes: duration, // Map frontend 'duration' to backend 'durationMinutes'
             totalPoints: totalPoints > 0 ? totalPoints : 100 // Set from questions or default to 100
           },
-          courseId: parseInt(courseId), // Send courseId at request level
+          ...(courseId && { courseId: parseInt(courseId) }), // Send courseId at request level if present
+          ...(classId && { classId: parseInt(classId) }), // NEW: Send classId at request level if present
           questions: questions.filter(q => !q.isNew)
         };
 
@@ -509,7 +559,8 @@ const ExamEditor = () => {
       // Call API để random questions theo blueprint
       const requestData = {
         blueprint,
-        courseId: parseInt(formData.courseId),
+        ...(formData.courseId && { courseId: parseInt(formData.courseId) }), // Send courseId if present
+        ...(formData.classId && { classId: parseInt(formData.classId) }), // NEW: Send classId if present
         examCategory: formData.examCategory
       };
 
@@ -810,7 +861,7 @@ const ExamEditor = () => {
                     </div>
 
                     {/* Course Selection */}
-                    {isCreateMode && !selectedCourseInfo && (
+                    {isCreateMode && !selectedCourseInfo && !selectedClassInfo && (
                       <div>
                         <label className="block text-sm font-semibold text-gray-700 mb-2">
                           {t('exam.course', 'Khóa học')} *
@@ -838,16 +889,32 @@ const ExamEditor = () => {
                     )}
 
                     {/* Selected Course Display */}
-                    {isCreateMode && selectedCourseInfo && (
+                    {selectedCourseInfo && !selectedClassInfo && (
                       <div>
                         <label className="block text-sm font-semibold text-gray-700 mb-2">
                           {t('exam.course', 'Khóa học')}
+                          {!isCreateMode && <span className="ml-2 text-xs text-gray-500">(Không thể thay đổi)</span>}
                         </label>
                         <div className="w-full px-4 py-3 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg text-gray-700">
                           <div className="font-semibold text-blue-900">{selectedCourseInfo.name}</div>
                           <div className="text-sm text-blue-600">{selectedCourseInfo.code}</div>
                         </div>
                         <input type="hidden" name="courseId" value={formData.courseId} />
+                      </div>
+                    )}
+
+                    {/* NEW: Selected Class Display (when creating/editing exam for a class) */}
+                    {selectedClassInfo && (
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          {t('exam.class', 'Lớp học')}
+                          {!isCreateMode && <span className="ml-2 text-xs text-gray-500">(Không thể thay đổi - Bài thi này thuộc về lớp này)</span>}
+                        </label>
+                        <div className="w-full px-4 py-3 bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg text-gray-700">
+                          <div className="font-semibold text-purple-900">{selectedClassInfo.className}</div>
+                          <div className="text-sm text-purple-600">{selectedClassInfo.classCode} • {selectedClassInfo.course?.name || ''}</div>
+                        </div>
+                        <input type="hidden" name="classId" value={formData.classId} />
                       </div>
                     )}
                   </div>
@@ -1042,13 +1109,14 @@ const ExamEditor = () => {
                   )}
 
                   {/* Exam Structure Builder (when auto mode is selected) */}
-                  {autoGenerateMode && showStructureBuilder && selectedCourseInfo && (
+                  {autoGenerateMode && showStructureBuilder && (selectedCourseInfo || selectedClassInfo) && (
                     <div className="mt-6 p-6 bg-white rounded-xl border-2 border-purple-200 shadow-lg">
                       <ExamStructureBuilder
-                        topikLevel={selectedCourseInfo?.level === 'BEGINNER' ? 'TOPIK_I' : 'TOPIK_II'}
+                        topikLevel={(selectedCourseInfo?.level || selectedClassInfo?.course?.level) === 'BEGINNER' ? 'TOPIK_I' : 'TOPIK_II'}
                         onGenerate={handleAutoGenerate}
                         questionBank={courseQuestions || []}
-                        courseLevel={selectedCourseInfo?.level}
+                        courseLevel={selectedCourseInfo?.level || selectedClassInfo?.course?.level}
+                        isClassExam={!!selectedClassInfo} // NEW: Pass true if creating exam for a class
                       />
                     </div>
                   )}

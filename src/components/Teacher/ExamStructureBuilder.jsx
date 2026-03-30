@@ -32,12 +32,14 @@ import {
  * @param {function} props.onGenerate - Callback khi generate đề thi
  * @param {array} props.questionBank - Danh sách câu hỏi từ Question Bank
  * @param {object} props.courseLevel - Level của khóa học (BEGINNER, INTERMEDIATE, ADVANCED)
+ * @param {boolean} props.isClassExam - true nếu tạo đề cho Class (có Writing), false nếu cho Course (không có Writing)
  */
 const ExamStructureBuilder = ({
   topikLevel = 'TOPIK_II',
   onGenerate,
   questionBank = [],
-  courseLevel = null
+  courseLevel = null,
+  isClassExam = false // NEW: Default to false (no Writing for Course exams)
 }) => {
   const { t } = useTranslation();
   const [expandedSections, setExpandedSections] = useState({
@@ -48,13 +50,21 @@ const ExamStructureBuilder = ({
   const [selectedSections, setSelectedSections] = useState({
     reading: true,
     listening: true,
-    writing: false // Writing thường tùy chọn
+    writing: isClassExam // Writing chỉ được chọn khi tạo đề cho Class
   });
   const [isGenerating, setIsGenerating] = useState(false);
 
   // NEW: Advanced custom mode - allow user to customize each topikType
   const [advancedCustomMode, setAdvancedCustomMode] = useState(false);
   const [topikTypeCounts, setTopikTypeCounts] = useState({});
+
+  // NEW: Update selectedSections when isClassExam prop changes
+  React.useEffect(() => {
+    setSelectedSections(prev => ({
+      ...prev,
+      writing: isClassExam
+    }));
+  }, [isClassExam]);
 
   // Initialize topikTypeCounts with default values from structure
   React.useEffect(() => {
@@ -414,6 +424,18 @@ const ExamStructureBuilder = ({
         </div>
       )}
 
+      {/* NEW: Info about Writing section availability */}
+      {!isClassExam && (
+        <div className="px-6 py-3 bg-amber-50 border-b border-amber-100">
+          <div className="flex items-center gap-2 text-sm text-amber-700">
+            <Info className="w-4 h-4" />
+            <span>
+              <strong>Lưu ý:</strong> Phần Viết (Writing) chỉ có sẵn khi tạo đề thi cho Lớp học (Class). Với Khóa học (Course), bạn chỉ có thể tạo phần Đọc và Nghe.
+            </span>
+          </div>
+        </div>
+      )}
+
       {/* Section Toggles & Mode Toggle */}
       <div className="px-6 py-3 border-b border-gray-200">
         <div className="flex items-center justify-between">
@@ -440,15 +462,18 @@ const ExamStructureBuilder = ({
               <span className="text-sm text-gray-700">Nghe (Listening)</span>
             </label>
 
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={selectedSections.writing}
-                onChange={() => toggleSectionSelection('writing')}
-                className="w-4 h-4 text-green-600 rounded focus:ring-green-500"
-              />
-              <span className="text-sm text-gray-700">Viết (Writing)</span>
-            </label>
+            {/* NEW: Only show Writing option for Class exams */}
+            {isClassExam && (
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={selectedSections.writing}
+                  onChange={() => toggleSectionSelection('writing')}
+                  className="w-4 h-4 text-green-600 rounded focus:ring-green-500"
+                />
+                <span className="text-sm text-gray-700">Viết (Writing)</span>
+              </label>
+            )}
           </div>
 
           {/* Mode Toggle - Auto vs Advanced Custom */}
@@ -587,7 +612,7 @@ const ExamStructureBuilder = ({
             )}
 
             {/* Writing TopikTypes */}
-            {selectedSections.writing && (
+            {isClassExam && selectedSections.writing && (
               <div className="bg-white rounded-lg p-4 border border-green-200">
                 <div className="flex items-center gap-2 mb-3 text-green-700 font-semibold">
                   <PenTool className="w-4 h-4" />
@@ -751,7 +776,7 @@ const ExamStructureBuilder = ({
           )}
 
           {/* Writing Section */}
-          {structure.writing && (
+          {isClassExam && structure.writing && (
             <div className="border border-gray-200 rounded-lg overflow-hidden">
               <button
                 onClick={() => toggleSection('writing')}
