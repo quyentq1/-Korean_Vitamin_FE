@@ -161,8 +161,7 @@ export const handleLoginSubmit = async (
           'EDUCATION_MANAGER': '/edu-manager',
           'TEACHER': '/teacher',
           'STAFF': '/staff',
-          'STUDENT': '/student',
-          'LEARNER': '/student'
+          'STUDENT': '/student'
         };
 
         const redirectPath = roleRoutes[userRole] || '/dashboard';

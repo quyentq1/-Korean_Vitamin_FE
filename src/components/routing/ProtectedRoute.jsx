@@ -191,7 +191,7 @@ export const StaffRoute = ({ children }) => {
  * @param {React.ReactNode} props.children - Component con
  */
 export const StudentRoute = ({ children }) => {
-  // BUG-31 FIX: Changed from ['STUDENT', 'LEARNER'] to ['STUDENT'] to match BE enum
+  // Only STUDENT role can access student routes
   return (
     <ProtectedRoute allowedRoles={['STUDENT']}>
       {children}

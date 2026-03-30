@@ -328,8 +328,7 @@ export const AuthProvider = ({ children }) => {
       'EDUCATION_MANAGER': '/edu-manager',
       'TEACHER': '/teacher',
       'STAFF': '/staff',
-      'STUDENT': '/student',
-      'LEARNER': '/student'
+      'STUDENT': '/student'
     };
 
     return roleRoutes[user.role] || '/';
