@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Confetti from 'react-confetti';
 import { useWindowSize } from 'react-use';
-import { CheckCircle2, XCircle, Clock, Award, TrendingUp, Home, Redo } from 'lucide-react';
+import { CheckCircle2, XCircle, Clock, Award, TrendingUp, Home, Redo, Eye } from 'lucide-react';
 import examService from '../../services/examService';
+import ExamReviewModal from '../../components/Exam/ExamReviewModal';
 
 const ExamResult = () => {
     const { attemptId } = useParams();
@@ -14,6 +15,7 @@ const ExamResult = () => {
     const [showConfetti, setShowConfetti] = useState(false);
     const [attempt, setAttempt] = useState(null);
     const [exam, setExam] = useState(null);
+    const [showReviewModal, setShowReviewModal] = useState(false);
 
     useEffect(() => {
         fetchResult();
@@ -23,6 +25,11 @@ const ExamResult = () => {
         try {
             setLoading(true);
             const attemptData = await examService.getAttemptDetails(attemptId);
+            console.log('📊 Attempt data received:', attemptData);
+            console.log('📝 Answers:', attemptData.answers);
+            console.log('❓ Answers length:', attemptData.answers?.length || 0);
+            console.log('❓ Exam questions:', attemptData.exam?.examQuestions);
+
             setAttempt(attemptData);
 
             if (attemptData.exam) {
@@ -65,6 +72,11 @@ const ExamResult = () => {
         return 'Cần cố gắng';
     };
 
+    const handleOpenReviewModal = () => {
+        console.log('🔘 Opening review modal');
+        setShowReviewModal(true);
+    };
+
     if (loading) {
         return (
             <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 flex items-center justify-center">
@@ -82,7 +94,7 @@ const ExamResult = () => {
                 <div className="text-center text-red-500">
                     <p className="text-xl font-semibold mb-2">Không tìm thấy kết quả</p>
                     <button
-                        onClick={() => navigate('/dashboard')}
+                        onClick={() => navigate('/student')}
                         className="mt-4 px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
                     >
                         Về trang chủ
@@ -111,24 +123,41 @@ const ExamResult = () => {
             <div className="container mx-auto px-4 py-8 max-w-5xl">
                 {/* Header */}
                 <div className="text-center mb-8">
-                    <h1 className="text-4xl font-bold text-gray-900 mb-2">Kết Quả Bài Thi</h1>
-                    <p className="text-gray-600">{exam.title}</p>
+                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-700 mb-4">Kết Quả Bài Thi</h1>
+                    <div className="inline-block bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-8 py-4 rounded-2xl shadow-lg">
+                        <h2 className="text-xl sm:text-2xl font-bold">{exam.title}</h2>
+                        {exam.course?.name && (
+                            <p className="text-indigo-100 text-sm mt-1">{exam.course.name}</p>
+                        )}
+                    </div>
                 </div>
 
                 {/* Score Card */}
                 <div className={`bg-gradient-to-br ${getScoreColor(scorePercentage)} rounded-3xl p-8 mb-8 text-white shadow-2xl ${getScoreBgColor(scorePercentage)}`}>
                     <div className="text-center">
-                        <div className="inline-flex items-center justify-center w-32 h-32 bg-white/20 backdrop-blur-sm rounded-full mb-4">
-                            <span className="text-6xl font-bold">{scorePercentage}%</span>
+                        {/* Score Circle - Main Focus */}
+                        <div className="inline-flex items-center justify-center w-36 h-36 sm:w-40 sm:h-40 bg-white/20 backdrop-blur-sm rounded-full mb-6 relative">
+                            <span className="text-6xl sm:text-7xl font-bold">{scorePercentage}%</span>
+                            {/* Pass/Fail Badge - Positioned at bottom right of circle */}
+                            <div className={`absolute -bottom-2 -right-2 px-4 py-2 rounded-full text-sm font-bold shadow-lg ${
+                                passed
+                                    ? 'bg-green-500 text-white'
+                                    : 'bg-red-500 text-white'
+                            }`}>
+                                {passed ? 'ĐẠT' : 'KHÔNG ĐẠT'}
+                            </div>
                         </div>
+
                         <h2 className="text-3xl font-bold mb-2">{getScoreLabel(scorePercentage)}</h2>
-                        <p className="text-white/90 text-lg mb-4">
+                        <p className="text-white/90 text-lg mb-6">
                             {passed ? '🎉 Chúc mừng bạn đã hoàn thành bài thi!' : '💪 Hãy cố gắng hơn ở lần sau!'}
                         </p>
-                        <div className="flex items-center justify-center gap-8 text-sm">
+
+                        {/* Stats */}
+                        <div className="flex items-center justify-center gap-6 sm:gap-8 text-sm">
                             <div className="flex items-center gap-2">
                                 <Award className="w-5 h-5" />
-                                <span>Đạt: {exam.passingScore || 60}%</span>
+                                <span>Điểm đạt: {exam.passingScore || 60}%</span>
                             </div>
                             <div className="flex items-center gap-2">
                                 <TrendingUp className="w-5 h-5" />
@@ -183,53 +212,29 @@ const ExamResult = () => {
                     </div>
                 </div>
 
-                {/* Answer Details */}
+                {/* Quick Stats */}
                 {attempt.answers && attempt.answers.length > 0 && (
                     <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 mb-8">
-                        <h3 className="text-xl font-bold text-gray-900 mb-4">Chi tiết câu trả lời</h3>
-                        <div className="space-y-3">
-                            {attempt.answers.map((answer, index) => {
-                                const question = answer.examQuestion?.question;
-                                if (!question) return null;
-
-                                const isCorrect = answer.isCorrect;
-
-                                return (
-                                    <div
-                                        key={answer.id}
-                                        className={`p-4 rounded-xl border-2 ${
-                                            isCorrect
-                                                ? 'border-green-200 bg-green-50'
-                                                : 'border-red-200 bg-red-50'
-                                        }`}
-                                    >
-                                        <div className="flex items-start gap-3">
-                                            <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
-                                                isCorrect ? 'bg-green-500' : 'bg-red-500'
-                                            }`}>
-                                                {isCorrect ? (
-                                                    <CheckCircle2 className="w-5 h-5 text-white" />
-                                                ) : (
-                                                    <XCircle className="w-5 h-5 text-white" />
-                                                )}
-                                            </div>
-                                            <div className="flex-1">
-                                                <p className="font-medium text-gray-900 mb-1">
-                                                    Câu {index + 1}: {question.questionText?.substring(0, 100)}...
-                                                </p>
-                                                <div className="flex items-center gap-4 text-sm">
-                                                    <span className={`font-semibold ${isCorrect ? 'text-green-700' : 'text-red-700'}`}>
-                                                        {isCorrect ? 'Chính xác' : 'Sai'}
-                                                    </span>
-                                                    <span className="text-gray-500">
-                                                        Điểm: {answer.score || 0}/{answer.examQuestion?.points || 0}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                );
-                            })}
+                        <h3 className="text-xl font-bold text-gray-900 mb-4">Tổng quan</h3>
+                        <div className="grid grid-cols-3 gap-4">
+                            <div className="text-center p-4 bg-green-50 rounded-xl">
+                                <p className="text-3xl font-bold text-green-600">
+                                    {attempt.answers.filter(a => a.isCorrect).length}
+                                </p>
+                                <p className="text-sm text-gray-600">Câu đúng</p>
+                            </div>
+                            <div className="text-center p-4 bg-red-50 rounded-xl">
+                                <p className="text-3xl font-bold text-red-600">
+                                    {attempt.answers.filter(a => !a.isCorrect).length}
+                                </p>
+                                <p className="text-sm text-gray-600">Câu sai</p>
+                            </div>
+                            <div className="text-center p-4 bg-blue-50 rounded-xl">
+                                <p className="text-3xl font-bold text-blue-600">
+                                    {attempt.answers.length}
+                                </p>
+                                <p className="text-sm text-gray-600">Tổng câu</p>
+                            </div>
                         </div>
                     </div>
                 )}
@@ -237,11 +242,18 @@ const ExamResult = () => {
                 {/* Action Buttons */}
                 <div className="flex flex-wrap gap-4 justify-center">
                     <button
-                        onClick={() => navigate('/dashboard')}
+                        onClick={() => navigate('/student')}
                         className="px-6 py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition flex items-center gap-2"
                     >
                         <Home className="w-5 h-5" />
                         Về trang chủ
+                    </button>
+                    <button
+                        onClick={handleOpenReviewModal}
+                        className="px-6 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition flex items-center gap-2"
+                    >
+                        <Eye className="w-5 h-5" />
+                        Xem lại bài thi
                     </button>
                     <button
                         onClick={() => navigate(`/courses/${exam.course?.id}/exams`)}
@@ -251,6 +263,14 @@ const ExamResult = () => {
                         Làm bài khác
                     </button>
                 </div>
+
+                {/* Exam Review Modal */}
+                <ExamReviewModal
+                    isOpen={showReviewModal}
+                    onClose={() => setShowReviewModal(false)}
+                    attempt={attempt}
+                    exam={exam}
+                />
             </div>
         </div>
     );

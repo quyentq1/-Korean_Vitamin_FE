@@ -37,9 +37,13 @@ const ExamTaking = () => {
                 setLoading(true);
                 // Fetch attempt details from real API
                 const attemptData = await examService.getAttemptDetails(attemptId);
+                console.log('📦 Attempt data received:', attemptData);
                 const examObj = attemptData.exam;
+                console.log('📝 Exam object:', examObj);
+                console.log('❓ Exam questions:', examObj?.examQuestions);
 
                 if (!examObj || !examObj.examQuestions) {
+                    console.error('❌ Invalid exam data:', { examObj, hasExamQuestions: !!examObj?.examQuestions });
                     throw new Error("Dữ liệu đề thi không hợp lệ từ máy chủ");
                 }
 
