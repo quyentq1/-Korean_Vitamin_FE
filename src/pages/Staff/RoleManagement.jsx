@@ -96,7 +96,7 @@ const RoleManagement = () => {
   // Color mapping for roles
   const colorMap = {
     'GUEST': { bg: 'from-gray-500 to-gray-600', badge: 'bg-gray-100 text-gray-700', icon: '👤' },
-    'LEARNER': { bg: 'from-blue-500 to-blue-600', badge: 'bg-blue-100 text-blue-700', icon: '📚' },
+    'STUDENT': { bg: 'from-blue-500 to-blue-600', badge: 'bg-blue-100 text-blue-700', icon: '📚' },
     'TEACHER': { bg: 'from-green-500 to-green-600', badge: 'bg-green-100 text-green-700', icon: '👨‍🏫' },
     'STAFF': { bg: 'from-purple-500 to-purple-600', badge: 'bg-purple-100 text-purple-700', icon: '👔' },
     'MANAGER': { bg: 'from-orange-500 to-orange-600', badge: 'bg-orange-100 text-orange-700', icon: '📊' },

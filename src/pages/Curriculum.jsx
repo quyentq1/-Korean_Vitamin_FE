@@ -23,8 +23,7 @@ const Curriculum = () => {
                 'EDUCATION_MANAGER': '/edu-manager',
                 'TEACHER': '/teacher-dashboard',
                 'STAFF': '/staff',
-                'STUDENT': '/learner-dashboard',
-                'LEARNER': '/learner-dashboard'
+                'STUDENT': '/student'
             };
             const redirectPath = roleRoutes[user.role] || '/';
             navigate(redirectPath, { replace: true });
