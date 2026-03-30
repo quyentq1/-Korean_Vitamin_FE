@@ -77,6 +77,7 @@ import QuestionImport from './pages/Teacher/QuestionImport.jsx';
 import GradingDetail from './pages/Teacher/GradingDetail.jsx';
 import TagManagement from './pages/Teacher/TagManagement.jsx';
 import StudentExamList from './pages/Student/StudentExamList.jsx';
+import ExamHistory from './pages/Student/ExamHistory.jsx';
 import StudentDashboard from './pages/Student/StudentDashboard.jsx';
 import StudentExams from './pages/Student/StudentExams.jsx';
 import StudentMail from './pages/Student/StudentMail.jsx';
@@ -148,22 +149,16 @@ function App() {
           <Route path="/test-runner/:testId" element={<TestRunner />} />
           <Route path="/test-result/:testId" element={<TestResult />} />
 
-          {/* Exam Routes - Protected */}
-          <Route path="/exam/:examId/intro" element={
-            <ProtectedRoute>
-              <ExamIntro />
-            </ProtectedRoute>
-          } />
-          <Route path="/exam/:examId/taking/:attemptId" element={
-            <ProtectedRoute>
-              <ExamTaking />
-            </ProtectedRoute>
-          } />
-          <Route path="/exam/result/:attemptId" element={
-            <ProtectedRoute>
-              <ExamResult />
-            </ProtectedRoute>
-          } />
+          {/* Exam Routes - Student with StudentLayout */}
+          <Route path="/exam" element={
+            <StudentRoute>
+              <StudentLayout />
+            </StudentRoute>
+          }>
+            <Route path=":examId/intro" element={<ExamIntro />} />
+            <Route path=":examId/taking/:attemptId" element={<ExamTaking />} />
+            <Route path="result/:attemptId" element={<ExamResult />} />
+          </Route>
 
           {/* Student Routes - Student Only with Nested Layout */}
           <Route path="/student" element={
@@ -178,6 +173,7 @@ function App() {
             <Route path="classes/:classId" element={<StudentClassDetail />} />
             <Route path="exams" element={<StudentExams />} />
             <Route path="results" element={<TestResult />} />
+            <Route path="attempts/history" element={<ExamHistory />} />
             <Route path="progress" element={<TestLibrary />} />
             <Route path="statistics" element={<StudentDashboard />} />
             <Route path="schedule" element={<MySchedule />} />
