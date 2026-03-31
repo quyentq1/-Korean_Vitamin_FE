@@ -23,6 +23,11 @@ export const teacherService = {
         });
     },
 
+    // AI Analysis for grading
+    analyzeAnswerWithAI: async (answerId) => {
+        return await axiosClient.post(`/teacher/grading/analyze/${answerId}`);
+    },
+
     // Sessions
     getTeacherSessions: async (params) => {
         return await axiosClient.get('/teacher/sessions', { params });
