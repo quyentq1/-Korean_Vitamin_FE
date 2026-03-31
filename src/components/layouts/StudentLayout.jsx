@@ -20,7 +20,8 @@ import {
   ClipboardCheck,
   Calendar,
   Settings,
-  Bell
+  Bell,
+  Users
 } from 'lucide-react';
 import Swal from 'sweetalert2';
 import LanguageSwitcher from '../LanguageSwitcher';
@@ -87,6 +88,7 @@ const StudentLayout = () => {
   const navItems = useMemo(() => [
     { icon: <Home className="w-5 h-5" />, label: 'Trang chủ', path: '/student' },
     { icon: <BookOpen className="w-5 h-5" />, label: 'Khóa học', path: '/student/my-courses' },
+    { icon: <Users className="w-5 h-5" />, label: 'Lớp học', path: '/student/my-classes' },
     { icon: <FileText className="w-5 h-5" />, label: 'Bài kiểm tra', path: '/student/exams' },
     { icon: <ClipboardCheck className="w-5 h-5" />, label: 'Lịch sử thi', path: '/student/attempts/history' },
     { icon: <Trophy className="w-5 h-5" />, label: 'Kết quả', path: '/student/results' },

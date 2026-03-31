@@ -85,6 +85,7 @@ import StudentCourseDetail from './pages/Student/StudentCourseDetail.jsx';
 import StudentClassDetail from './pages/Student/StudentClassDetail.jsx';
 import MySchedule from './pages/Student/MySchedule.jsx';
 import MyCourses from './pages/Student/MyCourses.jsx';
+import MyClasses from './pages/Student/MyClasses.jsx';
 import TestLibrary from './pages/Student/TestLibrary.jsx';
 import Profile from './pages/Profile.jsx';
 import './App.css';
@@ -169,8 +170,9 @@ function App() {
             <Route index element={<StudentDashboard />} />
             <Route path="dashboard" element={<StudentDashboard />} />
             <Route path="my-courses" element={<MyCourses />} />
+            <Route path="my-classes" element={<MyClasses />} />
             <Route path="courses/:courseId" element={<StudentCourseDetail />} />
-            <Route path="classes/:classId" element={<StudentClassDetail />} />
+            <Route path="class/:classId" element={<StudentClassDetail />} />
             <Route path="exams" element={<StudentExams />} />
             <Route path="results" element={<TestResult />} />
             <Route path="attempts/history" element={<ExamHistory />} />
