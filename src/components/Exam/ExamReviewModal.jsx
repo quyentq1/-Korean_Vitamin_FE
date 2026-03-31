@@ -81,7 +81,7 @@ const ExamReviewModal = ({ isOpen, onClose, attempt, exam }) => {
                                                 </span>
                                             </div>
                                             <p className="text-sm sm:text-base text-gray-900 font-medium whitespace-pre-wrap">
-                                                {question.questionText}
+                                                <span dangerouslySetInnerHTML={{ __html: question.questionText }} />
                                             </p>
                                         </div>
                                     </div>
@@ -113,7 +113,7 @@ const ExamReviewModal = ({ isOpen, onClose, attempt, exam }) => {
                                                         {String.fromCharCode(65 + optIndex)}
                                                     </div>
                                                     <div className="flex-1">
-                                                        <p className="text-gray-900">{option.optionText}</p>
+                                                        <p className="text-gray-900"><span dangerouslySetInnerHTML={{ __html: option.optionText }} /></p>
                                                         <div className="flex gap-2 mt-1">
                                                             {isUserSelected && (
                                                                 <span className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded">

@@ -51,7 +51,9 @@ const ExamTaking = () => {
                     examQuestionId: eq.id,
                     id: eq.question.id,
                     text: eq.question.questionText,
-                    type: eq.question.questionType === 'LISTENING' ? 'LC' : 'RC',
+                    type: eq.question.questionType === 'LISTENING' ? 'LC' :
+                          eq.question.questionType === 'WRITING' ? 'WR' : 'RC',
+                    questionType: eq.question.questionType, // Keep original type
                     mediaUrl: eq.question.questionMediaUrl,
                     options: eq.question.options.map(opt => ({
                         id: opt.id,
@@ -253,8 +255,14 @@ const ExamTaking = () => {
                                     <span className="bg-gray-900 text-white px-3 py-1.5 rounded-lg font-bold text-sm shadow-lg shadow-gray-200">
                                         Câu {currentQuestionIndex + 1}
                                     </span>
-                                    <span className="px-3 py-1.5 bg-gray-100 text-gray-600 rounded-lg text-xs font-bold uppercase tracking-wider">
-                                        {currentQ.type}
+                                    <span className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider ${
+                                        currentQ.type === 'WR'
+                                            ? 'bg-purple-100 text-purple-700'
+                                            : currentQ.type === 'LC'
+                                            ? 'bg-blue-100 text-blue-700'
+                                            : 'bg-gray-100 text-gray-600'
+                                    }`}>
+                                        {currentQ.type === 'WR' ? 'Viết' : currentQ.type}
                                     </span>
                                 </div>
                             </div>
@@ -271,12 +279,34 @@ const ExamTaking = () => {
                             )}
 
                             <h2 className="text-xl sm:text-2xl font-medium text-gray-800 mb-8 leading-relaxed">
-                                {currentQ.text}
+                                <div dangerouslySetInnerHTML={{ __html: currentQ.text }} />
                             </h2>
 
-                            <div className="space-y-4 max-w-2xl">
-                                {currentQ.options ? (
-                                    currentQ.options.map(opt => (
+                            {/* Writing Section */}
+                            {currentQ.questionType === 'WRITING' || (!currentQ.options || currentQ.options.length === 0) ? (
+                                <div className="space-y-4 max-w-3xl">
+                                    <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
+                                        <div className="flex items-center gap-2 text-blue-800 font-bold text-sm mb-2">
+                                            <span>✍️</span> Phần Viết
+                                        </div>
+                                        <p className="text-sm text-blue-700">
+                                            Hãy viết câu trả lời của bạn vào ô bên dưới. Bạn có thể viết bằng tiếng Hàn hoặc tiếng Việt.
+                                        </p>
+                                    </div>
+                                    <textarea
+                                        className="w-full border-2 border-gray-200 rounded-xl p-4 min-h-[250px] focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100 outline-none text-lg resize-y"
+                                        placeholder="Nhập câu trả lời của bạn tại đây..."
+                                        value={answers[currentQ.id] || ''}
+                                        onChange={(e) => handleAnswer(e.target.value)}
+                                    />
+                                    <div className="flex items-center justify-between text-sm text-gray-500">
+                                        <span>{(answers[currentQ.id] || '').length} ký tự</span>
+                                        <span className="text-gray-400">Không giới hạn ký tự</span>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="space-y-4 max-w-2xl">
+                                    {currentQ.options.map(opt => (
                                         <label
                                             key={opt.id}
                                             className={`flex items-center gap-4 p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 group ${answers[currentQ.id] == opt.id
@@ -293,7 +323,7 @@ const ExamTaking = () => {
                                                 )}
                                             </div>
                                             <span className={`text-lg ${answers[currentQ.id] == opt.id ? 'font-medium text-gray-900' : 'text-gray-600'}`}>
-                                                {opt.text}
+                                                <span dangerouslySetInnerHTML={{ __html: opt.text }} />
                                             </span>
                                             <input
                                                 type="radio"
@@ -304,41 +334,34 @@ const ExamTaking = () => {
                                                 className="hidden"
                                             />
                                         </label>
-                                    ))
-                                ) : (
-                                    <textarea
-                                        className="w-full border-2 border-gray-200 rounded-xl p-4 min-h-[200px] focus:border-gray-900 focus:ring-0 outline-none text-lg resize-none"
-                                        placeholder="Nhập câu trả lời của bạn tại đây..."
-                                        value={answers[currentQ.id] || ''}
-                                        onChange={(e) => handleAnswer(e.target.value)}
-                                    />
-                                )}
-                            </div>
-                        </div>
-
-                        {/* Navigation Footer */}
-                        <div className="bg-gray-50 p-4 sm:px-10 py-6 border-t border-gray-100 flex justify-between items-center">
-                            <button
-                                disabled={currentQuestionIndex === 0}
-                                onClick={() => setCurrentQuestionIndex(prev => prev - 1)}
-                                className="px-6 py-2.5 rounded-lg font-bold text-gray-600 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition"
-                            >
-                                ← Quay lại
-                            </button>
-
-                            <div className="hidden sm:block text-gray-400 text-sm font-medium">
-                                Sử dụng phím mũi tên để điều hướng nhanh
+                                    ))}
+                                </div>
+                            )}
                             </div>
 
-                            <button
-                                disabled={currentQuestionIndex === exam.questions.length - 1}
-                                onClick={() => setCurrentQuestionIndex(prev => prev + 1)}
-                                className="px-6 py-2.5 bg-gray-900 text-white rounded-lg font-bold hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition shadow-lg hover:shadow-gray-900/20"
-                            >
-                                Tiếp theo →
-                            </button>
+                            {/* Navigation Footer */}
+                            <div className="bg-gray-50 p-4 sm:px-10 py-6 border-t border-gray-100 flex justify-between items-center">
+                                <button
+                                    disabled={currentQuestionIndex === 0}
+                                    onClick={() => setCurrentQuestionIndex(prev => prev - 1)}
+                                    className="px-6 py-2.5 rounded-lg font-bold text-gray-600 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                                >
+                                    ← Quay lại
+                                </button>
+
+                                <div className="hidden sm:block text-gray-400 text-sm font-medium">
+                                    Sử dụng phím mũi tên để điều hướng nhanh
+                                </div>
+
+                                <button
+                                    disabled={currentQuestionIndex === exam.questions.length - 1}
+                                    onClick={() => setCurrentQuestionIndex(prev => prev + 1)}
+                                    className="px-6 py-2.5 bg-gray-900 text-white rounded-lg font-bold hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition shadow-lg hover:shadow-gray-900/20"
+                                >
+                                    Tiếp theo →
+                                </button>
+                            </div>
                         </div>
-                    </div>
                 </main>
             </div>
         </div >

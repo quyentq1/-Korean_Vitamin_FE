@@ -38,7 +38,14 @@ const ExamIntro = () => {
             navigate(`/exam/${examId}/taking/${attempt.id}`);
         } catch (error) {
             console.error("Failed to start exam attempt", error);
-            alert("Không thể bắt đầu làm bài. Vui lòng thử lại.");
+            const errorMessage = error.response?.data?.message || error.message || "Không thể bắt đầu làm bài. Vui lòng thử lại.";
+
+            // Check if it's class exam limit error
+            if (errorMessage.includes("CLASS_EXAM_ATTEMPT_LIMIT")) {
+                setError("Bạn đã hoàn thành bài thi này. Bài luyện tập trong lớp học chỉ được thi 1 lần.");
+            } else {
+                setError(errorMessage);
+            }
         }
     };
 
