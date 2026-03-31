@@ -20,7 +20,7 @@ import {
   Wand2,
   CheckSquare,
   Square,
-  BarChart3,
+  BarChart,
   Lightbulb,
   Loader2,
   X
@@ -86,7 +86,7 @@ const ExamEditor = () => {
     courseId: courseIdFromUrl || '', // Pre-fill if coming from MyCourses
     classId: classIdFromUrl || '', // NEW: Pre-fill if coming from ClassExamManagement
     examType: 'MIXED', // Default exam type
-    examCategory: 'PRACTICE' // NEW: MOCK (for Guest FreeTest) or PRACTICE (for Students in course)
+    examCategory: classIdFromUrl ? 'PRACTICE' : 'PRACTICE' // Force PRACTICE when creating exam for a class
   });
 
   // Questions state
@@ -170,6 +170,22 @@ const ExamEditor = () => {
     try {
       const response = await teacherService.getExam(id);
       setExam(response);
+
+      // Check if exam is already approved - cannot edit approved exams
+      if (response.approvalStatus === 'APPROVED') {
+        await Swal.fire({
+          icon: 'warning',
+          title: 'Không thể chỉnh sửa',
+          text: 'Bài kiểm tra này đã được duyệt. Không thể chỉnh sửa bài thi đã được duyệt.',
+          confirmButtonColor: '#ef4444',
+          footer: 'Vui lòng liên hệ Education Manager nếu cần thay đổi.'
+        });
+
+        // Navigate back to exam management
+        navigate('/teacher/exam-management');
+        setLoading(false);
+        return;
+      }
 
       // Check if this exam belongs to a class
       if (response.classId || response.classEntity) {
@@ -359,12 +375,12 @@ const ExamEditor = () => {
       const isCreateMode = !id || id === 'create';
 
       if (isCreateMode) {
-        // Validate required fields
-        if (!formData.courseId) {
+        // Validate required fields - courseId OR classId is required
+        if (!formData.courseId && !formData.classId) {
           Swal.fire({
             icon: 'warning',
             title: 'Thiếu thông tin',
-            text: t('exam.courseRequired', 'Vui lòng chọn khóa học.'),
+            text: 'Vui lòng chọn khóa học hoặc lớp học.',
             confirmButtonColor: '#3b82f6'
           });
           setSaving(false);
@@ -463,26 +479,35 @@ const ExamEditor = () => {
 
         const response = await teacherService.createExam(requestData);
 
-        // Auto-submit exam for approval after creation
-        try {
-          await teacherService.submitExamForApproval(response.id);
-          console.log('Exam submitted for approval:', response.id);
-        } catch (submitError) {
-          console.warn('Failed to auto-submit exam for approval:', submitError);
-          // Don't fail the entire flow if submission fails
+        // Auto-submit exam for approval after creation (only for course exams, not class exams)
+        // Class exams are automatically available to the class
+        if (!classId) {
+          try {
+            await teacherService.submitExamForApproval(response.id);
+            console.log('Exam submitted for approval:', response.id);
+          } catch (submitError) {
+            console.warn('Failed to auto-submit exam for approval:', submitError);
+            // Don't fail the entire flow if submission fails
+          }
         }
 
         // Show success alert
         await Swal.fire({
           icon: 'success',
           title: 'Thành công!',
-          text: t('exam.createSuccess', 'Đã tạo bài kiểm tra thành công! Đang chờ Education Manager duyệt.'),
+          text: classId
+            ? 'Đã tạo bài kiểm tra cho lớp học thành công!'
+            : t('exam.createSuccess', 'Đã tạo bài kiểm tra thành công! Đang chờ Education Manager duyệt.'),
           confirmButtonColor: '#10b981'
         });
 
         setError('');
-        // Navigate to edit mode after creation
-        navigate(`/exam-editor/${response.id}`);
+        // Navigate back to class exam management or edit mode
+        if (classId) {
+          navigate(`/teacher/exam-management/class?classId=${classId}`);
+        } else {
+          navigate(`/exam-editor/${response.id}`);
+        }
       } else {
         // Validate required fields for update mode
         if (!formData.title || formData.title.trim() === '') {
@@ -717,7 +742,7 @@ const ExamEditor = () => {
               {/* Progress Indicator */}
               <div className="hidden md:flex items-center gap-2 px-4 py-2 bg-blue-50 rounded-lg">
                 <div className={`w-3 h-3 rounded-full ${formData.title ? 'bg-green-500' : 'bg-gray-300'}`}></div>
-                <div className={`w-3 h-3 rounded-full ${formData.courseId ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                <div className={`w-3 h-3 rounded-full ${formData.courseId || formData.classId ? 'bg-green-500' : 'bg-gray-300'}`}></div>
                 <div className={`w-3 h-3 rounded-full ${questions.length > 0 ? 'bg-green-500' : 'bg-gray-300'}`}></div>
                 <span className="text-xs text-gray-600 ml-2">
                   {questions.length > 0 ? 'Hoàn thành' : 'Đang tạo'}
@@ -962,66 +987,82 @@ const ExamEditor = () => {
                     </div>
 
                     {/* Exam Category - Visual Card Selection */}
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        {t('exam.examCategory', 'Phân loại bài thi')}
-                      </label>
-                      <div className="grid grid-cols-2 gap-3">
-                        <button
-                          type="button"
-                          onClick={() => handleFormChange('examCategory', 'PRACTICE')}
-                          className={`p-4 rounded-xl border-2 text-left transition-all duration-200 ${
-                            formData.examCategory === 'PRACTICE'
-                              ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-blue-100 shadow-md'
-                              : 'border-gray-200 hover:border-blue-300 bg-white'
-                          }`}
-                        >
-                          <div className="flex flex-col items-center text-center">
-                            <span className="text-3xl mb-2">📚</span>
-                            <div className={`font-semibold text-sm mb-1 ${
-                              formData.examCategory === 'PRACTICE' ? 'text-blue-700' : 'text-gray-700'
-                            }`}>
-                              Bài luyện tập
+                    {!classIdFromUrl && !formData.classId && (
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          {t('exam.examCategory', 'Phân loại bài thi')}
+                        </label>
+                        <div className="grid grid-cols-2 gap-3">
+                          <button
+                            type="button"
+                            onClick={() => handleFormChange('examCategory', 'PRACTICE')}
+                            className={`p-4 rounded-xl border-2 text-left transition-all duration-200 ${
+                              formData.examCategory === 'PRACTICE'
+                                ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-blue-100 shadow-md'
+                                : 'border-gray-200 hover:border-blue-300 bg-white'
+                            }`}
+                          >
+                            <div className="flex flex-col items-center text-center">
+                              <span className="text-3xl mb-2">📚</span>
+                              <div className={`font-semibold text-sm mb-1 ${
+                                formData.examCategory === 'PRACTICE' ? 'text-blue-700' : 'text-gray-700'
+                              }`}>
+                                Bài luyện tập
+                              </div>
+                              <div className="text-xs text-gray-500">
+                                Cho học viên trong khóa
+                              </div>
                             </div>
-                            <div className="text-xs text-gray-500">
-                              Cho học viên trong khóa
-                            </div>
-                          </div>
-                        </button>
+                          </button>
 
-                        <button
-                          type="button"
-                          onClick={() => handleFormChange('examCategory', 'MOCK')}
-                          className={`p-4 rounded-xl border-2 text-left transition-all duration-200 ${
-                            formData.examCategory === 'MOCK'
-                              ? 'border-purple-500 bg-gradient-to-br from-purple-50 to-purple-100 shadow-md'
-                              : 'border-gray-200 hover:border-purple-300 bg-white'
-                          }`}
-                        >
-                          <div className="flex flex-col items-center text-center">
-                            <span className="text-3xl mb-2">🎯</span>
-                            <div className={`font-semibold text-sm mb-1 ${
-                              formData.examCategory === 'MOCK' ? 'text-purple-700' : 'text-gray-700'
-                            }`}>
-                              Mock Test
+                          <button
+                            type="button"
+                            onClick={() => handleFormChange('examCategory', 'MOCK')}
+                            className={`p-4 rounded-xl border-2 text-left transition-all duration-200 ${
+                              formData.examCategory === 'MOCK'
+                                ? 'border-purple-500 bg-gradient-to-br from-purple-50 to-purple-100 shadow-md'
+                                : 'border-gray-200 hover:border-purple-300 bg-white'
+                            }`}
+                          >
+                            <div className="flex flex-col items-center text-center">
+                              <span className="text-3xl mb-2">🎯</span>
+                              <div className={`font-semibold text-sm mb-1 ${
+                                formData.examCategory === 'MOCK' ? 'text-purple-700' : 'text-gray-700'
+                              }`}>
+                                Mock Test
+                              </div>
+                              <div className="text-xs text-gray-500">
+                                Cho Guest/FreeTest
+                              </div>
                             </div>
-                            <div className="text-xs text-gray-500">
-                              Cho Guest/FreeTest
-                            </div>
-                          </div>
-                        </button>
+                          </button>
+                        </div>
+                        <p className="mt-2 text-xs text-gray-500 flex items-center gap-1">
+                          <CheckCircle2 className="w-3 h-3" />
+                          {formData.examCategory === 'MOCK'
+                            ? 'Bài Mock sẽ hiển thị cho khách (Guest) trong trang FreeTest'
+                            : 'Bài luyện tập chỉ hiển thị cho học viên đã đăng ký khóa học'}
+                        </p>
                       </div>
-                      <p className="mt-2 text-xs text-gray-500 flex items-center gap-1">
-                        <CheckCircle2 className="w-3 h-3" />
-                        {formData.examCategory === 'MOCK'
-                          ? 'Bài Mock sẽ hiển thị cho khách (Guest) trong trang FreeTest'
-                          : 'Bài luyện tập chỉ hiển thị cho học viên đã đăng ký khóa học'}
-                      </p>
-                    </div>
+                    )}
+
+                    {/* Show info badge when exam is for a specific class */}
+                    {(classIdFromUrl || formData.classId) && (
+                      <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                        <div className="flex items-center gap-2 mb-2">
+                          <BookOpen className="w-5 h-5 text-blue-600" />
+                          <span className="font-semibold text-blue-900">Bài kiểm tra cho lớp học</span>
+                        </div>
+                        <p className="text-sm text-blue-700">
+                          Bài kiểm tra này sẽ được gán cho lớp học và chỉ hiển thị cho học viên trong lớp.
+                          Loại bài thi: <strong>Bài luyện tập (PRACTICE)</strong>
+                        </p>
+                      </div>
+                    )}
                   </div>
 
                   {/* Mode Selection (Auto vs Manual) - Enhanced */}
-                  {isCreateMode && selectedCourseInfo && (
+                  {isCreateMode && (selectedCourseInfo || selectedClassInfo) && (
                     <div className="mt-8 p-6 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl border-2 border-indigo-100">
                       <div className="flex items-center gap-2 mb-4">
                         <Wand2 className="w-5 h-5 text-indigo-600" />
@@ -1112,11 +1153,11 @@ const ExamEditor = () => {
                   {autoGenerateMode && showStructureBuilder && (selectedCourseInfo || selectedClassInfo) && (
                     <div className="mt-6 p-6 bg-white rounded-xl border-2 border-purple-200 shadow-lg">
                       <ExamStructureBuilder
-                        topikLevel={(selectedCourseInfo?.level || selectedClassInfo?.course?.level) === 'BEGINNER' ? 'TOPIK_I' : 'TOPIK_II'}
+                        topikLevel={selectedClassInfo ? 'TOPIK_II' : (selectedCourseInfo?.level === 'BEGINNER' ? 'TOPIK_I' : 'TOPIK_II')}
                         onGenerate={handleAutoGenerate}
                         questionBank={courseQuestions || []}
                         courseLevel={selectedCourseInfo?.level || selectedClassInfo?.course?.level}
-                        isClassExam={!!selectedClassInfo} // NEW: Pass true if creating exam for a class
+                        isClassExam={!!selectedClassInfo}
                       />
                     </div>
                   )}
@@ -1306,7 +1347,7 @@ const ExamEditor = () => {
                                 </span>
                               )}
                             </div>
-                            <p className="text-sm text-gray-900 line-clamp-2">{question.content}</p>
+                            <p className="text-sm text-gray-900 line-clamp-2"><span dangerouslySetInnerHTML={{ __html: question.content }} /></p>
                           </div>
 
                           <div className="flex gap-2 flex-shrink-0">
@@ -1363,7 +1404,7 @@ const ExamEditor = () => {
             <Card className="shadow-lg border-0 bg-gradient-to-br from-blue-600 to-indigo-700 text-white">
               <div className="p-6 space-y-4">
                 <div className="flex items-center gap-2 mb-4">
-                  <BarChart3 className="w-5 h-5" />
+                  <BarChart className="w-5 h-5" />
                   <h3 className="font-bold text-lg">Thống kê nhanh</h3>
                 </div>
 
@@ -1488,7 +1529,7 @@ const ExamEditor = () => {
 
           {questionToDelete && (
             <div className="p-4 bg-gray-50 rounded-lg">
-              <p className="font-medium text-gray-900">{questionToDelete.content}</p>
+              <p className="font-medium text-gray-900"><span dangerouslySetInnerHTML={{ __html: questionToDelete.content }} /></p>
             </div>
           )}
 
@@ -1532,7 +1573,7 @@ const ExamEditor = () => {
                 {getQuestionTypeBadge(previewQuestion.type)}
                 {getDifficultyBadge(previewQuestion.difficulty)}
               </div>
-              <p className="text-gray-900">{previewQuestion.content}</p>
+              <p className="text-gray-900"><span dangerouslySetInnerHTML={{ __html: previewQuestion.content }} /></p>
             </div>
 
             {previewQuestion.answers && previewQuestion.answers.length > 0 && (
@@ -1550,7 +1591,7 @@ const ExamEditor = () => {
                       <span className="font-medium text-gray-700">
                         {String.fromCharCode(65 + index)}.
                       </span>
-                      <span className="text-gray-900">{answer}</span>
+                      <span className="text-gray-900"><span dangerouslySetInnerHTML={{ __html: answer }} /></span>
                       {index === previewQuestion.correctAnswer && (
                         <CheckCircle2 className="w-5 h-5 text-green-600" />
                       )}
@@ -1579,7 +1620,7 @@ const ExamEditor = () => {
             handleAddQuestionsFromBank();
             setShowQuestionBankModal(false);
           }}
-          courseInfo={selectedCourseInfo}
+          courseInfo={selectedClassInfo?.course || selectedCourseInfo}
         />
       )}
 
