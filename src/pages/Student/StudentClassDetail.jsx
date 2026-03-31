@@ -13,8 +13,9 @@ import {
   User,
   AlertCircle
 } from 'lucide-react';
-import classService from '../../services/classService';
 import studentService from '../../services/studentService';
+import examService from '../../services/examService';
+import Swal from 'sweetalert2';
 
 const StudentClassDetail = () => {
   const { classId } = useParams();
@@ -24,9 +25,10 @@ const StudentClassDetail = () => {
   const [classData, setClassData] = useState(null);
   const [enrollment, setEnrollment] = useState(null);
   const [schedules, setSchedules] = useState([]);
-  const [quizzes, setQuizzes] = useState([]);
+  const [exams, setExams] = useState([]);
 
   useEffect(() => {
+    console.log('🔍 StudentClassDetail mounted with classId:', classId);
     fetchClassData();
   }, [classId]);
 
@@ -34,18 +36,64 @@ const StudentClassDetail = () => {
     try {
       setLoading(true);
 
+      console.log('📡 Fetching class details for classId:', classId);
+
       // Get class details from backend (returns DTO directly)
       const response = await studentService.getClassDetails(classId);
+
+      console.log('📦 Class data response:', response);
 
       // Response is now a DTO object with all fields
       setClassData(response);
       setEnrollment(response);
       setSchedules(response.schedules || []);
-      setQuizzes(response.quizzes || []);
+
+      // Fetch PRACTICE exams for this class
+      try {
+        const examsResponse = await studentService.getClassExams(classId);
+        console.log('📦 Exams response:', examsResponse);
+        const allExams = Array.isArray(examsResponse) ? examsResponse : [];
+        // Filter only PRACTICE exams
+        const practiceExams = allExams.filter(exam => exam.examCategory === 'PRACTICE');
+        console.log('✅ Filtered PRACTICE exams:', practiceExams);
+        setExams(practiceExams);
+      } catch (examError) {
+        console.error('❌ Error fetching exams:', examError);
+        setExams([]);
+      }
     } catch (error) {
-      console.error('Error fetching class data:', error);
+      console.error('❌ Error fetching class data:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleStartExam = async (examId) => {
+    try {
+      const attempt = await examService.startExam(examId, false);
+      navigate(`/exam/${examId}/taking/${attempt.id}`);
+    } catch (error) {
+      console.error('Failed to start exam:', error);
+      const errorMessage = error.response?.data?.message || error.message || 'Không thể bắt đầu làm bài.';
+
+      // Check if it's class exam limit error
+      if (errorMessage.includes('CLASS_EXAM_ATTEMPT_LIMIT')) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Đã hết lượt thi',
+          text: 'Bạn đã hoàn thành bài thi này. Bài luyện tập trong lớp học chỉ được thi 1 lần.',
+          confirmButtonColor: '#667eea',
+          confirmButtonText: 'Đã hiểu'
+        });
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Không thể bắt đầu làm bài',
+          text: errorMessage,
+          confirmButtonColor: '#667eea',
+          confirmButtonText: 'Đóng'
+        });
+      }
     }
   };
 
@@ -132,7 +180,7 @@ const StudentClassDetail = () => {
           {/* Tabs */}
           <div className="border-b border-gray-200 px-6 bg-gray-50">
             <div className="flex gap-6 overflow-x-auto">
-              {['overview', 'schedule', 'quizzes'].map(tab => (
+              {['overview', 'schedule', 'exams'].map(tab => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
@@ -144,7 +192,7 @@ const StudentClassDetail = () => {
                 >
                   {tab === 'overview' && 'Tổng quan'}
                   {tab === 'schedule' && 'Lịch học'}
-                  {tab === 'quizzes' && 'Bài kiểm tra'}
+                  {tab === 'exams' && 'Bài luyện tập'}
                 </button>
               ))}
             </div>
@@ -213,8 +261,8 @@ const StudentClassDetail = () => {
                   </div>
                   <div className="bg-blue-50 rounded-lg p-4">
                     <FileText className="w-5 h-5 text-blue-600 mb-2" />
-                    <p className="text-xs text-gray-600">Bài kiểm tra</p>
-                    <p className="font-bold text-gray-900">{quizzes.length}</p>
+                    <p className="text-xs text-gray-600">Bài luyện tập</p>
+                    <p className="font-bold text-gray-900">{exams.length}</p>
                   </div>
                   <div className="bg-amber-50 rounded-lg p-4">
                     <Clock className="w-5 h-5 text-amber-600 mb-2" />
@@ -277,66 +325,66 @@ const StudentClassDetail = () => {
               </div>
             )}
 
-            {/* Quizzes Tab */}
-            {activeTab === 'quizzes' && (
+            {/* Exams Tab */}
+            {activeTab === 'exams' && (
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Bài kiểm tra trong lớp</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Bài luyện tập của lớp</h3>
 
-                {quizzes.length === 0 ? (
+                {exams.length === 0 ? (
                   <div className="text-center text-gray-500 py-10">
                     <FileText className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                    <p>Chưa có bài kiểm tra nào</p>
+                    <p>Chưa có bài luyện tập nào</p>
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {quizzes.map((quiz) => (
+                    {exams.map((exam) => (
                       <div
-                        key={quiz.id}
+                        key={exam.id}
                         className="border border-gray-200 rounded-xl p-6 hover:border-indigo-300 hover:shadow-lg transition-all"
                       >
                         <div className="flex items-start justify-between mb-4">
                           <div className="flex-1">
-                            <h4 className="font-bold text-gray-900 mb-2">{quiz.title}</h4>
-                            {quiz.description && (
-                              <p className="text-sm text-gray-600 line-clamp-2">{quiz.description}</p>
+                            <h4 className="font-bold text-gray-900 mb-2">{exam.title}</h4>
+                            {exam.description && (
+                              <p className="text-sm text-gray-600 line-clamp-2">{exam.description}</p>
                             )}
                           </div>
-                          {quiz.lessonNumber && (
+                          {exam.examType && (
                             <span className="px-2 py-1 bg-indigo-100 text-indigo-700 rounded text-xs font-semibold">
-                              Buổi {quiz.lessonNumber}
+                              {exam.examType === 'MIXED' ? 'Hỗn hợp' : exam.examType}
                             </span>
                           )}
                         </div>
 
                         <div className="flex items-center gap-4 text-sm text-gray-600 mb-4">
-                          {quiz.durationMinutes && (
-                            <div className="flex items-center gap-2">
-                              <Clock className="w-4 h-4" />
-                              <span>{quiz.durationMinutes} phút</span>
-                            </div>
-                          )}
-                          {quiz.totalPoints && (
-                            <div className="flex items-center gap-2">
-                              <span className="font-semibold">{quiz.totalPoints} điểm</span>
-                            </div>
-                          )}
-                          {quiz.quizDate && (
-                            <div className="flex items-center gap-2">
-                              <Calendar className="w-4 h-4" />
-                              <span>{new Date(quiz.quizDate).toLocaleDateString('vi-VN')}</span>
-                            </div>
-                          )}
+                          <div className="flex items-center gap-2">
+                            <Clock className="w-4 h-4" />
+                            <span>{exam.durationMinutes || exam.duration || 60} phút</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <FileText className="w-4 h-4" />
+                            <span>{exam.totalQuestions || 0} câu</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <CheckCircle className="w-4 h-4" />
+                            <span>{exam.passingScore || 70}% đạt</span>
+                          </div>
                         </div>
 
-                        {quiz.active ? (
-                          <div className="text-center text-sm text-green-600 font-medium">
-                            ✓ Đang hoạt động
-                          </div>
-                        ) : (
-                          <div className="text-center text-sm text-gray-400">
-                            Chưa kích hoạt
+                        {exam.attemptsCount > 0 && exam.bestScore && (
+                          <div className="mb-4 p-3 bg-green-50 rounded-xl">
+                            <p className="text-sm text-gray-600">Điểm cao nhất</p>
+                            <p className="text-xl font-bold text-green-600">{exam.bestScore}</p>
                           </div>
                         )}
+
+                        <button
+                          onClick={() => handleStartExam(exam.id)}
+                          className="w-full py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-semibold hover:from-indigo-700 hover:to-purple-700 transition-all shadow-lg flex items-center justify-center gap-2"
+                        >
+                          <Play className="w-4 h-4" />
+                          {exam.attemptsCount > 0 ? 'Làm lại' : 'Bắt đầu'}
+                        </button>
                       </div>
                     ))}
                   </div>

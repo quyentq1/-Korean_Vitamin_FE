@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Clock, CheckCircle, XCircle, Eye } from 'lucide-react';
+import { Clock, CheckCircle, XCircle, Eye, BookOpen, Users } from 'lucide-react';
 import examService from '../../services/examService';
 
 const ExamHistory = () => {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
+    const [activeTab, setActiveTab] = useState('all'); // 'all', 'course', 'class'
     const [attempts, setAttempts] = useState([]);
 
     useEffect(() => {
@@ -73,6 +74,47 @@ const ExamHistory = () => {
         return 'text-red-600 bg-red-50';
     };
 
+    const getExamSourceBadge = (exam) => {
+        if (exam?.classEntity || exam?.classId) {
+            return (
+                <span className="inline-flex items-center gap-1 px-2 py-1 bg-purple-100 text-purple-700 rounded-lg text-xs font-medium">
+                    <Users className="w-3 h-3" />
+                    Lớp học
+                </span>
+            );
+        } else if (exam?.course || exam?.courseId) {
+            return (
+                <span className="inline-flex items-center gap-1 px-2 py-1 bg-indigo-100 text-indigo-700 rounded-lg text-xs font-medium">
+                    <BookOpen className="w-3 h-3" />
+                    Khóa học
+                </span>
+            );
+        }
+        return null;
+    };
+
+    const getFilteredAttempts = () => {
+        switch (activeTab) {
+            case 'course':
+                return attempts.filter(attempt =>
+                    attempt.exam?.course && !attempt.exam?.classEntity && !attempt.exam?.classId
+                );
+            case 'class':
+                return attempts.filter(attempt =>
+                    attempt.exam?.classEntity || attempt.exam?.classId
+                );
+            default:
+                return attempts;
+        }
+    };
+
+    const filteredAttempts = getFilteredAttempts();
+    const stats = {
+        total: attempts.length,
+        course: attempts.filter(a => a.exam?.course && !a.exam?.classEntity && !a.exam?.classId).length,
+        class: attempts.filter(a => a.exam?.classEntity || a.exam?.classId).length
+    };
+
     if (loading) {
         return (
             <div className="p-6">
@@ -93,13 +135,56 @@ const ExamHistory = () => {
                     <p className="text-gray-600 mt-1">Xem lại tất cả các bài thi bạn đã làm</p>
                 </div>
 
-                {attempts.length === 0 ? (
+                {/* Tabs */}
+                {attempts.length > 0 && (
+                    <div className="mb-6 bg-white rounded-xl shadow-sm overflow-hidden">
+                        <div className="border-b border-gray-200">
+                            <div className="flex gap-8 px-6">
+                                {[
+                                    { key: 'all', label: 'Tất cả', count: stats.total },
+                                    { key: 'course', label: 'Khóa học', count: stats.course, icon: BookOpen },
+                                    { key: 'class', label: 'Lớp học', count: stats.class, icon: Users }
+                                ].map(tab => (
+                                    <button
+                                        key={tab.key}
+                                        onClick={() => setActiveTab(tab.key)}
+                                        className={`py-4 px-2 border-b-2 font-medium text-sm transition-colors whitespace-nowrap flex items-center gap-2 ${
+                                            activeTab === tab.key
+                                                ? 'border-indigo-600 text-indigo-600'
+                                                : 'border-transparent text-gray-500 hover:text-gray-700'
+                                        }`}
+                                    >
+                                        {tab.icon && <tab.icon className="w-4 h-4" />}
+                                        <span>{tab.label}</span>
+                                        <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
+                                            activeTab === tab.key
+                                                ? 'bg-indigo-100 text-indigo-600'
+                                                : 'bg-gray-100 text-gray-600'
+                                        }`}>
+                                            {tab.count}
+                                        </span>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {filteredAttempts.length === 0 && attempts.length > 0 ? (
                     <div className="bg-white rounded-2xl p-12 text-center shadow-sm">
                         <div className="text-gray-400 mb-4">
                             <Clock className="w-16 h-16 mx-auto" />
                         </div>
-                        <h3 className="text-xl font-semibold text-gray-700 mb-2">Chưa có bài thi nào</h3>
-                        <p className="text-gray-500 mb-6">Bạn chưa thực hiện bài kiểm tra nào. Hãy bắt đầu với một bài thi nhé!</p>
+                        <h3 className="text-xl font-semibold text-gray-700 mb-2">
+                            {activeTab === 'course' ? 'Chưa có bài thi khóa học nào' :
+                             activeTab === 'class' ? 'Chưa có bài thi lớp học nào' :
+                             'Chưa có bài thi nào'}
+                        </h3>
+                        <p className="text-gray-500 mb-6">
+                            {activeTab === 'course' ? 'Bạn chưa thực hiện bài thi nào thuộc khóa học.' :
+                             activeTab === 'class' ? 'Bạn chưa thực hiện bài thi nào thuộc lớp học.' :
+                             'Bạn chưa thực hiện bài kiểm tra nào. Hãy bắt đầu với một bài thi nhé!'}
+                        </p>
                         <button
                             onClick={() => navigate('/student/exams')}
                             className="px-6 py-3 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700 transition"
@@ -114,6 +199,7 @@ const ExamHistory = () => {
                                 <thead className="bg-gray-50 border-b border-gray-200">
                                     <tr>
                                         <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Bài thi</th>
+                                        <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Nguồn</th>
                                         <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Thời gian</th>
                                         <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Điểm số</th>
                                         <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Trạng thái</th>
@@ -121,7 +207,7 @@ const ExamHistory = () => {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-200">
-                                    {attempts.map((attempt) => {
+                                    {filteredAttempts.map((attempt) => {
                                         const percentage = attempt.exam?.totalPoints
                                             ? Math.round((attempt.totalScore / attempt.exam.totalPoints) * 100)
                                             : 0;
@@ -137,6 +223,9 @@ const ExamHistory = () => {
                                                             {attempt.exam?.course?.name || ''}
                                                         </p>
                                                     </div>
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    {getExamSourceBadge(attempt.exam)}
                                                 </td>
                                                 <td className="px-6 py-4">
                                                     <div className="text-sm text-gray-600">
