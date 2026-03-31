@@ -1,35 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { 
-  ArrowLeft, 
-  Save, 
-  Play, 
-  Pause, 
-  FileText, 
-  Volume2,
-  VolumeX,
+import Swal from 'sweetalert2';
+import {
+  ArrowLeft,
+  Save,
+  FileText,
   CheckCircle2,
-  XCircle,
-  AlertCircle,
-  Eye,
-  EyeOff,
   Clock,
   User,
   Calendar,
-  MessageSquare,
-  Star,
   ChevronDown,
   ChevronUp,
   Download,
   RefreshCw,
-  FileCheck,
-  ListChecks,
-  ThumbsUp,
-  ThumbsDown,
-  Send,
-  Copy,
-  MoreHorizontal
+  Eye,
+  EyeOff,
+  CheckCircle,
+  AlertCircle,
+  Send
 } from 'lucide-react';
 
 // UI Components
@@ -39,10 +28,7 @@ import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Alert from '../../components/ui/Alert';
 import Loading from '../../components/ui/Loading';
-import Modal from '../../components/ui/Modal';
 import Badge from '../../components/ui/Badge';
-import Input from '../../components/ui/Input';
-import Section from '../../components/ui/Section';
 
 // Services
 import teacherService from '../../services/teacherService';
@@ -59,72 +45,48 @@ const GradingDetail = () => {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  
+
   // UI state
   const [currentAnswerIndex, setCurrentAnswerIndex] = useState(0);
   const [showRubric, setShowRubric] = useState(false);
-  const [showQuickComments, setShowQuickComments] = useState(false);
-  const [selectedQuickComment, setSelectedQuickComment] = useState('');
-  const [autoSave, setAutoSave] = useState(true);
-  const [lastSaved, setLastSaved] = useState(null);
-
-  // Quick comments
-  const quickComments = [
-    'Làm tốt, tiếp tục phát huy!',
-    'Cần cải thiện ngữ pháp',
-    'Cần bổ sung thêm ví dụ',
-    'Chú ý cách dùng từ vựng',
-    'Cấu trúc câu cần rõ ràng',
-    'Thử dùng câu phức để hay hơn',
-    'Bài viết rất chi tiết',
-    'Cần tập viết nhiều hơn'
-  ];
-
-  // Rubric criteria
-  const rubricCriteria = [
-    { id: 1, name: 'Nội dung', description: 'Độ chi tiết và chính xác của nội dung', maxScore: 4 },
-    { id: 2, name: 'Ngữ pháp', description: 'Sử dụng đúng ngữ pháp và từ vựng', maxScore: 3 },
-    { id: 3, name: 'Từ vựng', description: 'Sử dụng từ vựng phù hợp với ngữ cảnh', maxScore: 2 },
-    { id: 4, name: 'Cấu trúc', description: 'Cấu trúc câu rõ ràng và logic', maxScore: 1 }
-  ];
 
   // Fetch attempt details
   useEffect(() => {
     fetchAttemptDetails();
   }, [attemptId]);
 
-  // Auto-save effect
-  useEffect(() => {
-    if (!autoSave || saving) return;
-
-    const timer = setTimeout(() => {
-      saveGrading(true);
-    }, 30000); // Auto-save every 30 seconds
-
-    return () => clearTimeout(timer);
-  }, [answers, autoSave, saving]);
-
   const fetchAttemptDetails = async () => {
     setLoading(true);
     try {
-      const attemptRes = await teacherService.getAttemptDetails(attemptId);
-      setAttempt(attemptRes);
-      
-      const answersRes = await teacherService.getGradingAnswers(attemptId);
-      
-      // Enrich answers with AI suggestions if missing
-      const enrichedData = (answersRes || []).map(ans => ({
-        ...ans,
-        aiAnalysis: ans.aiAnalysis || (ans.examQuestion?.question?.type === 'WRITING' ? {
-          score: 75,
-          feedback: "Bài viết tốt, tuy nhiên cần chú ý cách dùng trợ từ 'e/eseo'.",
-          suggestions: ["Sửa 'jib-e' thành 'jib-eseo'", "Thêm liên từ nối câu"]
-        } : null),
-        score: ans.score || null,
-        feedback: ans.feedback || ''
-      }));
-      
-      setAnswers(enrichedData);
+      const data = await teacherService.getGradingAnswers(attemptId);
+
+      console.log('📦 Grading Detail API Response:', data);
+      console.log('📦 Attempt:', data);
+      console.log('📦 Answers:', data?.answers);
+
+      if (data) {
+        setAttempt(data);
+
+        // Enrich answers with AI suggestions if missing
+        const enrichedData = (data.answers || []).map(ans => {
+          console.log('📦 Processing answer:', ans);
+          return {
+            ...ans,
+            examQuestion: {
+              id: ans.examQuestionId,
+              type: ans.questionType,
+              questionText: ans.questionText,
+              points: ans.points
+            },
+            aiAnalysis: ans.aiAnalysis || null,
+            score: ans.score !== undefined ? ans.score : null, // Fix: don't use || for 0
+            feedback: ans.feedback || ''
+          };
+        });
+
+        console.log('✅ Enriched answers:', enrichedData);
+        setAnswers(enrichedData);
+      }
       setError('');
     } catch (err) {
       console.error('Failed to load attempt details', err);
@@ -134,260 +96,339 @@ const GradingDetail = () => {
     }
   };
 
-  // Handle score change
   const handleScoreChange = (answerId, field, value) => {
-    setAnswers(prev => prev.map(a =>
-      a.id === answerId ? { ...a, [field]: value } : a
-    ));
+    console.log('📝 handleScoreChange:', { answerId, field, value, valueType: typeof value });
+    setAnswers(prev => {
+      const updated = prev.map(a =>
+        a.id === answerId ? { ...a, [field]: value } : a
+      );
+      console.log('✅ Updated answer:', updated.find(a => a.id === answerId));
+      console.log('✅ All answers scores:', updated.map(a => ({ id: a.id, score: a.score, scoreType: typeof a.score })));
+      return updated;
+    });
   };
 
   // Apply AI score
   const handleApplyAIScore = (answerId, aiScore) => {
     handleScoreChange(answerId, 'score', aiScore);
-  };
-
-  // Handle quick comment
-  const handleQuickComment = (answerId, comment) => {
-    const newFeedback = answers.find(a => a.id === answerId)?.feedback || '';
-    handleScoreChange(answerId, 'feedback', newFeedback + (newFeedback ? ' ' : '') + comment);
-    setShowQuickComments(false);
+    setSuccess(t('grading.aiScoreApplied', 'Đã áp dụng điểm từ AI!'));
+    setTimeout(() => setSuccess(''), 3000);
   };
 
   // Save grading
-  const saveGrading = async (isAutoSave = false) => {
-    if (isAutoSave) {
-      setSaving(true);
+  const saveGrading = async () => {
+    // Validation: Check if all questions have scores (0 is valid score)
+    const ungradedQuestions = answers.filter(a => a.score === null || a.score === undefined);
+
+    if (ungradedQuestions.length > 0) {
+      // Show warning popup - DON'T save, just alert
+      const count = ungradedQuestions.length;
+      Swal.fire({
+        title: t('grading.incompleteTitle', 'Chưa chấm xong'),
+        html: `Bạn chưa chấm <strong>${count}</strong> câu hỏi.<br/>Vui lòng chấm hết tất cả các câu hỏi trước khi lưu!`,
+        icon: 'warning',
+        confirmButtonText: t('grading.understood', 'Đã hiểu'),
+        confirmButtonColor: '#3b82f6',
+        customClass: {
+          popup: 'swal2-popup'
+        }
+      });
+      return; // Don't save
     }
 
-    try {
-      const gradingData = {
-        attemptId,
-        answers: answers.map(a => ({
-          id: a.id,
-          score: a.score,
-          feedback: a.feedback
-        }))
-      };
+    // All questions graded, proceed to save
+    await performSave();
+  };
 
-      await teacherService.submitGrading(attemptId, gradingData);
-      
-      setLastSaved(new Date());
-      if (!isAutoSave) {
-        setSuccess(t('grading.saveSuccess', 'Chấm điểm thành công!'));
-        setTimeout(() => setSuccess(''), 3000);
+  const performSave = async () => {
+    setSaving(true);
+    try {
+      // DEBUG: Log all answers before filtering
+      console.log('📊 All answers:', answers.map(a => ({
+        id: a.id,
+        examQuestionId: a.examQuestionId,
+        score: a.score,
+        scoreType: typeof a.score
+      })));
+
+      // Prepare grades for submission
+      const gradesToSubmit = answers
+        .filter(a => {
+          const hasScore = a.score !== null && a.score !== undefined && !isNaN(a.score);
+          console.log(`Filtering answer ${a.id}: score=${a.score}, hasScore=${hasScore}`);
+          return hasScore;
+        })
+        .map(a => ({
+          attemptId: Number(attemptId),
+          examQuestionId: Number(a.examQuestionId),
+          score: Number(a.score), // Ensure number type
+          feedback: a.feedback || ''
+        }));
+
+      console.log('💾 Grades to submit:', gradesToSubmit);
+      console.log('💾 Count:', gradesToSubmit.length, 'out of', answers.length);
+
+      // Call API for each grade
+      for (const grade of gradesToSubmit) {
+        await teacherService.submitGrading(
+          grade.attemptId,
+          grade.examQuestionId,
+          grade.score,
+          grade.feedback
+        );
+        console.log('✅ Saved grade for question:', grade.examQuestionId);
       }
+
+      // Show SweetAlert2 success toast
+      Swal.fire({
+        icon: 'success',
+        title: t('grading.savedTitle', 'Đã lưu!'),
+        text: `Đã lưu ${gradesToSubmit.length} câu hỏi thành công!`,
+        timer: 2000,
+        showConfirmButton: false,
+        toast: true,
+        position: 'top-end'
+      });
+
       setError('');
     } catch (err) {
       console.error('Failed to save grading', err);
-      setError(t('grading.saveError', 'Lỗi khi lưu điểm.'));
-      if (!isAutoSave) {
-        setSuccess('');
-      }
+
+      const errorMsg = t('grading.saveError', '❌ Lỗi khi lưu') + ': ' + (err.response?.data?.message || err.message);
+
+      setError(errorMsg);
+
+      // Show error toast
+      Swal.fire({
+        icon: 'error',
+        title: t('grading.errorTitle', 'Lỗi'),
+        text: errorMsg,
+        timer: 3000,
+        showConfirmButton: false,
+        toast: true,
+        position: 'top-end'
+      });
+
+      setTimeout(() => setError(''), 5000);
     } finally {
       setSaving(false);
     }
   };
 
-  // Calculate total score
+  // Calculate scores
   const calculateTotalScore = () => {
     return answers.reduce((sum, a) => sum + (a.score || 0), 0);
   };
 
-  // Calculate max possible score
   const calculateMaxScore = () => {
     return answers.reduce((sum, a) => sum + (a.examQuestion?.points || 0), 0);
   };
 
-  // Get rubric score
-  const getRubricScore = (criteriaId) => {
-    return rubricCriteria.find(c => c.id === criteriaId)?.score || 0;
-  };
-
-  // Set rubric score
-  const setRubricScore = (criteriaId, score) => {
-    // Update rubric criteria scores
-    console.log(`Set rubric ${criteriaId} score to ${score}`);
-  };
-
-  // Get question type badge
   const getQuestionTypeBadge = (type) => {
-    const typeConfig = {
-      WRITING: { variant: 'blue', label: t('grading.type.writing', 'Viết') },
-      SPEAKING: { variant: 'purple', label: t('grading.type.speaking', 'Nói') },
-      LISTENING: { variant: 'green', label: t('grading.type.listening', 'Nghe') },
-      READING: { variant: 'orange', label: t('grading.type.reading', 'Đọc') }
+    const badges = {
+      'WRITING': { label: 'Viết', variant: 'blue' },
+      'SPEAKING': { label: 'Nói', variant: 'purple' },
+      'READING': { label: 'Đọc', variant: 'green' },
+      'LISTENING': { label: 'Nghe', variant: 'orange' }
     };
-    
-    return <Badge variant={typeConfig[type]?.variant}>{typeConfig[type]?.label}</Badge>;
+    return badges[type]?.label || type;
+  };
+
+  const currentAnswer = answers[currentAnswerIndex];
+
+  // Calculate progress - count questions that have been scored (including 0)
+  const gradedCount = answers.filter(a => a.score !== null && a.score !== undefined).length;
+  const progressPercent = answers.length > 0 ? (gradedCount / answers.length) * 100 : 0;
+
+  // Format date safely
+  const formatDate = (dateStr) => {
+    if (!dateStr) return '-';
+    try {
+      const date = new Date(dateStr);
+      // Check if date is valid
+      if (isNaN(date.getTime())) return '-';
+      return date.toLocaleDateString('vi-VN');
+    } catch (e) {
+      console.error('Date parse error:', e, 'dateStr:', dateStr);
+      return '-';
+    }
+  };
+
+  // Calculate time spent in minutes
+  const getTimeSpent = () => {
+    // First try direct field
+    if (attempt?.timeSpent) {
+      return attempt.timeSpent;
+    }
+
+    // Calculate from startTime and endTime
+    if (attempt?.startTime && attempt?.endTime) {
+      try {
+        const start = new Date(attempt.startTime);
+        const end = new Date(attempt.endTime);
+        const diffMs = end.getTime() - start.getTime();
+        return Math.floor(diffMs / 60000); // Convert to minutes
+      } catch (e) {
+        console.error('Time calculation error:', e);
+        return 0;
+      }
+    }
+
+    return 0;
   };
 
   if (loading) {
     return (
       <PageContainer>
-        <Loading.PageLoading />
+        <div className="flex items-center justify-center min-h-screen">
+          <Loading size="lg" />
+        </div>
       </PageContainer>
     );
   }
 
-  const currentAnswer = answers[currentAnswerIndex] || {};
-
   return (
     <PageContainer>
-      {/* Page Header */}
+      {/* Header */}
       <PageHeader
-        title={t('grading.gradingDetail', 'Chi Tiết Chấm Điểm')}
-        subtitle={`${attempt?.student?.fullName || ''} - ${attempt?.exam?.title || ''}`}
+        title={t('grading.title', 'Chấm Điểm Bài Làm')}
+        subtitle={attempt?.examTitle || 'Loading...'}
         breadcrumbs={[
-          { label: t('nav.home', 'Trang chủ'), href: '/' },
-          { label: t('nav.teacher', 'Giáo viên'), href: '/teacher' },
-          { label: t('grading.queue', 'Hàng đợi chấm'), href: '/teacher/grading-queue' },
-          { label: t('grading.gradingDetail', 'Chi tiết chấm điểm') }
+          { label: t('nav.teacher', 'Giáo Viên'), path: '/teacher' },
+          { label: t('grading.gradingQueue', 'Hàng Đợi Chấm'), path: '/teacher/grading' },
+          { label: attempt?.studentName || '...' }
         ]}
         actions={
-          <div className="flex gap-3">
-            <Button
-              variant="secondary"
-              icon={<RefreshCw className="w-4 h-4" />}
-              onClick={() => fetchAttemptDetails()}
-            >
-              {t('common.refresh', 'Làm mới')}
-            </Button>
-            <Button
-              variant="secondary"
-              icon={<ArrowLeft className="w-4 h-4" />}
-              onClick={() => navigate('/teacher/grading-queue')}
-            >
-              {t('common.back', 'Quay lại')}
-            </Button>
-            <Button
-              variant="primary"
-              icon={<Save className="w-4 h-4" />}
-              onClick={() => saveGrading(false)}
-              disabled={saving}
-            >
-              {saving ? (
-                <>
-                  <Loading.Spinner size="sm" />
-                  {t('grading.saving', 'Đang lưu...')}
-                </>
-              ) : (
-                t('grading.save', 'Lưu điểm')
-              )}
-            </Button>
-          </div>
+          <Button
+            variant="secondary"
+            size="sm"
+            icon={<ArrowLeft className="w-4 h-4" />}
+            onClick={() => navigate('/teacher/grading')}
+          >
+            {t('common.back', 'Quay Lại')}
+          </Button>
         }
       />
 
-      {/* Success Alert */}
+      {/* Alerts */}
+      {error && (
+        <Alert variant="danger" className="mb-4" dismissible onClose={() => setError('')}>
+          {error}
+        </Alert>
+      )}
       {success && (
-        <Alert
-          variant="success"
-          icon={<CheckCircle2 className="w-5 h-5" />}
-          className="mb-6"
-          dismissible
-          onDismiss={() => setSuccess('')}
-        >
+        <Alert variant="success" className="mb-4" dismissible onClose={() => setSuccess('')}>
           {success}
         </Alert>
       )}
 
-      {/* Error Alert */}
-      {error && (
-        <Alert
-          variant="error"
-          icon={<AlertCircle className="w-5 h-5" />}
-          className="mb-6"
-          dismissible
-          onDismiss={() => setError('')}
-        >
-          {error}
-        </Alert>
-      )}
-
-      {/* Stats Bar */}
+      {/* Compact Info Bar */}
       <Card className="mb-6">
-        <div className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <User className="w-5 h-5 text-gray-500" />
-              <div>
-                <p className="font-semibold text-gray-900">{attempt?.student?.fullName}</p>
-                <p className="text-sm text-gray-500">{attempt?.student?.studentCode}</p>
+        <div className="p-4">
+          <div className="flex items-center justify-between">
+            {/* Student Info */}
+            <div className="flex items-center gap-6">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center">
+                  <User className="w-6 h-6 text-primary-600" />
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-900">{attempt?.studentName}</p>
+                  <p className="text-sm text-gray-500">{attempt?.studentCode || 'N/A'}</p>
+                </div>
+              </div>
+
+              <div className="h-10 w-px bg-gray-200"></div>
+
+              <div className="flex items-center gap-4 text-sm">
+                <div className="flex items-center gap-2 text-gray-600">
+                  <Calendar className="w-4 h-4" />
+                  <span>{formatDate(attempt?.submitTime)}</span>
+                </div>
+                <div className="flex items-center gap-2 text-gray-600">
+                  <Clock className="w-4 h-4" />
+                  <span>{getTimeSpent()} phút</span>
+                </div>
               </div>
             </div>
-            <div className="flex items-center gap-3 text-sm text-gray-600">
-              <Calendar className="w-4 h-4" />
-              <span>{new Date(attempt?.submittedAt).toLocaleDateString('vi-VN')}</span>
-              <Clock className="w-4 h-4 ml-3" />
-              <span>{attempt?.timeSpent || 0} {t('grading.minutes', 'phút')}</span>
+
+            {/* Stats */}
+            <div className="flex items-center gap-8">
+              <div className="text-center">
+                <p className="text-2xl font-bold text-gray-900">{calculateTotalScore() || 0}</p>
+                <p className="text-xs text-gray-500">/ {calculateMaxScore() || 0} {t('grading.points', 'điểm')}</p>
+              </div>
+              <div className="text-center">
+                <p className="text-2xl font-bold text-primary-600">{gradedCount}/{answers.length || 0}</p>
+                <p className="text-xs text-gray-500">{t('grading.graded', 'Đã chấm')}</p>
+              </div>
             </div>
           </div>
-          
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="text-center">
-              <p className="text-2xl font-bold text-gray-900">{calculateTotalScore()}</p>
-              <p className="text-sm text-gray-500">{t('grading.totalScore', 'Tổng điểm')}</p>
+
+          {/* Progress Bar */}
+          <div className="mt-4 pt-4 border-t">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium text-gray-700">{t('grading.progress', 'Tiến độ chấm điểm')}</span>
+              <span className="text-sm text-gray-600">{progressPercent.toFixed(0)}%</span>
             </div>
-            <div className="text-center">
-              <p className="text-2xl font-bold text-gray-900">{calculateMaxScore()}</p>
-              <p className="text-sm text-gray-500">{t('grading.maxScore', 'Điểm tối đa')}</p>
-            </div>
-            <div className="text-center">
-              <p className="text-2xl font-bold text-primary-600">{calculateTotalScore() > 0 ? ((calculateTotalScore() / calculateMaxScore()) * 100).toFixed(1) : 0}%</p>
-              <p className="text-sm text-gray-500">{t('grading.percentage', 'Tỷ lệ')}</p>
-            </div>
-            <div className="text-center">
-              <p className="text-sm text-gray-500">{t('grading.lastSaved', 'Lưu lần cuối:')}</p>
-              <p className="font-semibold text-gray-900">{lastSaved ? new Date(lastSaved).toLocaleString('vi-VN') : '-'}</p>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div
+                className="bg-primary-600 h-2 rounded-full transition-all duration-300"
+                style={{ width: `${progressPercent}%` }}
+              />
             </div>
           </div>
         </div>
       </Card>
 
-      {/* Main Content - Side by Side */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-        {/* Left Column - Questions List */}
+      {/* Main Content */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        {/* Left - Questions List */}
         <div className="lg:col-span-1">
-          <Card className="mb-4">
+          <Card className="sticky top-4">
             <div className="p-4 border-b">
-              <h3 className="font-semibold text-gray-900 mb-3">
+              <h3 className="font-semibold text-gray-900 text-sm">
                 {t('grading.questions', 'Câu Hỏi')} ({answers.length})
               </h3>
             </div>
-            
-            <div className="p-4 space-y-2 max-h-[calc(100vh-300px)] overflow-y-auto">
+
+            <div className="p-3 space-y-2 max-h-[calc(100vh-250px)] overflow-y-auto">
               {answers.map((answer, index) => (
                 <div
                   key={answer.id}
-                  className={`p-4 rounded-lg border cursor-pointer transition ${
-                    currentAnswerIndex === index 
-                      ? 'border-primary-500 bg-primary-50' 
-                      : 'border-gray-200 hover:border-primary-300'
+                  className={`p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                    currentAnswerIndex === index
+                      ? 'border-primary-500 bg-primary-50 shadow-sm'
+                      : 'border-gray-200 hover:border-primary-300 hover:shadow-sm'
                   }`}
                   onClick={() => setCurrentAnswerIndex(index)}
                 >
                   <div className="flex items-start justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-gray-900">
-                        {index + 1}. {answer.examQuestion?.questionText?.substring(0, 50)}...
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                      <span className="text-xs font-medium text-gray-900 flex-shrink-0">
+                        {index + 1}.
                       </span>
-                      {getQuestionTypeBadge(answer.examQuestion?.type)}
+                      <span className="text-xs text-gray-600 truncate">
+                        {answer.examQuestion?.questionText?.substring(0, 40)}...
+                      </span>
                     </div>
-                    {answer.score !== null && (
-                      <Badge variant={answer.score >= answer.examQuestion?.points * 0.8 ? 'success' : 'warning'}>
-                        {answer.score}/{answer.examQuestion?.points}
-                      </Badge>
+                    {answer.score !== null ? (
+                      <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                    ) : (
+                      <AlertCircle className="w-4 h-4 text-orange-400 flex-shrink-0" />
                     )}
                   </div>
-                  
-                  <div className="flex items-center gap-2 text-xs text-gray-500">
-                    <FileText className="w-3 h-3" />
-                    <span>{answer.examQuestion?.points} {t('grading.points', 'điểm')}</span>
-                    {answer.aiAnalysis && (
-                      <>
-                        <span className="text-purple-600">AI: {answer.aiAnalysis.score}%</span>
-                      </>
-                    )}
+
+                  <div className="flex items-center justify-between">
+                    <Badge
+                      variant={answer.examQuestion?.type === 'WRITING' ? 'blue' : 'purple'}
+                      size="sm"
+                    >
+                      {getQuestionTypeBadge(answer.examQuestion?.type)}
+                    </Badge>
+                    <span className="text-xs font-medium text-gray-700">
+                      {(answer.score !== null && answer.score !== undefined) ? answer.score : '-'}/{answer.examQuestion?.points}
+                    </span>
                   </div>
                 </div>
               ))}
@@ -395,177 +436,134 @@ const GradingDetail = () => {
           </Card>
         </div>
 
-        {/* Middle Column - Question & Answer */}
-        <div className="lg:col-span-1">
+        {/* Right - Content */}
+        <div className="lg:col-span-3 space-y-4">
           {currentAnswer ? (
             <>
               {/* Question Card */}
-              <Card className="mb-4">
-                <div className="p-6">
-                  {/* Question Header */}
+              <Card>
+                <div className="p-5">
+                  {/* Header */}
                   <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center gap-2">
-                      <Badge variant={currentAnswer.examQuestion?.type === 'WRITING' ? 'blue' : 'purple'}>
-                        {currentAnswer.examQuestion?.type === 'WRITING' ? '✍️' : '🎤'} {getQuestionTypeBadge(currentAnswer.examQuestion?.type)}
+                    <div className="flex items-center gap-3">
+                      <Badge
+                        variant={currentAnswer.examQuestion?.type === 'WRITING' ? 'blue' : 'purple'}
+                      >
+                        {getQuestionTypeBadge(currentAnswer.examQuestion?.type)}
                       </Badge>
-                      <span className="text-sm text-gray-500">
+                      <span className="text-sm text-gray-600">
                         {currentAnswer.examQuestion?.points} {t('grading.points', 'điểm')}
                       </span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      {currentAnswer.answerFileUrl && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          icon={<Download className="w-4 h-4" />}
-                          onClick={() => window.open(currentAnswer.answerFileUrl, '_blank')}
-                        >
-                        </Button>
-                      )}
-                      {currentAnswer.answerFileUrl && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          icon={<Eye className="w-4 h-4" />}
-                          onClick={() => window.open(currentAnswer.answerFileUrl, '_blank')}
-                        />
-                      )}
-                    </div>
                   </div>
 
-                  {/* Question Content */}
-                  <div className="mb-6">
-                    <h4 className="font-semibold text-gray-900 mb-3">
-                      {t('grading.question', 'Câu Hỏi')}
-                    </h4>
-                    <p className="text-gray-700 leading-relaxed">
-                      {currentAnswer.examQuestion?.questionText}
-                    </p>
+                  {/* Question Text */}
+                  <div className="bg-gray-50 rounded-lg p-4 mb-4">
+                    <p className="text-sm text-gray-500 mb-1">{t('grading.question', 'Câu hỏi')}</p>
+                    {currentAnswer.examQuestion?.questionText ? (
+                      <div
+                        className="text-gray-900 prose prose-sm max-w-none"
+                        dangerouslySetInnerHTML={{
+                          __html: currentAnswer.examQuestion?.questionText || ''
+                        }}
+                      />
+                    ) : (
+                      <p className="text-gray-400 text-sm">{t('grading.noQuestion', 'Không có nội dung')}</p>
+                    )}
                   </div>
 
                   {/* Student Answer */}
-                  <div className="border-t pt-6">
-                    <h4 className="font-semibold text-gray-900 mb-3">
-                      {t('grading.studentAnswer', 'Câu Trả Lời')}
-                    </h4>
-                    
-                    {currentAnswer.answerFileUrl ? (
-                      <div className="mb-4">
-                        {currentAnswer.examQuestion?.type === 'SPEAKING' ? (
-                          <audio controls src={currentAnswer.answerFileUrl} className="w-full" />
-                        ) : (
-                          <div className="bg-gray-50 rounded-lg p-4">
-                            <FileText className="w-12 h-12 mx-auto mb-3 text-gray-400" />
-                            <p className="text-center text-gray-500 mb-2">
-                              {t('grading.cannotPreview', 'Không thể xem trước file này')}
-                            </p>
-                            <Button
-                              variant="secondary"
-                              size="sm"
-                              icon={<Download className="w-4 h-4" />}
-                              onClick={() => window.open(currentAnswer.answerUrlFileUrl, '_blank')}
-                            >
-                              {t('grading.download', 'Tải file')}
-                            </Button>
-                          </div>
-                        )}
+                  <div className="bg-blue-50 rounded-lg p-4">
+                    <p className="text-sm text-blue-700 mb-2 font-medium">{t('grading.studentAnswer', 'Bài làm')}</p>
+                    {currentAnswer.answerText ? (
+                      <div className="text-gray-800 whitespace-pre-wrap leading-relaxed">
+                        {currentAnswer.answerText}
                       </div>
-                    ) : currentAnswer.answerText ? (
-                      <div className="bg-gray-50 rounded-lg p-4">
-                        <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">
-                          {currentAnswer.answerText}
-                        </p>
+                    ) : currentAnswer.answerFileUrl ? (
+                      <div className="text-center py-4">
+                        <FileText className="w-8 h-8 mx-auto mb-2 text-blue-400" />
+                        <p className="text-sm text-gray-500">{t('grading.fileAnswer', 'Đã nộp bài qua file')}</p>
                       </div>
                     ) : (
-                      <div className="text-center py-8 text-gray-400">
-                        <FileText className="w-12 h-12 mx-auto mb-3" />
-                        <p>{t('grading.noAnswer', 'Chưa có câu trả lời')}</p>
+                      <div className="text-center py-4 text-gray-400">
+                        <FileText className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                        <p className="text-sm">{t('grading.noAnswer', 'Chưa có câu trả lời')}</p>
                       </div>
                     )}
                   </div>
                 </div>
               </Card>
 
-              {/* AI Analysis Card */}
-              {currentAnswer.aiAnalysis && (
-                <Card className="mb-4">
-                  <div className="p-6">
-                    <div className="flex items-center gap-2 mb-4">
-                      <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                        <span className="text-lg">🤖</span>
+              {/* AI Analysis (Mock) */}
+              <Card>
+                <div className="p-5">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                        <RefreshCw className="w-4 h-4 text-purple-600" />
                       </div>
                       <div>
-                        <h4 className="font-semibold text-purple-900 mb-1">
-                          {t('grading.aiAnalysis', 'Phân Tích AI')}
-                        </h4>
-                        <div className="flex items-center gap-2">
-                          <span className="text-2xl font-bold text-purple-600">
-                            {currentAnswer.aiAnalysis.score}%
-                          </span>
-                          <Button
-                            variant="secondary"
-                            size="sm"
-                            icon={<CheckCircle2 className="w-4 h-4" />}
-                            onClick={() => handleApplyAIScore(currentAnswer.id, currentAnswer.aiAnalysis.score)}
-                          >
-                            {t('grading.applyScore', 'Áp dụng')}
-                          </Button>
-                        </div>
+                        <h4 className="font-semibold text-gray-900">{t('grading.aiSuggestion', 'Gợi ý chấm điểm')}</h4>
+                        <p className="text-xs text-gray-500">{t('grading.aiSuggestionDesc', 'Tham khảo cho giáo viên')}</p>
                       </div>
-                    </div>
-                    
-                    <div className="bg-purple-50 rounded-lg p-4 mb-4">
-                      <div className="text-sm font-semibold text-purple-700 mb-2">
-                        {t('grading.feedback', 'Nhận xét:')}
-                      </div>
-                      <p className="text-gray-700 mb-4">
-                        "{currentAnswer.aiAnalysis.feedback}"
-                      </p>
-                      
-                      {currentAnswer.aiAnalysis.suggestions?.length > 0 && (
-                        <div>
-                          <div className="text-sm font-semibold text-purple-700 mb-2">
-                            {t('grading.suggestions', 'Gợi ý:')}
-                          </div>
-                          <ul className="list-disc list-inside space-y-1 text-sm text-gray-600 ml-4">
-                            {currentAnswer.aiAnalysis.suggestions.map((s, i) => (
-                              <li key={i}>{s}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
                     </div>
                   </div>
-                </Card>
-              )}
 
-              {/* Grading Input Card */}
-              <Card>
-                <div className="p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h4 className="font-semibold text-gray-900">
-                      {t('grading.grading', 'Chấm Điểm')}
-                    </h4>
-                    
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        icon={<ListChecks className="w-4 h-4" />}
-                        onClick={() => setShowRubric(true)}
-                      >
-                        {t('grading.rubric', 'Tiêu chí')}
-                      </Button>
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        icon={<MessageSquare className="w-4 h-4" />}
-                        onClick={() => setShowQuickComments(true)}
-                      >
-                        {t('grading.quickComments', 'Nhận xét nhanh')}
-                      </Button>
+                  {currentAnswer.aiAnalysis ? (
+                    <div className="bg-purple-50 rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-3">
+                          <span className="text-3xl font-bold text-purple-600">
+                            {currentAnswer.aiAnalysis.score}
+                          </span>
+                          <span className="text-sm text-gray-600">/ {currentAnswer.examQuestion?.points}</span>
+                        </div>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => handleApplyAIScore(currentAnswer.id, currentAnswer.aiAnalysis.score)}
+                        >
+                          <CheckCircle2 className="w-4 h-4 mr-1" />
+                          {t('grading.apply', 'Áp dụng')}
+                        </Button>
+                      </div>
+
+                      <div className="space-y-3">
+                        <div>
+                          <p className="text-sm font-medium text-gray-700 mb-1">{t('grading.feedback', 'Nhận xét')}</p>
+                          <p className="text-sm text-gray-600 bg-white rounded p-3">
+                            {currentAnswer.aiAnalysis.feedback}
+                          </p>
+                        </div>
+
+                        {currentAnswer.aiAnalysis.suggestions?.length > 0 && (
+                          <div>
+                            <p className="text-sm font-medium text-gray-700 mb-2">{t('grading.suggestions', 'Gợi ý')}</p>
+                            <ul className="space-y-1">
+                              {currentAnswer.aiAnalysis.suggestions.map((s, i) => (
+                                <li key={i} className="text-sm text-gray-600 flex items-start gap-2">
+                                  <span className="text-purple-500 mt-1">•</span>
+                                  <span>{s}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
+                  ) : (
+                    <div className="text-center py-6 text-gray-400">
+                      <RefreshCw className="w-10 h-10 mx-auto mb-2 opacity-50" />
+                      <p className="text-sm">{t('grading.noAIAnalysis', 'Chưa có phân tích AI')}</p>
+                    </div>
+                  )}
+                </div>
+              </Card>
+
+              {/* Grading Input */}
+              <Card>
+                <div className="p-5">
+                  <h4 className="font-semibold text-gray-900 mb-4">{t('grading.grading', 'Chấm điểm')}</h4>
 
                   {/* Score Input */}
                   <div className="mb-4">
@@ -573,43 +571,80 @@ const GradingDetail = () => {
                       {t('grading.score', 'Điểm số')}
                     </label>
                     <div className="flex items-center gap-3">
-                      <Input
+                      <input
                         type="number"
                         min="0"
-                        max={currentAnswer.examQuestion?.points}
-                        value={currentAnswer.score || ''}
-                        onChange={(e) => handleScoreChange(currentAnswer.id, 'score', parseInt(e.target.value) || 0)}
-                        className="w-24"
+                        max={currentAnswer.examQuestion?.points || 0}
+                        step="0.5"
+                        value={currentAnswer.score ?? ''}
+                        onChange={(e) => {
+                          const valStr = e.target.value;
+                          console.log('📝 Score input changed (raw):', valStr, 'for answer:', currentAnswer.id);
+                          // Parse to number, but keep empty string as null
+                          const val = valStr === '' ? null : parseFloat(valStr);
+                          console.log('📝 Score parsed:', val, 'type:', typeof val);
+                          handleScoreChange(currentAnswer.id, 'score', val);
+                        }}
+                        onBlur={(e) => {
+                          const val = parseFloat(e.target.value);
+                          const maxPoints = currentAnswer.examQuestion?.points || 0;
+
+                          console.log('📝 Score on blur:', val, 'max:', maxPoints);
+
+                          if (val > maxPoints) {
+                            handleScoreChange(currentAnswer.id, 'score', maxPoints);
+                            e.target.value = maxPoints;
+                          } else if (val < 0 || isNaN(val)) {
+                            handleScoreChange(currentAnswer.id, 'score', 0);
+                            e.target.value = 0;
+                          }
+                        }}
+                        className="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-200 focus:outline-none"
                       />
                       <span className="text-gray-500">/ {currentAnswer.examQuestion?.points}</span>
                     </div>
+                    {currentAnswer.score > (currentAnswer.examQuestion?.points || 0) && (
+                      <p className="text-xs text-red-500 mt-1">
+                        {t('grading.scoreWarning', '⚠️ Điểm vượt quá quy định! Tối đa: {max}', { max: currentAnswer.examQuestion?.points })}
+                      </p>
+                    )}
                   </div>
 
-                  {/* Feedback Input */}
+                  {/* Feedback */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {t('grading.feedback', 'Nhận xét chi tiết')}
+                      {t('grading.teacherFeedback', 'Nhận xét của giáo viên')}
                     </label>
-                    <Input
-                      type="textarea"
+                    <textarea
                       rows="4"
                       value={currentAnswer.feedback || ''}
                       onChange={(e) => handleScoreChange(currentAnswer.id, 'feedback', e.target.value)}
                       placeholder={t('grading.feedbackPlaceholder', 'Nhập nhận xét chi tiết cho học viên...')}
+                      className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:border-primary-400 focus:ring-2 focus:ring-primary-200 focus:outline-none transition-all resize-none"
                     />
-                    
-                    {/* Quick Comments */}
-                    <div className="flex flex-wrap gap-2 mt-3">
-                      {quickComments.map((comment, index) => (
-                        <button
-                          key={index}
-                          onClick={() => handleQuickComment(currentAnswer.id, comment)}
-                          className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-xs text-gray-600 transition"
-                        >
-                          {comment}
-                        </button>
-                      ))}
-                    </div>
+                  </div>
+                </div>
+              </Card>
+
+              {/* Actions */}
+              <Card>
+                <div className="p-5">
+                  <div className="flex items-center justify-end gap-3">
+                    <Button
+                      variant="secondary"
+                      icon={<Download className="w-4 h-4" />}
+                      onClick={() => console.log('Export')}
+                    >
+                      {t('grading.export', 'Xuất PDF')}
+                    </Button>
+                    <Button
+                      variant="primary"
+                      icon={<Save className="w-4 h-4" />}
+                      onClick={() => saveGrading()}
+                      loading={saving}
+                    >
+                      {saving ? t('grading.saving', 'Đang lưu...') : t('grading.save', 'Lưu lại')}
+                    </Button>
                   </div>
                 </div>
               </Card>
@@ -618,165 +653,10 @@ const GradingDetail = () => {
             <Card>
               <div className="p-12 text-center">
                 <FileText className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-                <p className="text-gray-500">
-                  {t('grading.selectQuestion', 'Chọn một câu hỏi để chấm điểm')}
-                </p>
+                <p className="text-gray-500">{t('grading.selectQuestion', 'Chọn một câu hỏi để chấm điểm')}</p>
               </div>
             </Card>
           )}
-        </div>
-
-        {/* Right Column - Rubric & Summary */}
-        <div className="lg:col-span-1">
-          {/* Rubric Card */}
-          <Card className="mb-4">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold text-gray-900">
-                  {t('grading.rubric', 'Tiêu Chí Chấm Điểm')}
-                </h3>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  icon={<EyeOff className="w-4 h-4" />}
-                  onClick={() => setShowRubric(!showRubric)}
-                >
-                  {showRubric ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </Button>
-              </div>
-              
-              {showRubric ? (
-                <div className="space-y-3">
-                  {rubricCriteria.map((criteria) => (
-                    <div key={criteria.id} className="border-b last:border-0 pb-3">
-                      <div className="flex items-start justify-between mb-2">
-                        <div>
-                          <p className="font-medium text-gray-900">{criteria.name}</p>
-                          <p className="text-sm text-gray-500">{criteria.description}</p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm text-gray-500">{criteria.maxScore} {t('grading.points', 'điểm')}</span>
-                          <Input
-                            type="number"
-                            min="0"
-                            max={criteria.maxScore}
-                            value={getRubricScore(criteria.id)}
-                            onChange={(e) => setRubricScore(criteria.id, parseInt(e.target.value))}
-                            className="w-16"
-                          />
-                        </div>
-                      </div>
-                      <div className="text-xs text-gray-400 italic">
-                        {t('grading.rubricNote', 'Tổng điểm phải bằng {criteria.maxScore}')}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8 text-gray-500">
-                  <EyeOff className="w-12 h-12 mx-auto mb-3" />
-                  <p>{t('grading.rubricHidden', 'Nhấn vào nút để xem tiêu chí')}</p>
-                </div>
-              )}
-            </div>
-          </Card>
-
-          {/* Quick Comments Modal */}
-          {showQuickComments && (
-            <Modal
-              isOpen={showQuickComments}
-              onClose={() => setShowQuickComments(false)}
-              size="md"
-              title={t('grading.quickComments', 'Nhận Xét Nhanh')}
-            >
-              <div className="space-y-3">
-                <p className="text-sm text-gray-600">
-                  {t('grading.quickCommentsInfo', 'Chọn một nhận xét nhanh để thêm vào phần nhận xét:')}
-                </p>
-                <div className="grid grid-cols-2 gap-2">
-                  {quickComments.map((comment, index) => (
-                    <button
-                      key={index}
-                      onClick={() => {
-                        handleQuickComment(currentAnswer.id, comment);
-                        setShowQuickComments(false);
-                      }}
-                      className="p-3 bg-gray-50 hover:bg-gray-100 rounded-lg text-sm text-gray-700 transition text-left"
-                    >
-                      {comment}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </Modal>
-          )}
-
-          {/* Summary Card */}
-          <Card>
-            <div className="p-6">
-              <h3 className="font-semibold text-gray-900 mb-4">
-                {t('grading.summary', 'Tóm Tắt')}
-              </h3>
-              
-              <div className="space-y-3">
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">{t('grading.totalQuestions', 'Tổng câu hỏi:')}</span>
-                  <span className="font-medium text-gray-900">{answers.length}</span>
-                </div>
-                
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">{t('grading.graded', 'Đã chấm:')}</span>
-                  <span className="font-medium text-gray-900">
-                    {answers.filter(a => a.score !== null).length}
-                  </span>
-                </div>
-                
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">{t('grading.pending', 'Còn lại:')}</span>
-                  <span className="font-medium text-gray-900">
-                    {answers.filter(a => a.score === null).length}
-                  </span>
-                </div>
-                
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">{t('grading.avgScore', 'Điểm trung bình:')}</span>
-                  <span className="font-medium text-gray-900">
-                    {answers.length > 0 
-                      ? (calculateTotalScore() / answers.filter(a => a.score !== null).length).toFixed(1)
-                      : 0}
-                  </span>
-                </div>
-              </div>
-
-              <div className="mt-6 pt-4 border-t">
-                <h4 className="font-semibold text-gray-900 mb-3">
-                  {t('grading.actions', 'Hành Động')}
-                </h4>
-                <div className="flex gap-3">
-                  <Button
-                    variant="secondary"
-                    className="flex-1"
-                    icon={<Download className="w-4 h-4" />}
-                    onClick={() => {
-                      // Implement export functionality
-                      console.log('Export grading result');
-                    }}
-                  >
-                    {t('grading.export', 'Xuất kết quả')}
-                  </Button>
-                  <Button
-                    variant="primary"
-                    className="flex-1"
-                    icon={<Save className="w-4 h-4" />}
-                    onClick={() => saveGrading(false)}
-                    disabled={saving}
-                  >
-                    {t('grading.complete', 'Hoàn thành')}
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </Card>
         </div>
       </div>
     </PageContainer>
