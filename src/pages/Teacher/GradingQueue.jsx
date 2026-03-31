@@ -51,7 +51,7 @@ const GradingQueue = () => {
   // Filters
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
-  const [statusFilter, setStatusFilter] = useState('pending');
+  const [statusFilter, setStatusFilter] = useState('all');
   const [dateRange, setDateRange] = useState({ start: '', end: '' });
   
   // Sort
@@ -79,15 +79,19 @@ const GradingQueue = () => {
     setLoading(true);
     try {
       const response = await teacherService.getPendingGrading();
+
+      // Handle if response has data wrapper
+      const responseData = response?.data || response || [];
+
       // Transform data for UI
-      const data = (response || []).map(att => ({
+      const data = (responseData || []).map(att => ({
         id: att.id,
         studentName: att.student?.fullName || 'Unknown',
         studentCode: att.student?.studentCode || 'N/A',
         title: att.exam?.title || 'Untitled Exam',
         type: getAssignmentType(att.exam),
         submittedAt: att.submitTime,
-        completedAt: att.completedAt,
+        completedAt: att.endTime,
         timeSpent: att.timeSpent,
         status: att.status,
         aiScore: att.aiScore || 0,
@@ -107,8 +111,9 @@ const GradingQueue = () => {
   // Get assignment type
   const getAssignmentType = (exam) => {
     if (!exam) return 'mixed';
-    if (exam.type === 'WRITING') return 'writing';
-    if (exam.type === 'SPEAKING') return 'speaking';
+    // Check examCategory from API (WRITING, SPEAKING, or MIXED)
+    if (exam.examCategory === 'WRITING') return 'writing';
+    if (exam.examCategory === 'SPEAKING') return 'speaking';
     return 'mixed';
   };
 
@@ -170,12 +175,12 @@ const GradingQueue = () => {
   // Get status badge
   const getStatusBadge = (status) => {
     const statusConfig = {
-      PENDING: { variant: 'warning', label: t('grading.status.pending', 'Chờ chấm') },
+      PENDING_MANUAL_GRADE: { variant: 'warning', label: t('grading.status.pending', 'Chờ chấm') },
       GRADED: { variant: 'success', label: t('grading.status.graded', 'Đã chấm') },
       REVIEWED: { variant: 'info', label: t('grading.status.reviewed', 'Đã xem') }
     };
-    
-    const config = statusConfig[status] || statusConfig.PENDING;
+
+    const config = statusConfig[status] || statusConfig.PENDING_MANUAL_GRADE;
     return <Badge variant={config.variant}>{config.label}</Badge>;
   };
 
@@ -235,7 +240,7 @@ const GradingQueue = () => {
           )}
         </button>
       ),
-      render: (row) => (
+      render: (value, row) => (
         <button
           onClick={() => handleSelectSubmission(row.id)}
           className="flex items-center gap-2"
@@ -252,7 +257,7 @@ const GradingQueue = () => {
       key: 'studentName',
       title: t('grading.student', 'Sinh viên'),
       sortable: true,
-      render: (row) => (
+      render: (value, row) => (
         <div>
           <p className="font-medium text-gray-900">{row.studentName}</p>
           <p className="text-sm text-gray-500">{row.studentCode}</p>
@@ -263,7 +268,7 @@ const GradingQueue = () => {
       key: 'title',
       title: t('grading.assignment', 'Bài tập'),
       sortable: true,
-      render: (row) => (
+      render: (value, row) => (
         <div>
           <p className="font-medium text-gray-900">{row.title}</p>
           <p className="text-sm text-gray-500">{row.className}</p>
@@ -274,13 +279,13 @@ const GradingQueue = () => {
       key: 'type',
       title: t('grading.type', 'Loại'),
       sortable: true,
-      render: (row) => getTypeBadge(row.type)
+      render: (value, row) => getTypeBadge(row.type)
     },
     {
       key: 'submittedAt',
       title: t('grading.submittedAt', 'Ngày nộp'),
       sortable: true,
-      render: (row) => (
+      render: (value, row) => (
         <div className="text-sm text-gray-600">
           {new Date(row.submittedAt).toLocaleDateString('vi-VN')}
         </div>
@@ -290,7 +295,7 @@ const GradingQueue = () => {
       key: 'aiScore',
       title: t('grading.aiScore', 'Điểm AI'),
       sortable: true,
-      render: (row) => (
+      render: (value, row) => (
         <div className="flex items-center gap-2">
           <span className="text-lg font-semibold text-purple-600">{row.aiScore}%</span>
           {row.aiSuggestions.length > 0 && (
@@ -305,18 +310,44 @@ const GradingQueue = () => {
       key: 'status',
       title: t('grading.status', 'Trạng thái'),
       sortable: true,
-      render: (row) => getStatusBadge(row.status)
+      render: (value, row) => getStatusBadge(row.status)
+    },
+    {
+      key: 'actions',
+      title: t('grading.actions', 'Hành động'),
+      render: (value, row) => (
+        <div className="flex items-center gap-2">
+          <Button
+            variant="primary"
+            size="sm"
+            icon={<Eye className="w-4 h-4" />}
+            onClick={() => navigate(`/teacher/grading/${row.id}`)}
+          >
+            {t('grading.view', 'Xem')}
+          </Button>
+          {row.status === 'PENDING_MANUAL_GRADE' && (
+            <Button
+              variant="secondary"
+              size="sm"
+              icon={<CheckCircle2 className="w-4 h-4" />}
+              onClick={() => navigate(`/teacher/grading/${row.id}`)}
+            >
+              {t('grading.grade', 'Chấm')}
+            </Button>
+          )}
+        </div>
+      )
     }
   ];
 
   // Calculate statistics
   const stats = {
     total: submissions.length,
-    pending: submissions.filter(s => s.status === 'PENDING').length,
+    pending: submissions.filter(s => s.status === 'PENDING_MANUAL_GRADE').length,
     graded: submissions.filter(s => s.status === 'GRADED').length,
     writing: submissions.filter(s => s.type === 'writing').length,
     speaking: submissions.filter(s => s.type === 'speaking').length,
-    avgAiScore: submissions.length > 0 
+    avgAiScore: submissions.length > 0
       ? (submissions.reduce((sum, s) => sum + s.aiScore, 0) / submissions.length).toFixed(1)
       : 0
   };
@@ -407,7 +438,7 @@ const GradingQueue = () => {
                 placeholder={t('grading.searchPlaceholder', 'Tìm kiếm theo tên, mã sinh viên hoặc bài tập...')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                icon={<Search className="w-4 h-4" />}
+                icon={Search}
               />
             </div>
 
@@ -433,9 +464,8 @@ const GradingQueue = () => {
                 onChange={(e) => setStatusFilter(e.target.value)}
                 options={[
                   { value: 'all', label: t('grading.allStatus', 'Tất cả trạng thái') },
-                  { value: 'PENDING', label: t('grading.status.pending', 'Chờ chấm') },
-                  { value: 'GRADED', label: t('grading.status.graded', 'Đã chấm') },
-                  { value: 'REVIEWED', label: t('grading.status.reviewed', 'Đã xem') }
+                  { value: 'PENDING_MANUAL_GRADE', label: t('grading.status.pending', 'Chờ chấm') },
+                  { value: 'GRADED', label: t('grading.status.graded', 'Đã chấm') }
                 ]}
               />
             </div>
@@ -451,7 +481,7 @@ const GradingQueue = () => {
                 type="date"
                 value={dateRange.start}
                 onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
-                icon={<Calendar className="w-4 h-4" />}
+                icon={Calendar}
               />
             </div>
             <div>
@@ -462,7 +492,7 @@ const GradingQueue = () => {
                 type="date"
                 value={dateRange.end}
                 onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
-                icon={<Calendar className="w-4 h-4" />}
+                icon={Calendar}
               />
             </div>
           </div>
