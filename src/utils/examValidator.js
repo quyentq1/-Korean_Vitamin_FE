@@ -30,7 +30,9 @@ export const validateExamBeforePublish = (exam, questions = []) => {
     errors.push('Điểm đạt phải từ 0-100');
   }
 
-  if (!exam.courseId) {
+  // courseId only required when NOT creating exam for a class
+  // (class exams are linked to course via class)
+  if (!exam.courseId && !exam.classId) {
     errors.push('Thiếu khóa học');
   }
 
