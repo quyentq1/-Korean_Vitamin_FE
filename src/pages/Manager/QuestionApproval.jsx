@@ -279,7 +279,7 @@ const QuestionApproval = () => {
                                     {/* Question Content */}
                                     <div className="mb-3">
                                         <p className="text-gray-900 font-semibold text-base mb-2">
-                                            {question.questionText || question.content || 'N/A'}
+                                            <span dangerouslySetInnerHTML={{ __html: question.questionText || question.content || 'N/A' }} />
                                         </p>
                                         {question.explanation && (
                                             <div className="bg-gray-50 rounded-lg p-3 mt-2">
@@ -415,7 +415,7 @@ const QuestionApproval = () => {
                             {/* Question Content */}
                             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                                 <p className="text-sm font-bold text-blue-900 mb-2">📝 Nội dung câu hỏi:</p>
-                                <p className="text-gray-900 text-base leading-relaxed">{selectedQuestion.questionText || selectedQuestion.content || 'N/A'}</p>
+                                <p className="text-gray-900 text-base leading-relaxed"><span dangerouslySetInnerHTML={{ __html: selectedQuestion.questionText || selectedQuestion.content || 'N/A' }} /></p>
                             </div>
 
                             {/* Media */}
@@ -449,7 +449,7 @@ const QuestionApproval = () => {
                                                             {String.fromCharCode(65 + index)}
                                                         </span>
                                                         <div className="flex-1">
-                                                            <p className="text-gray-900 font-medium">{opt.optionText || opt}</p>
+                                                            <p className="text-gray-900 font-medium"><span dangerouslySetInnerHTML={{ __html: opt.optionText || opt }} /></p>
                                                             {isCorrect && (
                                                                 <span className="inline-block mt-1 px-2 py-0.5 text-xs font-semibold bg-green-600 text-white rounded">
                                                                     Đáp án đúng
