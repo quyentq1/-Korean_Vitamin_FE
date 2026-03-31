@@ -127,6 +127,19 @@ export const studentService = {
         }
     },
 
+    /**
+     * Get exams for a specific class (student endpoint)
+     * GET /student/classes/{classId}/exams
+     */
+    getClassExams: async (classId) => {
+        try {
+            return await axiosClient.get(`/student/classes/${classId}/exams`);
+        } catch (error) {
+            console.error('Error fetching class exams:', error);
+            throw error;
+        }
+    },
+
     // ==================== STAFF ====================
 
     /**
