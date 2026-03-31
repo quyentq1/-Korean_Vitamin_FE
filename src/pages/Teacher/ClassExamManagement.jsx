@@ -78,7 +78,7 @@ const ClassExamManagement = () => {
       });
       return;
     }
-    navigate(`/teacher/exam-management/create?classId=${selectedClass.id}`);
+    navigate(`/teacher/exam-management/create?classId=${selectedClass.id}&examCategory=PRACTICE`);
   };
 
   const handleEditExam = (examId) => {
@@ -280,7 +280,7 @@ const ClassExamManagement = () => {
                           </div>
                           <div className="flex items-center gap-1">
                             <FileText className="w-4 h-4" />
-                            <span>{exam.examQuestions?.length || 0} câu hỏi</span>
+                            <span>{exam.totalQuestions || exam.examQuestions?.length || 0} câu hỏi</span>
                           </div>
                           <div className="flex items-center gap-1">
                             <AlertCircle className="w-4 h-4" />
@@ -300,15 +300,25 @@ const ClassExamManagement = () => {
                         </button>
                         <button
                           onClick={() => handleEditExam(exam.id)}
-                          className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                          title="Chỉnh sửa"
+                          disabled={exam.approvalStatus === 'APPROVED'}
+                          className={`p-2 rounded-lg transition-colors ${
+                            exam.approvalStatus === 'APPROVED'
+                              ? 'text-gray-300 cursor-not-allowed'
+                              : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50'
+                          }`}
+                          title={exam.approvalStatus === 'APPROVED' ? 'Đã duyệt, không thể sửa' : 'Chỉnh sửa'}
                         >
                           <Edit className="w-5 h-5" />
                         </button>
                         <button
                           onClick={() => handleDeleteExam(exam)}
-                          className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                          title="Xóa"
+                          disabled={exam.approvalStatus === 'APPROVED'}
+                          className={`p-2 rounded-lg transition-colors ${
+                            exam.approvalStatus === 'APPROVED'
+                              ? 'text-gray-300 cursor-not-allowed'
+                              : 'text-gray-600 hover:text-red-600 hover:bg-red-50'
+                          }`}
+                          title={exam.approvalStatus === 'APPROVED' ? 'Đã duyệt, không thể xóa' : 'Xóa'}
                         >
                           <Trash2 className="w-5 h-5" />
                         </button>
