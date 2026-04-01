@@ -5,11 +5,11 @@ import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-r
  * Table Component
  * Comprehensive table with sorting, filtering, and pagination
  */
-export const Table = ({ 
-  columns = [], 
-  data = [], 
-  onSort, 
-  sortColumn, 
+export const Table = ({
+  columns = [],
+  data = [],
+  onSort,
+  sortColumn,
   sortDirection = 'asc',
   selectable = false,
   selectedRows = [],
@@ -17,8 +17,9 @@ export const Table = ({
   onRowClick,
   loading = false,
   emptyMessage = 'No data available',
+  pagination = null,
   className = '',
-  ...props 
+  ...props
 }) => {
   const [selectAll, setSelectAll] = useState(false);
 
@@ -74,7 +75,7 @@ export const Table = ({
 
   return (
     <div className={`w-full overflow-x-auto ${className}`} {...props}>
-      <table className="w-full border-collapse">
+      <table className="w-full border-collapse table-auto">
         <TableHeader>
           <TableRow>
             {selectable && (
@@ -95,7 +96,7 @@ export const Table = ({
                 className={column.className}
               >
                 <div className="flex items-center space-x-2">
-                  <span>{column.label}</span>
+                  <span>{column.label || column.header}</span>
                   {column.sortable && (
                     <span className="text-gray-400 text-xs">{getSortIcon(column)}</span>
                   )}
@@ -131,6 +132,18 @@ export const Table = ({
           ))}
         </TableBody>
       </table>
+
+      {/* Pagination */}
+      {pagination && (
+        <Pagination
+          currentPage={pagination.currentPage}
+          totalPages={pagination.totalPages}
+          pageSize={pagination.itemsPerPage}
+          totalItems={pagination.totalItems || (data.length * pagination.totalPages)}
+          onPageChange={pagination.onPageChange}
+          showPageSizeSelector={false}
+        />
+      )}
     </div>
   );
 };
@@ -183,7 +196,7 @@ export const TableHeadCell = ({
  * TableCell Component
  */
 export const TableCell = ({ children, className = '', ...props }) => (
-  <td className={`px-4 py-3 text-sm text-gray-700 whitespace-nowrap ${className}`} {...props}>
+  <td className={`px-4 py-3 text-sm text-gray-700 ${className}`} {...props}>
     {children}
   </td>
 );
