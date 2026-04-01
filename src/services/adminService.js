@@ -362,20 +362,184 @@ export const adminService = {
     });
   },
 
-  // ==================== USERS MANAGEMENT (Re-export from userService) ====================
+  // ==================== NEW STATISTICS ENDPOINTS ====================
 
   /**
-   * These methods are delegated to userService
-   * Import them from userService.js instead
+   * Get platform overview statistics
+   * GET /api/admin/stats/platform
    */
-  // getAllUsers: async () => userService.getAllUsers(),
-  // getUsersByRole: async (role) => userService.getUsersByRole(role),
-  // createUser: async (user) => userService.createUser(user),
-  // updateUser: async (id, user) => userService.updateUser(id, user),
-  // deleteUser: async (id) => userService.deleteUser(id),
-  // lockAccount: async (id, data) => userService.lockAccount(id, data),
-  // unlockAccount: async (id) => userService.unlockAccount(id),
-  // resetPassword: async (id, data) => userService.resetPassword(id, data),
+  getPlatformStats: async () => {
+    return await axiosClient.get('/admin/stats/platform');
+  },
+
+  /**
+   * Get course statistics
+   * GET /api/admin/stats/courses
+   */
+  getCourseStats: async (startDate, endDate) => {
+    return await axiosClient.get('/admin/stats/courses', {
+      params: { startDate, endDate }
+    });
+  },
+
+  /**
+   * Get exam statistics
+   * GET /api/admin/stats/exams
+   */
+  getExamStats: async (startDate, endDate) => {
+    return await axiosClient.get('/admin/stats/exams', {
+      params: { startDate, endDate }
+    });
+  },
+
+  /**
+   * Get class statistics
+   * GET /api/admin/stats/classes
+   */
+  getClassStats: async (startDate, endDate) => {
+    return await axiosClient.get('/admin/stats/classes', {
+      params: { startDate, endDate }
+    });
+  },
+
+  /**
+   * Get user trend data for charts
+   * GET /api/admin/stats/users-trend
+   */
+  getUserTrend: async (days = 30) => {
+    return await axiosClient.get('/admin/stats/users-trend', {
+      params: { days }
+    });
+  },
+
+  /**
+   * Get exam trend data for charts
+   * GET /api/admin/stats/exam-trend
+   */
+  getExamTrend: async (days = 30) => {
+    return await axiosClient.get('/admin/stats/exam-trend', {
+      params: { days }
+    });
+  },
+
+  /**
+   * Compare two time periods
+   * GET /api/admin/stats/compare
+   */
+  compareTimePeriods: async (period1Start, period1End, period2Start, period2End) => {
+    return await axiosClient.get('/admin/stats/compare', {
+      params: {
+        period1Start,
+        period1End,
+        period2Start,
+        period2End
+      }
+    });
+  },
+
+  // ==================== USERS MANAGEMENT (Enhanced) ====================
+
+  /**
+   * Get all users with pagination and filtering
+   * GET /api/admin/users
+   */
+  getUsers: async (params = {}) => {
+    const { page = 0, size = 10, role, status, search } = params;
+    return await axiosClient.get('/admin/users', {
+      params: { page, size, role, status, search }
+    });
+  },
+
+  /**
+   * Get user by ID
+   * GET /api/admin/users/{id}
+   */
+  getUserById: async (id) => {
+    return await axiosClient.get(`/admin/users/${id}`);
+  },
+
+  /**
+   * Create new user
+   * POST /api/admin/users
+   */
+  createUser: async (userData) => {
+    return await axiosClient.post('/admin/users', userData);
+  },
+
+  /**
+   * Update user
+   * PUT /api/admin/users/{id}
+   */
+  updateUser: async (id, userData) => {
+    return await axiosClient.put(`/admin/users/${id}`, userData);
+  },
+
+  /**
+   * Delete user
+   * DELETE /api/admin/users/{id}
+   */
+  deleteUser: async (id) => {
+    return await axiosClient.delete(`/admin/users/${id}`);
+  },
+
+  /**
+   * Toggle user active status
+   * PATCH /api/admin/users/{id}/toggle-status
+   */
+  toggleUserStatus: async (id) => {
+    return await axiosClient.patch(`/admin/users/${id}/toggle-status`);
+  },
+
+  /**
+   * Change user role
+   * PATCH /api/admin/users/{id}/role
+   */
+  changeUserRole: async (id, role) => {
+    return await axiosClient.patch(`/admin/users/${id}/role`, { role });
+  },
+
+  /**
+   * Lock user account
+   * POST /api/admin/users/{id}/lock
+   */
+  lockUser: async (id, reason, adminId) => {
+    return await axiosClient.post(`/admin/users/${id}/lock`, { reason, adminId });
+  },
+
+  /**
+   * Unlock user account
+   * POST /api/admin/users/{id}/unlock
+   */
+  unlockUser: async (id) => {
+    return await axiosClient.post(`/admin/users/${id}/unlock`);
+  },
+
+  /**
+   * Reset user password
+   * PATCH /api/admin/users/{id}/reset-password
+   */
+  resetPassword: async (id, newPassword) => {
+    return await axiosClient.patch(`/admin/users/${id}/reset-password`, { newPassword });
+  },
+
+  /**
+   * Upload user avatar
+   * POST /api/admin/users/upload-avatar
+   */
+  uploadUserAvatar: async (file) => {
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      return await axiosClient.post('/admin/users/upload-avatar', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+    } catch (error) {
+      console.error('Error uploading user avatar:', error);
+      throw error;
+    }
+  },
 
   // ==================== EXAMS MANAGEMENT (Re-export from examService) ====================
 
