@@ -54,26 +54,39 @@ const AdminDashboard = () => {
     setError(null);
     try {
       const response = await adminService.getDashboardStats();
-      const data = response.data;
+      const data = response?.data || response || {};
 
-      // Transform API response to match state structure
+      // Transform API response to match state structure with fallbacks
       setStats({
-        totalUsers: data.totalUsers || 0,
-        totalStudents: data.totalStudents || 0,
-        totalTeachers: data.totalTeachers || 0,
-        totalCourses: data.totalCourses || 0,
-        totalExams: data.totalExams || 0,
-        publishedExams: data.publishedExams || 0,
-        pendingApprovals: data.pendingApprovals || 0,
-        activeUsers: data.activeUsers || 0,
-        newUsersThisMonth: data.newUsersThisMonth || 0,
-        revenue: data.revenue || 0
+        totalUsers: data?.totalUsers || 0,
+        totalStudents: data?.totalStudents || 0,
+        totalTeachers: data?.totalTeachers || 0,
+        totalCourses: data?.totalCourses || 0,
+        totalExams: data?.totalExams || 0,
+        publishedExams: data?.publishedExams || 0,
+        pendingApprovals: data?.pendingApprovals || 0,
+        activeUsers: data?.activeUsers || 0,
+        newUsersThisMonth: data?.newUsersThisMonth || 0,
+        revenue: data?.revenue || 0
       });
 
       setLastUpdated(new Date());
     } catch (err) {
       console.error('Failed to fetch dashboard stats:', err);
       setError('Không thể tải dữ liệu thống kê. Vui lòng thử lại.');
+      // Set default values on error
+      setStats({
+        totalUsers: 0,
+        totalStudents: 0,
+        totalTeachers: 0,
+        totalCourses: 0,
+        totalExams: 0,
+        publishedExams: 0,
+        pendingApprovals: 0,
+        activeUsers: 0,
+        newUsersThisMonth: 0,
+        revenue: 0
+      });
     } finally {
       setLoading(false);
     }
@@ -214,7 +227,6 @@ const AdminDashboard = () => {
       <PageHeader
         title="Admin Dashboard"
         subtitle="Tổng quan hệ thống"
-        showBackButton={false}
       />
 
       {/* Thống kê tổng quan */}
