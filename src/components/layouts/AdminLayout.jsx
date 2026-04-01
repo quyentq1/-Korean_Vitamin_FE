@@ -4,11 +4,6 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 import {
   Users,
-  Shield,
-  Settings,
-  FileText,
-  BookOpen,
-  GraduationCap,
   BarChart3,
   Home,
   LogOut,
@@ -17,9 +12,8 @@ import {
   X,
   Bell,
   Mail,
-  Database,
-  Building,
-  TrendingUp
+  Settings,
+  Shield
 } from 'lucide-react';
 import Swal from 'sweetalert2';
 import LanguageSwitcher from '../LanguageSwitcher';
@@ -53,18 +47,11 @@ const AdminLayout = () => {
     });
   };
 
-  // Sidebar navigation items
+  // Sidebar navigation items - Chỉ 2 chức năng chính
   const navItems = useMemo(() => [
-    { icon: <Home className="w-5 h-5" />, label: t('admin.dashboard.home'), path: '/admin' },
-    { icon: <Users className="w-5 h-5" />, label: t('admin.dashboard.users'), path: '/admin/users' },
-    { icon: <GraduationCap className="w-5 h-5" />, label: t('admin.dashboard.teachers'), path: '/admin/teachers' },
-    { icon: <BookOpen className="w-5 h-5" />, label: t('admin.dashboard.students'), path: '/admin/students' },
-    { icon: <Shield className="w-5 h-5" />, label: t('admin.dashboard.approvals'), path: '/admin/approvals' },
-    { icon: <FileText className="w-5 h-5" />, label: t('admin.dashboard.reports'), path: '/admin/reports' },
-    { icon: <BarChart3 className="w-5 h-5" />, label: t('admin.dashboard.statistics'), path: '/admin/statistics' },
-    { icon: <Building className="w-5 h-5" />, label: t('admin.dashboard.courses'), path: '/admin/courses' },
-    { icon: <TrendingUp className="w-5 h-5" />, label: t('admin.dashboard.growth'), path: '/admin/growth' },
-    { icon: <Settings className="w-5 h-5" />, label: t('admin.dashboard.settings'), path: '/admin/settings' },
+    { icon: <Home className="w-5 h-5" />, label: 'Tổng quan', path: '/admin' },
+    { icon: <Users className="w-5 h-5" />, label: 'Quản lý người dùng', path: '/admin/users' },
+    { icon: <BarChart3 className="w-5 h-5" />, label: 'Phân tích dữ liệu', path: '/admin/analytics' },
   ], [t]);
 
   // Check if current path is active
