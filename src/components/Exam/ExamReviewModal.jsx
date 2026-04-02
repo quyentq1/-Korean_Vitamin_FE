@@ -38,29 +38,63 @@ const ExamReviewModal = ({ isOpen, onClose, attempt, exam }) => {
                             const isCorrect = userAnswer?.isCorrect || false;
                             const userSelectedOptionId = userAnswer?.answerText;
 
-                            // Tìm đáp án đúng
-                            const correctOption = question.options?.find(opt => opt.isCorrect);
-                            const userSelectedOption = question.options?.find(opt => opt.id.toString() === userSelectedOptionId);
+                            // Debug log cho Writing/Speaking
+                            if (question.questionType === 'WRITING' || question.questionType === 'SPEAKING') {
+                                console.log('📝 Writing/Speaking Answer:', {
+                                    questionId: eq.id,
+                                    questionType: question.questionType,
+                                    userAnswer,
+                                    allFields: userAnswer ? Object.keys(userAnswer) : [],
+                                    feedback: userAnswer?.feedback,
+                                    teacherFeedback: userAnswer?.teacherFeedback,
+                                    manualGrade: userAnswer?.manualGrade
+                                });
+                            }
+
+                            // Kiểm tra loại câu hỏi
+                            const isWritingOrSpeaking = question.questionType === 'WRITING' || question.questionType === 'SPEAKING';
+                            const isMultipleChoice = question.questionType === 'READING' || question.questionType === 'LISTENING' || question.questionType === 'MULTIPLE_CHOICE';
+
+                            // Tìm đáp án đúng (chỉ cho trắc nghiệm)
+                            const correctOption = isMultipleChoice ? question.options?.find(opt => opt.isCorrect) : null;
+                            const userSelectedOption = isMultipleChoice ? question.options?.find(opt => opt.id.toString() === userSelectedOptionId) : null;
+
+                            // Xác định màu border và icon
+                            const getBorderColor = () => {
+                                if (isWritingOrSpeaking) {
+                                    // Writing/Speaking: màu cam (chờ chấm) hoặc xanh (đã chấm)
+                                    const hasScore = userAnswer?.score !== null && userAnswer?.score !== undefined;
+                                    return hasScore ? 'border-blue-200 bg-blue-50' : 'border-orange-200 bg-orange-50';
+                                }
+                                // Multiple choice: xanh (đúng) hoặc đỏ (sai)
+                                return isCorrect ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50';
+                            };
+
+                            const getIconColor = () => {
+                                if (isWritingOrSpeaking) {
+                                    const hasScore = userAnswer?.score !== null && userAnswer?.score !== undefined;
+                                    return hasScore ? 'bg-blue-500' : 'bg-orange-500';
+                                }
+                                return isCorrect ? 'bg-green-500' : 'bg-red-500';
+                            };
+
+                            const getIconText = () => {
+                                if (isWritingOrSpeaking) {
+                                    const hasScore = userAnswer?.score !== null && userAnswer?.score !== undefined;
+                                    return hasScore ? '✓' : '?';
+                                }
+                                return isCorrect ? '✓' : '✗';
+                            };
 
                             return (
                                 <div
                                     key={eq.id}
-                                    className={`p-3 sm:p-6 rounded-xl border-2 ${
-                                        isCorrect
-                                            ? 'border-green-200 bg-green-50'
-                                            : 'border-red-200 bg-red-50'
-                                    }`}
+                                    className={`p-3 sm:p-6 rounded-xl border-2 ${getBorderColor()}`}
                                 >
                                     {/* Question Header */}
                                     <div className="flex items-start gap-2 sm:gap-4 mb-3 sm:mb-4">
-                                        <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center shrink-0 ${
-                                            isCorrect ? 'bg-green-500' : 'bg-red-500'
-                                        }`}>
-                                            {isCorrect ? (
-                                                <span className="text-white font-bold text-sm sm:text-base">✓</span>
-                                            ) : (
-                                                <span className="text-white font-bold text-sm sm:text-base">✗</span>
-                                            )}
+                                        <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center shrink-0 ${getIconColor()}`}>
+                                            <span className="text-white font-bold text-sm sm:text-base">{getIconText()}</span>
                                         </div>
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center gap-2 mb-1 sm:mb-2 flex-wrap">
@@ -72,9 +106,15 @@ const ExamReviewModal = ({ isOpen, onClose, attempt, exam }) => {
                                                         ? 'bg-purple-100 text-purple-700'
                                                         : question.questionType === 'READING'
                                                         ? 'bg-blue-100 text-blue-700'
+                                                        : question.questionType === 'WRITING'
+                                                        ? 'bg-orange-100 text-orange-700'
+                                                        : question.questionType === 'SPEAKING'
+                                                        ? 'bg-pink-100 text-pink-700'
                                                         : 'bg-gray-100 text-gray-700'
                                                 }`}>
-                                                    {question.questionType || 'MULTIPLE_CHOICE'}
+                                                    {question.questionType === 'WRITING' ? 'WRITING' :
+                                                     question.questionType === 'SPEAKING' ? 'SPEAKING' :
+                                                     question.questionType || 'MULTIPLE_CHOICE'}
                                                 </span>
                                                 <span className="text-xs sm:text-sm text-gray-500">
                                                     {eq.points || 1} điểm
@@ -86,54 +126,96 @@ const ExamReviewModal = ({ isOpen, onClose, attempt, exam }) => {
                                         </div>
                                     </div>
 
-                                    {/* Options */}
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 ml-14">
-                                        {question.options?.map((option, optIndex) => {
-                                            const isUserSelected = option.id.toString() === userSelectedOptionId;
-                                            const isCorrectAnswer = option.isCorrect;
+                                    {/* Multiple Choice Options */}
+                                    {isMultipleChoice && question.options && (
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 ml-14">
+                                            {question.options.map((option, optIndex) => {
+                                                const isUserSelected = option.id.toString() === userSelectedOptionId;
+                                                const isCorrectAnswer = option.isCorrect;
 
-                                            return (
-                                                <div
-                                                    key={option.id}
-                                                    className={`p-4 rounded-lg border-2 flex items-center gap-3 ${
-                                                        isCorrectAnswer
-                                                            ? 'border-green-400 bg-green-50'
-                                                            : isUserSelected
-                                                            ? 'border-red-300 bg-red-50'
-                                                            : 'border-gray-200 bg-white hover:bg-gray-50'
-                                                    }`}
-                                                >
-                                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
-                                                        isCorrectAnswer
-                                                            ? 'bg-green-500 text-white'
-                                                            : isUserSelected
-                                                            ? 'bg-red-500 text-white'
-                                                            : 'bg-gray-300 text-gray-600'
-                                                    }`}>
-                                                        {String.fromCharCode(65 + optIndex)}
-                                                    </div>
-                                                    <div className="flex-1">
-                                                        <p className="text-gray-900"><span dangerouslySetInnerHTML={{ __html: option.optionText }} /></p>
-                                                        <div className="flex gap-2 mt-1">
-                                                            {isUserSelected && (
-                                                                <span className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded">
-                                                                    Bạn chọn
-                                                                </span>
-                                                            )}
-                                                            {isCorrectAnswer && (
-                                                                <span className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded">
-                                                                    Đáp án đúng
-                                                                </span>
-                                                            )}
+                                                return (
+                                                    <div
+                                                        key={option.id}
+                                                        className={`p-4 rounded-lg border-2 flex items-center gap-3 ${
+                                                            isCorrectAnswer
+                                                                ? 'border-green-400 bg-green-50'
+                                                                : isUserSelected
+                                                                ? 'border-red-300 bg-red-50'
+                                                                : 'border-gray-200 bg-white hover:bg-gray-50'
+                                                        }`}
+                                                    >
+                                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
+                                                            isCorrectAnswer
+                                                                ? 'bg-green-500 text-white'
+                                                                : isUserSelected
+                                                                ? 'bg-red-500 text-white'
+                                                                : 'bg-gray-300 text-gray-600'
+                                                        }`}>
+                                                            {String.fromCharCode(65 + optIndex)}
+                                                        </div>
+                                                        <div className="flex-1">
+                                                            <p className="text-gray-900"><span dangerouslySetInnerHTML={{ __html: option.optionText }} /></p>
+                                                            <div className="flex gap-2 mt-1">
+                                                                {isUserSelected && (
+                                                                    <span className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded">
+                                                                        Bạn chọn
+                                                                    </span>
+                                                                )}
+                                                                {isCorrectAnswer && (
+                                                                    <span className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded">
+                                                                        Đáp án đúng
+                                                                    </span>
+                                                                )}
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
 
-                                    {/* Explanation if available */}
-                                    {question.explanation && (
+                                    {/* Writing/Speaking Answer */}
+                                    {isWritingOrSpeaking && userAnswer && (
+                                        <div className="ml-14 space-y-3">
+                                            <div className="p-4 bg-white rounded-lg border border-gray-200">
+                                                <p className="text-xs font-semibold text-gray-500 mb-2">
+                                                    📝 Câu trả lời của bạn:
+                                                </p>
+                                                <p className="text-sm text-gray-900 whitespace-pre-wrap">
+                                                    {userAnswer.answerText || 'Không có câu trả lời'}
+                                                </p>
+                                            </div>
+
+                                            {/* Feedback từ giáo viên - từ root level của answer */}
+                                            {userAnswer.feedback && userAnswer.feedback.trim() && (
+                                                <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                                                    <p className="text-xs font-semibold text-blue-900 mb-1">
+                                                        💬 Nhận xét của giáo viên:
+                                                    </p>
+                                                    <p className="text-sm text-blue-800 whitespace-pre-wrap">
+                                                        {userAnswer.feedback}
+                                                    </p>
+                                                </div>
+                                            )}
+
+                                            {/* Hiển thị người chấm và thời gian */}
+                                            {userAnswer.gradedBy && (
+                                                <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                                                    <p className="text-xs text-gray-600">
+                                                        ✍️ Chấm bởi: <span className="font-semibold text-gray-900">{userAnswer.gradedBy}</span>
+                                                        {userAnswer.gradedAt && (
+                                                            <span className="ml-2">
+                                                                • {new Date(userAnswer.gradedAt).toLocaleString('vi-VN')}
+                                                            </span>
+                                                        )}
+                                                    </p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {/* Explanation if available (only for multiple choice) */}
+                                    {isMultipleChoice && question.explanation && (
                                         <div className="mt-4 ml-14 p-4 bg-blue-50 rounded-lg border border-blue-200">
                                             <p className="text-sm font-semibold text-blue-900 mb-1">
                                                 💡 Giải thích:
@@ -151,14 +233,33 @@ const ExamReviewModal = ({ isOpen, onClose, attempt, exam }) => {
                                                 Chi tiết câu trả lời:
                                             </p>
                                             <div className="flex items-center gap-4 text-sm">
-                                                <span className={`font-semibold ${
-                                                    isCorrect ? 'text-green-600' : 'text-red-600'
-                                                }`}>
-                                                    {isCorrect ? 'Chính xác' : 'Sai'}
-                                                </span>
-                                                <span className="text-gray-500">
-                                                    Điểm: {userAnswer.score || 0}/{eq.points || 1}
-                                                </span>
+                                                {isWritingOrSpeaking ? (
+                                                    <>
+                                                        <span className={`font-semibold ${
+                                                            userAnswer.score !== null && userAnswer.score !== undefined
+                                                                ? 'text-blue-600'
+                                                                : 'text-orange-600'
+                                                        }`}>
+                                                            {userAnswer.score !== null && userAnswer.score !== undefined
+                                                                ? 'Đã chấm'
+                                                                : 'Chờ chấm'}
+                                                        </span>
+                                                        <span className="text-gray-500">
+                                                            Điểm: {userAnswer.score !== null && userAnswer.score !== undefined ? userAnswer.score : '-'}/{eq.points || 1}
+                                                        </span>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <span className={`font-semibold ${
+                                                            isCorrect ? 'text-green-600' : 'text-red-600'
+                                                        }`}>
+                                                            {isCorrect ? 'Chính xác' : 'Sai'}
+                                                        </span>
+                                                        <span className="text-gray-500">
+                                                            Điểm: {userAnswer.score || 0}/{eq.points || 1}
+                                                        </span>
+                                                    </>
+                                                )}
                                             </div>
                                         </div>
                                     )}
