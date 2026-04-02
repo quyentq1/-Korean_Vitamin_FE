@@ -541,6 +541,68 @@ export const adminService = {
     }
   },
 
+  // ==================== ADVANCED ANALYTICS ====================
+
+  /**
+   * Get exam intelligence - detailed exam analytics
+   * GET /api/admin/analytics/exam-intelligence
+   */
+  getExamIntelligence: async (startDate, endDate) => {
+    return await axiosClient.get('/admin/analytics/exam-intelligence', {
+      params: { startDate, endDate }
+    });
+  },
+
+  /**
+   * Get comparative analytics for period-over-period comparison
+   * GET /api/admin/analytics/comparative
+   */
+  getComparativeAnalytics: async (periodStart, periodEnd) => {
+    return await axiosClient.get('/admin/analytics/comparative', {
+      params: { periodStart, periodEnd }
+    });
+  },
+
+  /**
+   * Get user segmentation analytics
+   * GET /api/admin/analytics/user-segments
+   */
+  getUserSegments: async () => {
+    return await axiosClient.get('/admin/analytics/user-segments');
+  },
+
+  /**
+   * Get content performance analytics
+   * GET /api/admin/analytics/content-performance
+   */
+  getContentPerformance: async () => {
+    return await axiosClient.get('/admin/analytics/content-performance');
+  },
+
+  /**
+   * Get cohort analysis
+   * GET /api/admin/analytics/cohort
+   */
+  getCohortAnalysis: async () => {
+    return await axiosClient.get('/admin/analytics/cohort');
+  },
+
+  /**
+   * Get churn risk analysis
+   * GET /api/admin/analytics/churn-risk
+   */
+  getChurnRisk: async () => {
+    return await axiosClient.get('/admin/analytics/churn-risk');
+  },
+
+  /**
+   * Export analytics report
+   * POST /api/admin/analytics/export
+   */
+  exportAnalytics: async (exportData) => {
+    return await axiosClient.post('/admin/analytics/export', exportData);
+  },
+
   // ==================== EXAMS MANAGEMENT (Re-export from examService) ====================
 
   /**
