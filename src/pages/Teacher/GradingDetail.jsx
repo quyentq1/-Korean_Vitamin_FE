@@ -4,21 +4,19 @@ import { useTranslation } from 'react-i18next';
 import Swal from 'sweetalert2';
 import {
   ArrowLeft,
+  ChevronLeft,
+  ChevronRight,
+  ChevronDown,
   Save,
   FileText,
   CheckCircle2,
   Clock,
   User,
   Calendar,
-  ChevronDown,
-  ChevronUp,
   Download,
   RefreshCw,
-  Eye,
-  EyeOff,
   CheckCircle,
-  AlertCircle,
-  Send
+  AlertCircle
 } from 'lucide-react';
 
 // UI Components
@@ -48,11 +46,33 @@ const GradingDetail = () => {
 
   // UI state
   const [currentAnswerIndex, setCurrentAnswerIndex] = useState(0);
-  const [showRubric, setShowRubric] = useState(false);
 
-  // Fetch attempt details
+  // Grading queue state
+  const [gradingQueue, setGradingQueue] = useState([]);
+  const [currentQueueIndex, setCurrentQueueIndex] = useState(0);
+
+  // Fetch grading queue
+  const fetchGradingQueue = async () => {
+    try {
+      const data = await teacherService.getPendingGrading();
+      console.log('📦 Grading Queue Response:', data);
+      setGradingQueue(data || []);
+
+      // Find current attempt index
+      const index = data?.findIndex(a => a.id?.toString() === attemptId);
+      if (index !== undefined && index >= 0) {
+        setCurrentQueueIndex(index);
+      }
+      console.log('✅ Grading queue loaded:', data?.length, 'items, current index:', index);
+    } catch (err) {
+      console.error('Failed to fetch grading queue:', err);
+    }
+  };
+
+  // Fetch attempt details and grading queue
   useEffect(() => {
     fetchAttemptDetails();
+    fetchGradingQueue();
   }, [attemptId]);
 
   const fetchAttemptDetails = async () => {
@@ -115,6 +135,27 @@ const GradingDetail = () => {
     setTimeout(() => setSuccess(''), 3000);
   };
 
+  // Navigate to specific exam in queue
+  const handleNavigateToExam = (examId) => {
+    navigate(`/teacher/grading/${examId}`);
+  };
+
+  // Navigate to previous exam
+  const handlePreviousExam = () => {
+    if (currentQueueIndex > 0) {
+      const prevExam = gradingQueue[currentQueueIndex - 1];
+      navigate(`/teacher/grading/${prevExam.id}`);
+    }
+  };
+
+  // Navigate to next exam
+  const handleNextExam = () => {
+    if (currentQueueIndex < gradingQueue.length - 1) {
+      const nextExam = gradingQueue[currentQueueIndex + 1];
+      navigate(`/teacher/grading/${nextExam.id}`);
+    }
+  };
+
   // Save grading
   const saveGrading = async () => {
     // Validation: Check if all questions have scores (0 is valid score)
@@ -124,11 +165,11 @@ const GradingDetail = () => {
       // Show warning popup - DON'T save, just alert
       const count = ungradedQuestions.length;
       Swal.fire({
-        title: t('grading.incompleteTitle', 'Chưa chấm xong'),
-        html: `Bạn chưa chấm <strong>${count}</strong> câu hỏi.<br/>Vui lòng chấm hết tất cả các câu hỏi trước khi lưu!`,
+        title: t('grading.incompleteTitle', 'Chưa chấm xong tất cả câu hỏi'),
+        html: `Bạn cần chấm thêm <strong>${count}</strong> câu hỏi nữa.<br/>Vui lòng chấm điểm tất cả các câu hỏi trước khi lưu!`,
         icon: 'warning',
         confirmButtonText: t('grading.understood', 'Đã hiểu'),
-        confirmButtonColor: '#3b82f6',
+        confirmButtonColor: '#f59e0b',
         customClass: {
           popup: 'swal2-popup'
         }
@@ -182,27 +223,30 @@ const GradingDetail = () => {
       // Show SweetAlert2 success toast
       Swal.fire({
         icon: 'success',
-        title: t('grading.savedTitle', 'Đã lưu!'),
-        text: `Đã lưu ${gradesToSubmit.length} câu hỏi thành công!`,
+        title: t('grading.savedTitle', 'Chấm điểm thành công!'),
+        text: `Đã chấm xong ${gradesToSubmit.length} câu hỏi và lưu điểm thành công!`,
         timer: 2000,
         showConfirmButton: false,
         toast: true,
         position: 'top-end'
+      }).then(() => {
+        // Navigate back to dashboard after toast
+        navigate('/teacher/grading-queue');
       });
 
       setError('');
     } catch (err) {
       console.error('Failed to save grading', err);
 
-      const errorMsg = t('grading.saveError', '❌ Lỗi khi lưu') + ': ' + (err.response?.data?.message || err.message);
+      const errorMsg = err.response?.data?.message || err.message || t('grading.saveError', 'Có lỗi xảy ra khi lưu điểm');
 
       setError(errorMsg);
 
       // Show error toast
       Swal.fire({
         icon: 'error',
-        title: t('grading.errorTitle', 'Lỗi'),
-        text: errorMsg,
+        title: t('grading.saveFailedTitle', 'Lưu điểm thất bại'),
+        text: t('grading.saveFailedMessage', 'Không thể lưu điểm. Vui lòng thử lại!'),
         timer: 3000,
         showConfirmButton: false,
         toast: true,
@@ -295,18 +339,71 @@ const GradingDetail = () => {
         subtitle={attempt?.examTitle || 'Loading...'}
         breadcrumbs={[
           { label: t('nav.teacher', 'Giáo Viên'), path: '/teacher' },
-          { label: t('grading.gradingQueue', 'Hàng Đợi Chấm'), path: '/teacher/grading' },
+          { label: t('grading.gradingQueue', 'Hàng Đợi Chấm'), path: '/teacher/grading-queue' },
           { label: attempt?.studentName || '...' }
         ]}
         actions={
-          <Button
-            variant="secondary"
-            size="sm"
-            icon={<ArrowLeft className="w-4 h-4" />}
-            onClick={() => navigate('/teacher/grading')}
-          >
-            {t('common.back', 'Quay Lại')}
-          </Button>
+          <div className="flex items-center gap-3">
+            {/* Back Button */}
+            <Button
+              variant="secondary"
+              size="sm"
+              icon={<ArrowLeft className="w-4 h-4" />}
+              onClick={() => navigate('/teacher/grading')}
+            >
+              {t('common.back', 'Quay Lại')}
+            </Button>
+
+            {/* Queue Navigation */}
+            {gradingQueue.length > 0 && (
+              <>
+                {/* Previous Button */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handlePreviousExam}
+                  disabled={currentQueueIndex === 0}
+                  title="Bài trước"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </Button>
+
+                {/* Exam Selector Dropdown */}
+                <div className="relative">
+                  <select
+                    value={attemptId}
+                    onChange={(e) => handleNavigateToExam(e.target.value)}
+                    className="px-4 py-2 pr-10 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none cursor-pointer hover:bg-gray-50 transition-colors"
+                  >
+                    {gradingQueue.map((exam, index) => (
+                      <option key={exam.id} value={exam.id}>
+                        {exam.exam?.title || `Bài thi ${index + 1}`} - {exam.student?.fullName || 'Không tên'} ({index + 1}/{gradingQueue.length})
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" />
+                </div>
+
+                {/* Progress Badge */}
+                <div className="px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg text-sm">
+                  <span className="font-semibold text-blue-700">
+                    {currentQueueIndex + 1}/{gradingQueue.length}
+                  </span>
+                </div>
+
+                {/* Next Button */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleNextExam}
+                  disabled={currentQueueIndex === gradingQueue.length - 1}
+                  title="Bài tiếp theo"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+              </>
+            )}
+          </div>
         }
       />
 
@@ -379,6 +476,123 @@ const GradingDetail = () => {
             </div>
           </div>
         </div>
+      </Card>
+
+      {/* Grading Queue Table */}
+      <Card className="mb-6">
+        <div className="p-4 border-b bg-gradient-to-r from-blue-50 to-indigo-50">
+          <h3 className="font-semibold text-gray-900">
+            📋 {t('grading.queueList', 'Danh Sách Bài Thi Chờ Chấm')} ({gradingQueue.length})
+          </h3>
+        </div>
+
+        {gradingQueue.length > 0 ? (
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="bg-gradient-to-r from-gray-100 to-gray-50 border-b-2 border-gray-300">
+                  <th className="px-4 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider w-16 border-r border-gray-200">
+                    STT
+                  </th>
+                  <th className="px-4 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider border-r border-gray-200">
+                    {t('grading.examName', 'Tên Bài Thi')}
+                  </th>
+                  <th className="px-4 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider border-r border-gray-200">
+                    {t('grading.student', 'Sinh Viên')}
+                  </th>
+                  <th className="px-4 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider w-28 border-r border-gray-200">
+                    {t('grading.type', 'Loại')}
+                  </th>
+                  <th className="px-4 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider w-36 border-r border-gray-200">
+                    {t('grading.submitTime', 'Thời Gian Nộp')}
+                  </th>
+                  <th className="px-4 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider w-32 border-r border-gray-200">
+                    {t('grading.status', 'Trạng Thái')}
+                  </th>
+                  <th className="px-4 py-4 text-center text-xs font-bold text-gray-700 uppercase tracking-wider w-28">
+                    {t('grading.action', 'Thao Tác')}
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {gradingQueue.map((item, index) => {
+                  const isCurrent = item.id?.toString() === attemptId;
+                  return (
+                    <tr
+                      key={item.id}
+                      className={`hover:bg-gray-50 transition-colors cursor-pointer ${
+                        isCurrent ? 'bg-blue-50 border-l-4 border-l-blue-500' : ''
+                      }`}
+                      onClick={() => handleNavigateToExam(item.id)}
+                    >
+                      <td className="px-4 py-3 text-sm">
+                        <span className={`font-semibold ${isCurrent ? 'text-blue-600' : 'text-gray-900'}`}>
+                          {index + 1}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="text-sm font-medium text-gray-900">
+                          {item.exam?.title || `Bài thi ${index + 1}`}
+                        </div>
+                        {item.class?.name && (
+                          <div className="text-xs text-gray-500 mt-1">{item.class.name}</div>
+                        )}
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="text-sm text-gray-900">{item.student?.fullName || 'Không tên'}</div>
+                        <div className="text-xs text-gray-500">{item.student?.studentCode || 'N/A'}</div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <Badge
+                          variant={
+                            item.exam?.examCategory === 'WRITING' ? 'blue' :
+                            item.exam?.examCategory === 'SPEAKING' ? 'purple' : 'indigo'
+                          }
+                          size="sm"
+                        >
+                          {item.exam?.examCategory || 'MIXED'}
+                        </Badge>
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-600">
+                        {formatDate(item.submitTime || item.endTime)}
+                      </td>
+                      <td className="px-4 py-3">
+                        <Badge
+                          variant={
+                            item.status === 'GRADED' ? 'success' :
+                            item.status === 'PENDING_MANUAL_GRADE' ? 'warning' : 'default'
+                          }
+                          size="sm"
+                        >
+                          {item.status === 'GRADED' ? t('grading.graded', 'Đã chấm') :
+                           item.status === 'PENDING_MANUAL_GRADE' ? t('grading.pending', 'Chờ chấm') :
+                           item.status}
+                        </Badge>
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <Button
+                          variant={isCurrent ? 'primary' : 'outline'}
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleNavigateToExam(item.id);
+                          }}
+                        >
+                          {isCurrent ? t('grading.current', 'Đang xem') : t('grading.view', 'Xem')}
+                        </Button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="p-8 text-center text-gray-500">
+            <FileText className="w-12 h-12 mx-auto mb-3 text-gray-400" />
+            <p>{t('grading.noQueue', 'Không có bài thi nào trong hàng đợi')}</p>
+          </div>
+        )}
       </Card>
 
       {/* Main Content */}
@@ -580,24 +794,38 @@ const GradingDetail = () => {
                         onChange={(e) => {
                           const valStr = e.target.value;
                           console.log('📝 Score input changed (raw):', valStr, 'for answer:', currentAnswer.id);
-                          // Parse to number, but keep empty string as null
-                          const val = valStr === '' ? null : parseFloat(valStr);
-                          console.log('📝 Score parsed:', val, 'type:', typeof val);
-                          handleScoreChange(currentAnswer.id, 'score', val);
-                        }}
-                        onBlur={(e) => {
-                          const val = parseFloat(e.target.value);
+
                           const maxPoints = currentAnswer.examQuestion?.points || 0;
 
-                          console.log('📝 Score on blur:', val, 'max:', maxPoints);
+                          // Nếu rỗng, set null
+                          if (valStr === '' || valStr === '-') {
+                            handleScoreChange(currentAnswer.id, 'score', null);
+                            return;
+                          }
+
+                          // Parse giá trị
+                          const val = parseFloat(valStr);
+
+                          // Validate: không cho nhập âm hoặc lớn hơn max
+                          if (isNaN(val)) {
+                            return; // Không update nếu không phải số
+                          }
+
+                          if (val < 0) {
+                            handleScoreChange(currentAnswer.id, 'score', 0);
+                            return;
+                          }
 
                           if (val > maxPoints) {
+                            // Không cho nhập quá max - tự động clamp về max
                             handleScoreChange(currentAnswer.id, 'score', maxPoints);
-                            e.target.value = maxPoints;
-                          } else if (val < 0 || isNaN(val)) {
-                            handleScoreChange(currentAnswer.id, 'score', 0);
-                            e.target.value = 0;
+                            setError(t('grading.scoreMaxWarning', 'Điểm không được vượt quá {max}', { max: maxPoints }));
+                            setTimeout(() => setError(''), 3000);
+                            return;
                           }
+
+                          // Giá trị hợp lệ
+                          handleScoreChange(currentAnswer.id, 'score', val);
                         }}
                         className="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-200 focus:outline-none"
                       />
@@ -643,7 +871,7 @@ const GradingDetail = () => {
                       onClick={() => saveGrading()}
                       loading={saving}
                     >
-                      {saving ? t('grading.saving', 'Đang lưu...') : t('grading.save', 'Lưu lại')}
+                      {saving ? t('grading.saving', 'Đang lưu...') : t('grading.save', 'Lưu điểm')}
                     </Button>
                   </div>
                 </div>
