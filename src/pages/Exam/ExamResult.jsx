@@ -191,9 +191,20 @@ const ExamResult = () => {
                                 <CheckCircle2 className="w-6 h-6 text-green-600" />
                             </div>
                             <div>
-                                <p className="text-sm text-gray-500">Câu đúng</p>
+                                <p className="text-sm text-gray-500">Câu đúng (Trắc nghiệm)</p>
                                 <p className="text-xl font-bold text-gray-900">
-                                    {attempt.answers?.filter(a => a.isCorrect).length || 0}/{exam.examQuestions?.length || 0}
+                                    {attempt.answers?.filter(a => {
+                                        // Chỉ tính đúng/sai cho trắc nghiệm (READING/LISTENING)
+                                        const question = exam.examQuestions?.find(eq => eq.id === a.examQuestionId);
+                                        if (!question || !question.question) return false;
+                                                const type = question.question.questionType;
+                                                return (type === 'READING' || type === 'LISTENING' || type === 'MULTIPLE_CHOICE') && a.isCorrect;
+                                            }).length || 0}/{exam.examQuestions?.filter(eq => {
+                                                // Chỉ đếm câu trắc nghiệm
+                                                if (!eq.question) return false;
+                                                const type = eq.question.questionType;
+                                                return type === 'READING' || type === 'LISTENING' || type === 'MULTIPLE_CHOICE';
+                                            }).length || 0}
                                 </p>
                             </div>
                         </div>
@@ -219,21 +230,38 @@ const ExamResult = () => {
                         <div className="grid grid-cols-3 gap-4">
                             <div className="text-center p-4 bg-green-50 rounded-xl">
                                 <p className="text-3xl font-bold text-green-600">
-                                    {attempt.answers.filter(a => a.isCorrect).length}
+                                    {attempt.answers.filter(a => {
+                                        // Chỉ tính đúng/sai cho trắc nghiệm
+                                        const question = exam.examQuestions?.find(eq => eq.id === a.examQuestionId);
+                                        if (!question || !question.question) return false;
+                                        const type = question.question.questionType;
+                                        return (type === 'READING' || type === 'LISTENING' || type === 'MULTIPLE_CHOICE') && a.isCorrect;
+                                    }).length}
                                 </p>
                                 <p className="text-sm text-gray-600">Câu đúng</p>
                             </div>
                             <div className="text-center p-4 bg-red-50 rounded-xl">
                                 <p className="text-3xl font-bold text-red-600">
-                                    {attempt.answers.filter(a => !a.isCorrect).length}
+                                    {attempt.answers.filter(a => {
+                                        // Chỉ tính đúng/sai cho trắc nghiệm
+                                        const question = exam.examQuestions?.find(eq => eq.id === a.examQuestionId);
+                                        if (!question || !question.question) return false;
+                                        const type = question.question.questionType;
+                                        return (type === 'READING' || type === 'LISTENING' || type === 'MULTIPLE_CHOICE') && !a.isCorrect;
+                                    }).length}
                                 </p>
                                 <p className="text-sm text-gray-600">Câu sai</p>
                             </div>
                             <div className="text-center p-4 bg-blue-50 rounded-xl">
                                 <p className="text-3xl font-bold text-blue-600">
-                                    {attempt.answers.length}
+                                    {exam.examQuestions?.filter(eq => {
+                                        // Chỉ đếm câu trắc nghiệm
+                                        if (!eq.question) return false;
+                                        const type = eq.question.questionType;
+                                        return type === 'READING' || type === 'LISTENING' || type === 'MULTIPLE_CHOICE';
+                                    }).length || 0}
                                 </p>
-                                <p className="text-sm text-gray-600">Tổng câu</p>
+                                <p className="text-sm text-gray-600">Tổng câu trắc nghiệm</p>
                             </div>
                         </div>
                     </div>
