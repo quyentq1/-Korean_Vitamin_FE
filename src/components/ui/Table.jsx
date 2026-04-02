@@ -96,7 +96,7 @@ export const Table = ({
                 className={column.className}
               >
                 <div className="flex items-center space-x-2">
-                  <span>{column.label || column.header}</span>
+                  <span>{column.title || column.label || column.header}</span>
                   {column.sortable && (
                     <span className="text-gray-400 text-xs">{getSortIcon(column)}</span>
                   )}
@@ -152,7 +152,7 @@ export const Table = ({
  * TableHeader Component
  */
 export const TableHeader = ({ children, className = '', ...props }) => (
-  <thead className={`bg-gray-50 border-b border-gray-200 ${className}`} {...props}>
+  <thead className={`bg-gradient-to-r from-gray-100 to-gray-50 border-b-2 border-gray-300 ${className}`} {...props}>
     {children}
   </thead>
 );
@@ -178,14 +178,14 @@ export const TableRow = ({ children, className = '', ...props }) => (
 /**
  * TableHeadCell Component
  */
-export const TableHeadCell = ({ 
-  children, 
-  sortable = false, 
-  className = '', 
-  ...props 
+export const TableHeadCell = ({
+  children,
+  sortable = false,
+  className = '',
+  ...props
 }) => (
   <th
-    className={`px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider ${className} ${sortable ? 'cursor-pointer hover:bg-gray-100' : ''}`}
+    className={`px-4 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider border-r border-gray-200 last:border-r-0 ${className} ${sortable ? 'cursor-pointer hover:bg-gray-200 transition-colors' : ''}`}
     {...props}
   >
     {children}
