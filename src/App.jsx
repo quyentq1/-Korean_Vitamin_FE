@@ -4,6 +4,7 @@ import { ProtectedRoute, AdminRoute, TeacherRoute, StaffRoute, StudentRoute, Man
 import EducationManagerLayout from './components/layouts/EducationManagerLayout';
 import AdminLayout from './components/layouts/AdminLayout';
 import EduManagerDashboard from './pages/EducationManager/EduManagerDashboard';
+import Analytics from './pages/Admin/Analytics';
 import EduAnalytics from './pages/EducationManager/EduAnalytics';
 import EduCourseManagement from './pages/EducationManager/EduCourseManagement';
 import EduCourseForm from './pages/EducationManager/EduCourseForm';
@@ -370,6 +371,7 @@ function App() {
           }>
             <Route index element={<AdminDashboard />} />
             <Route path="users" element={<UserManagement />} />
+            <Route path="analytics" element={<Analytics />} />
             <Route path="teachers" element={<TeachersManagement />} />
             <Route path="students" element={<StudentManagement />} />
             <Route path="approvals" element={<ApprovalsManagement />} />
