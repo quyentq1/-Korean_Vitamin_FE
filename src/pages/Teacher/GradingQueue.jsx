@@ -84,20 +84,41 @@ const GradingQueue = () => {
       const responseData = response?.data || response || [];
 
       // Transform data for UI
-      const data = (responseData || []).map(att => ({
-        id: att.id,
-        studentName: att.student?.fullName || 'Unknown',
-        studentCode: att.student?.studentCode || 'N/A',
-        title: att.exam?.title || 'Untitled Exam',
-        type: getAssignmentType(att.exam),
-        submittedAt: att.submitTime,
-        completedAt: att.endTime,
-        timeSpent: att.timeSpent,
-        status: att.status,
-        aiScore: att.aiScore || 0,
-        aiSuggestions: att.aiSuggestions || [],
-        className: att.class?.name || 'N/A'
-      }));
+      const data = (responseData || []).map(att => {
+        const manualScore = att.manualScore !== null && att.manualScore !== undefined ? Number(att.manualScore) : null;
+        const autoScore = att.autoScore !== null && att.autoScore !== undefined ? Number(att.autoScore) : null;
+        // maxManualScore là tổng điểm của phần writing/speaking cần chấm
+        const maxManualScore = att.maxManualScore !== null && att.maxManualScore !== undefined ? Number(att.maxManualScore) : null;
+
+        // Debug log
+        console.log('📊 Exam score data:', {
+          id: att.id,
+          title: att.exam?.title,
+          manualScore,
+          autoScore,
+          maxManualScore,
+          raw: { manualScore: att.manualScore, autoScore: att.autoScore, maxManualScore: att.maxManualScore }
+        });
+
+        return {
+          id: att.id,
+          studentName: att.student?.fullName || 'Unknown',
+          studentCode: att.student?.studentCode || 'N/A',
+          title: att.exam?.title || 'Untitled Exam',
+          type: getAssignmentType(att.exam),
+          submittedAt: att.submitTime,
+          completedAt: att.endTime,
+          timeSpent: att.timeSpent,
+          status: att.status,
+          manualScore,
+          autoScore,
+          totalScore: att.totalScore !== null && att.totalScore !== undefined ? Number(att.totalScore) : null,
+          maxScore: maxManualScore, // maxScore bây giờ là maxManualScore
+          className: att.class?.name || 'N/A'
+        };
+      });
+
+      console.log('📦 Transformed grading queue data:', data);
       setSubmissions(data);
       setError('');
     } catch (err) {
@@ -172,15 +193,22 @@ const GradingQueue = () => {
     }
   };
 
-  // Get status badge
-  const getStatusBadge = (status) => {
+  // Get status badge - dựa vào manualScore và status field
+  const getStatusBadge = (status, manualScore) => {
+    // Ưu tiên kiểm tra manualScore - nếu có điểm giáo viên thì hiển thị "Đã chấm"
+    const hasManualScore = manualScore !== null && manualScore !== undefined && !isNaN(manualScore);
+
+    if (hasManualScore) {
+      return <Badge variant="success">{t('grading.status.graded', 'Đã chấm')}</Badge>;
+    }
+
+    // Nếu chưa có manualScore, hiển thị theo status
     const statusConfig = {
       PENDING_MANUAL_GRADE: { variant: 'warning', label: t('grading.status.pending', 'Chờ chấm') },
-      GRADED: { variant: 'success', label: t('grading.status.graded', 'Đã chấm') },
-      REVIEWED: { variant: 'info', label: t('grading.status.reviewed', 'Đã xem') }
+      SUBMITTED: { variant: 'info', label: t('grading.status.submitted', 'Đã nộp') }
     };
 
-    const config = statusConfig[status] || statusConfig.PENDING_MANUAL_GRADE;
+    const config = statusConfig[status] || { variant: 'warning', label: t('grading.status.pending', 'Chờ chấm') };
     return <Badge variant={config.variant}>{config.label}</Badge>;
   };
 
@@ -292,25 +320,58 @@ const GradingQueue = () => {
       )
     },
     {
-      key: 'aiScore',
-      title: t('grading.aiScore', 'Điểm AI'),
+      key: 'totalScore',
+      title: t('grading.score', 'Điểm'),
       sortable: true,
-      render: (value, row) => (
-        <div className="flex items-center gap-2">
-          <span className="text-lg font-semibold text-purple-600">{row.aiScore}%</span>
-          {row.aiSuggestions.length > 0 && (
-            <Badge variant="info" size="sm">
-              {row.aiSuggestions.length} {t('grading.suggestions', 'gợi ý')}
-            </Badge>
-          )}
-        </div>
-      )
+      render: (value, row) => {
+        // Kiểm tra xem có điểm giáo viên đã chấm không
+        const hasManualScore = row.manualScore !== null && row.manualScore !== undefined && !isNaN(row.manualScore);
+        const hasAutoScore = row.autoScore !== null && row.autoScore !== undefined && !isNaN(row.autoScore);
+
+        // Ưu tiên manualScore, nếu không có thì dùng autoScore
+        const currentScore = hasManualScore ? row.manualScore : (hasAutoScore ? row.autoScore : null);
+        const maxScore = row.maxScore && row.maxScore > 0 ? row.maxScore : null;
+
+        return (
+          <div className="flex flex-col gap-1">
+            {/* Hiển thị điểm: hiện tại / tổng */}
+            <div className="flex items-center gap-2">
+              <span className={`text-lg font-bold ${hasManualScore ? 'text-green-600' : 'text-gray-700'}`}>
+                {currentScore !== null ? currentScore.toFixed(1) : '-'}
+                {maxScore !== null ? ` / ${maxScore.toFixed(1)}` : ''}
+              </span>
+              {hasManualScore ? (
+                <CheckCircle2 className="w-4 h-4 text-green-500" />
+              ) : hasAutoScore ? (
+                <AlertCircle className="w-4 h-4 text-blue-500" />
+              ) : (
+                <AlertCircle className="w-4 h-4 text-orange-400" />
+              )}
+            </div>
+
+            {/* Badge trạng thái */}
+            {hasManualScore ? (
+              <Badge variant="success" size="sm">
+                {t('grading.gradedByTeacher', 'Đã chấm')}
+              </Badge>
+            ) : hasAutoScore ? (
+              <Badge variant="info" size="sm">
+                {t('grading.autoScore', 'Tự động')}
+              </Badge>
+            ) : (
+              <Badge variant="warning" size="sm">
+                {t('grading.notGraded', 'Chưa chấm')}
+              </Badge>
+            )}
+          </div>
+        );
+      }
     },
     {
       key: 'status',
       title: t('grading.status', 'Trạng thái'),
       sortable: true,
-      render: (value, row) => getStatusBadge(row.status)
+      render: (value, row) => getStatusBadge(row.status, row.manualScore)
     },
     {
       key: 'actions',
@@ -344,11 +405,26 @@ const GradingQueue = () => {
   const stats = {
     total: submissions.length,
     pending: submissions.filter(s => s.status === 'PENDING_MANUAL_GRADE').length,
-    graded: submissions.filter(s => s.status === 'GRADED').length,
+    graded: submissions.filter(s => s.manualScore !== null && s.manualScore !== undefined).length,
     writing: submissions.filter(s => s.type === 'writing').length,
     speaking: submissions.filter(s => s.type === 'speaking').length,
-    avgAiScore: submissions.length > 0
-      ? (submissions.reduce((sum, s) => sum + s.aiScore, 0) / submissions.length).toFixed(1)
+    avgScore: submissions.length > 0
+      ? (submissions.reduce((sum, s) => {
+          const score = s.manualScore !== null && s.manualScore !== undefined ? s.manualScore : (s.autoScore || 0);
+          return sum + score;
+        }, 0) / submissions.length).toFixed(1)
+      : 0,
+    // Tính tỷ lệ hoàn thành trung bình - chỉ tính những bài có maxScore > 0
+    avgCompletion: submissions.length > 0
+      ? (() => {
+          const validSubmissions = submissions.filter(s => s.maxScore && s.maxScore > 0);
+          if (validSubmissions.length === 0) return 0;
+          return (validSubmissions.reduce((sum, s) => {
+            const score = s.manualScore !== null && s.manualScore !== undefined ? s.manualScore : (s.autoScore || 0);
+            const max = s.maxScore || 1;
+            return sum + (score / max * 100);
+          }, 0) / validSubmissions.length).toFixed(1);
+        })()
       : 0
   };
 
@@ -401,7 +477,7 @@ const GradingQueue = () => {
       )}
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
         <Card className="p-4">
           <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
           <p className="text-sm text-gray-500">{t('grading.total', 'Tổng bài')}</p>
@@ -415,8 +491,12 @@ const GradingQueue = () => {
           <p className="text-sm text-gray-500">{t('grading.graded', 'Đã chấm')}</p>
         </Card>
         <Card className="p-4">
-          <p className="text-2xl font-bold text-purple-600">{stats.avgAiScore}%</p>
-          <p className="text-sm text-gray-500">{t('grading.avgAiScore', 'Điểm AI TB')}</p>
+          <p className="text-2xl font-bold text-blue-600">{stats.avgScore}</p>
+          <p className="text-sm text-gray-500">{t('grading.avgScore', 'Điểm TB')}</p>
+        </Card>
+        <Card className="p-4">
+          <p className="text-2xl font-bold text-purple-600">{stats.avgCompletion}%</p>
+          <p className="text-sm text-gray-500">{t('grading.avgCompletion', 'Hoàn thành TB')}</p>
         </Card>
       </div>
 
