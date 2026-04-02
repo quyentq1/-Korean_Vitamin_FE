@@ -145,11 +145,11 @@ const UserManagement = () => {
             setTotalPages(Math.ceil(filtered.length / itemsPerPage));
         } catch (error) {
             console.error("Failed to fetch users:", error);
-            showToast(t('userMgmt.fetchError', 'Không thể tải danh sách người dùng'), 'error');
+            showToast('Không thể tải danh sách người dùng', 'error');
         } finally {
             setLoading(false);
         }
-    }, [roleFilter, statusFilter, searchTerm, sortBy, sortOrder, currentPage, itemsPerPage, t]);
+    }, [roleFilter, statusFilter, searchTerm, sortBy, sortOrder, currentPage, itemsPerPage]);
 
     useEffect(() => {
         fetchUsers();
