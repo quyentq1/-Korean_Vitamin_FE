@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
 import authService from '../services/authService';
 import CourseStatus from '../components/Learner/CourseStatus';
 // Assuming you have a sweetalert or toast utility, we use a basic alert if not available
@@ -10,12 +8,91 @@ import CourseStatus from '../components/Learner/CourseStatus';
 
 const Profile = () => {
     const { t } = useTranslation();
-    const { user, logout } = useAuth();
+    const { user, logout, updateUser } = useAuth();
     const [activeTab, setActiveTab] = useState('info');
+    const [uploadingAvatar, setUploadingAvatar] = useState(false);
+    const [refreshingUser, setRefreshingUser] = useState(false);
+
+    // Fetch fresh user data on mount
+    useEffect(() => {
+        const fetchUserData = async () => {
+            try {
+                setRefreshingUser(true);
+                const freshUserData = await authService.fetchCurrentUser();
+                updateUser(freshUserData);
+            } catch (error) {
+                console.error('Failed to fetch fresh user data:', error);
+            } finally {
+                setRefreshingUser(false);
+            }
+        };
+
+        fetchUserData();
+    }, []);
+
+    // Show loading indicator while fetching data
+    if (refreshingUser) {
+        return (
+            <div className="min-h-screen flex flex-col bg-gray-50">
+                <main className="flex-grow container mx-auto px-4 py-8 max-w-6xl mt-16 flex items-center justify-center">
+                    <div className="text-center">
+                        <div className="animate-spin text-4xl mb-4">⟳</div>
+                        <p className="text-gray-600">Đang tải thông tin...</p>
+                    </div>
+                </main>
+            </div>
+        );
+    }
+
+    const handleAvatarUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+            alert('Chỉ chấp nhận file hình ảnh');
+            return;
+        }
+
+        // Validate file size (max 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            alert('Kích thước file không được vượt quá 5MB');
+            return;
+        }
+
+        try {
+            setUploadingAvatar(true);
+
+            // Upload avatar
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/auth/upload-avatar`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: formData
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to upload avatar');
+            }
+
+            const data = await response.json();
+
+            // Update user with new avatar
+            updateUser({ ...user, avatar: data.url });
+        } catch (err) {
+            console.error('Error uploading avatar:', err);
+            alert('Không thể tải lên ảnh đại diện. Vui lòng thử lại.');
+        } finally {
+            setUploadingAvatar(false);
+        }
+    };
 
     return (
         <div className="min-h-screen flex flex-col bg-gray-50">
-            <Navbar />
 
             <main className="flex-grow container mx-auto px-4 py-8 max-w-6xl mt-16">
                 <div className="flex flex-col md:flex-row gap-8">
@@ -24,8 +101,42 @@ const Profile = () => {
                     <div className="w-full md:w-1/4">
                         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                             <div className="flex flex-col items-center mb-6">
-                                <div className="w-24 h-24 bg-primary-100 rounded-full flex items-center justify-center text-primary-600 text-3xl font-bold mb-4">
-                                    {user?.fullName?.charAt(0) || user?.username?.charAt(0) || 'U'}
+                                <div className="relative w-24 h-24 group mb-4">
+                                    {user?.avatar ? (
+                                        <img
+                                            src={user.avatar}
+                                            alt="Avatar"
+                                            className="w-24 h-24 rounded-full object-cover shadow-sm border-2 border-gray-100"
+                                        />
+                                    ) : (
+                                        <div className="w-24 h-24 bg-primary-100 rounded-full flex items-center justify-center text-primary-600 text-3xl font-bold">
+                                            {user?.fullName?.charAt(0) || user?.username?.charAt(0) || 'U'}
+                                        </div>
+                                    )}
+
+                                    {/* Loading overlay - always visible when uploading */}
+                                    {uploadingAvatar && (
+                                        <div className="absolute inset-0 bg-black/60 rounded-full flex flex-col items-center justify-center text-white z-10">
+                                            <div className="animate-spin text-3xl mb-1">⟳</div>
+                                            <span className="text-xs">Đang tải...</span>
+                                        </div>
+                                    )}
+
+                                    {/* Upload overlay - only visible on hover when not uploading */}
+                                    <label className={`absolute inset-0 bg-black/50 rounded-full cursor-pointer flex flex-col items-center justify-center text-white transition-opacity ${
+                                        uploadingAvatar ? 'opacity-0 pointer-events-none' : 'opacity-0 group-hover:opacity-100'
+                                    }`}>
+                                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                        </svg>
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={handleAvatarUpload}
+                                            className="hidden"
+                                            disabled={uploadingAvatar}
+                                        />
+                                    </label>
                                 </div>
                                 <h2 className="text-xl font-bold text-gray-900">{user?.fullName || user?.username}</h2>
                                 <p className="text-gray-500 text-sm">{user?.email}</p>
@@ -76,7 +187,6 @@ const Profile = () => {
                 </div>
             </main>
 
-            <Footer />
         </div>
     );
 };
@@ -84,14 +194,33 @@ const Profile = () => {
 // --- Sub Components ---
 
 const ProfileInfo = ({ user }) => {
+    const { updateUser } = useAuth();
     const [isEditing, setIsEditing] = useState(false);
     const [formData, setFormData] = useState({
         fullName: user?.fullName || '',
-        phone: user?.phone || ''
+        phone: user?.phone || '',
+        dateOfBirth: user?.dateOfBirth ? (user.dateOfBirth.includes('T') ? user.dateOfBirth.split('T')[0] : user.dateOfBirth) : '',
+        gender: user?.gender || 'MALE',
+        address: user?.address || '',
+        avatar: user?.avatar || ''
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
+
+    // Update formData when user prop changes (after fetch from API)
+    useEffect(() => {
+        if (user) {
+            setFormData({
+                fullName: user.fullName || '',
+                phone: user.phone || '',
+                dateOfBirth: user.dateOfBirth ? (user.dateOfBirth.includes('T') ? user.dateOfBirth.split('T')[0] : user.dateOfBirth) : '',
+                gender: user.gender || 'MALE',
+                address: user.address || '',
+                avatar: user.avatar || ''
+            });
+        }
+    }, [user]);
 
     const handleEdit = () => {
         setIsEditing(true);
@@ -99,7 +228,11 @@ const ProfileInfo = ({ user }) => {
         setSuccess('');
         setFormData({
             fullName: user?.fullName || '',
-            phone: user?.phone || ''
+            phone: user?.phone || '',
+            dateOfBirth: user?.dateOfBirth ? user.dateOfBirth.split('T')[0] : '',
+            gender: user?.gender || 'MALE',
+            address: user?.address || '',
+            avatar: user?.avatar || ''
         });
     };
 
@@ -108,7 +241,11 @@ const ProfileInfo = ({ user }) => {
         setError('');
         setFormData({
             fullName: user?.fullName || '',
-            phone: user?.phone || ''
+            phone: user?.phone || '',
+            dateOfBirth: user?.dateOfBirth ? user.dateOfBirth.split('T')[0] : '',
+            gender: user?.gender || 'MALE',
+            address: user?.address || '',
+            avatar: user?.avatar || ''
         });
     };
 
@@ -129,14 +266,25 @@ const ProfileInfo = ({ user }) => {
 
         setLoading(true);
         try {
-            await authService.updateProfile({
+            const response = await authService.updateProfile({
                 fullName: formData.fullName.trim(),
-                phone: formData.phone.trim()
+                phone: formData.phone.trim(),
+                dateOfBirth: formData.dateOfBirth || null,
+                gender: formData.gender,
+                address: formData.address.trim(),
+                avatar: formData.avatar
             });
+
+            // Cập nhật user state trong AuthContext
+            if (response.user) {
+                updateUser(response.user);
+            }
+
             setSuccess('Cập nhật thông tin thành công!');
             setIsEditing(false);
-            // Reload page to get updated user info
-            setTimeout(() => window.location.reload(), 1500);
+
+            // Tự động ẩn thông báo success sau 3 giây
+            setTimeout(() => setSuccess(''), 3000);
         } catch (err) {
             setError(err.response?.data?.message || 'Không thể cập nhật thông tin. Vui lòng thử lại.');
         } finally {
@@ -172,89 +320,193 @@ const ProfileInfo = ({ user }) => {
                 </div>
             )}
 
-            <div className="space-y-6 max-w-2xl">
+            <div className="space-y-6 max-w-4xl">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Họ và tên */}
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                             Họ và tên {isEditing && <span className="text-red-500">*</span>}
                         </label>
                         <input
                             type="text"
-                            className={`w-full px-4 py-2 border rounded-lg transition-colors ${
+                            className={`w-full px-4 py-2.5 border rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all ${
                                 isEditing
-                                    ? 'border-gray-300 bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500'
-                                    : 'border-gray-300 bg-gray-50 text-gray-700 cursor-not-allowed'
+                                    ? 'border-gray-200 bg-white'
+                                    : 'border-gray-200 bg-gray-50 text-gray-700 cursor-not-allowed'
                             }`}
                             value={isEditing ? formData.fullName : (user?.fullName || '')}
                             onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
                             readOnly={!isEditing}
+                            placeholder="Nhập họ và tên"
                         />
                     </div>
+
+                    {/* Tên đăng nhập */}
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Tên đăng nhập</label>
                         <input
                             type="text"
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 cursor-not-allowed"
+                            className="w-full px-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 text-gray-500 cursor-not-allowed outline-none"
                             value={user?.username || ''}
                             readOnly
                         />
                         <p className="mt-1 text-xs text-gray-500">Không thể thay đổi tên đăng nhập</p>
                     </div>
+
+                    {/* Email */}
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
                         <input
                             type="email"
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 cursor-not-allowed"
+                            className="w-full px-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 text-gray-500 cursor-not-allowed outline-none"
                             value={user?.email || ''}
                             readOnly
                         />
                         <p className="mt-1 text-xs text-gray-500">Liên hệ admin để thay đổi email</p>
                     </div>
+
+                    {/* Số điện thoại */}
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Số điện thoại {isEditing && <span className="text-red-500">*</span>}
+                            Số điện thoại
                         </label>
                         <input
                             type="tel"
-                            className={`w-full px-4 py-2 border rounded-lg transition-colors ${
+                            className={`w-full px-4 py-2.5 border rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all ${
                                 isEditing
-                                    ? 'border-gray-300 bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500'
-                                    : 'border-gray-300 bg-gray-50 text-gray-700 cursor-not-allowed'
+                                    ? 'border-gray-200 bg-white'
+                                    : 'border-gray-200 bg-gray-50 text-gray-700 cursor-not-allowed'
                             }`}
                             value={isEditing ? (formData.phone || '') : (user?.phone || 'Chưa cập nhật')}
                             onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                             readOnly={!isEditing}
-                            placeholder={isEditing ? 'Nhập số điện thoại' : ''}
+                            placeholder={isEditing ? '0xxxxxxxxx' : ''}
+                        />
+                    </div>
+
+                    {/* Ngày sinh */}
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Ngày sinh</label>
+                        <input
+                            type="date"
+                            className={`w-full px-4 py-2.5 border rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all ${
+                                isEditing
+                                    ? 'border-gray-200 bg-white'
+                                    : 'border-gray-200 bg-gray-50 text-gray-700 cursor-not-allowed'
+                            }`}
+                            value={isEditing ? formData.dateOfBirth : (user?.dateOfBirth ? user.dateOfBirth.split('T')[0] : 'Chưa cập nhật')}
+                            onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })}
+                            readOnly={!isEditing}
+                            max={new Date().toISOString().split('T')[0]}
+                        />
+                    </div>
+
+                    {/* Giới tính */}
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Giới tính</label>
+                        {isEditing ? (
+                            <div className="flex gap-3">
+                                {['MALE', 'FEMALE', 'OTHER'].map((gender) => (
+                                    <label
+                                        key={gender}
+                                        className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 border rounded-xl cursor-pointer transition-all ${
+                                            formData.gender === gender
+                                                ? 'border-primary-500 bg-primary-50 text-primary-700'
+                                                : 'border-gray-200 hover:border-gray-300'
+                                        }`}
+                                    >
+                                        <input
+                                            type="radio"
+                                            name="gender"
+                                            value={gender}
+                                            checked={formData.gender === gender}
+                                            onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
+                                            className="hidden"
+                                        />
+                                        <span className="font-medium">
+                                            {gender === 'MALE' ? 'Nam' : gender === 'FEMALE' ? 'Nữ' : 'Khác'}
+                                        </span>
+                                    </label>
+                                ))}
+                            </div>
+                        ) : (
+                            <input
+                                type="text"
+                                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 text-gray-700 cursor-not-allowed outline-none"
+                                value={user?.gender === 'MALE' ? 'Nam' : user?.gender === 'FEMALE' ? 'Nữ' : user?.gender === 'OTHER' ? 'Khác' : 'Chưa cập nhật'}
+                                readOnly
+                            />
+                        )}
+                    </div>
+
+                    {/* Địa chỉ - Full width */}
+                    <div className="md:col-span-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Địa chỉ</label>
+                        <textarea
+                            className={`w-full px-4 py-2.5 border rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all resize-none ${
+                                isEditing
+                                    ? 'border-gray-200 bg-white'
+                                    : 'border-gray-200 bg-gray-50 text-gray-700 cursor-not-allowed'
+                            }`}
+                            value={isEditing ? formData.address : (user?.address || 'Chưa cập nhật')}
+                            onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                            readOnly={!isEditing}
+                            placeholder="Nhập địa chỉ"
+                            rows={3}
                         />
                     </div>
                 </div>
 
                 {isEditing && (
-                    <div className="pt-4 border-t border-gray-100 flex justify-end gap-3">
-                        <button
-                            onClick={handleCancel}
-                            disabled={loading}
-                            className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors disabled:opacity-50"
-                        >
-                            Hủy
-                        </button>
-                        <button
-                            onClick={handleSave}
-                            disabled={loading}
-                            className="px-6 py-2 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 transition-colors disabled:opacity-50 flex items-center"
-                        >
-                            {loading ? (
-                                <><span className="animate-spin mr-2">⟳</span> Đang lưu...</>
-                            ) : (
-                                <>
-                                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    <>
+                        {/* Warning Note */}
+                        <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+                            <div className="flex items-start gap-3">
+                                <div className="w-5 h-5 text-yellow-600 mt-0.5">
+                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                                     </svg>
-                                    Lưu thay đổi
-                                </>
-                            )}
-                        </button>
-                    </div>
+                                </div>
+                                <div>
+                                    <h4 className="font-semibold text-yellow-900">Lưu ý</h4>
+                                    <p className="text-sm text-yellow-800 mt-1">
+                                        Thay đổi thông tin cá nhân có thể ảnh hưởng đến các dữ liệu liên quan như điểm danh, báo cáo.
+                                        Vui lòng kiểm tra kỹ trước khi lưu.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Actions */}
+                        <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-100">
+                            <button
+                                onClick={handleCancel}
+                                disabled={loading}
+                                className="px-6 py-2.5 border-2 border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 transition-all font-medium"
+                            >
+                                Hủy
+                            </button>
+                            <button
+                                onClick={handleSave}
+                                disabled={loading}
+                                className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-xl hover:shadow-lg transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {loading ? (
+                                    <>
+                                        <span className="animate-spin mr-2">⟳</span>
+                                        Đang lưu...
+                                    </>
+                                ) : (
+                                    <>
+                                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                        </svg>
+                                        Lưu thay đổi
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                    </>
                 )}
             </div>
         </div>

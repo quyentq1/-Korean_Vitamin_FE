@@ -71,6 +71,14 @@ const normalizeUserData = (response) => {
     permissions: response.permissions || userInfo.permissions || [],
     createdAt: response.createdAt || userInfo.createdAt,
     updatedAt: response.updatedAt || userInfo.updatedAt,
+    // Additional fields
+    dateOfBirth: response.dateOfBirth || userInfo.dateOfBirth,
+    gender: response.gender || userInfo.gender,
+    address: response.address || userInfo.address,
+    paymentTier: response.paymentTier || userInfo.paymentTier,
+    isPremium: response.isPremium || userInfo.isPremium,
+    expirationDate: response.expirationDate || userInfo.expirationDate,
+    // Spread any remaining fields
     ...userInfo
   };
 };
@@ -157,6 +165,25 @@ export const authService = {
     } catch (error) {
       console.error('Lỗi khi lấy thông tin người dùng:', error);
       return null;
+    }
+  },
+
+  /**
+   * Lấy thông tin user hiện tại từ server (fresh data)
+   * @returns {Promise<Object>} Thông tin người dùng từ server
+   */
+  fetchCurrentUser: async () => {
+    try {
+      const response = await axiosClient.get('/auth/me');
+
+      // Update localStorage with fresh data
+      const userData = normalizeUserData(response);
+      localStorage.setItem(USER_KEY, JSON.stringify(userData));
+
+      return userData;
+    } catch (error) {
+      console.error('Lỗi khi lấy thông tin người dùng từ server:', error);
+      throw error;
     }
   },
 
@@ -384,7 +411,7 @@ export const authService = {
 
   /**
    * Cập nhật thông tin profile
-   * @param {Object} profileData - Dữ liệu profile cần cập nhật { fullName, phone, email }
+   * @param {Object} profileData - Dữ liệu profile cần cập nhật { fullName, phone }
    * @returns {Promise<Object>} Dữ liệu phản hồi từ API
    */
   updateProfile: async (profileData) => {
@@ -392,7 +419,10 @@ export const authService = {
       const response = await axiosClient.put('/auth/profile', profileData);
 
       // Cập nhật thông tin user trong localStorage
-      if (response.userInfo || response.user) {
+      // Backend response format: { success: true, message: "...", user: {...} }
+      if (response.user) {
+        authService.updateCurrentUser(normalizeUserData(response.user));
+      } else if (response.userInfo) {
         authService.updateCurrentUser(normalizeUserData(response));
       }
 
