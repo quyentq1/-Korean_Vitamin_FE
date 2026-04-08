@@ -30,6 +30,13 @@ const ExamResult = () => {
             console.log('❓ Answers length:', attemptData.answers?.length || 0);
             console.log('❓ Exam questions:', attemptData.exam?.examQuestions);
 
+            // Debug isCorrect values
+            if (attemptData.answers) {
+                attemptData.answers.forEach((answer, index) => {
+                    console.log(`Answer ${index}: examQuestionId=${answer.examQuestion?.id}, isCorrect=${answer.isCorrect}, answerText=${answer.answerText}`);
+                });
+            }
+
             setAttempt(attemptData);
 
             if (attemptData.exam) {
@@ -194,11 +201,11 @@ const ExamResult = () => {
                                 <p className="text-sm text-gray-500">Câu đúng (Trắc nghiệm)</p>
                                 <p className="text-xl font-bold text-gray-900">
                                     {attempt.answers?.filter(a => {
-                                        // Chỉ tính đúng/sai cho trắc nghiệm (READING/LISTENING)
-                                        const question = exam.examQuestions?.find(eq => eq.id === a.examQuestionId);
+                                        // Chỉ tính đúng/sai cho trắc nghiệm (READING/LISTENING/MULTIPLE_CHOICE)
+                                        const question = exam.examQuestions?.find(eq => eq.id === a.examQuestion?.id);
                                         if (!question || !question.question) return false;
                                                 const type = question.question.questionType;
-                                                return (type === 'READING' || type === 'LISTENING' || type === 'MULTIPLE_CHOICE') && a.isCorrect;
+                                                return (type === 'READING' || type === 'LISTENING' || type === 'MULTIPLE_CHOICE') && a.isCorrect === true;
                                             }).length || 0}/{exam.examQuestions?.filter(eq => {
                                                 // Chỉ đếm câu trắc nghiệm
                                                 if (!eq.question) return false;
@@ -223,49 +230,60 @@ const ExamResult = () => {
                     </div>
                 </div>
 
-                {/* Quick Stats */}
-                {attempt.answers && attempt.answers.length > 0 && (
-                    <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 mb-8">
-                        <h3 className="text-xl font-bold text-gray-900 mb-4">Tổng quan</h3>
-                        <div className="grid grid-cols-3 gap-4">
-                            <div className="text-center p-4 bg-green-50 rounded-xl">
-                                <p className="text-3xl font-bold text-green-600">
-                                    {attempt.answers.filter(a => {
-                                        // Chỉ tính đúng/sai cho trắc nghiệm
-                                        const question = exam.examQuestions?.find(eq => eq.id === a.examQuestionId);
-                                        if (!question || !question.question) return false;
-                                        const type = question.question.questionType;
-                                        return (type === 'READING' || type === 'LISTENING' || type === 'MULTIPLE_CHOICE') && a.isCorrect;
-                                    }).length}
-                                </p>
-                                <p className="text-sm text-gray-600">Câu đúng</p>
-                            </div>
-                            <div className="text-center p-4 bg-red-50 rounded-xl">
-                                <p className="text-3xl font-bold text-red-600">
-                                    {attempt.answers.filter(a => {
-                                        // Chỉ tính đúng/sai cho trắc nghiệm
-                                        const question = exam.examQuestions?.find(eq => eq.id === a.examQuestionId);
-                                        if (!question || !question.question) return false;
-                                        const type = question.question.questionType;
-                                        return (type === 'READING' || type === 'LISTENING' || type === 'MULTIPLE_CHOICE') && !a.isCorrect;
-                                    }).length}
-                                </p>
-                                <p className="text-sm text-gray-600">Câu sai</p>
-                            </div>
-                            <div className="text-center p-4 bg-blue-50 rounded-xl">
-                                <p className="text-3xl font-bold text-blue-600">
-                                    {exam.examQuestions?.filter(eq => {
-                                        // Chỉ đếm câu trắc nghiệm
-                                        if (!eq.question) return false;
-                                        const type = eq.question.questionType;
-                                        return type === 'READING' || type === 'LISTENING' || type === 'MULTIPLE_CHOICE';
-                                    }).length || 0}
-                                </p>
-                                <p className="text-sm text-gray-600">Tổng câu trắc nghiệm</p>
+                {/* Quick Stats - Multiple Choice Only */}
+                {attempt.answers && attempt.answers.length > 0 && (() => {
+                    // Filter multiple choice questions only
+                    const mcQuestions = exam.examQuestions?.filter(eq => {
+                        if (!eq.question) return false;
+                        const type = eq.question.questionType;
+                        return type === 'READING' || type === 'LISTENING' || type === 'MULTIPLE_CHOICE';
+                    }) || [];
+
+                    const mcCorrect = attempt.answers.filter(a => {
+                        const question = exam.examQuestions?.find(eq => eq.id === a.examQuestion?.id);
+                        if (!question || !question.question) return false;
+                        const type = question.question.questionType;
+                        return (type === 'READING' || type === 'LISTENING' || type === 'MULTIPLE_CHOICE') && a.isCorrect === true;
+                    }).length;
+
+                    const mcIncorrect = attempt.answers.filter(a => {
+                        const question = exam.examQuestions?.find(eq => eq.id === a.examQuestion?.id);
+                        if (!question || !question.question) return false;
+                        const type = question.question.questionType;
+                        return (type === 'READING' || type === 'LISTENING' || type === 'MULTIPLE_CHOICE') && a.isCorrect === false;
+                    }).length;
+
+                    // Check if there are writing/speaking questions
+                    const hasWritingOrSpeaking = exam.examQuestions?.some(eq => {
+                        if (!eq.question) return false;
+                        const type = eq.question.questionType;
+                        return type === 'WRITING' || type === 'SPEAKING' || type === 'ESSAY';
+                    });
+
+                    return mcQuestions.length > 0 ? (
+                        <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 mb-8">
+                            <h3 className="text-xl font-bold text-gray-900 mb-4">
+                                Kết quả Trắc nghiệm
+                                {hasWritingOrSpeaking && <span className="text-sm font-normal text-gray-500 ml-2">(Chấm tự động)</span>}
+                            </h3>
+                            <div className="grid grid-cols-3 gap-4">
+                                <div className="text-center p-4 bg-green-50 rounded-xl">
+                                    <p className="text-3xl font-bold text-green-600">{mcCorrect}</p>
+                                    <p className="text-sm text-gray-600">Câu đúng</p>
+                                </div>
+                                <div className="text-center p-4 bg-red-50 rounded-xl">
+                                    <p className="text-3xl font-bold text-red-600">{mcIncorrect}</p>
+                                    <p className="text-sm text-gray-600">Câu sai</p>
+                                </div>
+                                <div className="text-center p-4 bg-blue-50 rounded-xl">
+                                    <p className="text-3xl font-bold text-blue-600">{mcQuestions.length}</p>
+                                    <p className="text-sm text-gray-600">Tổng câu trắc nghiệm</p>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                )}
+                    ) : null;
+                })()}
+
 
                 {/* Action Buttons */}
                 <div className="flex flex-wrap gap-4 justify-center">

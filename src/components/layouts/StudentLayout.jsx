@@ -91,7 +91,6 @@ const StudentLayout = () => {
     { icon: <Users className="w-5 h-5" />, label: 'Lớp học', path: '/student/my-classes' },
     { icon: <FileText className="w-5 h-5" />, label: 'Bài kiểm tra', path: '/student/exams' },
     { icon: <ClipboardCheck className="w-5 h-5" />, label: 'Lịch sử thi', path: '/student/attempts/history' },
-    { icon: <Trophy className="w-5 h-5" />, label: 'Kết quả', path: '/student/results' },
     { icon: <GraduationCap className="w-5 h-5" />, label: 'Tiến độ', path: '/student/progress' },
     { icon: <BarChart3 className="w-5 h-5" />, label: 'Thống kê', path: '/student/statistics' },
     { icon: <Calendar className="w-5 h-5" />, label: 'Lịch học', path: '/student/schedule' },

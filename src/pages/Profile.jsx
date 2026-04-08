@@ -99,7 +99,7 @@ const Profile = () => {
 
                     {/* Sidebar */}
                     <div className="w-full md:w-1/4">
-                        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                        <div className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all border border-gray-100 p-6">
                             <div className="flex flex-col items-center mb-6">
                                 <div className="relative w-24 h-24 group mb-4">
                                     {user?.avatar ? (
@@ -109,7 +109,7 @@ const Profile = () => {
                                             className="w-24 h-24 rounded-full object-cover shadow-sm border-2 border-gray-100"
                                         />
                                     ) : (
-                                        <div className="w-24 h-24 bg-primary-100 rounded-full flex items-center justify-center text-primary-600 text-3xl font-bold">
+                                        <div className="w-24 h-24 bg-gradient-to-r from-indigo-100 to-purple-100 rounded-full flex items-center justify-center text-indigo-600 text-3xl font-bold">
                                             {user?.fullName?.charAt(0) || user?.username?.charAt(0) || 'U'}
                                         </div>
                                     )}
@@ -155,8 +155,8 @@ const Profile = () => {
                                     <button
                                         key={tab.id}
                                         onClick={() => setActiveTab(tab.id)}
-                                        className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-colors ${activeTab === tab.id
-                                            ? 'bg-primary-50 text-primary-700'
+                                        className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all ${activeTab === tab.id
+                                            ? 'bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-700 shadow-sm'
                                             : 'text-gray-700 hover:bg-gray-50'
                                             }`}
                                     >
@@ -166,7 +166,7 @@ const Profile = () => {
                                 ))}
                                 <button
                                     onClick={logout}
-                                    className="w-full flex items-center px-4 py-3 text-sm font-medium rounded-xl text-red-600 hover:bg-red-50 transition-colors mt-4"
+                                    className="w-full flex items-center px-4 py-3 text-sm font-medium rounded-xl text-red-600 hover:bg-red-50 transition-all mt-4"
                                 >
                                     <span className="mr-3 text-lg">🚪</span>
                                     Đăng xuất
@@ -177,7 +177,7 @@ const Profile = () => {
 
                     {/* Content */}
                     <div className="w-full md:w-3/4">
-                        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8 min-h-[500px]">
+                        <div className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all border border-gray-100 p-6 md:p-8 min-h-[500px]">
                             {activeTab === 'info' && <ProfileInfo user={user} />}
                             {activeTab === 'password' && <ChangePassword />}
                             {activeTab === 'history' && <ExamHistory />}
@@ -299,7 +299,7 @@ const ProfileInfo = ({ user }) => {
                 {!isEditing && (
                     <button
                         onClick={handleEdit}
-                        className="px-4 py-2 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 transition-colors flex items-center gap-2"
+                        className="px-6 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-semibold hover:from-indigo-700 hover:to-purple-700 transition-all shadow-lg flex items-center gap-2"
                     >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732a2.5 2.5 0 013.536 3.536z" />
@@ -310,12 +310,12 @@ const ProfileInfo = ({ user }) => {
             </div>
 
             {error && (
-                <div className="mb-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm flex items-start">
+                <div className="mb-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl text-sm flex items-start">
                     <span className="mr-2">❌</span> {error}
                 </div>
             )}
             {success && (
-                <div className="mb-4 p-4 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm flex items-start">
+                <div className="mb-4 p-4 bg-green-50 border border-green-200 text-green-700 rounded-xl text-sm flex items-start">
                     <span className="mr-2">✅</span> {success}
                 </div>
             )}
@@ -329,7 +329,7 @@ const ProfileInfo = ({ user }) => {
                         </label>
                         <input
                             type="text"
-                            className={`w-full px-4 py-2.5 border rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all ${
+                            className={`w-full px-4 py-2.5 border-2 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all ${
                                 isEditing
                                     ? 'border-gray-200 bg-white'
                                     : 'border-gray-200 bg-gray-50 text-gray-700 cursor-not-allowed'
@@ -346,7 +346,7 @@ const ProfileInfo = ({ user }) => {
                         <label className="block text-sm font-medium text-gray-700 mb-2">Tên đăng nhập</label>
                         <input
                             type="text"
-                            className="w-full px-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 text-gray-500 cursor-not-allowed outline-none"
+                            className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl bg-gray-50 text-gray-500 cursor-not-allowed outline-none"
                             value={user?.username || ''}
                             readOnly
                         />
@@ -358,7 +358,7 @@ const ProfileInfo = ({ user }) => {
                         <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
                         <input
                             type="email"
-                            className="w-full px-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 text-gray-500 cursor-not-allowed outline-none"
+                            className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl bg-gray-50 text-gray-500 cursor-not-allowed outline-none"
                             value={user?.email || ''}
                             readOnly
                         />
@@ -372,7 +372,7 @@ const ProfileInfo = ({ user }) => {
                         </label>
                         <input
                             type="tel"
-                            className={`w-full px-4 py-2.5 border rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all ${
+                            className={`w-full px-4 py-2.5 border-2 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all ${
                                 isEditing
                                     ? 'border-gray-200 bg-white'
                                     : 'border-gray-200 bg-gray-50 text-gray-700 cursor-not-allowed'
@@ -389,7 +389,7 @@ const ProfileInfo = ({ user }) => {
                         <label className="block text-sm font-medium text-gray-700 mb-2">Ngày sinh</label>
                         <input
                             type="date"
-                            className={`w-full px-4 py-2.5 border rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all ${
+                            className={`w-full px-4 py-2.5 border-2 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all ${
                                 isEditing
                                     ? 'border-gray-200 bg-white'
                                     : 'border-gray-200 bg-gray-50 text-gray-700 cursor-not-allowed'
@@ -409,9 +409,9 @@ const ProfileInfo = ({ user }) => {
                                 {['MALE', 'FEMALE', 'OTHER'].map((gender) => (
                                     <label
                                         key={gender}
-                                        className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 border rounded-xl cursor-pointer transition-all ${
+                                        className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 border-2 rounded-xl cursor-pointer transition-all ${
                                             formData.gender === gender
-                                                ? 'border-primary-500 bg-primary-50 text-primary-700'
+                                                ? 'border-indigo-500 bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-700 shadow-sm'
                                                 : 'border-gray-200 hover:border-gray-300'
                                         }`}
                                     >
@@ -432,7 +432,7 @@ const ProfileInfo = ({ user }) => {
                         ) : (
                             <input
                                 type="text"
-                                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 text-gray-700 cursor-not-allowed outline-none"
+                                className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl bg-gray-50 text-gray-700 cursor-not-allowed outline-none"
                                 value={user?.gender === 'MALE' ? 'Nam' : user?.gender === 'FEMALE' ? 'Nữ' : user?.gender === 'OTHER' ? 'Khác' : 'Chưa cập nhật'}
                                 readOnly
                             />
@@ -443,7 +443,7 @@ const ProfileInfo = ({ user }) => {
                     <div className="md:col-span-2">
                         <label className="block text-sm font-medium text-gray-700 mb-2">Địa chỉ</label>
                         <textarea
-                            className={`w-full px-4 py-2.5 border rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all resize-none ${
+                            className={`w-full px-4 py-2.5 border-2 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all resize-none ${
                                 isEditing
                                     ? 'border-gray-200 bg-white'
                                     : 'border-gray-200 bg-gray-50 text-gray-700 cursor-not-allowed'
@@ -489,7 +489,7 @@ const ProfileInfo = ({ user }) => {
                             <button
                                 onClick={handleSave}
                                 disabled={loading}
-                                className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-xl hover:shadow-lg transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all shadow-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 {loading ? (
                                     <>
@@ -552,12 +552,12 @@ const ChangePassword = () => {
             <form onSubmit={handleSubmit} className="space-y-6 max-w-md">
 
                 {error && (
-                    <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm flex items-start">
+                    <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl text-sm flex items-start">
                         <span className="mr-2">❌</span> {error}
                     </div>
                 )}
                 {success && (
-                    <div className="p-4 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm flex items-start">
+                    <div className="p-4 bg-green-50 border border-green-200 text-green-700 rounded-xl text-sm flex items-start">
                         <span className="mr-2">✅</span> {success}
                     </div>
                 )}
@@ -569,7 +569,7 @@ const ChangePassword = () => {
                     <input
                         type="password"
                         required
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-shadow"
+                        className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
                         value={formData.currentPassword}
                         onChange={(e) => setFormData({ ...formData, currentPassword: e.target.value })}
                     />
@@ -581,7 +581,7 @@ const ChangePassword = () => {
                     <input
                         type="password"
                         required
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-shadow"
+                        className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
                         value={formData.newPassword}
                         onChange={(e) => setFormData({ ...formData, newPassword: e.target.value })}
                     />
@@ -593,7 +593,7 @@ const ChangePassword = () => {
                     <input
                         type="password"
                         required
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-shadow"
+                        className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
                         value={formData.confirmPassword}
                         onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
                     />
@@ -603,7 +603,7 @@ const ChangePassword = () => {
                     <button
                         type="submit"
                         disabled={loading}
-                        className="bg-primary-600 text-white px-6 py-2.5 rounded-lg font-medium hover:bg-primary-700 transition-colors disabled:opacity-70 flex items-center"
+                        className="px-6 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all shadow-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
                     >
                         {loading ? (
                             <><span className="animate-spin mr-2">⟳</span> Đang xử lý...</>
