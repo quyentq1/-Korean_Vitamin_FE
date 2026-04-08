@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 import {
     BookOpen, FileText, Users, Calendar, TrendingUp, LogOut, Search,
-    Menu, X, Home, CheckCircle, Clock, FilePlus, Upload, Tag as TagIcon, Library
+    Menu, X, Home, CheckCircle, Clock, Upload, Tag as TagIcon, Library
 } from 'lucide-react';
 import Swal from 'sweetalert2';
 import LanguageSwitcher from '../LanguageSwitcher';
@@ -45,7 +45,6 @@ const TeacherLayout = () => {
         { icon: <FileText className="w-5 h-5" />, label: t('teacher.dashboard.examManagement'), path: '/teacher/exam-management' },
         { icon: <Users className="w-5 h-5" />, label: 'Bài Kiểm Tra Lớp', path: '/teacher/class-exams' },
         { icon: <BookOpen className="w-5 h-5" />, label: t('teacher.dashboard.questionBank'), path: '/teacher/question-bank' },
-        { icon: <FilePlus className="w-5 h-5" />, label: t('teacher.dashboard.createQuestion'), path: '/teacher/questions/create' },
         { icon: <Upload className="w-5 h-5" />, label: t('teacher.dashboard.questionImport'), path: '/teacher/question-import' },
         { icon: <TagIcon className="w-5 h-5" />, label: t('teacher.dashboard.tagManagement'), path: '/teacher/tag-management' },
         { icon: <Calendar className="w-5 h-5" />, label: t('teacher.dashboard.sessions'), path: '/teacher/sessions' },

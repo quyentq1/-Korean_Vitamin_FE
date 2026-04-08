@@ -46,7 +46,6 @@ import ClassManagement from './pages/Staff/ClassManagement.jsx';
 import ClassDetail from './pages/Staff/ClassDetail.jsx';
 import RoleManagement from './pages/Staff/RoleManagement.jsx';
 import CreateQuiz from './pages/Teacher/CreateQuiz.jsx';
-import CreateQuestion from './pages/Teacher/CreateQuestion.jsx';
 import TeacherReports from './pages/Teacher/TeacherReports.jsx';
 import TeacherDashboard from './pages/Teacher/TeacherDashboard.jsx';
 import TeacherMyCourses from './pages/Teacher/MyCourses.jsx';
@@ -216,8 +215,6 @@ function App() {
             <Route path="dashboard" element={<TeacherDashboard />} />
             <Route path="my-courses" element={<TeacherMyCourses />} />
             <Route path="question-bank" element={<QuestionBank />} />
-            <Route path="questions/create" element={<CreateQuestion />} />
-            <Route path="questions/edit/:id" element={<CreateQuestion />} />
             <Route path="grading-queue" element={<GradingQueue />} />
             <Route path="create-quiz" element={<CreateQuiz />} />
             <Route path="reports" element={<TeacherReports />} />

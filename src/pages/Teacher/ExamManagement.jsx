@@ -70,47 +70,28 @@ const ExamManagement = () => {
   const fetchExams = async () => {
     setLoading(true);
     try {
-      const params = courseIdFromUrl ? { courseId: courseIdFromUrl } : {};
-      const submittedExams = await examService.getSubmittedExams(params);
+      // Get exams from teacher's assigned classes only
+      const examsData = await teacherService.getMyAssignedExams();
 
       // DEBUG: Log chi tiết
-      window.examsDebug = submittedExams;
-      console.table('Fetched exams:', submittedExams);
+      window.examsDebug = examsData;
+      console.table('Fetched exams from assigned classes:', examsData);
 
-      if (!submittedExams || submittedExams.length === 0) {
-        console.warn('NO EXAMS');
+      if (!examsData || examsData.length === 0) {
+        console.warn('NO EXAMS - Teacher not assigned to any classes or no exams in assigned classes');
         setExams([]);
         setLoading(false);
         return;
       }
 
-      const firstItem = submittedExams[0];
-      console.log('First item keys:', Object.keys(firstItem));
-      console.log('Has exam nested?', firstItem.exam ? 'YES' : 'NO');
+      // Extract courseId from exam.course object
+      const processedExams = examsData.map(exam => ({
+        ...exam,
+        courseId: exam.course?.id || exam.courseId
+      }));
 
-      // Transform - handle both structures
-      const examsData = submittedExams.map((approval) => {
-        if (approval.exam) {
-          return {
-            ...approval.exam,
-            courseId: approval.exam.course?.id, // Extract courseId from nested course object
-            approvalStatus: approval.status,
-            submittedAt: approval.submittedAt,
-            feedback: approval.feedback
-          };
-        } else {
-          return {
-            ...approval,
-            courseId: approval.course?.id, // Extract courseId from nested course object
-            approvalStatus: approval.status,
-            submittedAt: approval.submittedAt,
-            feedback: approval.feedback
-          };
-        }
-      });
-
-      console.table('Transformed exams:', examsData);
-      setExams(examsData || []);
+      console.table('Processed exams:', processedExams);
+      setExams(processedExams);
       setError('');
     } catch (err) {
       console.error('Error fetching exams:', err);
@@ -121,7 +102,7 @@ const ExamManagement = () => {
     }
   };
 
-  // Filter exams - works with both approval status and published status
+  // Filter exams - only filter by published status and exam category
   const filteredExams = exams.filter(exam => {
     if (!exam) return false;
 
@@ -133,6 +114,7 @@ const ExamManagement = () => {
     // Filter by examCategory (MOCK vs PRACTICE)
     const matchesCategory = exam?.examCategory === activeTab;
 
+    // Filter by published status only
     let matchesStatus = true;
     if (statusFilter === 'all') {
       matchesStatus = true;
@@ -140,13 +122,9 @@ const ExamManagement = () => {
       matchesStatus = exam?.published === true;
     } else if (statusFilter === 'draft') {
       matchesStatus = exam?.published !== true;
-    } else if (statusFilter === 'pending') {
-      // Case-insensitive comparison and null check
-      matchesStatus = exam?.approvalStatus?.toUpperCase() === 'PENDING';
-    } else if (statusFilter === 'approved') {
-      matchesStatus = exam?.approvalStatus?.toUpperCase() === 'APPROVED';
-    } else if (statusFilter === 'rejected') {
-      matchesStatus = exam?.approvalStatus?.toUpperCase() === 'REJECTED';
+    } else {
+      // Remove approval status filters (pending, approved, rejected)
+      matchesStatus = true;
     }
 
     // Filter by course - prioritize courseIdFromUrl from URL
@@ -162,14 +140,14 @@ const ExamManagement = () => {
 
   // Sort exams by createdAt descending
   const sortedExams = [...filteredExams].sort((a, b) => {
-    const dateA = new Date(a.submittedAt || a.createdAt);
-    const dateB = new Date(b.submittedAt || b.createdAt);
+    const dateA = new Date(a.createdAt);
+    const dateB = new Date(b.createdAt);
     return dateB - dateA;
   });
 
   // Debug log
   console.log('=== EXAM DEBUG ===');
-  console.log('Total exams:', exams.length);
+  console.log('Total exams from assigned classes:', exams.length);
   console.log('Filtered exams:', filteredExams.length);
   console.log('Sorted exams:', sortedExams.length);
   console.log('Search term:', searchTerm, '→ Debounced:', debouncedSearch);
@@ -181,23 +159,15 @@ const ExamManagement = () => {
   exams.forEach(exam => {
     console.log(`Exam ${exam.id}:`, {
       title: exam.title,
-      approvalStatus: exam.approvalStatus,
+      examCategory: exam.examCategory,
       published: exam.published,
       courseId: exam.courseId,
+      courseName: exam.course?.name,
       matchesSearch: !debouncedSearch || exam?.title?.toLowerCase().includes(debouncedSearch.toLowerCase()),
-      matchesStatus: statusFilter === 'all' || exam?.approvalStatus === statusFilter,
+      matchesCategory: exam?.examCategory === activeTab,
       matchesCourse: !courseIdFromUrl || exam?.courseId == courseIdFromUrl
     });
   });
-
-  // Debug log
-  console.log('Total exams:', exams.length);
-  console.log('Filtered exams:', filteredExams.length);
-  console.log('Sorted exams:', sortedExams.length);
-  console.log('Course filter:', courseFilter);
-  console.log('Status filter:', statusFilter);
-  console.log('CourseId from URL:', courseIdFromUrl);
-  console.log('First exam:', exams[0]);
 
   // Handle sort
   // Handle publish/unpublish
@@ -256,20 +226,10 @@ const ExamManagement = () => {
     }
   };
 
-  // Get approval status badge
+  // Get published status badge
   const getPublishedBadge = (exam) => {
-    // Show approval status first, then published status
-    if (exam.approvalStatus === 'PENDING') {
-      return <Badge variant="warning">{t('exam.pending', 'Chờ duyệt')}</Badge>;
-    } else if (exam.approvalStatus === 'APPROVED') {
-      if (exam.published) {
-        return <Badge variant="success">{t('exam.published', 'Đã xuất bản')}</Badge>;
-      } else {
-        return <Badge variant="info">{t('exam.approved', 'Đã duyệt')}</Badge>;
-      }
-    } else if (exam.approvalStatus === 'REJECTED') {
-      return <Badge variant="error">{t('exam.rejected', 'Bị từ chối')}</Badge>;
-    } else if (exam.published) {
+    // Only show published status (no approval workflow)
+    if (exam.published) {
       return <Badge variant="success">{t('exam.published', 'Đã xuất bản')}</Badge>;
     } else {
       return <Badge variant="secondary">{t('exam.draft', 'Nháp')}</Badge>;
@@ -442,7 +402,7 @@ const ExamManagement = () => {
               )}
               {statusFilter !== 'all' && (
                 <div className="inline-flex items-center gap-1 px-3 py-1 bg-green-50 text-green-700 rounded-full text-sm">
-                  <span>{statusFilter === 'pending' ? 'Chờ duyệt' : statusFilter === 'approved' ? 'Đã duyệt' : statusFilter === 'rejected' ? 'Bị từ chối' : statusFilter === 'published' ? 'Đã xuất bản' : 'Nháp'}</span>
+                  <span>{statusFilter === 'published' ? 'Đã xuất bản' : 'Nháp'}</span>
                   <button
                     onClick={() => setStatusFilter('all')}
                     className="hover:text-green-900"
@@ -494,9 +454,6 @@ const ExamManagement = () => {
                 className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 appearance-none bg-white pr-10"
               >
                 <option value="all">{t('exam.allStatus', 'Tất cả trạng thái')}</option>
-                <option value="pending">{t('exam.pending', 'Chờ duyệt')}</option>
-                <option value="approved">{t('exam.approved', 'Đã duyệt')}</option>
-                <option value="rejected">{t('exam.rejected', 'Bị từ chối')}</option>
                 <option value="published">{t('exam.published', 'Đã xuất bản')}</option>
                 <option value="draft">{t('exam.draft', 'Nháp')}</option>
               </select>
@@ -592,13 +549,6 @@ const ExamManagement = () => {
                       )}
 
                       {/* Show feedback if rejected */}
-                      {exam.approvalStatus === 'REJECTED' && exam.feedback && (
-                        <Alert variant="error" className="mb-3" icon={<AlertCircle className="w-4 h-4" />}>
-                          <div className="font-medium text-sm">Phản hồi từ Education Manager:</div>
-                          <div className="text-sm mt-1">{exam.feedback}</div>
-                        </Alert>
-                      )}
-
                       <div className="flex flex-wrap items-center gap-6 text-sm text-gray-500">
                         <div className="flex items-center gap-2">
                           <Users className="w-4 h-4" />
@@ -615,7 +565,7 @@ const ExamManagement = () => {
                         <div className="flex items-center gap-2">
                           <Calendar className="w-4 h-4" />
                           <span>
-                            {new Date(exam.submittedAt || exam.createdAt).toLocaleDateString('vi-VN')}
+                            {new Date(exam.createdAt).toLocaleDateString('vi-VN')}
                           </span>
                         </div>
                         {exam.course?.name && (
@@ -649,7 +599,7 @@ const ExamManagement = () => {
                         onClick={() => navigate(`/teacher/exam-editor/${exam.id}`)}
                         title={t('exam.edit', 'Chỉnh sửa')}
                       />
-                      {(exam.approvalStatus === 'APPROVED' || exam.published) && (
+                      {exam.published && (
                         <Button
                           variant="ghost"
                           size="sm"

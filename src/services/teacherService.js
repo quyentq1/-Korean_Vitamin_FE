@@ -119,6 +119,11 @@ export const teacherService = {
         return await axiosClient.get('/teacher/exams/submitted');
     },
 
+    // Get exams from teacher's assigned classes
+    getMyAssignedExams: async () => {
+        return await axiosClient.get('/teacher/my-exams');
+    },
+
     getExamApproval: async (examId) => {
         return await axiosClient.get(`/teacher/exams/${examId}/approval`);
     },
