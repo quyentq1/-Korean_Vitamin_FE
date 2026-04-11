@@ -600,7 +600,9 @@ export const adminService = {
    * POST /api/admin/analytics/export
    */
   exportAnalytics: async (exportData) => {
-    return await axiosClient.post('/admin/analytics/export', exportData);
+    return await axiosClient.post('/admin/analytics/export', exportData, {
+      responseType: 'blob'
+    });
   },
 
   // ==================== EXAMS MANAGEMENT (Re-export from examService) ====================

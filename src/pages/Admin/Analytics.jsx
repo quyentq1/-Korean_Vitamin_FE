@@ -154,9 +154,19 @@ const Analytics = () => {
         dateRange: timeRange,
         sections: ['overview', 'users', 'exams', 'courses', 'classes']
       });
-      if (response?.message) {
-        showToast(response.message, 'success');
-      }
+
+      // Handle blob response
+      const url = window.URL.createObjectURL(new Blob([response]));
+      const link = document.createElement('a');
+      link.href = url;
+      const extension = format === 'excel' ? 'xlsx' : 'pdf';
+      link.setAttribute('download', `analytics-${new Date().toISOString().split('T')[0]}.${extension}`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      
+      showToast(`Xuất báo cáo ${format.toUpperCase()} thành công!`, 'success');
     } catch (err) {
       console.error('Export failed:', err);
       showToast('Xuất báo cáo thất bại', 'error');
