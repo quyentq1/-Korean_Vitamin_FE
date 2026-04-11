@@ -6,7 +6,7 @@ import { useWindowSize } from 'react-use';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 import UpgradeModal from '../../components/UpgradeModal';
-import ipTracker from '../../utils/IPTracker';
+import axiosClient from '../../api/axiosClient';
 
 const TestResult = () => {
     const { testId } = useParams();
@@ -19,7 +19,8 @@ const TestResult = () => {
     const [showConfetti, setShowConfetti] = useState(false);
 
     const location = useLocation();
-    const { finalAttempt, totalQuestions } = location.state || {};
+    const { finalAttempt, totalQuestions, courseId, questions: examQuestions } = location.state || {};
+    const fallbackCourseId = courseId || finalAttempt?.exam?.course?.id || localStorage.getItem('last_guest_course_id');
 
     const [result, setResult] = useState({
         score: 0,
@@ -40,20 +41,64 @@ const TestResult = () => {
         checkQuotaAndShowModal();
 
         if (finalAttempt) {
+            console.log('[TestResult] finalAttempt:', finalAttempt);
+            console.log('[TestResult] answers:', finalAttempt.answers);
             const maxScore = finalAttempt.exam?.totalPoints || 100;
             const earnedScore = finalAttempt.totalScore || finalAttempt.autoScore || 0;
             const percentage = Math.round((earnedScore / maxScore) * 100) || 0;
 
-            // Calculate correct answers if returned by BE
             let correctCount = 0;
-            if (finalAttempt.answers && Array.isArray(finalAttempt.answers)) {
-                correctCount = finalAttempt.answers.filter(a => a.isCorrect).length;
+            const listeningSection = { name: t('testResult.listening', 'Nghe Hiểu (듣기)'), score: 0, total: 0, correct: 0 };
+            const readingSection   = { name: t('testResult.reading',   'Đọc Hiểu (읽기)'),  score: 0, total: 0, correct: 0 };
+
+            const hasExamQuestions = examQuestions && Array.isArray(examQuestions) && examQuestions.length > 0;
+            const hasAnswers = finalAttempt.answers && Array.isArray(finalAttempt.answers);
+
+            // Step 1: Calculate section TOTALS
+            if (hasExamQuestions) {
+                // Best path: use full question list passed from TestRunner (includes unanswered)
+                examQuestions.forEach(q => {
+                    if (q.type === 'LC') listeningSection.total++;
+                    else readingSection.total++;
+                });
+            } else if (hasAnswers) {
+                // Fallback: estimate totals from answered questions only
+                finalAttempt.answers.forEach(answer => {
+                    const qType = answer.examQuestion?.question?.questionType;
+                    if (qType === 'LISTENING') listeningSection.total++;
+                    else readingSection.total++;
+                });
             }
+
+            // Step 2: Calculate CORRECT counts from graded answers
+            if (hasAnswers) {
+                finalAttempt.answers.forEach(answer => {
+                    const qType = answer.examQuestion?.question?.questionType;
+                    const isCorrect = answer.isCorrect === true;
+                    if (isCorrect) {
+                        correctCount++;
+                        if (qType === 'LISTENING') listeningSection.correct++;
+                        else readingSection.correct++;
+                    }
+                });
+            }
+
+            // Step 3: Calculate section score %
+            listeningSection.score = listeningSection.total > 0
+                ? Math.round((listeningSection.correct / listeningSection.total) * 100) : 0;
+            readingSection.score = readingSection.total > 0
+                ? Math.round((readingSection.correct / readingSection.total) * 100) : 0;
+
+            const computedTotal = hasExamQuestions
+                ? examQuestions.length
+                : (totalQuestions || (hasAnswers ? finalAttempt.answers.length : 0));
 
             setResult(prev => ({
                 ...prev,
                 score: percentage,
+                totalQuestions: computedTotal,
                 correctAnswers: correctCount,
+                sections: [listeningSection, readingSection],
             }));
 
             if (percentage >= 80) {
@@ -61,21 +106,27 @@ const TestResult = () => {
                 setTimeout(() => setShowConfetti(false), 8000);
             }
         } else {
-            // Fallback just in case user reloads the page without state
-            if (85 >= 80) {
-                setShowConfetti(true);
-                setTimeout(() => setShowConfetti(false), 8000);
-            }
-            setResult(prev => ({ ...prev, score: 85, correctAnswers: 34, totalQuestions: 40 }));
+            // Fallback: user reloaded page without state
+            setResult(prev => ({ ...prev, score: 0, correctAnswers: 0, totalQuestions: 0 }));
         }
     }, [finalAttempt]);
 
     const checkQuotaAndShowModal = async () => {
-        const quotaData = await ipTracker.checkQuota();
-        setQuota(quotaData);
+        try {
+            const params = fallbackCourseId ? { courseId: fallbackCourseId } : {};
+            const response = await axiosClient.get('/guest/quota', { params });
+            
+            setQuota({
+                hasQuota: response.remaining > 0,
+                completed: response.used,
+                remaining: response.remaining
+            });
 
-        if (await ipTracker.shouldShowUpgradePopup()) {
-            setTimeout(() => setShowUpgradeModal(true), 2000);
+            if (response.remaining <= 0) {
+                setTimeout(() => setShowUpgradeModal(true), 2000);
+            }
+        } catch (error) {
+            console.error("Failed to check quota", error);
         }
     };
 
@@ -170,56 +221,6 @@ const TestResult = () => {
                         </div>
                     </div>
 
-                    {/* AI Feedback Section */}
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
-                        {/* Strengths */}
-                        <div className="bg-white rounded-3xl shadow-lg border border-gray-100 p-8 hover:shadow-xl transition duration-300 animate-slide-up" style={{ animationDelay: '0.1s' }}>
-                            <div className="w-14 h-14 bg-green-100 rounded-2xl flex items-center justify-center text-3xl mb-6 text-green-600">
-                                ⭐
-                            </div>
-                            <h3 className="text-xl font-bold text-gray-900 mb-4">{t('testResult.strengths', 'Điểm Mạnh')}</h3>
-                            <ul className="space-y-4">
-                                {result.aiFeedback.strengths.map((item, idx) => (
-                                    <li key={idx} className="flex gap-3 text-gray-700 group">
-                                        <span className="mt-1 w-5 h-5 flex items-center justify-center bg-green-500 text-white rounded-full text-xs shrink-0 group-hover:scale-110 transition">✓</span>
-                                        <span className="font-medium">{item}</span>
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-
-                        {/* Weaknesses */}
-                        <div className="bg-white rounded-3xl shadow-lg border border-gray-100 p-8 hover:shadow-xl transition duration-300 animate-slide-up" style={{ animationDelay: '0.2s' }}>
-                            <div className="w-14 h-14 bg-orange-100 rounded-2xl flex items-center justify-center text-3xl mb-6 text-orange-600">
-                                🎯
-                            </div>
-                            <h3 className="text-xl font-bold text-gray-900 mb-4">{t('testResult.weaknesses', 'Cần Cải Thiện')}</h3>
-                            <ul className="space-y-4">
-                                {result.aiFeedback.weaknesses.map((item, idx) => (
-                                    <li key={idx} className="flex gap-3 text-gray-700 group">
-                                        <span className="mt-1 w-5 h-5 flex items-center justify-center bg-orange-500 text-white rounded-full text-xs shrink-0 group-hover:scale-110 transition">!</span>
-                                        <span className="font-medium">{item}</span>
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-
-                        {/* Recommendations */}
-                        <div className="bg-gradient-to-b from-blue-50 to-white rounded-3xl shadow-lg border border-blue-100 p-8 hover:shadow-xl transition duration-300 animate-slide-up lg:col-span-1" style={{ animationDelay: '0.3s' }}>
-                            <div className="w-14 h-14 bg-blue-100 rounded-2xl flex items-center justify-center text-3xl mb-6 text-blue-600">
-                                💡
-                            </div>
-                            <h3 className="text-xl font-bold text-blue-900 mb-4">{t('testResult.recTitle', 'Gợi Ý Từ AI')}</h3>
-                            <ul className="space-y-4">
-                                {result.aiFeedback.recommendations.map((item, idx) => (
-                                    <li key={idx} className="flex gap-3 text-gray-700 bg-white p-3 rounded-xl shadow-sm border border-gray-100">
-                                        <span className="mt-1 text-blue-500 font-bold">→</span>
-                                        <span className="font-medium">{item}</span>
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-                    </div>
 
                     {/* Action Buttons */}
                     <div className="flex flex-col sm:flex-row justify-center gap-4 animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
@@ -233,7 +234,7 @@ const TestResult = () => {
                         )}
 
                         <button
-                            onClick={() => navigate('/free-tests')}
+                            onClick={() => navigate(fallbackCourseId ? `/free-tests?course=${fallbackCourseId}` : '/free-tests')}
                             className="px-8 py-4 bg-gray-100 text-gray-700 rounded-2xl font-bold hover:bg-gray-200 transition transform hover:-translate-y-1 text-lg"
                         >
                             🔎 {t('testResult.findMore', 'Tìm Bài Test Khác')}

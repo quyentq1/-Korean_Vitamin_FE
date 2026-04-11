@@ -245,7 +245,12 @@ const EduTestEditor = () => {
                                                 {isSelected && <Check className="w-3 h-3 text-white" />}
                                             </div>
                                             <div className="flex-1 min-w-0">
-                                                <p className="text-sm text-gray-800 line-clamp-2">{q.content || q.questionText || `Câu hỏi #${idx + 1}`}</p>
+                                                <div className="text-sm text-gray-800 line-clamp-2" dangerouslySetInnerHTML={{ __html: q.content || q.questionText || `Câu hỏi #${idx + 1}` }} />
+                                                {q.imageUrl && (
+                                                    <div className="mt-1 text-xs text-blue-500 font-medium flex items-center gap-1">
+                                                        🖼️ Có hình ảnh đính kèm
+                                                    </div>
+                                                )}
                                                 {q.type && <span className="text-xs text-gray-400 mt-0.5 inline-block">{q.type}</span>}
                                             </div>
                                         </div>

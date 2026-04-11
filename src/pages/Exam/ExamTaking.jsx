@@ -55,6 +55,7 @@ const ExamTaking = () => {
                           eq.question.questionType === 'WRITING' ? 'WR' : 'RC',
                     questionType: eq.question.questionType, // Keep original type
                     mediaUrl: eq.question.questionMediaUrl,
+                    imageUrl: eq.question.imageUrl || null,
                     options: eq.question.options.map(opt => ({
                         id: opt.id,
                         text: opt.optionText
@@ -275,6 +276,18 @@ const ExamTaking = () => {
                                     <audio controls className="w-full h-10">
                                         <source src={currentQ.mediaUrl} type="audio/mpeg" />
                                     </audio>
+                                </div>
+                            )}
+
+                            {/* Question Image (if any) */}
+                            {currentQ.imageUrl && (
+                                <div className="mb-6">
+                                    <img
+                                        src={currentQ.imageUrl}
+                                        alt="Hình ảnh câu hỏi"
+                                        className="max-w-full rounded-xl border border-gray-200 shadow-sm mx-auto block"
+                                        onError={(e) => { e.target.style.display = 'none'; }}
+                                    />
                                 </div>
                             )}
 

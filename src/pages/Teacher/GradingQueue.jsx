@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { 
-  Filter, 
-  Search, 
-  SortAsc, 
-  SortDesc, 
-  CheckSquare, 
-  Square, 
-  FileText, 
+import {
+  Filter,
+  Search,
+  SortAsc,
+  SortDesc,
+  CheckSquare,
+  Square,
+  FileText,
   Calendar,
   Clock,
   User,
@@ -47,29 +47,29 @@ const GradingQueue = () => {
   const [submissions, setSubmissions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  
+
   // Filters
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [dateRange, setDateRange] = useState({ start: '', end: '' });
-  
+
   // Sort
   const [sortBy, setSortBy] = useState('submittedAt');
   const [sortOrder, setSortOrder] = useState('desc');
-  
+
   // Batch selection
   const [selectedSubmissions, setSelectedSubmissions] = useState([]);
   const [selectAll, setSelectAll] = useState(false);
-  
+
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
-  
+
   // Modals
   const [showBatchModal, setShowBatchModal] = useState(false);
   const [batchAction, setBatchAction] = useState('');
-  
+
   // Fetch submissions
   useEffect(() => {
     fetchSubmissions();
@@ -141,11 +141,11 @@ const GradingQueue = () => {
   // Filter submissions
   const filteredSubmissions = submissions.filter(sub => {
     const matchesSearch = sub.studentName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         sub.studentCode?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         sub.title?.toLowerCase().includes(searchTerm.toLowerCase());
+      sub.studentCode?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      sub.title?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesType = typeFilter === 'all' || sub.type === typeFilter;
     const matchesStatus = statusFilter === 'all' || sub.status === statusFilter;
-    
+
     let matchesDate = true;
     if (dateRange.start) {
       matchesDate = matchesDate && new Date(sub.submittedAt) >= new Date(dateRange.start);
@@ -153,7 +153,7 @@ const GradingQueue = () => {
     if (dateRange.end) {
       matchesDate = matchesDate && new Date(sub.submittedAt) <= new Date(dateRange.end);
     }
-    
+
     return matchesSearch && matchesType && matchesStatus && matchesDate;
   });
 
@@ -219,7 +219,7 @@ const GradingQueue = () => {
       speaking: { variant: 'purple', label: t('grading.type.speaking', 'Nói') },
       mixed: { variant: 'gray', label: t('grading.type.mixed', 'Hỗn hợp') }
     };
-    
+
     const config = typeConfig[type] || typeConfig.mixed;
     return <Badge variant={config.variant}>{config.label}</Badge>;
   };
@@ -410,21 +410,21 @@ const GradingQueue = () => {
     speaking: submissions.filter(s => s.type === 'speaking').length,
     avgScore: submissions.length > 0
       ? (submissions.reduce((sum, s) => {
-          const score = s.manualScore !== null && s.manualScore !== undefined ? s.manualScore : (s.autoScore || 0);
-          return sum + score;
-        }, 0) / submissions.length).toFixed(1)
+        const score = s.manualScore !== null && s.manualScore !== undefined ? s.manualScore : (s.autoScore || 0);
+        return sum + score;
+      }, 0) / submissions.length).toFixed(1)
       : 0,
     // Tính tỷ lệ hoàn thành trung bình - chỉ tính những bài có maxScore > 0
     avgCompletion: submissions.length > 0
       ? (() => {
-          const validSubmissions = submissions.filter(s => s.maxScore && s.maxScore > 0);
-          if (validSubmissions.length === 0) return 0;
-          return (validSubmissions.reduce((sum, s) => {
-            const score = s.manualScore !== null && s.manualScore !== undefined ? s.manualScore : (s.autoScore || 0);
-            const max = s.maxScore || 1;
-            return sum + (score / max * 100);
-          }, 0) / validSubmissions.length).toFixed(1);
-        })()
+        const validSubmissions = submissions.filter(s => s.maxScore && s.maxScore > 0);
+        if (validSubmissions.length === 0) return 0;
+        return (validSubmissions.reduce((sum, s) => {
+          const score = s.manualScore !== null && s.manualScore !== undefined ? s.manualScore : (s.autoScore || 0);
+          const max = s.maxScore || 1;
+          return sum + (score / max * 100);
+        }, 0) / validSubmissions.length).toFixed(1);
+      })()
       : 0
   };
 
@@ -509,7 +509,7 @@ const GradingQueue = () => {
               {t('grading.filters', 'Bộ Lọc')}
             </h3>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {/* Search */}
             <div className="md:col-span-2">
@@ -519,34 +519,6 @@ const GradingQueue = () => {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 icon={Search}
-              />
-            </div>
-
-            {/* Type Filter */}
-            <div>
-              <Input
-                type="select"
-                value={typeFilter}
-                onChange={(e) => setTypeFilter(e.target.value)}
-                options={[
-                  { value: 'all', label: t('grading.allTypes', 'Tất cả loại') },
-                  { value: 'writing', label: t('grading.type.writing', 'Viết') },
-                  { value: 'speaking', label: t('grading.type.speaking', 'Nói') }
-                ]}
-              />
-            </div>
-
-            {/* Status Filter */}
-            <div>
-              <Input
-                type="select"
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                options={[
-                  { value: 'all', label: t('grading.allStatus', 'Tất cả trạng thái') },
-                  { value: 'PENDING_MANUAL_GRADE', label: t('grading.status.pending', 'Chờ chấm') },
-                  { value: 'GRADED', label: t('grading.status.graded', 'Đã chấm') }
-                ]}
               />
             </div>
           </div>
@@ -620,7 +592,7 @@ const GradingQueue = () => {
       >
         <div className="space-y-4">
           <Alert variant="info">
-            {batchAction === 'grade' 
+            {batchAction === 'grade'
               ? t('grading.batchGradeConfirm', 'Bạn có chắc chắn muốn chấm {count} bài nộp đã chọn?')
               : t('grading.batchExportConfirm', 'Bạn có chắc chắn muốn xuất {count} bài nộp đã chọn?')
             }
@@ -649,7 +621,7 @@ const GradingQueue = () => {
               icon={batchAction === 'grade' ? <CheckCheck className="w-4 h-4" /> : <Download className="w-4 h-4" />}
               onClick={confirmBatchAction}
             >
-              {batchAction === 'grade' 
+              {batchAction === 'grade'
                 ? t('grading.confirmGrade', 'Xác Nhận Chấm')
                 : t('grading.confirmExport', 'Xác Nhận Xuất')
               }

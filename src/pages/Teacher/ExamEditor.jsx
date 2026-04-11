@@ -260,7 +260,6 @@ const ExamEditor = () => {
           explanation: q?.explanation,
           imageUrl: q?.imageUrl,
           questionMediaUrl: q?.questionMediaUrl,
-          points: eq.points || 1,
           isFromExam: true // Mark as loaded from exam
         };
       });
@@ -486,6 +485,7 @@ const ExamEditor = () => {
         category: q.category?.name || 'N1',
         type: q.questionType,
         content: q.questionText || q.content,
+        imageUrl: q.imageUrl,
         answers: q.options || [],
         correctAnswer: null,
         level: q.level,
@@ -1543,7 +1543,12 @@ const ExamEditor = () => {
                                 </span>
                               )}
                             </div>
-                            <p className="text-sm text-gray-900 line-clamp-2"><span dangerouslySetInnerHTML={{ __html: question.content }} /></p>
+                            <div className="text-sm text-gray-900 line-clamp-2" dangerouslySetInnerHTML={{ __html: question.content }} />
+                            {question.imageUrl && (
+                                <div className="mt-1 text-xs text-blue-500 font-medium flex items-center gap-1">
+                                    🖼️ Có hình ảnh đính kèm
+                                </div>
+                            )}
                           </div>
 
                           <div className="flex gap-2 flex-shrink-0">
@@ -1769,7 +1774,12 @@ const ExamEditor = () => {
                 {getQuestionTypeBadge(previewQuestion.type)}
                 {getDifficultyBadge(previewQuestion.difficulty)}
               </div>
-              <p className="text-gray-900"><span dangerouslySetInnerHTML={{ __html: previewQuestion.content }} /></p>
+              <div className="text-gray-900 prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: previewQuestion.content }} />
+              {previewQuestion.imageUrl && (
+                <div className="mt-4 flex justify-center">
+                  <img src={previewQuestion.imageUrl} alt="Hình ảnh câu hỏi" className="max-w-full h-auto rounded-lg shadow-sm border border-gray-200" onError={(e) => { e.target.style.display = 'none'; }} />
+                </div>
+              )}
             </div>
 
             {previewQuestion.answers && previewQuestion.answers.length > 0 && (

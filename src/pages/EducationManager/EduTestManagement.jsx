@@ -545,7 +545,12 @@ const EduTestManagement = () => {
                                                         {eq.points || 1} điểm
                                                     </span>
                                                 </div>
-                                                <p className="text-sm text-gray-700 line-clamp-2">{eq.question?.questionText || 'N/A'}</p>
+                                                <div className="text-sm text-gray-700 line-clamp-2" dangerouslySetInnerHTML={{ __html: eq.question?.questionText || 'N/A' }} />
+                                                {eq.question?.imageUrl && (
+                                                    <div className="mt-2 text-xs text-blue-500 font-medium flex items-center gap-1">
+                                                        🖼️ Có hình ảnh đính kèm
+                                                    </div>
+                                                )}
                                             </div>
                                         ))}
                                         {selectedExam.exam.examQuestions.length > 5 && (

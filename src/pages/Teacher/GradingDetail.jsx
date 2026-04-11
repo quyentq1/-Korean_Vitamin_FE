@@ -30,6 +30,7 @@ import Badge from '../../components/ui/Badge';
 
 // Services
 import teacherService from '../../services/teacherService';
+import AIGradingAssistant from '../../components/AI/AIGradingAssistant';
 
 const GradingDetail = () => {
   const { t } = useTranslation();
@@ -126,13 +127,6 @@ const GradingDetail = () => {
       console.log('✅ All answers scores:', updated.map(a => ({ id: a.id, score: a.score, scoreType: typeof a.score })));
       return updated;
     });
-  };
-
-  // Apply AI score
-  const handleApplyAIScore = (answerId, aiScore) => {
-    handleScoreChange(answerId, 'score', aiScore);
-    setSuccess(t('grading.aiScoreApplied', 'Đã áp dụng điểm từ AI!'));
-    setTimeout(() => setSuccess(''), 3000);
   };
 
   // Navigate to specific exam in queue
@@ -319,6 +313,48 @@ const GradingDetail = () => {
     }
 
     return 0;
+  };
+
+  // Helper function to map question type to task type for AI grading
+  const getTaskTypeFromQuestionType = (questionType) => {
+    const typeMapping = {
+      'WRITING': 'WRITING_54',  // Long essay
+      'SPEAKING': 'WRITING_54',  // Speaking also uses essay grading
+      'READING': 'WRITING_52',    // Short explanation
+      'LISTENING': 'WRITING_51',   // Fill in blank
+      'MULTIPLE_CHOICE': 'WRITING_51'
+    };
+    return typeMapping[questionType] || 'WRITING_54';
+  };
+
+  // Helper function to handle applying AI score
+  const handleApplyAIScore = (answerId, aiGradeData) => {
+    try {
+      const score = typeof aiGradeData === 'number' ? aiGradeData : (aiGradeData.totalScore || aiGradeData.score || 0);
+      handleScoreChange(answerId, 'score', score);
+      
+      const feedback = aiGradeData.overallFeedback || aiGradeData.feedback;
+      if (feedback) {
+        handleScoreChange(answerId, 'feedback', feedback);
+      }
+
+      // Show success message
+      Swal.fire({
+        icon: 'success',
+        title: 'Đã áp dụng điểm AI',
+        text: `Điểm ${score} và nhận xét đã được điền tự động. Nhớ bấm "Lưu điểm" sau khi hoàn tất.`,
+        timer: 3000,
+        showConfirmButton: false
+      });
+    } catch (error) {
+      console.error('Error applying AI score:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Lỗi',
+        text: 'Không thể áp dụng điểm AI. Vui lòng thử lại.',
+        confirmButtonText: 'OK'
+      });
+    }
   };
 
   if (loading) {
@@ -708,7 +744,22 @@ const GradingDetail = () => {
                 </div>
               </Card>
 
-              {/* AI Analysis (Mock) */}
+              {/* AI Grading Assistant - Real AI Integration */}
+              {currentAnswer && (
+                <AIGradingAssistant
+                  examAttempt={attempt}
+                  writingQuestion={{
+                    ...currentAnswer.examQuestion,
+                    prompt: currentAnswer.examQuestion?.questionText,
+                    taskType: getTaskTypeFromQuestionType(currentAnswer.examQuestion?.type),
+                    maxScore: currentAnswer.examQuestion?.points || 10,
+                    topikLevel: attempt?.exam?.topikLevel || 'TOPIK_II'
+                  }}
+                  onGradeReceived={(aiGradeData) => handleApplyAIScore(currentAnswer.id, aiGradeData)}
+                />
+              )}
+
+              {/* AI Analysis (Mock) - Legacy (can be removed later) */}
               <Card>
                 <div className="p-5">
                   <div className="flex items-center justify-between mb-4">
@@ -735,7 +786,7 @@ const GradingDetail = () => {
                         <Button
                           variant="secondary"
                           size="sm"
-                          onClick={() => handleApplyAIScore(currentAnswer.id, currentAnswer.aiAnalysis.score)}
+                          onClick={() => handleApplyAIScore(currentAnswer.id, currentAnswer.aiAnalysis)}
                         >
                           <CheckCircle2 className="w-4 h-4 mr-1" />
                           {t('grading.apply', 'Áp dụng')}
@@ -889,6 +940,7 @@ const GradingDetail = () => {
       </div>
     </PageContainer>
   );
+
 };
 
 export default GradingDetail;

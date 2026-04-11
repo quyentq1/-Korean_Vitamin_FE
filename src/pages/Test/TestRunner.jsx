@@ -59,12 +59,14 @@ const TestRunner = () => {
                     id: examObj.id,
                     title: examObj.title,
                     duration: examObj.durationMinutes,
+                    courseId: examObj.course?.id || null,
                     questions: examObj.examQuestions.map(eq => ({
                         examQuestionId: eq.id,
                         id: eq.question.id,
                         content: eq.question.questionText,
                         type: eq.question.questionType === 'LISTENING' ? 'LC' : 'RC',
                         audioUrl: eq.question.questionMediaUrl,
+                        imageUrl: eq.question.imageUrl || null,
                         options: eq.question.options.map(opt => ({
                             id: opt.id,
                             content: opt.optionText
@@ -177,7 +179,9 @@ const TestRunner = () => {
                     attemptId: attemptId,
                     finalAttempt: finalAttempt,
                     totalQuestions: test.questions.length,
-                    violations: violationCount
+                    questions: test.questions, // pass full question list for section totals
+                    violations: violationCount,
+                    courseId: test.courseId
                 }
             });
 
@@ -316,6 +320,18 @@ const TestRunner = () => {
                                     <source src={currentQuestionData.audioUrl || "https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3"} type="audio/mpeg" />
                                     Your browser does not support the audio element.
                                 </audio>
+                            </div>
+                        )}
+
+                        {/* Image (if any) */}
+                        {currentQuestionData.imageUrl && (
+                            <div className="mb-6">
+                                <img
+                                    src={currentQuestionData.imageUrl}
+                                    alt="Hình ảnh câu hỏi"
+                                    className="max-w-full rounded-xl border border-gray-200 shadow-sm mx-auto block"
+                                    onError={(e) => { e.target.style.display = 'none'; }}
+                                />
                             </div>
                         )}
 

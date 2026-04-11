@@ -1,5 +1,6 @@
 import React from 'react';
 import { X } from 'lucide-react';
+import AIAnswerExplanation from '../AI/AIAnswerExplanation';
 
 const ExamReviewModal = ({ isOpen, onClose, attempt, exam }) => {
     if (!isOpen || !attempt || !exam) return null;
@@ -123,8 +124,32 @@ const ExamReviewModal = ({ isOpen, onClose, attempt, exam }) => {
                                             <p className="text-sm sm:text-base text-gray-900 font-medium whitespace-pre-wrap">
                                                 <span dangerouslySetInnerHTML={{ __html: question.questionText }} />
                                             </p>
+
+                                            {/* Question image (if any) */}
+                                            {question.imageUrl && (
+                                                <div className="mt-3">
+                                                    <img
+                                                        src={question.imageUrl}
+                                                        alt="Hình ảnh câu hỏi"
+                                                        className="max-w-full max-h-80 rounded-xl border border-gray-200 shadow-sm"
+                                                        onError={(e) => { e.target.style.display = 'none'; }}
+                                                    />
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
+
+                                    {/* Audio (Listening) */}
+                                    {question.questionType === 'LISTENING' && question.questionMediaUrl && (
+                                        <div className="mb-3 ml-14">
+                                            <div className="p-3 bg-blue-50 rounded-lg border border-blue-100">
+                                                <p className="text-xs font-semibold text-blue-800 mb-2">🔊 File nghe:</p>
+                                                <audio controls className="w-full h-10">
+                                                    <source src={question.questionMediaUrl} type="audio/mpeg" />
+                                                </audio>
+                                            </div>
+                                        </div>
+                                    )}
 
                                     {/* Multiple Choice Options */}
                                     {isMultipleChoice && question.options && (
@@ -225,6 +250,23 @@ const ExamReviewModal = ({ isOpen, onClose, attempt, exam }) => {
                                             </p>
                                         </div>
                                     )}
+
+                                    {/* AI Answer Explanation - For all question types */}
+                                    <div className="mt-4 ml-14">
+                                        <AIAnswerExplanation
+                                            question={{
+                                                ...question,
+                                                questionType: question.questionType || 'MULTIPLE_CHOICE',
+                                                topikLevel: exam.topikLevel || 'TOPIK_I',
+                                                text: question.questionText
+                                            }}
+                                            studentAnswer={isMultipleChoice
+                                                ? (userSelectedOption ? userSelectedOption.optionText : null)
+                                                : (userAnswer ? userAnswer.answerText : null)
+                                            }
+                                            correctAnswer={correctOption ? correctOption.optionText : question.correctAnswer}
+                                        />
+                                    </div>
 
                                     {/* User answer details */}
                                     {userAnswer && (

@@ -254,6 +254,17 @@ const ExamDetail = () => {
                             dangerouslySetInnerHTML={{ __html: eq.question.questionText }}
                           />
 
+                          {eq.question.imageUrl && (
+                            <div className="mb-3">
+                              <img
+                                src={eq.question.imageUrl}
+                                alt="Hình ảnh câu hỏi"
+                                className="max-w-full h-auto rounded-lg border border-gray-200 shadow-sm"
+                                onError={(e) => { e.target.style.display = 'none'; }}
+                              />
+                            </div>
+                          )}
+
                           {eq.question.options && eq.question.options.length > 0 && (
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-3">
                               {eq.question.options.map((option, optIndex) => (
