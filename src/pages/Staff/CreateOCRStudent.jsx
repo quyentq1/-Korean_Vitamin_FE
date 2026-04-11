@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
-    Upload, Image as ImageIcon, Scan, CheckCircle, AlertCircle,
+    Upload, Image as ImageIcon, Scan, AlertCircle,
     Loader2, ArrowLeft, Save, Edit, Eye, FileText, User
 } from 'lucide-react';
 import Swal from 'sweetalert2';
@@ -16,7 +16,7 @@ const CreateOCRStudent = () => {
     const { t } = useTranslation();
     const navigate = useNavigate();
 
-    const [step, setStep] = useState(1); // 1: Upload, 2: Preview/Edit, 3: Processing
+    const [step, setStep] = useState(1); // 1: Upload, 2: Review/Edit, 3: Select Courses & Create
     const [file, setFile] = useState(null);
     const [preview, setPreview] = useState(null);
     const [ocrData, setOcrData] = useState(null);
@@ -32,7 +32,8 @@ const CreateOCRStudent = () => {
         phone: '',
         address: '',
         dateOfBirth: '',
-        gender: 'male',
+        gender: '',
+        courseIds: [], // NEW: Array of selected course IDs
         courseCode: '',
         courseId: '',
         classId: '',
@@ -99,7 +100,8 @@ const CreateOCRStudent = () => {
                     phone: extractedData.phone || '',
                     address: extractedData.address || '',
                     dateOfBirth: extractedData.dateOfBirth || '',
-                    gender: extractedData.gender || 'male',
+                    gender: extractedData.gender || '',
+                    courseIds: [], // NEW: Empty array for manual course selection
                     courseCode: extractedData.courseCode || '',
                     courseId: extractedData.courseId || '',
                     classId: extractedData.classId || '',
@@ -121,6 +123,42 @@ const CreateOCRStudent = () => {
     // Handle input change in edit mode
     const handleInputChange = (field, value) => {
         setEditableData(prev => ({ ...prev, [field]: value }));
+    };
+
+    // Handle next to Step 3 (course selection)
+    const handleNextToStep3 = () => {
+        // Validate personal info
+        if (!editableData.studentName.trim()) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Validation Error',
+                text: 'Student name is required',
+                confirmButtonColor: '#667eea',
+            });
+            return;
+        }
+
+        if (!editableData.email.trim()) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Validation Error',
+                text: 'Email is required',
+                confirmButtonColor: '#667eea',
+            });
+            return;
+        }
+
+        if (!editableData.phone.trim()) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Validation Error',
+                text: 'Phone number is required',
+                confirmButtonColor: '#667eea',
+            });
+            return;
+        }
+
+        setStep(3);
     };
 
     // Validate and submit
@@ -151,6 +189,17 @@ const CreateOCRStudent = () => {
                 icon: 'error',
                 title: 'Validation Error',
                 text: 'Phone number is required',
+                confirmButtonColor: '#667eea',
+            });
+            return;
+        }
+
+        // Validate course selection
+        if (!editableData.courseIds || editableData.courseIds.length === 0) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Validation Error',
+                text: 'Please select at least one course',
                 confirmButtonColor: '#667eea',
             });
             return;
@@ -200,7 +249,8 @@ const CreateOCRStudent = () => {
             phone: '',
             address: '',
             dateOfBirth: '',
-            gender: 'male',
+            gender: '',
+            courseIds: [],
             courseCode: '',
             courseId: '',
             classId: '',
@@ -236,21 +286,21 @@ const CreateOCRStudent = () => {
                         step === 1 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'
                     }`}>
                         <Upload className="w-4 h-4" />
-                        Upload Image
+                        1. Upload Image
                     </div>
                     <div className="w-8 h-0.5 bg-gray-300" />
                     <div className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium ${
                         step === 2 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'
                     }`}>
                         <Eye className="w-4 h-4" />
-                        Preview & Edit
+                        2. Review Info
                     </div>
                     <div className="w-8 h-0.5 bg-gray-300" />
                     <div className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium ${
-                        step === 3 ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-600'
+                        step === 3 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'
                     }`}>
-                        <CheckCircle className="w-4 h-4" />
-                        Complete
+                        <Save className="w-4 h-4" />
+                        3. Select Courses
                     </div>
                 </div>
             </div>
@@ -507,6 +557,55 @@ const CreateOCRStudent = () => {
                                     )}
                                 </div>
 
+                                {/* Date of Birth - NEW */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Ngày sinh / Date of Birth
+                                    </label>
+                                    {editMode ? (
+                                        <input
+                                            type="date"
+                                            value={editableData.dateOfBirth || ''}
+                                            onChange={(e) => handleInputChange('dateOfBirth', e.target.value)}
+                                            className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                                        />
+                                    ) : (
+                                        <p className="text-gray-900">
+                                            {editableData.dateOfBirth || t('staff.ocrUpload.notDetected')}
+                                        </p>
+                                    )}
+                                    {ocrData?.dateOfBirthRaw && (
+                                        <p className="text-xs text-gray-500 mt-1">
+                                            OCR Extracted: {ocrData.dateOfBirthRaw}
+                                        </p>
+                                    )}
+                                </div>
+
+                                {/* Gender - NEW */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Giới tính / Gender
+                                    </label>
+                                    {editMode ? (
+                                        <select
+                                            value={editableData.gender || ''}
+                                            onChange={(e) => handleInputChange('gender', e.target.value)}
+                                            className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                                        >
+                                            <option value="">Select Gender</option>
+                                            <option value="MALE">Nam / Male</option>
+                                            <option value="FEMALE">Nữ / Female</option>
+                                            <option value="OTHER">Other</option>
+                                        </select>
+                                    ) : (
+                                        <p className="text-gray-900">
+                                            {editableData.gender === 'MALE' ? 'Nam / Male' :
+                                             editableData.gender === 'FEMALE' ? 'Nữ / Female' :
+                                             editableData.gender || t('staff.ocrUpload.notDetected')}
+                                        </p>
+                                    )}
+                                </div>
+
                                 {/* Address */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -522,25 +621,6 @@ const CreateOCRStudent = () => {
                                     ) : (
                                         <p className="text-gray-900">
                                             {editableData.address || t('staff.ocrUpload.notDetected')}
-                                        </p>
-                                    )}
-                                </div>
-
-                                {/* Course Code */}
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        {t('staff.ocrUpload.courseCode')}
-                                    </label>
-                                    {editMode ? (
-                                        <input
-                                            type="text"
-                                            value={editableData.courseCode}
-                                            onChange={(e) => handleInputChange('courseCode', e.target.value)}
-                                            className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-                                        />
-                                    ) : (
-                                        <p className="text-gray-900">
-                                            {editableData.courseCode || t('staff.ocrUpload.notDetected')}
                                         </p>
                                     )}
                                 </div>
@@ -575,23 +655,130 @@ const CreateOCRStudent = () => {
                                     Back
                                 </button>
                                 <button
-                                    onClick={handleSubmit}
-                                    disabled={processing}
-                                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl hover:shadow-lg transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                                    onClick={handleNextToStep3}
+                                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:shadow-lg transition-all font-medium"
                                 >
-                                    {processing ? (
-                                        <>
-                                            <Loader2 className="w-4 h-4 animate-spin" />
-                                            Creating...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Save className="w-4 h-4" />
-                                            Create Student
-                                        </>
-                                    )}
+                                    Next: Select Courses
+                                    <ArrowLeft className="w-4 h-4 rotate-180" />
                                 </button>
                             </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Step 3: Select Courses & Create */}
+                {step === 3 && (
+                    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                        <div className="flex items-center justify-between mb-6">
+                            <div className="flex items-center gap-2">
+                                <Save className="w-5 h-5 text-green-600" />
+                                <h2 className="text-lg font-semibold text-gray-900">
+                                    Select Courses & Create Student
+                                </h2>
+                            </div>
+                        </div>
+
+                        {/* Student Summary */}
+                        <div className="mb-6 p-4 bg-blue-50 rounded-xl">
+                            <h3 className="font-medium text-blue-900 mb-2">
+                                Student Information Summary
+                            </h3>
+                            <div className="grid grid-cols-2 gap-2 text-sm">
+                                <div><span className="font-medium">Name:</span> {editableData.studentName}</div>
+                                <div><span className="font-medium">Email:</span> {editableData.email}</div>
+                                <div><span className="font-medium">Phone:</span> {editableData.phone}</div>
+                                <div><span className="font-medium">DOB:</span> {editableData.dateOfBirth || 'N/A'}</div>
+                                <div><span className="font-medium">Gender:</span> {
+                                    editableData.gender === 'MALE' ? 'Nam' :
+                                    editableData.gender === 'FEMALE' ? 'Nữ' : 'N/A'
+                                }</div>
+                            </div>
+                        </div>
+
+                        {/* Course Selection */}
+                        <div className="mb-6">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Select Courses <span className="text-red-500">*</span>
+                            </label>
+                            <p className="text-xs text-gray-500 mb-3">
+                                Hold Ctrl/Cmd to select multiple courses
+                            </p>
+                            <select
+                                multiple
+                                value={editableData.courseIds || []}
+                                onChange={(e) => {
+                                    const selected = Array.from(e.target.selectedOptions)
+                                        .map(option => parseInt(option.value));
+                                    handleInputChange('courseIds', selected);
+                                }}
+                                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none min-h-[150px]"
+                                size="5"
+                            >
+                                {ocrData?.availableCourses?.map(course => (
+                                    <option key={course.id} value={course.id}>
+                                        {course.code} - {course.name}
+                                    </option>
+                                ))}
+                            </select>
+
+                            {/* Selected Courses Display */}
+                            {editableData.courseIds && editableData.courseIds.length > 0 && (
+                                <div className="mt-3 p-3 bg-green-50 rounded-lg">
+                                    <p className="text-sm font-medium text-green-900 mb-2">
+                                        Selected Courses ({editableData.courseIds.length}):
+                                    </p>
+                                    {editableData.courseIds.map(courseId => {
+                                        const course = ocrData?.availableCourses?.find(c => c.id === courseId);
+                                        return course ? (
+                                            <p key={courseId} className="text-sm text-green-800">
+                                                ✓ {course.code} - {course.name}
+                                            </p>
+                                        ) : null;
+                                    })}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Notes (Optional) */}
+                        <div className="mb-6">
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                {t('staff.createStudent.notes')} (Optional)
+                            </label>
+                            <textarea
+                                value={editableData.notes}
+                                onChange={(e) => handleInputChange('notes', e.target.value)}
+                                rows={2}
+                                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-none"
+                                placeholder="Add any notes about this student..."
+                            />
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="flex gap-3 pt-6 border-t border-gray-100">
+                            <button
+                                onClick={() => setStep(2)}
+                                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 border-2 border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 transition-all font-medium"
+                            >
+                                <ArrowLeft className="w-4 h-4" />
+                                Back to Edit
+                            </button>
+                            <button
+                                onClick={handleSubmit}
+                                disabled={processing}
+                                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl hover:shadow-lg transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {processing ? (
+                                    <>
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                        Creating...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Save className="w-4 h-4" />
+                                        Create Student
+                                    </>
+                                )}
+                            </button>
                         </div>
                     </div>
                 )}

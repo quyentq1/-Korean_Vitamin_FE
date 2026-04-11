@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
     User, Mail, Phone, MapPin, Calendar, GraduationCap, Users, UserPlus,
@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import Swal from 'sweetalert2';
 import staffService from '../../services/staffService';
+import consultationService from '../../services/consultationService';
 
 /**
  * Manual Student Creation Form
@@ -15,7 +16,11 @@ import staffService from '../../services/staffService';
 const CreateManualStudent = () => {
     const { t } = useTranslation();
     const navigate = useNavigate();
+    const location = useLocation();
     const { studentId } = useParams();
+
+    const prefilledData = location.state?.prefilledData || {};
+    const fromConsultationId = location.state?.fromConsultationId || null;
 
     const [currentStep, setCurrentStep] = useState(1);
     const [loading, setLoading] = useState(false);
@@ -26,11 +31,11 @@ const CreateManualStudent = () => {
     // Form data
     const [formData, setFormData] = useState({
         // Step 1: Personal Information
-        fullName: '',
+        fullName: prefilledData.fullName || '',
         dateOfBirth: '',
         gender: 'male',
-        email: '',
-        phone: '',
+        email: prefilledData.email || '',
+        phone: prefilledData.phone || '',
         address: '',
         avatar: '',
 
@@ -175,13 +180,25 @@ const CreateManualStudent = () => {
 
             const response = await staffService.createManualStudent(formData);
 
+            if (fromConsultationId) {
+                try {
+                    await consultationService.updateStatus(fromConsultationId, 'ACCOUNT_CREATED');
+                } catch (updateErr) {
+                    console.error("Failed to update consultation status", updateErr);
+                }
+            }
+
             Swal.fire({
                 icon: 'success',
                 title: t('staff.createStudent.success'),
                 text: t('staff.createStudent.emailSent'),
                 confirmButtonColor: '#667eea',
             }).then(() => {
-                navigate('/student-management');
+                if (fromConsultationId) {
+                    navigate('/registrations'); // Quay lại trang Tư vấn
+                } else {
+                    navigate('/student-management');
+                }
             });
         } catch (error) {
             console.error('Error creating student:', error);
