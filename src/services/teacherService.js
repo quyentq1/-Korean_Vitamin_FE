@@ -237,6 +237,15 @@ export const teacherService = {
         });
     },
 
+    // Image Upload - Follow same pattern as uploadAudio
+    uploadImage: async (file) => {
+        const formData = new FormData();
+        formData.append('file', file); // Field name: 'file'
+        return await axiosClient.post('/teacher/questions/upload-file', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+        });
+    },
+
     uploadQuestionAudio: async (questionId, file) => {
         const formData = new FormData();
         formData.append('audio', file);
