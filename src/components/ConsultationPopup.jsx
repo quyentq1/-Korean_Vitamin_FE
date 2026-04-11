@@ -15,7 +15,6 @@ const ConsultationPopup = ({ isOpen, onClose, onSubmit }) => {
         phone: '',
         contactTime: 'afternoon',
         message: '',
-        testInterested: 'test-3',
     });
 
     const [errors, setErrors] = useState({});
@@ -85,7 +84,6 @@ const ConsultationPopup = ({ isOpen, onClose, onSubmit }) => {
                 phone: '',
                 contactTime: 'afternoon',
                 message: '',
-                testInterested: 'test-3',
             });
             setErrors({});
         } catch (error) {
@@ -240,23 +238,7 @@ const ConsultationPopup = ({ isOpen, onClose, onSubmit }) => {
                                 </select>
                             </div>
 
-                            {/* Test Interested */}
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    {t('consultation.testInterested', 'Test quan tâm')}
-                                </label>
-                                <select
-                                    name="testInterested"
-                                    value={formData.testInterested}
-                                    onChange={handleChange}
-                                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/20 transition"
-                                >
-                                    <option value="test-3">Test 3</option>
-                                    <option value="test-4">Test 4</option>
-                                    <option value="test-5">Test 5</option>
-                                    <option value="all">{t('consultation.allTests', 'Tất cả bài test')}</option>
-                                </select>
-                            </div>
+
 
                             {/* Message */}
                             <div>
