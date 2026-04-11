@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate } from 'react-router-dom';
 import { BookOpen, FileText, Clock, ArrowRight } from 'lucide-react';
@@ -89,6 +89,7 @@ const CourseDetail = () => {
     useEffect(() => {
         const fetchCourse = async () => {
             try {
+                console.log('[CourseDetail] Fetching course with id:', id);
                 setLoading(true);
 
                 // Check if ID is a number (database course) or string (static course)
@@ -151,21 +152,17 @@ const CourseDetail = () => {
         };
 
         fetchCourse();
-    }, [id, isAuthenticated, recordCourseInterest]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [id]);
 
-    // Fetch practice exams when course is loaded
-    useEffect(() => {
-        if (course && course.id && !isNaN(course.id)) {
-            fetchPracticeExams();
-        }
-    }, [course]);
+    // Fetch practice exams when course is loaded and user is authenticated
+    const fetchPracticeExams = useCallback(async (courseId) => {
+        if (!courseId || isNaN(courseId)) return;
 
-    const fetchPracticeExams = async () => {
-        if (!course || !course.id || isNaN(course.id)) return;
-
+        console.log('[CourseDetail] Fetching practice exams for course:', courseId);
         setExamsLoading(true);
         try {
-            const response = await examService.getPracticeExamsByCourse(course.id);
+            const response = await examService.getPracticeExamsByCourse(courseId);
             const exams = Array.isArray(response) ? response : [];
             // Filter only PRACTICE exams and published
             const practiceExams = exams.filter(exam =>
@@ -178,7 +175,13 @@ const CourseDetail = () => {
         } finally {
             setExamsLoading(false);
         }
-    };
+    }, []);
+
+    useEffect(() => {
+        if (course && course.id && !isNaN(course.id) && isAuthenticated) {
+            fetchPracticeExams(course.id);
+        }
+    }, [course?.id, isAuthenticated, fetchPracticeExams]);
 
     if (loading) return (
         <div className="min-h-screen flex items-center justify-center">
@@ -218,6 +221,31 @@ const CourseDetail = () => {
                                     </span>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Banner CTA - Nổi bật cho Guest User */}
+                <div className="bg-gradient-to-r from-orange-400 via-yellow-400 to-orange-500 py-6 sm:py-8 shadow-lg">
+                    <div className="container mx-auto px-4 sm:px-6">
+                        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                            <div className="text-center sm:text-left">
+                                <h3 className="text-xl sm:text-2xl font-bold text-white mb-1">
+                                    🎯 Khám phá năng lực tiếng Hàn của bạn ngay!
+                                </h3>
+                                <p className="text-white/90 text-sm sm:text-base">
+                                    Thi thử miễn phí - Không cần đăng ký - Nhận kết quả ngay lập tức
+                                </p>
+                            </div>
+                            <button
+                                onClick={() => navigate(`/free-tests?course=${id}`)}
+                                className="px-8 py-4 bg-white text-orange-600 rounded-xl font-bold text-lg shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 whitespace-nowrap group"
+                            >
+                                <span className="flex items-center gap-2">
+                                    <span className="text-2xl group-hover:rotate-12 transition-transform">🚀</span>
+                                    <span>Bắt Đầu Thi Thử</span>
+                                </span>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -475,6 +503,21 @@ const CourseDetail = () => {
 
                     {/* Actions */}
                     <div className="flex flex-wrap gap-4 justify-center">
+                        {/* Nổi bật: Thi thử miễn phí */}
+                        <button
+                            onClick={() => navigate(`/free-tests?course=${id}`)}
+                            className="group relative px-6 sm:px-8 py-4 bg-gradient-to-r from-orange-500 via-yellow-500 to-orange-600 text-white rounded-xl font-bold text-lg shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 animate-pulse-slow"
+                        >
+                            <span className="absolute inset-0 bg-white/20 rounded-xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+                            <span className="relative flex items-center gap-2">
+                                <span className="text-2xl group-hover:rotate-12 transition-transform">🎯</span>
+                                <span>Thi Thử Miễn Phí</span>
+                                <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                                </svg>
+                            </span>
+                        </button>
+
                         <button
                             onClick={() => setIsContactModalOpen(true)}
                             className="px-6 sm:px-8 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl font-semibold hover:from-blue-600 hover:to-blue-700 transition-all shadow-lg"

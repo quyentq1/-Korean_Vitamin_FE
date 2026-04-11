@@ -579,6 +579,19 @@ const ExamApproval = () => {
                                                                             </div>
                                                                         )}
 
+                                                                        {/* Question Image */}
+                                                                        {q.question?.imageUrl && (
+                                                                            <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                                                                                <p className="text-sm font-bold text-gray-900 mb-2">🖼️ Hình ảnh câu hỏi:</p>
+                                                                                <img 
+                                                                                  src={q.question.imageUrl} 
+                                                                                  alt="Hình ảnh câu hỏi" 
+                                                                                  className="max-w-full h-auto rounded-lg mx-auto"
+                                                                                  onError={(e) => { e.target.style.display = 'none'; }}
+                                                                                />
+                                                                            </div>
+                                                                        )}
+
                                                                         {/* Audio File */}
                                                                         {q.question?.audioFile && (
                                                                             <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-3">

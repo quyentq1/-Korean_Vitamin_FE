@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import axiosClient from '../api/axiosClient';
+import examPublicService from '../services/examPublicService';
 
 const STORAGE_KEY = 'guest_test_tracking';
 const MAX_FREE_TESTS = 2;
@@ -9,8 +10,11 @@ const MAX_FREE_TESTS = 2;
  * Manages free test quota and question ID tracking for duplicate prevention
  *
  * NOW SYNCS WITH BACKEND QUOTA!
+ * NOW SUPPORTS PER-COURSE QUOTA TRACKING!
+ *
+ * @param {number|null} courseId - Course ID for quota tracking (null = all courses)
  */
-const useTestTracking = () => {
+const useTestTracking = (courseId = null) => {
     const [guestId, setGuestId] = useState(null);
     const [testHistory, setTestHistory] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -42,8 +46,7 @@ const useTestTracking = () => {
             window.removeEventListener('storage', handleStorageChange);
             window.removeEventListener('focus', handleFocus);
         };
-    }, []);
-
+    }, [courseId]); // Add courseId dependency to re-sync when course changes
     const initializeTracking = () => {
         setLoading(true);
 
@@ -64,26 +67,60 @@ const useTestTracking = () => {
 
     /**
      * NEW: Sync quota with backend
-     * Fetches actual guest quota from backend API
+     * Fetches actual guest quota from backend API for a specific course
      */
     const syncQuotaWithBackend = async () => {
         try {
-            // Call backend API to get guest quota
-            const response = await axiosClient.get('/guest/quota');
+            // 1. Fetch quota
+            const params = courseId ? { courseId } : {};
+            const response = await axiosClient.get('/guest/quota', { params });
 
             if (response && response.remaining !== undefined) {
                 setBackendQuota(response.remaining);
                 setQuotaSynced(true);
 
-                // If backend says 0 remaining, reset local tracking
                 if (response.remaining === 0) {
-                    console.log('[useTestTracking] Backend quota exhausted. Syncing local state...');
-                    // Keep test history but ensure remainingFreeTests returns 0
-                    setQuotaSynced(true);
+                    console.log('[useTestTracking] Backend quota exhausted for course', courseId);
                 }
             }
+
+            // 2. Fetch truly completed attempts from backend to ensure we don't rely only on localStorage
+            try {
+                const attempts = await examPublicService.getMyAttempts();
+                if (attempts && attempts.length > 0) {
+                    // Convert into testHistory format
+                    const backendHistory = attempts.filter(a => a.status === 'GRADED' || a.status === 'PENDING_MANUAL_GRADE').map(a => ({
+                        testId: String(a.exam.id),
+                        completed: true,
+                        score: a.totalScore,
+                        questionIds: [], // Hard to extract easily here, but we mainly need completed status
+                        attemptId: a.id,
+                        completedAt: a.submitTime || a.endTime,
+                    }));
+                    
+                    if (backendHistory.length > 0) {
+                        setTestHistory(prev => {
+                            // Merge local and backend history
+                            const merged = [...prev];
+                            backendHistory.forEach(bHist => {
+                                const existIdx = merged.findIndex(m => m.testId === bHist.testId);
+                                if (existIdx >= 0) {
+                                    merged[existIdx] = { ...merged[existIdx], ...bHist, questionIds: merged[existIdx].questionIds || [] };
+                                } else {
+                                    merged.push(bHist);
+                                }
+                            });
+                            // Save to local storage
+                            saveTestHistory(guestId, merged);
+                            return merged;
+                        });
+                    }
+                }
+            } catch (historyErr) {
+                console.error("Failed to fetch guest history from backend", historyErr);
+            }
+
         } catch (error) {
-            // If API fails (401, 404, etc.), fall back to local tracking
             console.log('[useTestTracking] Unable to sync with backend, using local tracking');
             setQuotaSynced(false);
         }

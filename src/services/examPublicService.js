@@ -29,6 +29,11 @@ export const examPublicService = {
     // Submit the whole exam
     submitExam: async (attemptId) => {
         return await axiosClient.post(`/guest/attempts/${attemptId}/submit`);
+    },
+
+    // Get all completed attempts for the current guest user
+    getMyAttempts: async () => {
+        return await axiosClient.get(`/guest/my-attempts`);
     }
 };
 

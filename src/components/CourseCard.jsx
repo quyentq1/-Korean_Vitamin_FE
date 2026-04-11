@@ -53,9 +53,9 @@ const CourseCard = ({ course, onConsultationClick, status }) => {
         >
             {/* Course Thumbnail */}
             <div className="relative h-48 bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center">
-                {course.imageUrl ? (
+                {course.thumbnailUrl ? (
                     <img
-                        src={course.imageUrl}
+                        src={course.thumbnailUrl}
                         alt={course.name}
                         className="w-full h-full object-cover"
                     />

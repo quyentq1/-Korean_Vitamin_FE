@@ -77,6 +77,11 @@ export const examService = {
         });
     },
 
+    // Get MOCK exams for a specific course (for FreeTest by course)
+    getMockExamsByCourse: async (courseId) => {
+        return await axiosClient.get(`/guest/exams/course/${courseId}`);
+    },
+
     // Get exams by approval status
     getExamsByStatus: async (status) => {
         return await axiosClient.get(`/education-manager/exams/status/${status}`);

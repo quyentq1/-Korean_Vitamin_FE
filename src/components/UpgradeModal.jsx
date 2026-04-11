@@ -150,7 +150,7 @@ const UpgradeModal = ({ isOpen, onClose, testsTaken = 2 }) => {
                     {/* Footer */}
                     <div className="mt-8 text-center">
                         <p className="text-gray-500 text-sm">
-                            {t('upgrade.support', 'Cần hỗ trợ? Liên hệ hotline:')} <span className="font-bold text-primary-600">0123-456-789</span>
+                            {t('upgrade.support', 'Cần hỗ trợ? Liên hệ hotline:')} <span className="font-bold text-primary-600">0869.627.078</span>
                         </p>
                     </div>
                 </div>
