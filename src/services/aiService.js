@@ -375,6 +375,52 @@ const aiService = {
         return await axiosClient.get('/api/ai/usage-stats', {
             params: { startDate, endDate }
         });
+    },
+
+    // ==================== KOREAN LEARNING AI FEATURES ====================
+
+    /**
+     * Feature ①: Explain Korean Answer
+     * POST /api/ai/explain
+     * @param {object} data - { questionText, correctAnswer, studentAnswer, questionType, topikLevel }
+     */
+    explainKoreanAnswer: async (data) => {
+        return await axiosClient.post('/ai/explain', data, {
+            headers: { 'Content-Type': 'application/json; charset=UTF-8' }
+        });
+    },
+
+    /**
+     * Feature ②: Grade Korean Writing
+     * POST /api/ai/grade
+     * @param {object} data - { writingPrompt, studentEssay, topikLevel, taskType, maxScore }
+     */
+    gradeKoreanWriting: async (data) => {
+        return await axiosClient.post('/ai/grade', data, {
+            headers: { 'Content-Type': 'application/json; charset=UTF-8' }
+        });
+    },
+
+    /**
+     * Feature ③: Guest Korean Chatbot
+     * POST /api/ai/chat
+     * @param {object} data - { message, sessionId, history }
+     */
+    chatKorean: async (data) => {
+        return await axiosClient.post('/ai/chat', data, {
+            headers: { 'Content-Type': 'application/json; charset=UTF-8' }
+        });
+    },
+
+    /**
+     * Feature ④: Admin Analytics
+     * POST /api/ai/analytics
+     * @param {object} data - { reportType, dateFrom, dateTo }
+     */
+    getAnalytics: async (data) => {
+        return await axiosClient.post('/ai/analytics', data, {
+            headers: { 'Content-Type': 'application/json; charset=UTF-8' }
+        });
     }
 };
 

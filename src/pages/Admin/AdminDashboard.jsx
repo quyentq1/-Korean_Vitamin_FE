@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { PageHeader, Card, Button, Alert } from '../../components/ui';
 import adminService from '../../services/adminService';
+import AIAdminAnalytics from '../../components/AI/AIAdminAnalytics';
 
 /**
  * Admin Dashboard Component
@@ -228,6 +229,9 @@ const AdminDashboard = () => {
         title="Admin Dashboard"
         subtitle="Tổng quan hệ thống"
       />
+
+      {/* AI Analytics Section */}
+      <AIAdminAnalytics onAnalyticsReceived={(data) => console.log('AI Analytics received:', data)} />
 
       {/* Thống kê tổng quan */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
