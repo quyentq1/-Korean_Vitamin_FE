@@ -49,6 +49,7 @@ import QuestionBankModal from '../../components/Teacher/QuestionBankModal';
 // Utils
 import { validateExamBeforePublish, canEditExam } from '../../utils/examValidator';
 import { getQuestionStructure } from '../../constants/topikStructure';
+import { getClassQuestionPoints } from '../../constants/topikClassStructure';
 
 // Styles
 import styles from './ExamEditor.module.css';
@@ -86,7 +87,8 @@ const ExamEditor = () => {
     courseId: courseIdFromUrl || '', // Pre-fill if coming from MyCourses
     classId: classIdFromUrl || '', // NEW: Pre-fill if coming from ClassExamManagement
     examType: 'MIXED', // Default exam type
-    examCategory: classIdFromUrl ? 'PRACTICE' : 'PRACTICE' // Force PRACTICE when creating exam for a class
+    examCategory: classIdFromUrl ? 'PRACTICE' : 'PRACTICE', // Force PRACTICE when creating exam for a class
+    unit: 1 // NEW: Unit for Class exams (1-12)
   });
 
   // Questions state
@@ -194,6 +196,14 @@ const ExamEditor = () => {
         try {
           const classData = await teacherService.getClassInfo(classId);
           setSelectedClassInfo(classData);
+
+          // IMPORTANT: Also load course info for the class to load questions
+          if (classData.course) {
+            setSelectedCourseInfo(classData.course);
+
+            // Load questions for this course
+            await loadQuestionsForCourse(classData.course);
+          }
         } catch (err) {
           console.error('Failed to load class info:', err);
         }
@@ -204,6 +214,9 @@ const ExamEditor = () => {
           const selectedCourse = data.find(c => c.id === response.courseId);
           if (selectedCourse) {
             setSelectedCourseInfo(selectedCourse);
+
+            // Load questions for this course
+            await loadQuestionsForCourse(selectedCourse);
           }
         } catch (err) {
           console.error('Failed to load course info:', err);
@@ -221,11 +234,38 @@ const ExamEditor = () => {
         courseId: response.courseId || '',
         classId: response.classId || response.classEntity?.id || '', // NEW: Include classId
         examType: response.examType || response.type || 'MIXED', // Default to MIXED if missing
-        examCategory: response.examCategory || 'PRACTICE' // NEW: Load examCategory from API
+        examCategory: response.examCategory || 'PRACTICE', // NEW: Load examCategory from API
+        unit: response.unit || 1 // NEW: Load unit for Class exams
       });
 
-      // Set questions
-      setQuestions(response.questions || []);
+      // Set questions - map examQuestions to question format
+      const mappedQuestions = (response.examQuestions || []).map(eq => {
+        const q = eq.question;
+        return {
+          id: q?.id,
+          orderNumber: eq.questionOrder,
+          points: eq.points || 1,
+          content: q?.questionText || q?.content || 'N/A',
+          questionText: q?.questionText || q?.content || 'N/A',
+          questionType: q?.questionType,
+          level: q?.level,
+          unit: q?.unit,
+          category: q?.category?.name || q?.categoryName || 'N/A',
+          categoryName: q?.category?.name || q?.categoryName || 'N/A',
+          topikType: q?.topikType,
+          difficulty: q?.difficulty,
+          answers: q?.options || [],
+          options: q?.options || [],
+          correctAnswer: q?.correctAnswer,
+          explanation: q?.explanation,
+          imageUrl: q?.imageUrl,
+          questionMediaUrl: q?.questionMediaUrl,
+          points: eq.points || 1,
+          isFromExam: true // Mark as loaded from exam
+        };
+      });
+      setQuestions(mappedQuestions);
+      console.log('Loaded questions from exam:', mappedQuestions);
       setError('');
     } catch (err) {
       console.error('Failed to load exam:', err);
@@ -262,6 +302,12 @@ const ExamEditor = () => {
         await loadQuestionsForCourse(selectedCourse);
       }
     }
+
+    // NEW: Load Class questions when unit is selected
+    if (field === 'unit' && value && formData.classId) {
+      console.log(`Unit changed to ${value}, loading Class questions...`);
+      await loadQuestionsForClass(value);
+    }
   };
 
   // Load questions by course level
@@ -275,6 +321,41 @@ const ExamEditor = () => {
       console.error('Failed to load questions for course:', err);
       setAvailableQuestions([]);
       setCourseQuestions([]);
+    }
+  };
+
+  // NEW: Load Class questions by unit
+  const loadQuestionsForClass = async (unit) => {
+    try {
+      console.log('=== loadQuestionsForClass ===');
+      console.log('Fetching questions for unit:', unit);
+
+      // For Class exams, we need to load questions by unit
+      // Using getQuestions API with unit filter
+      const response = await teacherService.getQuestions({
+        unit: unit, // Filter by unit
+        pageSize: 1000 // Get all questions for this unit
+      });
+
+      // Extract questions array from response
+      const questions = response?.data || response || [];
+
+      console.log('Response received:', response);
+      console.log('Questions loaded:', questions.length);
+      console.log('Sample questions:', questions.slice(0, 3).map(q => ({
+        id: q.id,
+        unit: q.unit,
+        verificationStatus: q.verificationStatus,
+        topikType: q.topikType
+      })));
+
+      setAvailableQuestions(questions);
+
+      console.log(`Loaded ${questions.length} Class questions for Unit ${unit}`);
+      console.log('=============================');
+    } catch (err) {
+      console.error('Failed to load questions for class:', err);
+      setAvailableQuestions([]);
     }
   };
 
@@ -321,9 +402,35 @@ const ExamEditor = () => {
 
   // Open Question Bank Modal
   const handleOpenQuestionBank = () => {
-    if (!selectedCourseInfo) {
-      setError(t('exam.selectCourseFirst', 'Vui lòng chọn khóa học trước.'));
-      return;
+    console.log('=== Opening Question Bank Modal ===');
+    console.log('formData.classId:', formData.classId);
+    console.log('formData.unit:', formData.unit);
+    console.log('selectedClassInfo:', selectedClassInfo);
+    console.log('selectedCourseInfo:', selectedCourseInfo);
+    console.log('availableQuestions.length:', availableQuestions.length);
+    console.log('Sample availableQuestions:', availableQuestions.slice(0, 3).map(q => ({
+      id: q.id,
+      unit: q.unit,
+      verificationStatus: q.verificationStatus
+    })));
+    console.log('====================================');
+
+    // For Class exams, check if class is selected
+    if (formData.classId) {
+      if (!selectedClassInfo) {
+        setError(t('exam.selectClassFirst', 'Vui lòng chọn lớp trước.'));
+        return;
+      }
+      if (!formData.unit) {
+        setError(t('exam.selectUnitFirst', 'Vui lòng chọn Unit trước.'));
+        return;
+      }
+    } else {
+      // For Course exams, check if course is selected
+      if (!selectedCourseInfo) {
+        setError(t('exam.selectCourseFirst', 'Vui lòng chọn khóa học trước.'));
+        return;
+      }
     }
     setSelectedQuestionsFromBank([]);
     setSearchTerm('');
@@ -344,17 +451,49 @@ const ExamEditor = () => {
 
   // Add selected questions from bank to exam
   const handleAddQuestionsFromBank = () => {
-    const newQuestions = selectedQuestionsFromBank.map(q => ({
-      id: q.id,
-      category: q.category?.name || 'N1',
-      type: q.questionType,
-      content: q.questionText || q.content,
-      answers: q.options || [],
-      correctAnswer: null,
-      level: q.level,
-      points: q.points || 1,
-      isNew: false
-    }));
+    const newQuestions = selectedQuestionsFromBank.map(q => {
+      // Auto-set points based on topikType from structure
+      let points = 1; // Default
+
+      if (formData.classId) {
+        // CLASS exam - use topikClassStructure
+        if (q.topikType) {
+          points = getClassQuestionPoints(q.topikType);
+        }
+      } else {
+        // COURSE exam - use topikStructure
+        if (q.topikType) {
+          // Get category from topikType (R, L, W)
+          const category = q.topikType.startsWith('R') ? 'READING' :
+                          q.topikType.startsWith('L') ? 'LISTENING' :
+                          q.topikType.startsWith('W') ? 'WRITING' : null;
+
+          if (category) {
+            // Get structure from topikStructure
+            const structures = {
+              'READING': require('../../constants/topikStructure').READING_STRUCTURE,
+              'LISTENING': require('../../constants/topikStructure').LISTENING_STRUCTURE,
+              'WRITING': require('../../constants/topikStructure').WRITING_STRUCTURE
+            };
+            const structure = structures[category]?.find(s => s.type === q.topikType);
+            points = structure?.pointsPerQuestion || 1;
+          }
+        }
+      }
+
+      return {
+        id: q.id,
+        category: q.category?.name || 'N1',
+        type: q.questionType,
+        content: q.questionText || q.content,
+        answers: q.options || [],
+        correctAnswer: null,
+        level: q.level,
+        topikType: q.topikType, // Store topikType for reference
+        points: points, // ✅ Auto-set from structure
+        isNew: false
+      };
+    });
 
     setQuestions(prev => [...prev, ...newQuestions]);
     setShowQuestionBankModal(false);
@@ -470,7 +609,8 @@ const ExamEditor = () => {
           exam: {
             ...examData,
             durationMinutes: duration, // Map frontend 'duration' to backend 'durationMinutes'
-            totalPoints: totalPoints > 0 ? totalPoints : 100 // Set from questions or default to 100
+            totalPoints: totalPoints > 0 ? totalPoints : 100, // Set from questions or default to 100
+            unit: formData.unit // NEW: Include unit for Class exams
           },
           ...(courseId && { courseId: parseInt(courseId) }), // Send courseId at request level if present
           ...(classId && { classId: parseInt(classId) }), // NEW: Send classId at request level if present
@@ -502,12 +642,8 @@ const ExamEditor = () => {
         });
 
         setError('');
-        // Navigate back to class exam management or edit mode
-        if (classId) {
-          navigate(`/teacher/exam-management/class?classId=${classId}`);
-        } else {
-          navigate(`/exam-editor/${response.id}`);
-        }
+        // Navigate back to exam management
+        navigate('/teacher/exam-management');
       } else {
         // Validate required fields for update mode
         if (!formData.title || formData.title.trim() === '') {
@@ -543,19 +679,56 @@ const ExamEditor = () => {
           return;
         }
 
-        // Update existing exam
+        // Check if exam is approved - show warning
+        if (exam?.approvalStatus === 'APPROVED') {
+          const { value: confirm } = await Swal.fire({
+            icon: 'warning',
+            title: 'Cảnh báo: Bài thi đã được duyệt!',
+            text: 'Bài thi này đã được Education Manager duyệt. Nếu bạn chỉnh sửa, bài thi sẽ được chuyển về trạng thái "Chờ duyệt" và cần gửi lại cho Education Manager phê duyệt trước khi công bố.',
+            input: 'checkbox',
+            inputPlaceholder: 'Tôi hiểu và muốn tiếp tục chỉnh sửa',
+            confirmButtonText: 'Tiếp tục chỉnh sửa',
+            confirmButtonColor: '#ef4444',
+            cancelButtonText: 'Hủy',
+            showCancelButton: true,
+            inputValidator: (result) => {
+              if (!result) {
+                return 'Bạn cần tick vào checkbox để xác nhận!';
+              }
+            }
+          });
+
+          if (!confirm) {
+            setSaving(false);
+            return;
+          }
+        }
+
+        // Update existing exam - map frontend field names to backend field names
+        const { duration, ...restFormData } = formData;
         await teacherService.updateExam(id, {
-          ...formData,
+          ...restFormData,
+          durationMinutes: duration, // map 'duration' -> 'durationMinutes'
+          unit: formData.unit,       // ensure unit is included
           questions: questions.filter(q => !q.isNew)
         });
 
         // Show success alert
+        const wasApproved = exam?.approvalStatus === 'APPROVED';
         await Swal.fire({
           icon: 'success',
           title: 'Thành công!',
-          text: t('exam.saveSuccess', 'Đã lưu bài kiểm tra thành công!'),
+          text: wasApproved
+            ? 'Đã lưu bài kiểm tra! Bài thi đã được chuyển về trạng thái "Chờ duyệt" và gửi lại cho Education Manager phê duyệt.'
+            : t('exam.saveSuccess', 'Đã lưu bài kiểm tra thành công!'),
           confirmButtonColor: '#10b981'
         });
+
+        // Reload exam data if status changed
+        if (wasApproved) {
+          // Refetch exam data to get updated status
+          window.location.reload();
+        }
 
         setError('');
       }
@@ -885,8 +1058,8 @@ const ExamEditor = () => {
                       />
                     </div>
 
-                    {/* Course Selection */}
-                    {isCreateMode && !selectedCourseInfo && !selectedClassInfo && (
+                    {/* Course Selection - ONLY show for Course exams, NOT Class exams */}
+                    {isCreateMode && !selectedCourseInfo && !selectedClassInfo && !(classIdFromUrl || formData.classId) && (
                       <div>
                         <label className="block text-sm font-semibold text-gray-700 mb-2">
                           {t('exam.course', 'Khóa học')} *
@@ -1207,6 +1380,29 @@ const ExamEditor = () => {
                       />
                     </div>
 
+                    {/* Unit - Only for Class Exams */}
+                    {formData.classId && (
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          <div className="flex items-center gap-2">
+                            <BookOpen className="w-4 h-4 text-purple-500" />
+                            Unit (1-12)
+                          </div>
+                        </label>
+                        <select
+                          value={formData.unit}
+                          onChange={(e) => handleFormChange('unit', parseInt(e.target.value))}
+                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-2 focus:ring-purple-200 outline-none transition-all bg-white text-lg font-semibold"
+                        >
+                          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(unitNum => (
+                            <option key={unitNum} value={unitNum}>
+                              Unit {unitNum}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+
                   </div>
                 </div>
               </div>
@@ -1232,10 +1428,10 @@ const ExamEditor = () => {
                     className="w-full"
                     icon={<BookOpen className="w-4 h-4" />}
                     onClick={handleOpenQuestionBank}
-                    disabled={!selectedCourseInfo || exam?.published}
+                    disabled={(!selectedCourseInfo && !selectedClassInfo) || exam?.published}
                   >
                     {t('exam.selectFromQuestionBank', 'Chọn từ Ngân Hàng Câu Hỏi')}
-                    {!selectedCourseInfo && ` (${t('exam.selectCourseFirst', 'Chọn khóa học trước')})`}
+                    {!selectedCourseInfo && !selectedClassInfo && ` (${t('exam.selectCourseOrClassFirst', 'Chọn khóa học hoặc lớp học trước')})`}
                   </Button>
 
                   {/* NEW: Replace Questions Buttons */}
@@ -1621,6 +1817,7 @@ const ExamEditor = () => {
             setShowQuestionBankModal(false);
           }}
           courseInfo={selectedClassInfo?.course || selectedCourseInfo}
+          unit={formData.classId ? formData.unit : null} // NEW: Pass unit for Class exams
         />
       )}
 

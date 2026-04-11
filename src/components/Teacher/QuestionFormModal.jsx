@@ -6,7 +6,6 @@ import {
   Plus,
   Trash2,
   Type,
-  BookOpen,
   BarChart3,
   Lightbulb,
   FileText,
@@ -14,10 +13,13 @@ import {
   CheckCircle2,
   Mic,
   Upload,
-  Volume2
+  Volume2,
+  Info
 } from 'lucide-react';
 import teacherService from '../../services/teacherService';
 import { Button, Modal } from '../ui';
+import { getAllClassQuestionTypes, getClassQuestionAnswerType, getClassQuestionPoints } from '../../constants/topikClassStructure';
+import { QUESTION_TYPE_MAPPING } from '../../constants/topikStructure';
 
 /**
  * QuestionFormModal Component
@@ -26,7 +28,7 @@ import { Button, Modal } from '../ui';
  *
  * @component
  */
-const QuestionFormModal = ({ isOpen, onClose, questionId }) => {
+const QuestionFormModal = ({ isOpen, onClose, questionId, defaultTarget = 'COURSE' }) => {
   const { t } = useTranslation();
   const isEditMode = !!questionId;
 
@@ -43,12 +45,20 @@ const QuestionFormModal = ({ isOpen, onClose, questionId }) => {
   const [uploadingAudio, setUploadingAudio] = useState(false);
   const audioInputRef = React.useRef(null);
 
+  // Image upload state
+  const [imageFile, setImageFile] = useState(null);
+  const [imageUrl, setImageUrl] = useState('');
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const imageInputRef = React.useRef(null);
+
   // Question state
   const [question, setQuestion] = useState({
+    questionTarget: 'COURSE', // NEW: COURSE or CLASS
     questionType: 'MULTIPLE_CHOICE',
-    answerType: 'SINGLE', // SINGLE or MULTIPLE - determines if answers are radio or checkbox
+    answerType: 'SINGLE', // ALWAYS SINGLE - only one correct answer
     category: '',
-    level: 'LEVEL_1',
+    level: 'LEVEL_1', // For COURSE
+    unit: 1, // For CLASS - Unit from 1-12
     topikType: '', // NEW: TOPIK type (R1, L1, W51...)
     points: 1, // NEW: Default points
     content: '',
@@ -59,43 +69,23 @@ const QuestionFormModal = ({ isOpen, onClose, questionId }) => {
       { id: 4, content: '', isCorrect: false },
     ],
     explanation: '',
+    textAnswer: '', // NEW: For L9 type (fill in the blank)
   });
 
   // Validation errors
   const [validationErrors, setValidationErrors] = useState({});
-
-  // Categories state
-  const [categories, setCategories] = useState([]);
-
-  // Load categories on mount
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const data = await teacherService.getAllCategories();
-        setCategories(data || []);
-      } catch (err) {
-        console.error('Failed to load categories:', err);
-        // Fallback to default categories if API fails
-        setCategories([
-          { id: 1, name: 'Grammar' },
-          { id: 2, name: 'Vocabulary' },
-          { id: 3, name: 'Reading' },
-          { id: 4, name: 'Listening' },
-          { id: 5, name: 'Writing' }
-        ]);
-      }
-    };
-    fetchCategories();
-  }, []);
   // Load existing question when in edit mode
   useEffect(() => {
     if (!isEditMode) {
       setQuestion({
+        questionTarget: defaultTarget, // Use defaultTarget from props
         questionType: 'MULTIPLE_CHOICE',
-        answerType: 'MULTIPLE',
+        answerType: 'SINGLE',
         category: '',
         level: 'LEVEL_1',
+        unit: 1,
         topikType: '', // NEW: Reset topikType
+        points: 1,
         content: '',
         answers: [
           { id: 1, content: '', isCorrect: false },
@@ -104,10 +94,13 @@ const QuestionFormModal = ({ isOpen, onClose, questionId }) => {
           { id: 4, content: '', isCorrect: false },
         ],
         explanation: '',
+        textAnswer: '',
       });
-      // Reset audio when creating new question
+      // Reset audio and image when creating new question
       setAudioUrl('');
       setAudioFile(null);
+      setImageUrl('');
+      setImageFile(null);
       return;
     }
 
@@ -124,32 +117,6 @@ const QuestionFormModal = ({ isOpen, onClose, questionId }) => {
         console.log('Options from API:', data.options);
         console.log('Answers count:', data.answers?.length);
         console.log('Options count:', data.options?.length);
-
-        // Handle category
-        let categoryValue = '';
-        if (typeof data.category === 'object' && data.category !== null) {
-          // Category could be {id: 1, name: 'Grammar'} or just an ID wrapped in object
-          categoryValue = data.category.id?.toString() ||
-                         data.category.id ||
-                         data.category.categoryId?.toString() ||
-                         data.category.name?.toString() ||
-                         '';
-          console.log('Category object:', data.category, 'Mapped to:', categoryValue);
-        } else if (data.category) {
-          categoryValue = data.category.toString();
-          console.log('Category primitive:', data.category, 'Mapped to:', categoryValue);
-        }
-
-        // Also try to get category from categoryName or categoryId
-        if (!categoryValue && data.categoryName) {
-          // Try to find category by name
-          const matchingCat = categories.find(c =>
-            c.name === data.categoryName ||
-            c.name.split(' - ')[0] === data.categoryName
-          );
-          categoryValue = matchingCat?.id?.toString() || '';
-          console.log('Category from categoryName:', data.categoryName, 'Found:', matchingCat);
-        }
 
         // Handle answers
         let mappedAnswers = [
@@ -204,10 +171,28 @@ const QuestionFormModal = ({ isOpen, onClose, questionId }) => {
           topikTypeValue = data.topik_type;
         }
 
+        // Debug: Log ALL fields from backend
+        console.log('=== Load Question Debug ===');
+        console.log('Raw data from backend:', JSON.stringify(data, null, 2));
+        console.log('level:', data.level);
+        console.log('unit:', data.unit);
+        console.log('topikType:', data.topikType);
+        console.log('=======================');
+
+        // Auto-determine questionTarget from level/unit
+        // Backend doesn't have questionTarget field, so we calculate it
+        let calculatedQuestionTarget = 'COURSE'; // Default
+        if (data.unit !== null && data.unit !== undefined) {
+          calculatedQuestionTarget = 'CLASS'; // Has unit → Class question
+        } else if (data.level) {
+          calculatedQuestionTarget = 'COURSE'; // Has level → Course question
+        }
+
+        console.log('Calculated questionTarget:', calculatedQuestionTarget);
+
         console.log('Setting question state with:', {
           questionType: questionTypeValue,
           answerType: answerTypeValue,
-          category: categoryValue,
           level: data.level,
           topikType: topikTypeValue,
           topikTypeRaw: data.topikType,
@@ -216,15 +201,17 @@ const QuestionFormModal = ({ isOpen, onClose, questionId }) => {
         });
 
         setQuestion({
+          questionTarget: calculatedQuestionTarget, // Use calculated value from level/unit
           questionType: questionTypeValue,
-          answerType: answerTypeValue,
-          category: categoryValue,
+          answerType: 'SINGLE', // ALWAYS SINGLE - override from API
           level: data.level || 'LEVEL_1',
+          unit: data.unit || 1, // NEW: Load unit for CLASS
           topikType: topikTypeValue, // NEW: Load topikType
           points: data.points || 1, // NEW: Load points
           content: data.questionText || data.content || '',
           answers: mappedAnswers,
           explanation: data.explanation || data.explain || data.solution || data.explanationText || '',
+          textAnswer: data.textAnswer || '',
         });
 
         // Load audio URL if exists
@@ -239,6 +226,18 @@ const QuestionFormModal = ({ isOpen, onClose, questionId }) => {
           setAudioUrl('');
           console.log('No audio URL found, set to empty');
         }
+
+        // Load image URL if exists
+        console.log('imageUrl:', data.imageUrl);
+        console.log('image_url:', data.image_url);
+
+        if (data.imageUrl || data.image_url) {
+          setImageUrl(data.imageUrl || data.image_url);
+          console.log('Image URL set to:', data.imageUrl || data.image_url);
+        } else {
+          setImageUrl('');
+          console.log('No image URL found, set to empty');
+        }
       } catch (err) {
         console.error('Error loading question:', err);
         setError('Không thể tải dữ liệu câu hỏi. Vui lòng thử lại.');
@@ -249,38 +248,39 @@ const QuestionFormModal = ({ isOpen, onClose, questionId }) => {
     loadQuestion();
   }, [questionId, isEditMode]);
 
-  // Auto-reset answerType when questionType changes
+  // Auto-set questionType based on topikType
   useEffect(() => {
-    if (question.questionType === 'FILL_BLANK' ||
-        question.questionType === 'WRITING' ||
-        question.questionType === 'SPEAKING' ||
-        question.questionType === 'SHORT_ANSWER' ||
-        question.questionType === 'ESSAY') {
-      // These types don't need answerType, set to null or undefined
-      setQuestion(prev => ({ ...prev, answerType: undefined }));
-    } else if (question.questionType === 'SINGLE_CHOICE') {
-      // SINGLE_CHOICE always uses SINGLE answer type
-      setQuestion(prev => ({ ...prev, answerType: 'SINGLE' }));
-    } else if (question.questionType === 'MULTIPLE_CHOICE' ||
-               question.questionType === 'LISTENING' ||
-               question.questionType === 'READING') {
-      // These types support both SINGLE and MULTIPLE
-      // Only set default if answerType is not already set
-      if (!question.answerType ||
-          question.answerType === 'undefined' ||
-          !['SINGLE', 'MULTIPLE'].includes(question.answerType)) {
-        setQuestion(prev => ({ ...prev, answerType: 'MULTIPLE' }));
+    if (question.topikType) {
+      let newQuestionType = 'MULTIPLE_CHOICE'; // Default
+
+      // Determine questionType from topikType prefix
+      const prefix = question.topikType.charAt(0); // R, L, or W
+
+      if (prefix === 'R') {
+        newQuestionType = 'READING';
+      } else if (prefix === 'L') {
+        newQuestionType = 'LISTENING';
+      } else if (prefix === 'W') {
+        newQuestionType = 'WRITING';
       }
+
+      setQuestion(prev => ({ ...prev, questionType: newQuestionType }));
     }
-  }, [question.questionType]);
+  }, [question.topikType]);
 
   // Validate form
   const validateForm = () => {
     const errors = {};
 
-    if (!question.questionType) errors.questionType = 'Vui lòng chọn loại câu hỏi';
-    if (!question.category) errors.category = 'Vui lòng chọn danh mục';
-    if (!question.level) errors.level = 'Vui lòng chọn cấp độ';
+    if (!question.questionTarget) errors.questionTarget = 'Vui lòng chọn đối tượng câu hỏi';
+    // questionType is auto-set from topikType, no need to validate
+
+    // Validate level for COURSE, unit for CLASS
+    if (question.questionTarget === 'COURSE') {
+      if (!question.level) errors.level = 'Vui lòng chọn cấp độ';
+    } else if (question.questionTarget === 'CLASS') {
+      if (!question.unit) errors.unit = 'Vui lòng chọn Unit';
+    }
 
     // Only validate topikType for NEW questions (not edit mode)
     // Old questions might not have topikType
@@ -290,12 +290,37 @@ const QuestionFormModal = ({ isOpen, onClose, questionId }) => {
 
     if (!question.content.trim()) errors.content = 'Vui lòng nhập nội dung câu hỏi';
 
-    if (['MULTIPLE_CHOICE', 'SINGLE_CHOICE', 'READING', 'LISTENING'].includes(question.questionType)) {
-      const hasAnswer = question.answers.some(a => a.content.trim());
-      const hasCorrect = question.answers.some(a => a.isCorrect);
+    // For TEXT_INPUT types (L9, W55), validate textAnswer instead of answers
+    if (question.questionTarget === 'CLASS' && question.topikType) {
+      const answerType = getClassQuestionAnswerType(question.topikType);
+      if (answerType === 'TEXT_INPUT') {
+        if (!question.textAnswer.trim()) {
+          errors.textAnswer = 'Vui lòng nhập đáp án đúng';
+        }
+      }
+    }
 
-      if (!hasAnswer) errors.answers = 'Vui lòng nhập ít nhất một đáp án';
-      if (!hasCorrect) errors.correct = 'Vui lòng chọn ít nhất một đáp án đúng';
+    // For MULTIPLE_CHOICE types, validate answers
+    if (['MULTIPLE_CHOICE', 'SINGLE_CHOICE', 'READING', 'LISTENING'].includes(question.questionType)) {
+      // Skip if it's a TEXT_INPUT type
+      if (question.questionTarget === 'CLASS' && question.topikType) {
+        const answerType = getClassQuestionAnswerType(question.topikType);
+        if (answerType === 'TEXT_INPUT') {
+          // Already validated above
+        } else {
+          const hasAnswer = question.answers.some(a => a.content.trim());
+          const hasCorrect = question.answers.some(a => a.isCorrect);
+
+          if (!hasAnswer) errors.answers = 'Vui lòng nhập ít nhất một đáp án';
+          if (!hasCorrect) errors.correct = 'Vui lòng chọn ít nhất một đáp án đúng';
+        }
+      } else {
+        const hasAnswer = question.answers.some(a => a.content.trim());
+        const hasCorrect = question.answers.some(a => a.isCorrect);
+
+        if (!hasAnswer) errors.answers = 'Vui lòng nhập ít nhất một đáp án';
+        if (!hasCorrect) errors.correct = 'Vui lòng chọn ít nhất một đáp án đúng';
+      }
     }
 
     // Validate audio for LISTENING questions
@@ -319,44 +344,87 @@ const QuestionFormModal = ({ isOpen, onClose, questionId }) => {
     try {
       // Prepare request data with proper format for backend
       // Backend expects: { question: {...}, options: [...] }
-      const categoryNum = parseInt(question.category) || 1;
 
       // Send questionType and answerType separately - backend now supports both!
+      // Determine if this question should use text input based on answerType
+      let useTextInput = false;
+      if (question.questionTarget === 'CLASS' && question.topikType) {
+        useTextInput = getClassQuestionAnswerType(question.topikType) === 'TEXT_INPUT';
+      }
+
       const requestData = {
         question: {
+          questionTarget: question.questionTarget, // NEW: COURSE or CLASS
           questionType: question.questionType,
           answerType: question.answerType,
-          category: {
-            id: categoryNum
-          },
-          level: question.level,
+          ...(question.questionTarget === 'COURSE'
+            ? { level: question.level }
+            : { unit: question.unit }
+          ), // NEW: level for COURSE, unit for CLASS
           topikType: question.topikType || null, // NEW: Include topikType
           questionText: question.content,
           explanation: question.explanation,
           questionMediaUrl: audioUrl || null,
-          points: question.points || 1, // Use points from state or default to 1
-          active: true
+          imageUrl: imageUrl || null, // NEW: Include imageUrl (URL from upload endpoint)
+          // Points NOT included - will be auto-set when added to exam based on structure
+          active: true,
+          textAnswer: question.textAnswer || null, // For TEXT_INPUT types (L9, W55)
         },
-        options: question.answers.map(ans => ({
-          optionText: ans.content,
-          isCorrect: ans.isCorrect
-        }))
+        options: useTextInput
+          ? [] // No options for TEXT_INPUT types
+          : question.answers.map(ans => ({
+            optionText: ans.content,
+            isCorrect: ans.isCorrect
+          }))
       };
 
       console.log('=== SUBMIT FORM ===');
       console.log('Question state:', question);
       console.log('topikType value:', question.topikType);
-      console.log('topikType type:', typeof question.topikType);
       console.log('Current audioUrl state:', audioUrl);
       console.log('questionMediaUrl being sent:', requestData.question.questionMediaUrl);
+      console.log('imageUrl being sent:', requestData.question.imageUrl);
       console.log('Full request data:', JSON.stringify(requestData, null, 2));
 
       if (isEditMode) {
         const response = await teacherService.updateQuestion(questionId, requestData);
         console.log('Update response:', response);
         setSuccessMessage('Cập nhật câu hỏi thành công!');
+
+        // Reload question data after update to show latest values
+        try {
+          const updatedData = await teacherService.getQuestion(questionId);
+          const data = await updatedData.json();
+
+          // Re-calculate questionTarget from updated level/unit
+          let calculatedQuestionTarget = 'COURSE';
+          if (data.unit !== null && data.unit !== undefined) {
+            calculatedQuestionTarget = 'CLASS';
+          } else if (data.level) {
+            calculatedQuestionTarget = 'COURSE';
+          }
+
+          // Update question state with latest data from backend
+          setQuestion(prev => ({
+            ...prev,
+            questionTarget: calculatedQuestionTarget,
+            level: data.level || prev.level,
+            unit: data.unit !== undefined ? data.unit : prev.unit,
+            topikType: data.topikType || prev.topikType,
+            imageUrl: data.imageUrl || data.image_url || prev.imageUrl,
+            content: data.questionText || data.content || prev.content,
+            explanation: data.explanation || prev.explanation
+          }));
+
+          console.log('Reloaded question data after update:', data);
+        } catch (reloadErr) {
+          console.error('Error reloading question data:', reloadErr);
+          // Continue anyway - update was successful
+        }
       } else {
         const response = await teacherService.createQuestion(requestData);
+        console.log('Create response:', response);
+        setSuccessMessage('Tạo câu hỏi mới thành công!');
         console.log('Create response:', response);
         setSuccessMessage('Tạo câu hỏi mới thành công!');
       }
@@ -391,15 +459,10 @@ const QuestionFormModal = ({ isOpen, onClose, questionId }) => {
     const newAnswers = [...question.answers];
 
     if (field === 'isCorrect') {
-      if (question.answerType === 'SINGLE') {
-        // For single choice, only one answer can be correct
-        newAnswers.forEach((ans, i) => {
-          ans.isCorrect = i === index;
-        });
-      } else {
-        // For multiple choice, toggle the correct status (multi-select allowed)
-        newAnswers[index][field] = !newAnswers[index][field];
-      }
+      // ALWAYS single choice - only one answer can be correct
+      newAnswers.forEach((ans, i) => {
+        ans.isCorrect = i === index;
+      });
     } else {
       newAnswers[index][field] = value;
     }
@@ -490,6 +553,65 @@ const QuestionFormModal = ({ isOpen, onClose, questionId }) => {
     }
   };
 
+  // Handle image file selection
+  // Handle image file selection + Auto upload immediately
+  const handleImageFileSelect = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Validate file type
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    if (!validTypes.includes(file.type) && !file.name.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
+      setError('Chỉ chấp nhận file ảnh (jpg, jpeg, png, gif, webp)');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setError('File ảnh không vượt quá 5MB');
+      return;
+    }
+
+    setImageFile(file);
+    setError('');
+
+    // Auto upload immediately
+    setUploadingImage(true);
+
+    try {
+      console.log('Auto-uploading image file:', file.name);
+      const response = await teacherService.uploadImage(file);
+      console.log('Upload image response:', response);
+
+      const url = response?.url || response?.imageUrl || response;
+      console.log('Extracted image URL:', url);
+
+      if (url) {
+        setImageUrl(url);
+        setImageFile(null); // Clear file after successful upload
+        console.log('✅ Image uploaded successfully:', url);
+        setError('');
+      } else {
+        console.error('❌ No URL in response:', response);
+        setError('Không thể upload ảnh. Server không trả về URL.');
+      }
+    } catch (err) {
+      console.error('❌ Error uploading image:', err);
+      setError('Không thể upload ảnh. Vui lòng thử lại.');
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
+  // Handle remove image
+  const handleRemoveImage = () => {
+    setImageUrl('');
+    setImageFile(null);
+    if (imageInputRef.current) {
+      imageInputRef.current.value = '';
+    }
+  };
+
   if (loadingQuestion) {
     return (
       <Modal
@@ -563,100 +685,81 @@ const QuestionFormModal = ({ isOpen, onClose, questionId }) => {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+              {/* Question Target: CLASS or COURSE */}
               <div>
                 <label className="block font-medium text-gray-700 mb-2 flex items-center gap-2 text-sm sm:text-base">
                   <Type className="w-4 h-4 text-gray-500" />
-                  Loại câu hỏi <span className="text-red-500">*</span>
+                  Đối tượng câu hỏi <span className="text-red-500">*</span>
                 </label>
                 <select
                   className="w-full px-3 sm:px-4 py-2 sm:py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition-all bg-white shadow-sm text-sm"
-                  value={question.questionType}
-                  onChange={e => setQuestion({ ...question, questionType: e.target.value })}
+                  value={question.questionTarget}
+                  onChange={e => {
+                    const newTarget = e.target.value;
+                    setQuestion({ ...question, questionTarget: newTarget, topikType: '' });
+                  }}
                 >
-                  <option value="MULTIPLE_CHOICE">Trắc nghiệm</option>
-                  <option value="FILL_BLANK">Điền vào chỗ trống</option>
-                  <option value="READING">Đọc hiểu</option>
-                  <option value="LISTENING">Nghe hiểu</option>
-                  <option value="WRITING">Viết</option>
-                  <option value="SPEAKING">Nói</option>
+                  <option value="COURSE">Khóa học (Course)</option>
+                  <option value="CLASS">Lớp học (Class)</option>
                 </select>
-                {validationErrors.questionType && (
+                {validationErrors.questionTarget && (
                   <p className="text-red-500 text-xs sm:text-sm mt-1 flex items-center gap-1">
-                    <X className="w-3 h-3" />{validationErrors.questionType}
+                    <X className="w-3 h-3" />{validationErrors.questionTarget}
                   </p>
                 )}
               </div>
 
-              {/* Answer Type - Show for MULTIPLE_CHOICE, LISTENING, READING */}
-              {['MULTIPLE_CHOICE', 'LISTENING', 'READING'].includes(question.questionType) && (
+              {/* Level (for COURSE) or Unit (for CLASS) */}
+              {question.questionTarget === 'COURSE' ? (
                 <div>
                   <label className="block font-medium text-gray-700 mb-2 flex items-center gap-2 text-sm sm:text-base">
                     <BarChart3 className="w-4 h-4 text-gray-500" />
-                    Loại đáp án <span className="text-red-500">*</span>
+                    Cấp độ <span className="text-red-500">*</span>
                   </label>
                   <select
                     className="w-full px-3 sm:px-4 py-2 sm:py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition-all bg-white shadow-sm text-sm"
-                    value={question.answerType}
-                    onChange={e => setQuestion({ ...question, answerType: e.target.value })}
+                    value={question.level}
+                    onChange={e => setQuestion({ ...question, level: e.target.value })}
                   >
-                    <option value="SINGLE">Một đáp án đúng</option>
-                    <option value="MULTIPLE">Nhiều đáp án đúng</option>
+                    <option value="LEVEL_1">Level 1 - Dễ nhất</option>
+                    <option value="LEVEL_2">Level 2 - Dễ</option>
+                    <option value="LEVEL_3">Level 3 - Trung bình</option>
+                    <option value="LEVEL_4">Level 4 - Khá</option>
+                    <option value="LEVEL_5">Level 5 - Khó</option>
+                    <option value="LEVEL_6">Level 6 - Khó nhất</option>
                   </select>
-                  <p className="text-gray-500 text-xs mt-1">
-                    {question.answerType === 'SINGLE' ? 'Radio button - Chỉ chọn 1' : 'Checkbox - Chọn nhiều'}
-                  </p>
+                  {validationErrors.level && (
+                    <p className="text-red-500 text-xs sm:text-sm mt-1 flex items-center gap-1">
+                      <X className="w-3 h-3" />{validationErrors.level}
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <div>
+                  <label className="block font-medium text-gray-700 mb-2 flex items-center gap-2 text-sm sm:text-base">
+                    <BarChart3 className="w-4 h-4 text-gray-500" />
+                    Unit <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    className="w-full px-3 sm:px-4 py-2 sm:py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition-all bg-white shadow-sm text-sm"
+                    value={question.unit}
+                    onChange={e => setQuestion({ ...question, unit: parseInt(e.target.value) })}
+                  >
+                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(unitNum => (
+                      <option key={unitNum} value={unitNum}>
+                        Unit {unitNum}
+                      </option>
+                    ))}
+                  </select>
+                  {validationErrors.unit && (
+                    <p className="text-red-500 text-xs sm:text-sm mt-1 flex items-center gap-1">
+                      <X className="w-3 h-3" />{validationErrors.unit}
+                    </p>
+                  )}
                 </div>
               )}
 
-              <div>
-                <label className="block font-medium text-gray-700 mb-2 flex items-center gap-2 text-sm sm:text-base">
-                  <BookOpen className="w-4 h-4 text-gray-500" />
-                  Danh mục <span className="text-red-500">*</span>
-                </label>
-                <select
-                  className="w-full px-3 sm:px-4 py-2 sm:py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition-all bg-white shadow-sm text-sm"
-                  value={question.category}
-                  onChange={e => setQuestion({ ...question, category: e.target.value })}
-                >
-                  <option value="">-- Chọn danh mục --</option>
-                  {categories.map(cat => (
-                    <option key={cat.id} value={cat.id}>
-                      {cat.name}
-                    </option>
-                  ))}
-                </select>
-                {validationErrors.category && (
-                  <p className="text-red-500 text-xs sm:text-sm mt-1 flex items-center gap-1">
-                    <X className="w-3 h-3" />{validationErrors.category}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <label className="block font-medium text-gray-700 mb-2 flex items-center gap-2 text-sm sm:text-base">
-                  <BarChart3 className="w-4 h-4 text-gray-500" />
-                  Cấp độ <span className="text-red-500">*</span>
-                </label>
-                <select
-                  className="w-full px-3 sm:px-4 py-2 sm:py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition-all bg-white shadow-sm text-sm"
-                  value={question.level}
-                  onChange={e => setQuestion({ ...question, level: e.target.value })}
-                >
-                  <option value="LEVEL_1">Level 1 - Dễ nhất</option>
-                  <option value="LEVEL_2">Level 2 - Dễ</option>
-                  <option value="LEVEL_3">Level 3 - Trung bình</option>
-                  <option value="LEVEL_4">Level 4 - Khá</option>
-                  <option value="LEVEL_5">Level 5 - Khó</option>
-                  <option value="LEVEL_6">Level 6 - Khó nhất</option>
-                </select>
-                {validationErrors.level && (
-                  <p className="text-red-500 text-xs sm:text-sm mt-1 flex items-center gap-1">
-                    <X className="w-3 h-3" />{validationErrors.level}
-                  </p>
-                )}
-              </div>
-
-              {/* TopikType */}
+              {/* TopikType - Show different options based on questionTarget */}
               <div>
                 <label className="block font-medium text-gray-700 mb-2 flex items-center gap-2 text-sm sm:text-base">
                   <FileText className="w-4 h-4 text-gray-500" />
@@ -665,29 +768,39 @@ const QuestionFormModal = ({ isOpen, onClose, questionId }) => {
                 <select
                   className="w-full px-3 sm:px-4 py-2 sm:py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition-all bg-white shadow-sm text-sm"
                   value={question.topikType}
-                  onChange={e => setQuestion({ ...question, topikType: e.target.value })}
+                  onChange={e => {
+                    const newTopikType = e.target.value;
+                    setQuestion({ ...question, topikType: newTopikType });
+                  }}
                 >
                   <option value="">-- Chọn Topik Type --</option>
-                  <option value="R1">R1 - Ngữ pháp/Từ vựng</option>
-                  <option value="R2">R2 - Đọc hiểu văn bản thực tế</option>
-                  <option value="R3">R3 - Đọc biểu đồ/bảng biểu</option>
-                  <option value="R4">R4 - Sắp xếp thứ tự câu</option>
-                  <option value="R5">R5 - Đọc đoạn văn cơ bản</option>
-                  <option value="R6">R6 - Đọc bài viết ngắn</option>
-                  <option value="R7">R7 - Đọc đoạn văn dài</option>
-                  <option value="R8">R8 - Chọn tiêu đề/chủ đề chính</option>
-                  <option value="R9">R9 - Đọc bài viết chuyên sâu</option>
-                  <option value="L1">L1 - Nghe chọn hình/biểu đồ</option>
-                  <option value="L2">L2 - Nghe chọn câu trả lời</option>
-                  <option value="L3">L3 - Nghe chọn hành động</option>
-                  <option value="L4">L4 - Nghe chọn nội dung giống</option>
-                  <option value="L5">L5 - Nghe chọn suy nghĩ/ý định</option>
-                  <option value="L6">L6 - Nghe hội thoại dài</option>
-                  <option value="L7">L7 - Nghe bài giảng chuyên môn</option>
-                  <option value="W51">W51 - Điền vào chỗ trống - Đời sống</option>
-                  <option value="W52">W52 - Điền vào chỗ trống - Giải thích</option>
-                  <option value="W53">W53 - Viết bài luận ngắn - Biểu đồ</option>
-                  <option value="W54">W54 - Viết bài luận dài - Nghị luận</option>
+                  {question.questionTarget === 'CLASS' ? (
+                    // Class options từ topikClassStructure.js
+                    getAllClassQuestionTypes().map(type => (
+                      <option key={type.type} value={type.type}>
+                        {type.type} - {type.name} ({type.points} điểm - {type.answerType === 'TEXT_INPUT' ? 'Text Input' : 'Multiple Choice'})
+                      </option>
+                    ))
+                  ) : (
+                    // Course options từ topikStructure.js
+                    <>
+                      {QUESTION_TYPE_MAPPING.READING?.map(r => (
+                        <option key={r.type} value={r.type}>
+                          {r.type} - {r.name} ({r.pointsPerQuestion} điểm)
+                        </option>
+                      ))}
+                      {QUESTION_TYPE_MAPPING.LISTENING?.map(l => (
+                        <option key={l.type} value={l.type}>
+                          {l.type} - {l.name} ({l.pointsPerQuestion} điểm)
+                        </option>
+                      ))}
+                      {QUESTION_TYPE_MAPPING.WRITING?.map(w => (
+                        <option key={w.type} value={w.type}>
+                          {w.type} - {w.name} ({w.pointsPerQuestion} điểm)
+                        </option>
+                      ))}
+                    </>
+                  )}
                 </select>
                 {validationErrors.topikType && (
                   <p className="text-red-500 text-xs sm:text-sm mt-1 flex items-center gap-1">
@@ -696,22 +809,21 @@ const QuestionFormModal = ({ isOpen, onClose, questionId }) => {
                 )}
               </div>
 
-              {/* Points */}
-              <div>
-                <label className="block font-medium text-gray-700 mb-2 flex items-center gap-2 text-sm sm:text-base">
-                  <Lightbulb className="w-4 h-4 text-gray-500" />
-                  Điểm <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="number"
-                  min="1"
-                  max="100"
-                  className="w-full px-3 sm:px-4 py-2 sm:py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition-all bg-white shadow-sm text-sm"
-                  value={question.points}
-                  onChange={e => setQuestion({ ...question, points: parseInt(e.target.value) || 1 })}
-                  placeholder="Nhập điểm cho câu hỏi"
-                />
-              </div>
+              {/* Points Info - NOT editable, just for display */}
+              {question.questionTarget === 'CLASS' && question.topikType && (
+                <div>
+                  <label className="block font-medium text-gray-700 mb-2 flex items-center gap-2 text-sm sm:text-base">
+                    <Lightbulb className="w-4 h-4 text-gray-500" />
+                    Điểm (tự động theo cấu trúc)
+                  </label>
+                  <div className="w-full px-3 sm:px-4 py-2 sm:py-3 border-2 border-gray-200 rounded-xl bg-gray-50 text-sm font-medium">
+                    {getClassQuestionPoints(question.topikType)} điểm
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Điểm sẽ được tự động set khi thêm vào đề thi
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 
@@ -734,20 +846,79 @@ const QuestionFormModal = ({ isOpen, onClose, questionId }) => {
                 <X className="w-3 h-3" />{validationErrors.content}
               </p>
             )}
+
+            {/* Image Upload Section */}
+            <div className="mt-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Upload className="w-4 h-4 text-blue-600" />
+                <label className="block font-medium text-gray-700 text-sm sm:text-base">Hình ảnh (tùy chọn)</label>
+              </div>
+
+              {imageUrl ? (
+                // Display existing image
+                <div className="space-y-3">
+                  <div className="relative p-3 bg-white rounded-xl border border-blue-200">
+                    <img
+                      src={imageUrl}
+                      alt="Question"
+                      className="w-full max-h-64 object-contain rounded-lg"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleRemoveImage}
+                      className="absolute top-5 right-5 p-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-all shadow-md"
+                      title="Xóa ảnh"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                // Upload new image (auto-uploads on selection)
+                <div className="space-y-3">
+                  {uploadingImage ? (
+                    <div className="flex items-center justify-center gap-3 p-4 bg-blue-50 rounded-xl border-2 border-blue-200">
+                      <div className="animate-spin rounded-full h-5 w-5 border-2 border-blue-600 border-t-transparent"></div>
+                      <span className="text-sm text-blue-700 font-medium">Đang tải ảnh lên...</span>
+                    </div>
+                  ) : (
+                    <input
+                      ref={imageInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageFileSelect}
+                      className="w-full px-3 sm:px-4 py-2 sm:py-3 border-2 border-blue-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition-all bg-white text-sm file:mr-4 file:py-1 file:px-4 file:rounded-lg file:border-0 file:bg-blue-100 file:text-blue-700 hover:file:bg-blue-200 cursor-pointer"
+                    />
+                  )}
+                  <p className="text-xs text-gray-500 flex items-center gap-1">
+                    <Info className="w-3 h-3" />
+                    Hỗ trợ: jpg, jpeg, png, gif, webp (Tối đa: 5MB) - Ảnh sẽ tự động tải lên khi chọn
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* Answers Section */}
-          {['MULTIPLE_CHOICE', 'LISTENING', 'READING'].includes(question.questionType) && (
+          {/* Answers Section - Only show for MULTIPLE_CHOICE types */}
+          {(() => {
+            // Determine if this question should use text input or multiple choice
+            let useTextInput = false;
+
+            if (question.questionTarget === 'CLASS' && question.topikType) {
+              // Check answerType from class structure
+              const answerType = getClassQuestionAnswerType(question.topikType);
+              useTextInput = answerType === 'TEXT_INPUT';
+            }
+
+            // Show multiple choice answers if not text input and question type allows it
+            return !useTextInput && ['MULTIPLE_CHOICE', 'LISTENING', 'READING'].includes(question.questionType);
+          })() && (
             <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-4 sm:p-6 border border-green-200">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
                 <div className="flex items-center gap-2 flex-wrap">
                   <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
                   <h3 className="font-semibold text-gray-800 text-sm sm:text-base">Đáp án</h3>
-                  <span className="text-xs text-gray-500">
-                    {question.answerType === 'SINGLE'
-                      ? '(Chỉ chọn 1 đáp án đúng)'
-                      : '(Có thể chọn nhiều đáp án đúng)'}
-                  </span>
+                  <span className="text-xs text-gray-500">(Chọn 1 đáp án đúng)</span>
                 </div>
                 {question.answers.length < 6 && (
                   <button
@@ -772,40 +943,20 @@ const QuestionFormModal = ({ isOpen, onClose, questionId }) => {
                     }`}
                   >
                     <label className="cursor-pointer relative flex-shrink-0">
-                      {question.answerType === 'SINGLE' ? (
-                        <>
-                          <input
-                            type="radio"
-                            name="correct-answer"
-                            checked={answer.isCorrect}
-                            onChange={() => handleAnswerChange(index, 'isCorrect')}
-                            className="sr-only"
-                          />
-                          <div className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full border-2 flex items-center justify-center transition-all ${
-                            answer.isCorrect
-                              ? 'bg-green-500 border-green-500'
-                              : 'border-gray-300 hover:border-green-400 bg-white'
-                          }`}>
-                            {answer.isCorrect && <Check className="w-3 h-3 sm:w-4 sm:h-4 text-white" />}
-                          </div>
-                        </>
-                      ) : (
-                        <>
-                          <input
-                            type="checkbox"
-                            checked={answer.isCorrect}
-                            onChange={() => handleAnswerChange(index, 'isCorrect')}
-                            className="sr-only"
-                          />
-                          <div className={`w-5 h-5 sm:w-6 sm:h-6 rounded border-2 flex items-center justify-center transition-all ${
-                            answer.isCorrect
-                              ? 'bg-green-500 border-green-500'
-                              : 'border-gray-300 hover:border-green-400 bg-white'
-                          }`}>
-                            {answer.isCorrect && <Check className="w-3 h-3 sm:w-4 sm:h-4 text-white" />}
-                          </div>
-                        </>
-                      )}
+                      <input
+                        type="radio"
+                        name="correct-answer"
+                        checked={answer.isCorrect}
+                        onChange={() => handleAnswerChange(index, 'isCorrect')}
+                        className="sr-only"
+                      />
+                      <div className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full border-2 flex items-center justify-center transition-all ${
+                        answer.isCorrect
+                          ? 'bg-green-500 border-green-500'
+                          : 'border-gray-300 hover:border-green-400 bg-white'
+                      }`}>
+                        {answer.isCorrect && <Check className="w-3 h-3 sm:w-4 sm:h-4 text-white" />}
+                      </div>
                     </label>
 
                     <input
@@ -839,6 +990,62 @@ const QuestionFormModal = ({ isOpen, onClose, questionId }) => {
                   <X className="w-3 h-3" />{validationErrors.correct}
                 </p>
               )}
+            </div>
+          )}
+
+          {/* Text Answer Section for TEXT_INPUT types (L9, W55, etc.) */}
+          {(() => {
+            if (question.questionTarget === 'CLASS' && question.topikType) {
+              const answerType = getClassQuestionAnswerType(question.topikType);
+              if (answerType === 'TEXT_INPUT') {
+                // Get question info
+                const allTypes = getAllClassQuestionTypes();
+                const typeInfo = allTypes.find(t => t.type === question.topikType);
+                return true;
+              }
+            }
+            return false;
+          })() && (
+            <div className="bg-gradient-to-br from-orange-50 to-amber-50 rounded-2xl p-4 sm:p-6 border border-orange-200">
+              <div className="flex items-center gap-2 mb-3 sm:mb-4">
+                <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-orange-600" />
+                <h3 className="font-semibold text-gray-800 text-sm sm:text-base">
+                  {(() => {
+                    const allTypes = getAllClassQuestionTypes();
+                    const typeInfo = allTypes.find(t => t.type === question.topikType);
+                    return typeInfo?.name || 'Đáp án dạng văn bản';
+                  })()}
+                </h3>
+                <span className="text-xs text-gray-500">
+                  ({question.topikType} - Text Input)
+                </span>
+              </div>
+
+              <textarea
+                rows={3}
+                className="w-full px-3 sm:px-4 py-2 sm:py-3 border-2 border-orange-200 rounded-xl focus:border-orange-500 focus:ring-2 focus:ring-orange-200 focus:outline-none resize-none transition-all bg-white shadow-sm text-sm"
+                placeholder={
+                  question.topikType === 'L9'
+                    ? 'Nhập đáp án đúng cho câu hỏi điền vào chỗ trống...'
+                    : question.topikType === 'W55'
+                    ? 'Nhập câu mẫu/ví dụ cho câu viết ngắn...'
+                    : 'Nhập đáp án...'
+                }
+                value={question.textAnswer}
+                onChange={e => setQuestion({ ...question, textAnswer: e.target.value })}
+              />
+              {validationErrors.textAnswer && (
+                <p className="text-red-500 text-xs sm:text-sm mt-2 flex items-center gap-1">
+                  <X className="w-3 h-3" />{validationErrors.textAnswer}
+                </p>
+              )}
+              <p className="text-xs text-gray-500 mt-2">
+                {question.topikType === 'L9'
+                  ? 'Lưu ý: L9 là loại câu hỏi điền từ vào chỗ trống, học sinh sẽ nhập văn bản thay vì chọn đáp án'
+                  : question.topikType === 'W55'
+                  ? 'Lưu ý: W55 là loại câu hỏi viết câu ngắn (1-2 câu), học sinh sẽ nhập câu của mình'
+                  : 'Lưu ý: Đây là loại câu hỏi dạng văn bản, học sinh sẽ nhập câu trả lời'}
+              </p>
             </div>
           )}
 

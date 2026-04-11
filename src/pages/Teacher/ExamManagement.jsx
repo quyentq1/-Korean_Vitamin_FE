@@ -46,7 +46,7 @@ const ExamManagement = () => {
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [courseFilter, setCourseFilter] = useState(courseIdFromUrl || 'all');
-  const [activeTab, setActiveTab] = useState('PRACTICE'); // 'MOCK' or 'PRACTICE'
+  const [activeTab, setActiveTab] = useState('COURSE_PRACTICE'); // 'COURSE_PRACTICE', 'CLASS_PRACTICE', 'MOCK'
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [examToDelete, setExamToDelete] = useState(null);
   const [showPublishModal, setShowPublishModal] = useState(false);
@@ -111,8 +111,18 @@ const ExamManagement = () => {
                          exam?.title?.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
                          exam?.code?.toLowerCase().includes(debouncedSearch.toLowerCase());
 
-    // Filter by examCategory (MOCK vs PRACTICE)
-    const matchesCategory = exam?.examCategory === activeTab;
+    // Filter by tab (COURSE_PRACTICE, CLASS_PRACTICE, MOCK)
+    let matchesTab = false;
+    if (activeTab === 'COURSE_PRACTICE') {
+      // Course practice exams: PRACTICE category AND NO classEntity/classId
+      matchesTab = exam?.examCategory === 'PRACTICE' && !exam.classEntity && !exam.classId;
+    } else if (activeTab === 'CLASS_PRACTICE') {
+      // Class practice exams: PRACTICE category AND HAS classEntity/classId
+      matchesTab = exam?.examCategory === 'PRACTICE' && (exam.classEntity || exam.classId);
+    } else if (activeTab === 'MOCK') {
+      // Mock exams: MOCK category
+      matchesTab = exam?.examCategory === 'MOCK';
+    }
 
     // Filter by published status only
     let matchesStatus = true;
@@ -135,7 +145,7 @@ const ExamManagement = () => {
       matchesCourse = exam?.course?.name === courseFilter;
     }
 
-    return matchesSearch && matchesCategory && matchesStatus && matchesCourse;
+    return matchesSearch && matchesTab && matchesStatus && matchesCourse;
   });
 
   // Sort exams by createdAt descending
@@ -285,7 +295,9 @@ const ExamManagement = () => {
       {/* Info Alert - Approval Workflow Notice */}
       <Alert variant="info" icon={<AlertCircle className="w-5 h-5" />} className="mb-6">
         <div className="font-medium mb-1">
-          {activeTab === 'MOCK' ? 'Quy trình phê duyệt FreeTest' : 'Quy trình phê duyệt đề luyện thi'}
+          {activeTab === 'MOCK' ? 'Quy trình phê duyệt FreeTest' :
+           activeTab === 'CLASS_PRACTICE' ? 'Quy trình phê duyệt đề luyện thi cho Lớp học' :
+           'Quy trình phê duyệt đề luyện thi cho Khóa học'}
         </div>
         <div className="text-sm">
           {activeTab === 'MOCK' ? (
@@ -293,10 +305,15 @@ const ExamManagement = () => {
               FreeTest là <strong>đề thi thử miễn phí</strong> dành cho tất cả người dùng (không cần đăng ký).
               Khi tạo FreeTest mới, nó sẽ ở trạng thái <strong>Chờ duyệt</strong>. Education Manager sẽ xem xét và phê duyệt.
             </>
+          ) : activeTab === 'CLASS_PRACTICE' ? (
+            <>
+              Đề luyện thi cho <strong>lớp học</strong> dành cho học viên trong lớp cụ thể.
+              Khi tạo đề mới, nó sẽ ở trạng thái <strong>Chờ duyệt</strong>. Education Manager sẽ xem xét và phê duyệt.
+            </>
           ) : (
             <>
-              Đề luyện thi dành cho <strong>học viên đã đăng ký khóa học</strong>.
-              Khi tạo đề mới, nó sẽ ở trạng thái <strong>Chờ duyệt</strong>. Education Manager sẽ xem xét và phê duyệt trước khi đề thi được công bố.
+              Đề luyện thi cho <strong>khóa học</strong> dành cho học viên đã đăng ký khóa học.
+              Khi tạo đề mới, nó sẽ ở trạng thái <strong>Chờ duyệt</strong>. Education Manager sẽ xem xét và phê duyệt.
             </>
           )}
         </div>
@@ -326,16 +343,29 @@ const ExamManagement = () => {
         <div className="border-b border-gray-200">
           <nav className="flex -mb-px gap-2">
             <button
-              onClick={() => setActiveTab('PRACTICE')}
+              onClick={() => setActiveTab('COURSE_PRACTICE')}
               className={`px-6 py-3 font-medium text-sm border-b-2 transition-colors ${
-                activeTab === 'PRACTICE'
+                activeTab === 'COURSE_PRACTICE'
                   ? 'border-blue-500 text-blue-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
               <div className="flex items-center gap-2">
                 <FileText className="w-4 h-4" />
-                <span>Luyện Thi (PRACTICE)</span>
+                <span>📚 Khóa Học</span>
+              </div>
+            </button>
+            <button
+              onClick={() => setActiveTab('CLASS_PRACTICE')}
+              className={`px-6 py-3 font-medium text-sm border-b-2 transition-colors ${
+                activeTab === 'CLASS_PRACTICE'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <Users className="w-4 h-4" />
+                <span>👥 Lớp Học</span>
               </div>
             </button>
             <button
@@ -348,14 +378,16 @@ const ExamManagement = () => {
             >
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4" />
-                <span>FreeTest (MOCK)</span>
+                <span>🆓 FreeTest</span>
               </div>
             </button>
           </nav>
         </div>
         <div className="mt-3 text-sm text-gray-600">
-          {activeTab === 'PRACTICE' ? (
-            <p>Đề thi luyện thi cho học viên đã đăng ký khóa học</p>
+          {activeTab === 'COURSE_PRACTICE' ? (
+            <p>Đề thi luyện thi cho <strong>khóa học</strong> - học viên đã đăng ký khóa học</p>
+          ) : activeTab === 'CLASS_PRACTICE' ? (
+            <p>Đề thi luyện thi cho <strong>lớp học</strong> - học viên trong lớp cụ thể</p>
           ) : (
             <p>Đề thi thử miễn phí cho tất cả người dùng (FreeTest)</p>
           )}
@@ -497,18 +529,22 @@ const ExamManagement = () => {
             <p className="text-gray-500 mb-4">
               {activeTab === 'MOCK'
                 ? 'Không tìm thấy đề FreeTest nào'
-                : 'Không tìm thấy đề luyện thi nào'}
+                : activeTab === 'CLASS_PRACTICE'
+                ? 'Không tìm thấy đề luyện thi cho lớp học nào'
+                : 'Không tìm thấy đề luyện thi cho khóa học nào'}
             </p>
             <Button
               variant="primary"
               icon={<Plus className="w-4 h-4" />}
               onClick={() => navigate(
                 courseIdFromUrl
-                  ? `/teacher/exam-management/create?courseId=${courseIdFromUrl}&examCategory=${activeTab}`
-                  : `/teacher/exam-management/create?examCategory=${activeTab}`
+                  ? `/teacher/exam-management/create?courseId=${courseIdFromUrl}&examCategory=${activeTab === 'MOCK' ? 'MOCK' : 'PRACTICE'}`
+                  : `/teacher/exam-management/create?examCategory=${activeTab === 'MOCK' ? 'MOCK' : 'PRACTICE'}`
               )}
             >
-              {activeTab === 'MOCK' ? 'Tạo FreeTest Đầu Tiên' : 'Tạo Đề Luyện Thi Đầu Tiên'}
+              {activeTab === 'MOCK' ? 'Tạo FreeTest Đầu Tiên' :
+               activeTab === 'CLASS_PRACTICE' ? 'Tạo Đề Lớp Học Đầu Tiên' :
+               'Tạo Đề Khóa Học Đầu Tiên'}
             </Button>
           </div>
         ) : (
@@ -532,13 +568,19 @@ const ExamManagement = () => {
                           <span className="text-sm text-gray-500">({exam.code})</span>
                         )}
                         {getPublishedBadge(exam)}
-                        {exam.examCategory && (
-                          <Badge
-                            variant={exam.examCategory === 'MOCK' ? 'primary' : 'info'}
-                            size="sm"
-                            className={exam.examCategory === 'MOCK' ? 'bg-purple-100 text-purple-700' : ''}
-                          >
-                            {exam.examCategory === 'MOCK' ? 'FreeTest' : 'Luyện Thi'}
+                        {exam.examCategory === 'MOCK' && (
+                          <Badge variant="primary" size="sm" className="bg-purple-100 text-purple-700">
+                            🆓 FreeTest
+                          </Badge>
+                        )}
+                        {exam.examCategory === 'PRACTICE' && (exam.classEntity || exam.classId) && (
+                          <Badge variant="warning" size="sm" className="bg-orange-100 text-orange-700">
+                            👥 Lớp học
+                          </Badge>
+                        )}
+                        {exam.examCategory === 'PRACTICE' && !(exam.classEntity || exam.classId) && (
+                          <Badge variant="success" size="sm" className="bg-green-100 text-green-700">
+                            📚 Khóa học
                           </Badge>
                         )}
                         {exam.examType && getTypeBadge(exam.examType)}

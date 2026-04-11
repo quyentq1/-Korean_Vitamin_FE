@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Search,
-  Filter,
   Plus,
   Edit,
   Trash2,
@@ -20,10 +19,14 @@ import {
   ChevronFirst,
   ChevronLast,
   FileQuestion,
+  FileText,
   AlertCircle,
   Info,
   CheckCircle,
-  Calendar
+  Calendar,
+  Lock,
+  ChevronUp,
+  ChevronDown
 } from 'lucide-react';
 import teacherService from '../../services/teacherService';
 import {
@@ -55,6 +58,7 @@ const QuestionBank = () => {
   const location = useLocation();
 
   // State
+  const [activeTab, setActiveTab] = useState('COURSE'); // 'COURSE' or 'CLASS'
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -62,17 +66,12 @@ const QuestionBank = () => {
   const [categories, setCategories] = useState([]);
   const [highlightedQuestionId, setHighlightedQuestionId] = useState(null); // For scrolling to specific question
   const [filters, setFilters] = useState({
-    type: '',
-    category: '',
-    level: '',
-    topikType: '', // NEW: Filter by TopikType (R1, L1, W51...)
-    search: '',
-    verificationStatus: 'ALL' // NEW: Filter by verification status
+    search: '' // Keep only search filter
   });
   const [view, setView] = useState('list'); // 'list' or 'grid'
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [pageSize, setPageSize] = useState(5);
+  const [pageSize, setPageSize] = useState(10);
   const [total, setTotal] = useState(0);
   const [allQuestions, setAllQuestions] = useState([]); // Store all questions for client-side pagination
   const [selectedQuestions, setSelectedQuestions] = useState([]);
@@ -88,6 +87,10 @@ const QuestionBank = () => {
   const [showQuestionModal, setShowQuestionModal] = useState(false);
   const [editingQuestionId, setEditingQuestionId] = useState(null);
   const [approvalHistory, setApprovalHistory] = useState([]); // Approval history for preview
+
+  // Sorting state
+  const [sortColumn, setSortColumn] = useState('id');
+  const [sortDirection, setSortDirection] = useState('asc'); // 'asc' or 'desc'
 
   // Mock data - will be replaced with API calls
   const mockQuestions = [
@@ -112,7 +115,14 @@ const QuestionBank = () => {
     setLoading(true);
     setError('');
     try {
+      console.log('=== Fetch Questions ===');
+      console.log('Request params:', { page, pageSize, ...filters });
+
       const response = await teacherService.getQuestions({ page, pageSize, ...filters });
+
+      console.log('API Response:', response);
+      console.log('Response data length:', response?.data?.length);
+      console.log('Response total:', response?.total);
 
       // Handle different response formats
       let questionsData = [];
@@ -142,6 +152,9 @@ const QuestionBank = () => {
         throw new Error('Invalid response format');
       }
 
+      console.log('Questions data length:', questionsData.length);
+      console.log('Total count:', totalCount);
+
       // Map API response to component format
       const mappedQuestions = questionsData.map(q => ({
         id: q.id?.toString() || Math.random().toString(36).substr(2, 9),
@@ -149,13 +162,42 @@ const QuestionBank = () => {
         category: q.categoryName || q.categoryId?.toString() || 'Uncategorized',
         type: q.questionType || q.type || 'MULTIPLE_CHOICE',
         level: q.level || 'LEVEL_3',
+        unit: q.unit || null, // Store unit value
         status: q.active ? 'Active' : 'Inactive',
         verificationStatus: q.verificationStatus || 'PENDING',
         createdAt: q.createdAt || q.created_at || new Date().toISOString(),
         options: q.options || [],
         points: q.points || 1,
-        active: q.active !== undefined ? q.active : true
+        active: q.active !== undefined ? q.active : true,
+        imageUrl: q.imageUrl || q.image_url || null, // NEW: Image URL
+        questionMediaUrl: q.questionMediaUrl || null // Audio URL
       }));
+
+      // Filter by active tab (COURSE vs CLASS)
+      let filteredByTab = mappedQuestions;
+
+      // Debug: Check data structure
+      console.log('=== Tab Filter Debug ===');
+      console.log('Active Tab:', activeTab);
+      console.log('Sample questions:', mappedQuestions.slice(0, 5).map(q => ({
+        id: q.id,
+        level: q.level,
+        unit: q.unit,
+        hasLevel: !!q.level,
+        hasUnit: !!q.unit
+      })));
+
+      if (activeTab === 'COURSE') {
+        // Course questions: KHÔNG có unit (unit is null or undefined)
+        filteredByTab = mappedQuestions.filter(q => !q.unit && q.level);
+      } else if (activeTab === 'CLASS') {
+        // Class questions: CÓ unit (unit is not null/undefined)
+        // Ưu tiên unit - nếu có unit thì là Class question bất kể có level hay không
+        filteredByTab = mappedQuestions.filter(q => q.unit !== null && q.unit !== undefined);
+      }
+
+      console.log('After filter:', filteredByTab.length, 'questions');
+      console.log('=======================');
 
       // Debug: Log first question to check verificationStatus
       if (mappedQuestions.length > 0) {
@@ -177,15 +219,12 @@ const QuestionBank = () => {
       }
 
       // Store all questions for client-side pagination
-      setAllQuestions(mappedQuestions);
-      setTotal(totalCount);
+      setAllQuestions(filteredByTab);
+      setTotal(filteredByTab.length); // Update total to filtered count
       setTotalPages(totalPagesCount);
 
-      // Apply client-side pagination - slice questions for current page
-      const startIndex = (page - 1) * pageSize;
-      const endIndex = startIndex + pageSize;
-      const paginatedQuestions = mappedQuestions.slice(startIndex, endIndex);
-      setQuestions(paginatedQuestions);
+      // Questions will be set by the sorting useEffect
+      // setQuestions(filteredByTab); // REMOVED - handled by sorting useEffect
 
       // Also fetch categories
       await fetchCategories();
@@ -236,7 +275,18 @@ const QuestionBank = () => {
   // Fetch data on component mount only (not when filters change)
   useEffect(() => {
     fetchQuestions();
-  }, []); // Empty dependency array = only run once on mount
+  }, [activeTab]); // Re-fetch when switching tabs
+
+  // Apply sorting whenever sortColumn, sortDirection, or questions change
+  useEffect(() => {
+    if (allQuestions.length > 0) {
+      const sorted = sortQuestions(allQuestions);
+      // Apply pagination to sorted data
+      const startIndex = (page - 1) * pageSize;
+      const endIndex = startIndex + pageSize;
+      setQuestions(sorted.slice(startIndex, endIndex));
+    }
+  }, [sortColumn, sortDirection, allQuestions, page, pageSize]);
 
   // Handle URL query params for navigation from notifications
   useEffect(() => {
@@ -269,56 +319,11 @@ const QuestionBank = () => {
     }
   }, [loading, questions, location.search, navigate]);
 
-  // Handle client-side pagination when page or pageSize changes
-  useEffect(() => {
-    if (allQuestions.length > 0) {
-      const startIndex = (page - 1) * pageSize;
-      const endIndex = startIndex + pageSize;
-      const paginatedQuestions = allQuestions.slice(startIndex, endIndex);
-      setQuestions(paginatedQuestions);
-
-      // Recalculate totalPages if pageSize changed
-      const newTotalPages = Math.ceil(allQuestions.length / pageSize);
-      setTotalPages(newTotalPages);
-    }
-  }, [page, pageSize, allQuestions]);
-
   // Handle filter change
   const handleFilterChange = (key, value) => {
     setFilters(prev => ({ ...prev, [key]: value }));
     setPage(1);
   };
-
-  // Filter questions based on filters state
-  useEffect(() => {
-    if (allQuestions.length === 0) return;
-
-    const filtered = allQuestions.filter(q => {
-      if (filters.category && q.category !== filters.category) return false;
-      if (filters.type && q.type !== filters.type) return false;
-      if (filters.level && q.level !== filters.level) return false;
-      if (filters.search && !q.content.toLowerCase().includes(filters.search.toLowerCase())) return false;
-      // NEW: Filter by verification status
-      if (filters.verificationStatus && filters.verificationStatus !== 'ALL') {
-        if (filters.verificationStatus === 'PENDING' && q.verificationStatus !== 'PENDING') return false;
-        if (filters.verificationStatus === 'APPROVED' && q.verificationStatus !== 'APPROVED') return false;
-        if (filters.verificationStatus === 'REJECTED' && q.verificationStatus !== 'REJECTED') return false;
-      }
-      return true;
-    });
-
-    // Update pagination
-    setTotal(filtered.length);
-    setTotalPages(Math.ceil(filtered.length / pageSize));
-
-    // Paginate
-    const startIndex = (page - 1) * pageSize;
-    const endIndex = startIndex + pageSize;
-    setQuestions(filtered.slice(startIndex, endIndex));
-
-    // Debug log
-    console.log(`Filter: ${filters.verificationStatus} | Total: ${allQuestions.length} | Filtered: ${filtered.length} | Showing: ${filtered.slice(startIndex, endIndex).length}`);
-  }, [allQuestions, filters, page, pageSize]);
 
   // Handle page size change
   const handlePageSizeChange = (newSize) => {
@@ -332,8 +337,56 @@ const QuestionBank = () => {
     setPage(1);
   };
 
+  // Handle sort
+  const handleSort = (column) => {
+    if (sortColumn === column) {
+      // Toggle direction if same column
+      setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+    } else {
+      // New column, set to asc
+      setSortColumn(column);
+      setSortDirection('asc');
+    }
+  };
+
+  // Sort questions helper
+  const sortQuestions = (questionsToSort) => {
+    if (!sortColumn) return questionsToSort;
+
+    return [...questionsToSort].sort((a, b) => {
+      let aVal = a[sortColumn];
+      let bVal = b[sortColumn];
+
+      // Handle special cases
+      if (sortColumn === 'level') {
+        aVal = aVal || 'LEVEL_0';
+        bVal = bVal || 'LEVEL_0';
+      } else if (sortColumn === 'unit') {
+        aVal = aVal || 0;
+        bVal = bVal || 0;
+      } else if (sortColumn === 'createdAt') {
+        aVal = new Date(aVal).getTime();
+        bVal = new Date(bVal).getTime();
+      } else if (sortColumn === 'id') {
+        aVal = parseInt(aVal) || 0;
+        bVal = parseInt(bVal) || 0;
+      }
+
+      // Compare
+      if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1;
+      if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1;
+      return 0;
+    });
+  };
+
   // Handle edit question
   const handleEditQuestion = (questionId) => {
+    const question = questions.find(q => q.id === questionId);
+    if (question && question.verificationStatus === 'APPROVED') {
+      setError(t('qb.cannotEditApproved', 'Câu hỏi đã duyệt không thể sửa'));
+      setTimeout(() => setError(''), 3000);
+      return;
+    }
     setEditingQuestionId(questionId);
     setShowQuestionModal(true);
   };
@@ -341,6 +394,26 @@ const QuestionBank = () => {
   const handleCreateQuestion = () => {
     setEditingQuestionId(null);
     setShowQuestionModal(true);
+  };
+
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    // Reset filters when switching tabs
+    if (tab === 'COURSE') {
+      setFilters(prev => ({
+        ...prev,
+        unit: '',
+        level: ''
+      }));
+    } else {
+      setFilters(prev => ({
+        ...prev,
+        level: '',
+        unit: ''
+      }));
+    }
+    // Reset to page 1
+    setPage(1);
   };
 
   const handleCloseQuestionModal = (shouldRefresh = false) => {
@@ -353,6 +426,12 @@ const QuestionBank = () => {
 
   // Handle delete question
   const handleDeleteQuestion = async (questionId) => {
+    const question = questions.find(q => q.id === questionId);
+    if (question && question.verificationStatus === 'APPROVED') {
+      setError(t('qb.cannotDeleteApproved', 'Câu hỏi đã duyệt không thể xóa'));
+      setTimeout(() => setError(''), 3000);
+      return;
+    }
     setShowDeleteConfirm(questionId);
   };
 
@@ -455,18 +534,59 @@ const QuestionBank = () => {
 
   // Handle preview question
   const handlePreviewQuestion = async (questionId) => {
-    const question = questions.find(q => q.id === questionId);
-    setPreviewQuestion(question);
-    setShowPreviewModal(true);
+    console.log('=== Preview Question Debug ===');
+    console.log('Question ID:', questionId);
 
-    // Fetch approval history
+    // Fetch full question details from API to get imageUrl and other fields
     try {
+      const response = await teacherService.getQuestion(questionId);
+      const fullQuestion = await response.json();
+
+      console.log('Full question from API:', fullQuestion);
+      console.log('imageUrl from API:', fullQuestion.imageUrl || fullQuestion.image_url);
+      console.log('questionMediaUrl from API:', fullQuestion.questionMediaUrl);
+
+      // Map API response to component format
+      const mappedQuestion = {
+        id: fullQuestion.id?.toString() || questionId,
+        content: fullQuestion.questionText || fullQuestion.content || fullQuestion.text || 'No content',
+        category: fullQuestion.categoryName || fullQuestion.category?.name || 'Uncategorized',
+        type: fullQuestion.questionType || fullQuestion.type || 'MULTIPLE_CHOICE',
+        level: fullQuestion.level || 'LEVEL_3',
+        unit: fullQuestion.unit || null,
+        status: fullQuestion.active ? 'Active' : 'Inactive',
+        verificationStatus: fullQuestion.verificationStatus || 'PENDING',
+        createdAt: fullQuestion.createdAt || fullQuestion.created_at || new Date().toISOString(),
+        updatedAt: fullQuestion.updatedAt || fullQuestion.updated_at,
+        options: fullQuestion.options || [],
+        points: fullQuestion.points || 1,
+        active: fullQuestion.active !== undefined ? fullQuestion.active : true,
+        imageUrl: fullQuestion.imageUrl || fullQuestion.image_url || null,
+        questionMediaUrl: fullQuestion.questionMediaUrl || null,
+        explanation: fullQuestion.explanation || null
+      };
+
+      console.log('Mapped question imageUrl:', mappedQuestion.imageUrl);
+      console.log('Mapped question:', mappedQuestion);
+
+      setPreviewQuestion(mappedQuestion);
+      setShowPreviewModal(true);
+
+      // Fetch approval history
       const history = await teacherService.getQuestionApprovalHistory(questionId);
       setApprovalHistory(Array.isArray(history) ? history : []);
     } catch (err) {
-      console.error('Error fetching approval history:', err);
+      console.error('Error fetching question details:', err);
+      // Fallback to basic question from state
+      const question = questions.find(q => q.id === questionId);
+      console.log('Fallback question from state:', question);
+      console.log('Fallback question imageUrl:', question?.imageUrl);
+      setPreviewQuestion(question);
+      setShowPreviewModal(true);
       setApprovalHistory([]);
     }
+
+    console.log('===========================');
   };
 
   // Handle create category
@@ -811,179 +931,69 @@ const QuestionBank = () => {
 
   // Render filter bar
   const renderFilterBar = () => {
-    const hasActiveFilters = filters.search || filters.type || filters.category || filters.level || filters.topikType;
-
-    const getFilterLabel = (key, value) => {
-      switch (key) {
-        case 'category':
-          return categories.find(c => c.name.split(' - ')[0] === value)?.name || value;
-        case 'type':
-          return t(`qb.type.${value}`, value);
-        case 'difficulty':
-          return t(`qb.difficulty.${value}`, value);
-        case 'topikType':
-          return `TOPIK ${value}`;
-        case 'search':
-          return value;
-        default:
-          return value;
-      }
-    };
-
-    const activeFilters = Object.entries(filters).filter(([key, value]) => value);
-
     return (
       <Card className="mb-6">
-        <div className="flex flex-col gap-4">
-          {/* Search and Filters Row */}
-          <div className="flex flex-col lg:flex-row gap-4">
-            {/* Search */}
-            <div className="flex-1 relative">
-              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-              <input
-                type="text"
-                placeholder={t('qb.searchPlaceholder', 'Tìm kiếm câu hỏi...')}
-                value={filters.search}
-                onChange={(e) => handleSearchChange(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition"
-              />
-            </div>
-
-            <div className="flex flex-wrap gap-3">
-              {/* Category Filter */}
-              <div className="relative">
-                <select
-                  className="appearance-none pl-4 pr-10 py-2.5 border border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition bg-white min-w-[160px] cursor-pointer hover:border-gray-300"
-                  value={filters.category}
-                  onChange={(e) => handleFilterChange('category', e.target.value)}
-                >
-                  <option value="">{t('qb.allCategories', 'Tất cả danh mục')}</option>
-                  {categories.map(cat => (
-                    <option key={cat.id} value={cat.name}>{cat.name}</option>
-                  ))}
-                </select>
-                <Filter className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-              </div>
-
-              {/* Type Filter */}
-              <div className="relative">
-                <select
-                  className="appearance-none pl-4 pr-10 py-2.5 border border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition bg-white min-w-[160px] cursor-pointer hover:border-gray-300"
-                  value={filters.type}
-                  onChange={(e) => handleFilterChange('type', e.target.value)}
-                >
-                  <option value="">{t('qb.allTypes', 'Tất cả loại')}</option>
-                  <option value="MULTIPLE_CHOICE">{t('qb.multipleChoice', 'Trắc Nghiệm')}</option>
-                  <option value="SHORT_ANSWER">{t('qb.shortAnswer', 'Ngắn')}</option>
-                  <option value="ESSAY">{t('qb.essay', 'Tự Luận')}</option>
-                  <option value="LISTENING">{t('qb.listening', 'Nghe Hiểu')}</option>
-                  <option value="SPEAKING">{t('qb.speaking', 'Nói')}</option>
-                  <option value="WRITING">{t('qb.writing', 'Viết')}</option>
-                  <option value="TRANSLATION">{t('qb.translation', 'Dịch')}</option>
-                </select>
-                <Filter className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-              </div>
-
-              {/* Level Filter */}
-              <div className="relative">
-                <select
-                  className="appearance-none pl-4 pr-10 py-2.5 border border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition bg-white min-w-[160px] cursor-pointer hover:border-gray-300"
-                  value={filters.level}
-                  onChange={(e) => handleFilterChange('level', e.target.value)}
-                >
-                  <option value="">{t('qb.allLevels', 'Tất cả cấp độ')}</option>
-                  <option value="LEVEL_1">Level 1</option>
-                  <option value="LEVEL_2">Level 2</option>
-                  <option value="LEVEL_3">Level 3</option>
-                  <option value="LEVEL_4">Level 4</option>
-                  <option value="LEVEL_5">Level 5</option>
-                  <option value="LEVEL_6">Level 6</option>
-                </select>
-                <Filter className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-              </div>
-
-              {/* TopikType Filter */}
-              <div className="relative">
-                <select
-                  className="appearance-none pl-4 pr-10 py-2.5 border border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition bg-white min-w-[200px] cursor-pointer hover:border-gray-300"
-                  value={filters.topikType}
-                  onChange={(e) => handleFilterChange('topikType', e.target.value)}
-                >
-                  <option value="">All TOPIK</option>
-                  <option value="R1">R1 - Ngữ pháp/Từ vựng</option>
-                  <option value="R2">R2 - Đọc hiểu văn bản thực tế</option>
-                  <option value="R3">R3 - Đọc biểu đồ/bảng biểu</option>
-                  <option value="R4">R4 - Sắp xếp thứ tự câu</option>
-                  <option value="R5">R5 - Đọc đoạn văn cơ bản</option>
-                  <option value="R6">R6 - Đọc bài viết ngắn</option>
-                  <option value="R7">R7 - Đọc đoạn văn dài</option>
-                  <option value="R8">R8 - Chọn tiêu đề/chủ đề chính</option>
-                  <option value="R9">R9 - Đọc bài viết chuyên sâu</option>
-                  <option value="L1">L1 - Nghe chọn hình/biểu đồ</option>
-                  <option value="L2">L2 - Nghe chọn câu trả lời</option>
-                  <option value="L3">L3 - Nghe chọn hành động</option>
-                  <option value="L4">L4 - Nghe chọn nội dung giống</option>
-                  <option value="L5">L5 - Nghe chọn suy nghĩ/ý định</option>
-                  <option value="L6">L6 - Nghe hội thoại dài</option>
-                  <option value="L7">L7 - Nghe bài giảng chuyên môn</option>
-                  <option value="W51">W51 - Điền vào chỗ trống - Đời sống</option>
-                  <option value="W52">W52 - Điền vào chỗ trống - Giải thích</option>
-                  <option value="W53">W53 - Viết bài luận ngắn - Biểu đồ</option>
-                  <option value="W54">W54 - Viết bài luận dài - Nghị luận</option>
-                </select>
-                <Filter className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-              </div>
-            </div>
-
-            {/* Clear Filters Button */}
-            {hasActiveFilters && (
+        <div className="flex items-center gap-4">
+          {/* Search */}
+          <div className="flex-1 relative">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              placeholder={t('qb.searchPlaceholder', 'Tìm kiếm câu hỏi...')}
+              value={filters.search}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition"
+            />
+            {filters.search && (
               <button
-                onClick={() => {
-                  setFilters({ type: '', category: '', level: '', topikType: '', search: '' });
-                  setPage(1);
-                }}
-                className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition whitespace-nowrap"
+                onClick={() => handleSearchChange('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-gray-100 rounded-lg transition-colors"
+                aria-label="Clear search"
               >
-                <RefreshCw className="w-4 h-4" />
-                {t('qb.clearFilters', 'Xóa bộ lọc')}
+                <X className="w-4 h-4 text-gray-400" />
               </button>
             )}
           </div>
 
-          {/* Active Filters Tags */}
-          {hasActiveFilters && (
-            <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-gray-100">
-              <span className="text-sm text-gray-500 font-medium">
-                {t('qb.activeFilters', 'Bộ lọc đang áp dụng:')}
-              </span>
-              {activeFilters.map(([key, value]) => (
-                <span
-                  key={key}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg text-sm font-medium border border-blue-200"
-                >
-                  <span>{getFilterLabel(key, value)}</span>
-                  <button
-                    onClick={() => handleFilterChange(key, '')}
-                    className="hover:bg-blue-100 rounded p-0.5 transition"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                </span>
-              ))}
-              <button
-                onClick={() => {
-                  setFilters({ type: '', category: '', level: '', topikType: '', search: '' });
-                  setPage(1);
-                }}
-                className="text-sm text-red-600 hover:text-red-700 font-medium hover:underline"
-              >
-                {t('qb.clearAll', 'Xóa tất cả')}
-              </button>
-            </div>
-          )}
+          {/* Sort indicator */}
+          <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 rounded-lg border border-gray-200">
+            <span className="text-sm text-gray-600">
+              {t('qb.sortBy', 'Sắp xếp theo')}:
+            </span>
+            <span className="text-sm font-semibold text-gray-900">
+              {getSortColumnLabel(sortColumn)}
+            </span>
+            <button
+              onClick={() => setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc')}
+              className="p-1 hover:bg-gray-200 rounded transition-colors"
+              title={sortDirection === 'asc' ? 'Tăng dần' : 'Giảm dần'}
+            >
+              {sortDirection === 'asc' ? (
+                <ChevronUp className="w-4 h-4 text-gray-600" />
+              ) : (
+                <ChevronDown className="w-4 h-4 text-gray-600" />
+              )}
+            </button>
+          </div>
         </div>
       </Card>
     );
+  };
+
+  // Helper to get sort column label
+  const getSortColumnLabel = (column) => {
+    const labels = {
+      id: t('qb.id', 'ID'),
+      content: t('qb.content', 'Nội dung'),
+      category: t('qb.category', 'Danh mục'),
+      type: t('qb.type', 'Loại'),
+      level: t('qb.difficulty', 'Độ khó'),
+      unit: 'Unit',
+      status: t('qb.status', 'Trạng thái'),
+      verificationStatus: 'Trạng thái duyệt',
+      createdAt: t('qb.createdAt', 'Ngày tạo')
+    };
+    return labels[column] || column;
   };
 
   // Render question list
@@ -1044,7 +1054,7 @@ const QuestionBank = () => {
         </div>
 
         {/* Questions Table */}
-        <div className="overflow-x-auto rounded-lg border border-gray-200">
+        <div className="overflow-x-auto rounded-lg border border-gray-200" style={{ maxHeight: 'none', overflow: 'visible' }}>
           <table className="w-full text-left border-collapse">
             <thead className="bg-gradient-to-r from-gray-50 to-gray-100 border-b-2 border-gray-200">
               <tr>
@@ -1056,29 +1066,93 @@ const QuestionBank = () => {
                     className="cursor-pointer w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 focus:ring-2"
                   />
                 </th>
-                <th className="px-4 py-3.5 font-bold text-gray-700 text-xs uppercase tracking-wider min-w-[100px]">
-                  {t('qb.id', 'ID')}
+                <th
+                  onClick={() => handleSort('id')}
+                  className="px-4 py-3.5 font-bold text-gray-700 text-xs uppercase tracking-wider min-w-[100px] cursor-pointer hover:bg-gray-200 transition-colors"
+                >
+                  <div className="flex items-center gap-1">
+                    {t('qb.id', 'ID')}
+                    {sortColumn === 'id' && (
+                      sortDirection === 'asc' ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />
+                    )}
+                  </div>
                 </th>
-                <th className="px-4 py-3.5 font-bold text-gray-700 text-xs uppercase tracking-wider min-w-[280px] max-w-[400px]">
-                  {t('qb.content', 'Nội dung')}
+                <th
+                  onClick={() => handleSort('content')}
+                  className="px-4 py-3.5 font-bold text-gray-700 text-xs uppercase tracking-wider min-w-[280px] max-w-[400px] cursor-pointer hover:bg-gray-200 transition-colors"
+                >
+                  <div className="flex items-center gap-1">
+                    {t('qb.content', 'Nội dung')}
+                    {sortColumn === 'content' && (
+                      sortDirection === 'asc' ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />
+                    )}
+                  </div>
                 </th>
-                <th className="px-4 py-3.5 font-bold text-gray-700 text-xs uppercase tracking-wider min-w-[120px]">
-                  {t('qb.category', 'Danh mục')}
+                <th
+                  onClick={() => handleSort('category')}
+                  className="px-4 py-3.5 font-bold text-gray-700 text-xs uppercase tracking-wider min-w-[120px] cursor-pointer hover:bg-gray-200 transition-colors"
+                >
+                  <div className="flex items-center gap-1">
+                    {t('qb.category', 'Danh mục')}
+                    {sortColumn === 'category' && (
+                      sortDirection === 'asc' ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />
+                    )}
+                  </div>
                 </th>
-                <th className="px-4 py-3.5 font-bold text-gray-700 text-xs uppercase tracking-wider min-w-[140px]">
-                  {t('qb.type', 'Loại')}
+                <th
+                  onClick={() => handleSort('type')}
+                  className="px-4 py-3.5 font-bold text-gray-700 text-xs uppercase tracking-wider min-w-[140px] cursor-pointer hover:bg-gray-200 transition-colors"
+                >
+                  <div className="flex items-center gap-1">
+                    {t('qb.type', 'Loại')}
+                    {sortColumn === 'type' && (
+                      sortDirection === 'asc' ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />
+                    )}
+                  </div>
                 </th>
-                <th className="px-4 py-3.5 font-bold text-gray-700 text-xs uppercase tracking-wider min-w-[110px]">
-                  {t('qb.difficulty', 'Độ khó')}
+                <th
+                  onClick={() => activeTab === 'COURSE' ? handleSort('level') : handleSort('unit')}
+                  className="px-4 py-3.5 font-bold text-gray-700 text-xs uppercase tracking-wider min-w-[110px] cursor-pointer hover:bg-gray-200 transition-colors"
+                >
+                  <div className="flex items-center gap-1">
+                    {activeTab === 'COURSE' ? t('qb.difficulty', 'Độ khó') : 'Unit'}
+                    {(sortColumn === 'level' || sortColumn === 'unit') && (
+                      sortDirection === 'asc' ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />
+                    )}
+                  </div>
                 </th>
-                <th className="px-4 py-3.5 font-bold text-gray-700 text-xs uppercase tracking-wider min-w-[100px]">
-                  {t('qb.status', 'Trạng thái')}
+                <th
+                  onClick={() => handleSort('status')}
+                  className="px-4 py-3.5 font-bold text-gray-700 text-xs uppercase tracking-wider min-w-[100px] cursor-pointer hover:bg-gray-200 transition-colors"
+                >
+                  <div className="flex items-center gap-1">
+                    {t('qb.status', 'Trạng thái')}
+                    {sortColumn === 'status' && (
+                      sortDirection === 'asc' ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />
+                    )}
+                  </div>
                 </th>
-                <th className="px-4 py-3.5 font-bold text-gray-700 text-xs uppercase tracking-wider min-w-[140px]">
-                  Trạng thái duyệt
+                <th
+                  onClick={() => handleSort('verificationStatus')}
+                  className="px-4 py-3.5 font-bold text-gray-700 text-xs uppercase tracking-wider min-w-[140px] cursor-pointer hover:bg-gray-200 transition-colors"
+                >
+                  <div className="flex items-center gap-1">
+                    Trạng thái duyệt
+                    {sortColumn === 'verificationStatus' && (
+                      sortDirection === 'asc' ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />
+                    )}
+                  </div>
                 </th>
-                <th className="px-4 py-3.5 font-bold text-gray-700 text-xs uppercase tracking-wider min-w-[110px]">
-                  {t('qb.createdAt', 'Ngày tạo')}
+                <th
+                  onClick={() => handleSort('createdAt')}
+                  className="px-4 py-3.5 font-bold text-gray-700 text-xs uppercase tracking-wider min-w-[110px] cursor-pointer hover:bg-gray-200 transition-colors"
+                >
+                  <div className="flex items-center gap-1">
+                    {t('qb.createdAt', 'Ngày tạo')}
+                    {sortColumn === 'createdAt' && (
+                      sortDirection === 'asc' ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />
+                    )}
+                  </div>
                 </th>
                 <th className="sticky right-0 z-10 px-4 py-3.5 font-bold text-gray-700 text-xs uppercase tracking-wider min-w-[140px] text-center bg-gradient-to-r from-gray-50 to-gray-100 border-l border-gray-200">
                   {t('qb.actions', 'Thao tác')}
@@ -1123,9 +1197,15 @@ const QuestionBank = () => {
                     </Badge>
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap">
-                    <Badge variant={getLevelBadgeVariant(question.level)}>
-                      {(question.level || '').replace('LEVEL_', 'Level ')}
-                    </Badge>
+                    {activeTab === 'COURSE' ? (
+                      <Badge variant={getLevelBadgeVariant(question.level)}>
+                        {(question.level || '').replace('LEVEL_', 'Level ')}
+                      </Badge>
+                    ) : (
+                      <Badge variant="info" size="sm">
+                        Unit {question.unit}
+                      </Badge>
+                    )}
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap">
                     <Badge variant={getStatusBadgeVariant(question.status)}>
@@ -1171,12 +1251,24 @@ const QuestionBank = () => {
                           e.stopPropagation();
                           handleEditQuestion(question.id);
                         }}
-                        className="p-2 text-gray-500 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-all duration-200 group/btn relative"
-                        title={t('qb.edit', 'Sửa')}
+                        disabled={question.verificationStatus === 'APPROVED'}
+                        className={`p-2 rounded-lg transition-all duration-200 group/btn relative ${
+                          question.verificationStatus === 'APPROVED'
+                            ? 'text-gray-300 cursor-not-allowed'
+                            : 'text-gray-500 hover:text-amber-600 hover:bg-amber-50'
+                        }`}
+                        title={question.verificationStatus === 'APPROVED'
+                          ? t('qb.cannotEditApproved', 'Câu hỏi đã duyệt không thể sửa')
+                          : t('qb.edit', 'Sửa')}
                       >
                         <Edit className="w-4 h-4" />
+                        {question.verificationStatus === 'APPROVED' && (
+                          <Lock className="w-3 h-3 absolute -top-1 -right-1 text-gray-400" />
+                        )}
                         <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover/btn:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-20">
-                          {t('qb.edit', 'Sửa')}
+                          {question.verificationStatus === 'APPROVED'
+                            ? t('qb.cannotEditApproved', 'Câu hỏi đã duyệt không thể sửa')
+                            : t('qb.edit', 'Sửa')}
                         </span>
                       </button>
                       <button
@@ -1184,13 +1276,24 @@ const QuestionBank = () => {
                           e.stopPropagation();
                           handleDeleteQuestion(question.id);
                         }}
-                        disabled={isDeleting}
-                        className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 group/btn relative disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:text-gray-500 disabled:hover:bg-transparent"
-                        title={t('qb.delete', 'Xóa')}
+                        disabled={isDeleting || question.verificationStatus === 'APPROVED'}
+                        className={`p-2 rounded-lg transition-all duration-200 group/btn relative ${
+                          question.verificationStatus === 'APPROVED'
+                            ? 'text-gray-300 cursor-not-allowed'
+                            : 'text-gray-500 hover:text-red-600 hover:bg-red-50 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:text-gray-500 disabled:hover:bg-transparent'
+                        }`}
+                        title={question.verificationStatus === 'APPROVED'
+                          ? t('qb.cannotDeleteApproved', 'Câu hỏi đã duyệt không thể xóa')
+                          : t('qb.delete', 'Xóa')}
                       >
                         <Trash2 className="w-4 h-4" />
+                        {question.verificationStatus === 'APPROVED' && (
+                          <Lock className="w-3 h-3 absolute -top-1 -right-1 text-gray-400" />
+                        )}
                         <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover/btn:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-20">
-                          {t('qb.delete', 'Xóa')}
+                          {question.verificationStatus === 'APPROVED'
+                            ? t('qb.cannotDeleteApproved', 'Câu hỏi đã duyệt không thể xóa')
+                            : t('qb.delete', 'Xóa')}
                         </span>
                       </button>
                     </div>
@@ -1287,21 +1390,40 @@ const QuestionBank = () => {
                     e.stopPropagation();
                     handleEditQuestion(question.id);
                   }}
-                  className="p-2 text-white bg-amber-600 hover:bg-amber-700 rounded-lg shadow-lg transition"
-                  title={t('qb.edit', 'Sửa')}
+                  disabled={question.verificationStatus === 'APPROVED'}
+                  className={`p-2 rounded-lg shadow-lg transition relative ${
+                    question.verificationStatus === 'APPROVED'
+                      ? 'text-white bg-gray-400 cursor-not-allowed'
+                      : 'text-white bg-amber-600 hover:bg-amber-700'
+                  }`}
+                  title={question.verificationStatus === 'APPROVED'
+                    ? t('qb.cannotEditApproved', 'Câu hỏi đã duyệt không thể sửa')
+                    : t('qb.edit', 'Sửa')}
                 >
                   <Edit className="w-4 h-4" />
+                  {question.verificationStatus === 'APPROVED' && (
+                    <Lock className="w-3 h-3 absolute -top-1 -right-1 text-gray-200" />
+                  )}
                 </button>
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     handleDeleteQuestion(question.id);
                   }}
-                  disabled={isDeleting}
-                  className="p-2 text-white bg-red-600 hover:bg-red-700 rounded-lg shadow-lg transition disabled:opacity-40"
-                  title={t('qb.delete', 'Xóa')}
+                  disabled={isDeleting || question.verificationStatus === 'APPROVED'}
+                  className={`p-2 rounded-lg shadow-lg transition relative ${
+                    question.verificationStatus === 'APPROVED'
+                      ? 'text-white bg-gray-400 cursor-not-allowed'
+                      : 'text-white bg-red-600 hover:bg-red-700 disabled:opacity-40'
+                  }`}
+                  title={question.verificationStatus === 'APPROVED'
+                    ? t('qb.cannotDeleteApproved', 'Câu hỏi đã duyệt không thể xóa')
+                    : t('qb.delete', 'Xóa')}
                 >
                   <Trash2 className="w-4 h-4" />
+                  {question.verificationStatus === 'APPROVED' && (
+                    <Lock className="w-3 h-3 absolute -top-1 -right-1 text-gray-200" />
+                  )}
                 </button>
               </div>
             </div>
@@ -1376,6 +1498,36 @@ const QuestionBank = () => {
           </div>
         </Alert>
       )}
+
+      {/* Question Type Tabs - COURSE vs CLASS */}
+      <Card className="mb-4">
+        <div className="flex gap-2 p-2">
+          <button
+            onClick={() => handleTabChange('COURSE')}
+            className={`flex-1 px-6 py-3 rounded-lg font-semibold text-sm transition-all flex items-center justify-center gap-2 ${
+              activeTab === 'COURSE'
+                ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-md hover:from-blue-700 hover:to-blue-800'
+                : 'bg-white text-gray-700 hover:bg-gray-50 border-2 border-gray-200 hover:border-blue-300'
+            }`}
+          >
+            <FileQuestion className="w-5 h-5" />
+            <span>Câu hỏi khóa học</span>
+            <span className="text-xs opacity-75">(Course)</span>
+          </button>
+          <button
+            onClick={() => handleTabChange('CLASS')}
+            className={`flex-1 px-6 py-3 rounded-lg font-semibold text-sm transition-all flex items-center justify-center gap-2 ${
+              activeTab === 'CLASS'
+                ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-md hover:from-purple-700 hover:to-purple-800'
+                : 'bg-white text-gray-700 hover:bg-gray-50 border-2 border-gray-200 hover:border-purple-300'
+            }`}
+          >
+            <FileQuestion className="w-5 h-5" />
+            <span>Câu hỏi lớp học</span>
+            <span className="text-xs opacity-75">(Class)</span>
+          </button>
+        </div>
+      </Card>
 
       {/* Verification Status Tabs */}
       <Card className="mb-4">
@@ -1471,108 +1623,143 @@ const QuestionBank = () => {
 
       {/* Preview Modal */}
       {showPreviewModal && previewQuestion && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
-          <div className="bg-white rounded-xl shadow-xl max-w-5xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
             {/* Header */}
-            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 z-10">
+            <div className="sticky top-0 bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4 z-10">
               <div className="flex items-center justify-between">
-                <h3 className="text-xl font-bold text-gray-900">Chi Tiết Câu Hỏi</h3>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+                    <Eye className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-white">Chi Tiết Câu Hỏi</h3>
+                    <p className="text-sm text-blue-100 mt-0.5">ID: {previewQuestion.id}</p>
+                  </div>
+                </div>
                 <button
                   onClick={handleCloseModal}
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  className="p-2 hover:bg-white/20 rounded-lg transition-colors"
                 >
-                  <X className="w-5 h-5 text-gray-500" />
+                  <X className="w-5 h-5 text-white" />
                 </button>
+              </div>
+
+              {/* Status badges */}
+              <div className="flex items-center gap-2 mt-4">
+                <Badge
+                  variant={previewQuestion.verificationStatus === 'APPROVED' ? 'success' :
+                          previewQuestion.verificationStatus === 'REJECTED' ? 'error' : 'warning'}
+                  size="sm"
+                >
+                  {previewQuestion.verificationStatus === 'APPROVED' ? '✅ Đã duyệt' :
+                   previewQuestion.verificationStatus === 'REJECTED' ? '❌ Đã từ chối' : '⏳ Chờ duyệt'}
+                </Badge>
+                <Badge variant={previewQuestion.status === 'Active' ? 'success' : 'error'} size="sm">
+                  {previewQuestion.status === 'Active' ? 'Hoạt động' : 'Không hoạt động'}
+                </Badge>
+                <Badge variant="info" size="sm">
+                  {previewQuestion.points || 1} điểm
+                </Badge>
               </div>
             </div>
 
             {/* Content */}
-            <div className="p-6 space-y-6">
-              {/* Question Info Grid */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm font-medium text-gray-500 mb-1">Loại câu hỏi:</p>
-                  <p className="text-gray-900 font-medium">{previewQuestion.type?.replace('_', ' ') || 'N/A'}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-500 mb-1">Cấp độ:</p>
-                  <p className="text-gray-900 font-medium">Level {(previewQuestion.level || '').replace('LEVEL_', '') || 'N/A'}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-500 mb-1">Danh mục:</p>
-                  <p className="text-gray-900 font-medium">{previewQuestion.category || 'N/A'}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-500 mb-1">Điểm:</p>
-                  <p className="text-gray-900 font-medium">{previewQuestion.points || 1}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-500 mb-1">Trạng thái:</p>
-                  <p className={`font-medium ${
-                    previewQuestion.status === 'Active' ? 'text-green-600' : 'text-gray-600'
-                  }`}>
-                    {previewQuestion.status === 'Active' ? '✅ Hoạt động' : '❌ Không hoạt động'}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-500 mb-1">Trạng thái duyệt:</p>
-                  <p className={`font-medium ${
-                    previewQuestion.verificationStatus === 'PENDING' ? 'text-amber-600' :
-                    previewQuestion.verificationStatus === 'APPROVED' ? 'text-green-600' :
-                    previewQuestion.verificationStatus === 'REJECTED' ? 'text-red-600' :
-                    'text-gray-600'
-                  }`}>
-                    {previewQuestion.verificationStatus === 'PENDING' ? '⏳ Chờ duyệt' :
-                     previewQuestion.verificationStatus === 'APPROVED' ? '✅ Đã duyệt' :
-                     previewQuestion.verificationStatus === 'REJECTED' ? '❌ Đã từ chối' : 'N/A'}
-                  </p>
-                </div>
+            <div className="flex-1 overflow-y-auto p-6 space-y-6">
+              {/* Question Info Bar */}
+              <div className="flex flex-wrap items-center gap-2 text-sm">
+                <Badge variant="info" size="sm">
+                  {previewQuestion.type?.replace('_', ' ') || 'N/A'}
+                </Badge>
+                <Badge variant="purple" size="sm">
+                  {previewQuestion.unit
+                    ? `Unit ${previewQuestion.unit}`
+                    : `Level ${(previewQuestion.level || '').replace('LEVEL_', '') || 'N/A'}`
+                  }
+                </Badge>
+                <Badge variant="success" size="sm">
+                  {previewQuestion.category || 'N/A'}
+                </Badge>
               </div>
 
-              {/* Question Content */}
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <p className="text-sm font-bold text-blue-900 mb-2">📝 Nội dung câu hỏi:</p>
-                <p className="text-gray-900 text-base leading-relaxed">{previewQuestion.content}</p>
+              {/* Question Content Card */}
+              <div className="bg-gradient-to-br from-gray-50 to-blue-50 rounded-xl p-6 border border-gray-200">
+                <div className="flex items-start gap-3 mb-4">
+                  <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <FileText className="w-5 h-5 text-white" />
+                  </div>
+                  <h4 className="text-lg font-bold text-gray-900">Nội dung câu hỏi</h4>
+                </div>
+                <p className="text-gray-900 text-base leading-relaxed pl-11">{previewQuestion.content}</p>
               </div>
 
-              {/* Media (Audio) */}
-              {previewQuestion.questionMediaUrl && (
-                <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-                  <p className="text-sm font-bold text-orange-900 mb-2">🎵 Audio:</p>
-                  <audio controls src={previewQuestion.questionMediaUrl} className="w-full" />
+              {/* Question Image */}
+              {previewQuestion.imageUrl && (
+                <div className="rounded-xl overflow-hidden border border-gray-200">
+                  <div className="bg-gray-50 px-4 py-2 border-b border-gray-200">
+                    <p className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                      <img src="/icons/image.svg" alt="" className="w-4 h-4" />
+                      Hình ảnh
+                    </p>
+                  </div>
+                  <div className="p-4 bg-white">
+                    <img
+                      src={previewQuestion.imageUrl}
+                      alt="Question image"
+                      className="max-w-full h-auto mx-auto rounded-lg shadow-sm"
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                        console.error('Failed to load image:', previewQuestion.imageUrl);
+                      }}
+                    />
+                  </div>
                 </div>
               )}
 
-              {/* Options for Multiple Choice */}
+              {/* Audio */}
+              {previewQuestion.questionMediaUrl && (
+                <div className="rounded-xl overflow-hidden border border-gray-200">
+                  <div className="bg-gray-50 px-4 py-2 border-b border-gray-200">
+                    <p className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                      🎵 Audio
+                    </p>
+                  </div>
+                  <div className="p-4 bg-white">
+                    <audio controls src={previewQuestion.questionMediaUrl} className="w-full" />
+                  </div>
+                </div>
+              )}
+
+              {/* Options */}
               {previewQuestion.options && previewQuestion.options.length > 0 && (
-                <div>
-                  <p className="text-sm font-bold text-gray-900 mb-3">✅ Các lựa chọn:</p>
-                  <div className="space-y-2">
+                <div className="rounded-xl overflow-hidden border border-gray-200">
+                  <div className="bg-gray-50 px-4 py-2 border-b border-gray-200">
+                    <p className="text-sm font-semibold text-gray-700">Các lựa chọn</p>
+                  </div>
+                  <div className="p-4 bg-white space-y-3">
                     {previewQuestion.options.map((opt, index) => {
                       const isCorrect = opt.isCorrect;
                       return (
                         <div
                           key={index}
-                          className={`p-3 rounded-lg border-2 transition-all ${
+                          className={`flex items-start gap-3 p-3 rounded-lg border-2 transition-all ${
                             isCorrect
-                              ? 'bg-green-50 border-green-300'
-                              : 'bg-gray-50 border-gray-200'
+                              ? 'bg-green-50 border-green-300 shadow-sm'
+                              : 'bg-gray-50 border-gray-200 hover:border-gray-300'
                           }`}
                         >
-                          <div className="flex items-start gap-3">
-                            <span className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold ${
-                              isCorrect ? 'bg-green-600 text-white' : 'bg-gray-300 text-gray-700'
-                            }`}>
-                              {String.fromCharCode(65 + index)}
-                            </span>
-                            <div className="flex-1">
-                              <p className="text-gray-900 font-medium">{opt.optionText || opt}</p>
-                              {isCorrect && (
-                                <span className="inline-block mt-1 px-2 py-0.5 text-xs font-semibold bg-green-600 text-white rounded">
-                                  Đáp án đúng
-                                </span>
-                              )}
-                            </div>
+                          <span className={`flex-shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-sm font-bold ${
+                            isCorrect ? 'bg-green-600 text-white shadow-sm' : 'bg-gray-200 text-gray-600'
+                          }`}>
+                            {String.fromCharCode(65 + index)}
+                          </span>
+                          <div className="flex-1">
+                            <p className="text-gray-900 font-medium">{opt.optionText || opt}</p>
+                            {isCorrect && (
+                              <span className="inline-block mt-1.5 px-2.5 py-0.5 text-xs font-semibold bg-green-600 text-white rounded-md">
+                                ✓ Đáp án đúng
+                              </span>
+                            )}
                           </div>
                         </div>
                       );
@@ -1583,35 +1770,47 @@ const QuestionBank = () => {
 
               {/* Explanation */}
               {previewQuestion.explanation && previewQuestion.explanation !== 'null' && (
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                  <p className="text-sm font-bold text-yellow-900 mb-2">💡 Giải thích:</p>
-                  <p className="text-gray-700 whitespace-pre-wrap">{previewQuestion.explanation}</p>
+                <div className="rounded-xl overflow-hidden border border-gray-200">
+                  <div className="bg-gray-50 px-4 py-2 border-b border-gray-200">
+                    <p className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                      💡 Giải thích
+                    </p>
+                  </div>
+                  <div className="p-4 bg-white">
+                    <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">{previewQuestion.explanation}</p>
+                  </div>
                 </div>
               )}
 
-              {/* Rejection Info - Show if question was rejected */}
+              {/* Rejection Info */}
               {previewQuestion.verificationStatus === 'REJECTED' && approvalHistory.length > 0 && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                  <p className="text-sm font-bold text-red-900 mb-3">❌ Thông tin từ chối:</p>
-                  <div className="space-y-2">
+                <div className="rounded-xl overflow-hidden border-2 border-red-200">
+                  <div className="bg-red-50 px-4 py-2 border-b border-red-200">
+                    <p className="text-sm font-semibold text-red-900 flex items-center gap-2">
+                      ❌ Thông tin từ chối
+                    </p>
+                  </div>
+                  <div className="p-4 bg-white space-y-3">
                     {approvalHistory.map((history) => (
-                      <div key={history.id} className="bg-white rounded-lg p-3 border border-red-200">
+                      <div key={history.id} className="bg-red-50 rounded-lg p-3 border border-red-200">
                         <div className="flex items-start justify-between gap-2 mb-2">
                           <div className="flex-1">
-                            <p className="text-sm font-semibold text-gray-900">
+                            <p className="text-sm font-semibold text-gray-900 mb-1">
                               {history.action === 'REJECTED' ? '❌ Đã từ chối' : 'ℹ️ ' + history.action}
                             </p>
-                            <p className="text-sm text-gray-600 mt-1">
+                            <p className="text-sm text-gray-600">
                               <span className="font-medium">Lý do:</span> {history.feedback || 'Không có lý do cụ thể'}
-                            </p>
-                            <p className="text-xs text-gray-500 mt-1">
-                              <span className="font-medium">Người duyệt:</span> {history.performedByUser?.fullName || history.performedByUser?.username || 'N/A'}
                             </p>
                           </div>
                           <p className="text-xs text-gray-500 whitespace-nowrap">
                             {new Date(history.createdAt).toLocaleString('vi-VN')}
                           </p>
                         </div>
+                        {history.performedByUser && (
+                          <p className="text-xs text-gray-500">
+                            <span className="font-medium">Người duyệt:</span> {history.performedByUser?.fullName || history.performedByUser?.username || 'N/A'}
+                          </p>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -1620,13 +1819,13 @@ const QuestionBank = () => {
 
               {/* Metadata */}
               <div className="grid grid-cols-2 gap-4 text-sm">
-                <div className="bg-gray-50 rounded-lg p-3">
-                  <p className="text-gray-500">Ngày tạo:</p>
+                <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                  <p className="text-gray-500 text-xs font-medium mb-1">Ngày tạo</p>
                   <p className="text-gray-900 font-medium">{new Date(previewQuestion.createdAt).toLocaleString('vi-VN')}</p>
                 </div>
                 {previewQuestion.updatedAt && (
-                  <div className="bg-gray-50 rounded-lg p-3">
-                    <p className="text-gray-500">Cập nhật:</p>
+                  <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                    <p className="text-gray-500 text-xs font-medium mb-1">Cập nhật</p>
                     <p className="text-gray-900 font-medium">{new Date(previewQuestion.updatedAt).toLocaleString('vi-VN')}</p>
                   </div>
                 )}
@@ -1640,18 +1839,29 @@ const QuestionBank = () => {
                   variant="secondary"
                   onClick={handleCloseModal}
                 >
-                  {t('common.close', 'Đóng')}
+                  Đóng
                 </Button>
-                <Button
-                  variant="primary"
-                  icon={<Edit className="w-5 h-5" />}
-                  onClick={() => {
-                    handleCloseModal();
-                    handleEditQuestion(previewQuestion.id);
-                  }}
-                >
-                  {t('qb.edit', 'Chỉnh sửa')}
-                </Button>
+                {previewQuestion.verificationStatus === 'APPROVED' ? (
+                  <Button
+                    variant="disabled"
+                    disabled={true}
+                    className="bg-gray-400 cursor-not-allowed"
+                  >
+                    <Lock className="w-4 h-4 mr-2" />
+                    Đã duyệt - Không thể sửa
+                  </Button>
+                ) : (
+                  <Button
+                    variant="primary"
+                    onClick={() => {
+                      handleCloseModal();
+                      handleEditQuestion(previewQuestion.id);
+                    }}
+                  >
+                    <Edit className="w-4 h-4 mr-2" />
+                    Chỉnh sửa
+                  </Button>
+                )}
               </div>
             </div>
           </div>
@@ -1772,6 +1982,7 @@ const QuestionBank = () => {
         isOpen={showQuestionModal}
         onClose={handleCloseQuestionModal}
         questionId={editingQuestionId}
+        defaultTarget={activeTab} // Pass COURSE or CLASS based on active tab
       />
     </PageContainer>
   );

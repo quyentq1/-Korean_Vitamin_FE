@@ -34,7 +34,8 @@ const QuestionBankModal = ({
   selectedQuestions,
   onToggleSelection,
   onAddSelected,
-  courseInfo
+  courseInfo,
+  unit = null // NEW: Unit for Class exams (1-12)
 }) => {
   const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState('');
@@ -46,6 +47,12 @@ const QuestionBankModal = ({
   // Debounced search and filter
   useEffect(() => {
     const timer = setTimeout(() => {
+      console.log('=== QuestionBankModal Filter Debug ===');
+      console.log('availableQuestions.length:', availableQuestions.length);
+      console.log('unit prop:', unit);
+      console.log('searchTerm:', searchTerm);
+      console.log('filterTopikType:', filterTopikType);
+
       let filtered = availableQuestions;
 
       // Filter by search term
@@ -54,18 +61,36 @@ const QuestionBankModal = ({
           (q.questionText || q.content || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
           (q.topikType || '').toLowerCase().includes(searchTerm.toLowerCase())
         );
+        console.log('After search filter:', filtered.length);
       }
 
       // Filter by topikType
       if (filterTopikType) {
         filtered = filtered.filter(q => q.topikType === filterTopikType);
+        console.log('After topikType filter:', filtered.length);
       }
+
+      // Filter by unit (for Class exams)
+      if (unit !== null && unit !== undefined) {
+        console.log('Filtering by unit:', unit);
+        console.log('Questions before unit filter:', filtered.map(q => ({ id: q.id, unit: q.unit, verificationStatus: q.verificationStatus })));
+        filtered = filtered.filter(q => q.unit === unit);
+        console.log('After unit filter:', filtered.length);
+      }
+
+      // NEW: Filter by verification status - ONLY show APPROVED questions
+      console.log('Questions before verification filter:', filtered.map(q => ({ id: q.id, unit: q.unit, verificationStatus: q.verificationStatus })));
+      filtered = filtered.filter(q => q.verificationStatus === 'APPROVED');
+      console.log('After verification filter:', filtered.length);
+
+      console.log('Final filteredQuestions.length:', filtered.length);
+      console.log('=====================================');
 
       setFilteredQuestions(filtered);
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [searchTerm, filterTopikType, availableQuestions]);
+  }, [searchTerm, filterTopikType, availableQuestions, unit]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -287,12 +312,28 @@ const QuestionBankModal = ({
                           <Badge variant="info" size="sm">
                             {question.categoryName || question.category?.name || 'N/A'}
                           </Badge>
-                          <Badge variant="warning" size="sm">
-                            {question.level?.replace('LEVEL_', 'Level ') || 'N/A'}
-                          </Badge>
+                          {/* Show Unit for Class questions, Level for Course questions */}
+                          {question.unit ? (
+                            <Badge variant="purple" size="sm">
+                              Unit {question.unit}
+                            </Badge>
+                          ) : (
+                            <Badge variant="warning" size="sm">
+                              {question.level?.replace('LEVEL_', 'Level ') || 'N/A'}
+                            </Badge>
+                          )}
                           {question.topikType && (
                             <Badge variant="success" size="sm">
                               {question.topikType}
+                            </Badge>
+                          )}
+                          {/* Verification Status Badge */}
+                          {question.verificationStatus && (
+                            <Badge
+                              variant={question.verificationStatus === 'APPROVED' ? 'success' : question.verificationStatus === 'REJECTED' ? 'error' : 'warning'}
+                              size="sm"
+                            >
+                              {question.verificationStatus === 'APPROVED' ? '✅' : question.verificationStatus === 'REJECTED' ? '❌' : '⏳'} {question.verificationStatus}
                             </Badge>
                           )}
                           {isAlreadyAdded && (
