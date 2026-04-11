@@ -1,16 +1,21 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import educationManagerService from '../../services/educationManagerService';
+import teacherService from '../../services/teacherService';
 import {
     ChevronLeft, ChevronRight, Filter, ArrowUpDown, CheckCircle, XCircle,
-    AlertCircle, CheckSquare, Eye, X, Info
+    AlertCircle, CheckSquare, Eye, X, Info, FileText, Lock, ChevronUp, ChevronDown
 } from 'lucide-react';
 import Swal from 'sweetalert2';
 
 const QBApproval = () => {
     const { t } = useTranslation();
     const [questions, setQuestions] = useState([]);
+    const [allQuestions, setAllQuestions] = useState([]); // Store all fetched questions
     const [loading, setLoading] = useState(true);
+
+    // NEW: Tab state (COURSE vs CLASS)
+    const [activeTab, setActiveTab] = useState('COURSE'); // 'COURSE' or 'CLASS'
 
     // Status filter (PENDING, REJECTED, APPROVED)
     const [statusFilter, setStatusFilter] = useState('PENDING');
@@ -38,6 +43,9 @@ const QBApproval = () => {
     const [approvalHistory, setApprovalHistory] = useState([]);
 
     useEffect(() => {
+        alert('QBApproval Component Mounted! Active Tab: ' + activeTab);
+        console.log('=== Component Mounted ===');
+        console.log('Active Tab:', activeTab);
         fetchQuestions();
     }, [statusFilter]);
 
@@ -103,19 +111,51 @@ const QBApproval = () => {
             }
 
             console.log('Processed questions:', data.length);
-            setQuestions(data);
+            console.log('First 3 questions:', data.slice(0, 3).map(q => ({
+                id: q.id,
+                unit: q.unit,
+                level: q.level,
+                hasUnit: !!q.unit,
+                hasLevel: !!q.level
+            })));
+            setAllQuestions(data);
+            console.log('✓ setAllQuestions called with', data.length, 'questions');
         } catch (error) {
             console.error(`Failed to fetch ${statusFilter} questions:`, error);
-            setQuestions([]);
+            setAllQuestions([]);
         } finally {
             setLoading(false);
         }
     };
 
+    // NEW: Filter questions by activeTab (COURSE vs CLASS)
+    useEffect(() => {
+        let filtered = allQuestions;
+
+        console.log('=== Tab Filter Debug ===');
+        console.log('Active Tab:', activeTab);
+        console.log('Total questions before filter:', allQuestions.length);
+
+        if (activeTab === 'COURSE') {
+            // Course questions: KHÔNG có unit (unit is null) và CÓ level
+            filtered = allQuestions.filter(q => !q.unit && q.level);
+            console.log('Course questions (no unit, has level):', filtered.length);
+        } else if (activeTab === 'CLASS') {
+            // Class questions: CÓ unit (unit is not null)
+            filtered = allQuestions.filter(q => q.unit !== null && q.unit !== undefined);
+            console.log('Class questions (has unit):', filtered.length);
+        }
+
+        console.log('Final questions count:', filtered.length);
+        console.log('=========================');
+        setQuestions(filtered);
+    }, [allQuestions, activeTab]);
+
     const handleApprove = async (id) => {
         try {
             await educationManagerService.approveQuestion(id);
-            setQuestions(prev => prev.filter(q => q.id !== id));
+            // Update allQuestions instead of questions
+            setAllQuestions(prev => prev.filter(q => q.id !== id));
             setSelectedIds(prev => {
                 const newSet = new Set(prev);
                 newSet.delete(id);
@@ -161,7 +201,8 @@ const QBApproval = () => {
         if (feedback) {
             try {
                 await educationManagerService.rejectQuestion(id, feedback);
-                setQuestions(prev => prev.filter(q => q.id !== id));
+                // Update allQuestions instead of questions
+                setAllQuestions(prev => prev.filter(q => q.id !== id));
                 setSelectedIds(prev => {
                     const newSet = new Set(prev);
                     newSet.delete(id);
@@ -245,7 +286,8 @@ const QBApproval = () => {
                 await Promise.all(
                     [...selectedIds].map(id => educationManagerService.approveQuestion(id))
                 );
-                setPendingQuestions(prev => prev.filter(q => !selectedIds.has(q.id)));
+                // Update allQuestions instead of setPendingQuestions
+                setAllQuestions(prev => prev.filter(q => !selectedIds.has(q.id)));
                 setSelectedIds(new Set());
                 Swal.fire({
                     icon: 'success',
@@ -293,7 +335,8 @@ const QBApproval = () => {
                 await Promise.all(
                     [...selectedIds].map(id => educationManagerService.rejectQuestion(id, feedback))
                 );
-                setPendingQuestions(prev => prev.filter(q => !selectedIds.has(q.id)));
+                // Update allQuestions instead of setPendingQuestions
+                setAllQuestions(prev => prev.filter(q => !selectedIds.has(q.id)));
                 setSelectedIds(new Set());
                 Swal.fire({
                     icon: 'success',
@@ -317,7 +360,41 @@ const QBApproval = () => {
 
     // Preview modal
     const handlePreview = async (question) => {
-        setPreviewQuestion(question);
+        console.log('=== Preview Question Debug ===');
+        console.log('Question ID:', question.id);
+        console.log('Question from list imageUrl:', question.imageUrl);
+        console.log('Question from list image_url:', question.image_url);
+
+        // Fetch full question details to get imageUrl
+        let fullQuestion = null;
+        try {
+            // Try education manager service first
+            fullQuestion = await educationManagerService.getQuestionForReview(question.id);
+            console.log('✓ Fetched from EduManager API');
+            console.log('Full question imageUrl:', fullQuestion?.imageUrl);
+            console.log('Full question image_url:', fullQuestion?.image_url);
+        } catch (eduError) {
+            console.error('✗ Failed to fetch from EduManager API:', eduError);
+            // Fallback to teacher service
+            try {
+                fullQuestion = await teacherService.getQuestion(question.id);
+                console.log('✓ Fetched from Teacher API');
+                console.log('Full question imageUrl:', fullQuestion?.imageUrl);
+            } catch (teacherError) {
+                console.error('✗ Failed to fetch from Teacher API:', teacherError);
+            }
+        }
+
+        if (fullQuestion) {
+            console.log('✓ Setting previewQuestion with imageUrl:', fullQuestion.imageUrl || fullQuestion.image_url);
+            setPreviewQuestion(fullQuestion);
+        } else {
+            // Last resort: use question from list
+            console.warn('⚠ Using question from list as fallback');
+            console.warn('Fallback imageUrl:', question.imageUrl || question.image_url);
+            setPreviewQuestion(question);
+        }
+
         setShowPreviewModal(true);
 
         // Fetch approval history
@@ -328,6 +405,8 @@ const QBApproval = () => {
             console.error('Failed to fetch approval history:', error);
             setApprovalHistory([]);
         }
+
+        console.log('============================');
     };
 
     // Get unique values for filters
@@ -349,12 +428,20 @@ const QBApproval = () => {
     // Filter questions
     const filteredQuestions = useMemo(() => {
         return questions.filter(q => {
-            const matchLevel = selectedLevel === 'ALL' || q.level === selectedLevel;
+            // Filter by level (for COURSE) or unit (for CLASS)
+            let matchLevelUnit = true;
+            if (activeTab === 'COURSE') {
+                matchLevelUnit = selectedLevel === 'ALL' || q.level === selectedLevel;
+            } else if (activeTab === 'CLASS') {
+                // For CLASS, selectedLevel contains unit values (LEVEL_1 to LEVEL_12)
+                matchLevelUnit = selectedLevel === 'ALL' || q.unit === parseInt(selectedLevel.replace('LEVEL_', ''));
+            }
+
             const matchCategory = selectedCategory === 'ALL' || q.categoryName === selectedCategory;
             const matchType = selectedType === 'ALL' || q.questionType === selectedType;
-            return matchLevel && matchCategory && matchType;
+            return matchLevelUnit && matchCategory && matchType;
         });
-    }, [questions, selectedLevel, selectedCategory, selectedType]);
+    }, [questions, selectedLevel, selectedCategory, selectedType, activeTab]);
 
     // Sort questions
     const sortedQuestions = useMemo(() => {
@@ -366,8 +453,13 @@ const QBApproval = () => {
                     compareValue = new Date(a.createdAt) - new Date(b.createdAt);
                     break;
                 case 'level':
-                    const levelOrder = { 'LEVEL_1': 1, 'LEVEL_2': 2, 'LEVEL_3': 3, 'LEVEL_4': 4, 'LEVEL_5': 5, 'LEVEL_6': 6 };
-                    compareValue = (levelOrder[a.level] || 0) - (levelOrder[b.level] || 0);
+                    if (activeTab === 'COURSE') {
+                        const levelOrder = { 'LEVEL_1': 1, 'LEVEL_2': 2, 'LEVEL_3': 3, 'LEVEL_4': 4, 'LEVEL_5': 5, 'LEVEL_6': 6 };
+                        compareValue = (levelOrder[a.level] || 0) - (levelOrder[b.level] || 0);
+                    } else if (activeTab === 'CLASS') {
+                        // Sort by unit for CLASS questions
+                        compareValue = (a.unit || 0) - (b.unit || 0);
+                    }
                     break;
                 case 'points':
                     compareValue = a.points - b.points;
@@ -410,15 +502,24 @@ const QBApproval = () => {
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
             <div className="pt-20 sm:pt-24 pb-8 sm:pb-16 container mx-auto px-4 sm:px-6">
+                {/* Debug log */}
+                {console.log('🎯 RENDER QBApproval - activeTab:', activeTab, '| allQuestions:', allQuestions.length, '| questions:', questions.length)}
                 {/* Header */}
                 <div className="mb-6 sm:mb-8">
-                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
-                        {statusFilter === 'PENDING' && 'Phê Duyệt Câu Hỏi'}
-                        {statusFilter === 'REJECTED' && 'Câu Hỏi Đã Từ Chối'}
-                        {statusFilter === 'APPROVED' && 'Câu Hỏi Đã Duyệt'}
-                    </h1>
+                    <div className="flex items-center gap-3 mb-2">
+                        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+                            {statusFilter === 'PENDING' && 'Phê Duyệt Câu Hỏi'}
+                            {statusFilter === 'REJECTED' && 'Câu Hỏi Đã Từ Chối'}
+                            {statusFilter === 'APPROVED' && 'Câu Hỏi Đã Duyệt'}
+                        </h1>
+                        <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                            activeTab === 'COURSE' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'
+                        }`}>
+                            {activeTab === 'COURSE' ? '📚 Khóa học' : '🏫 Lớp học'}
+                        </span>
+                    </div>
                     <p className="text-sm sm:text-base text-gray-600">
-                        {questions.length} câu hỏi • {filteredQuestions.length} sau khi lọc
+                        {questions.length} câu hỏi {activeTab === 'COURSE' ? '(Khóa học)' : '(Lớp học)'} • {filteredQuestions.length} sau khi lọc
                     </p>
                 </div>
 
@@ -474,6 +575,38 @@ const QBApproval = () => {
 
                 {/* Filters */}
                 <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 mb-4 sm:mb-6">
+                    {/* NEW: Course/Class Tabs */}
+                    <div className="flex flex-wrap gap-2 mb-4 sm:mb-6 border-b border-gray-200 pb-4">
+                        <button
+                            onClick={() => {
+                                setActiveTab('COURSE');
+                                setCurrentPage(1); // Reset pagination when switching tabs
+                            }}
+                            className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
+                                activeTab === 'COURSE'
+                                    ? 'bg-blue-600 text-white shadow-md'
+                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            }`}
+                            type="button"
+                        >
+                            📚 Câu hỏi Khóa học
+                        </button>
+                        <button
+                            onClick={() => {
+                                setActiveTab('CLASS');
+                                setCurrentPage(1); // Reset pagination when switching tabs
+                            }}
+                            className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
+                                activeTab === 'CLASS'
+                                    ? 'bg-purple-600 text-white shadow-md'
+                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            }`}
+                            type="button"
+                        >
+                            🏫 Câu hỏi Lớp học
+                        </button>
+                    </div>
+
                     {/* Status Tabs */}
                     <div className="flex flex-wrap gap-2 mb-4 sm:mb-6 border-b border-gray-200 pb-4">
                         <button
@@ -529,25 +662,49 @@ const QBApproval = () => {
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4" role="group" aria-label="Bộ lọc câu hỏi">
-                        {/* Level Filter */}
-                        <div>
-                            <label htmlFor="level-filter" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
-                                Level
-                            </label>
-                            <select
-                                id="level-filter"
-                                value={selectedLevel}
-                                onChange={(e) => setSelectedLevel(e.target.value)}
-                                className="w-full px-3 sm:px-4 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                                aria-label="Lọc theo cấp độ câu hỏi"
-                            >
-                                {levels.map(level => (
-                                    <option key={level} value={level}>
-                                        {level === 'ALL' ? 'Tất cả' : level}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
+                        {/* Level Filter - Only for COURSE */}
+                        {activeTab === 'COURSE' && (
+                            <div>
+                                <label htmlFor="level-filter" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
+                                    Level
+                                </label>
+                                <select
+                                    id="level-filter"
+                                    value={selectedLevel}
+                                    onChange={(e) => setSelectedLevel(e.target.value)}
+                                    className="w-full px-3 sm:px-4 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                    aria-label="Lọc theo cấp độ câu hỏi"
+                                >
+                                    {levels.map(level => (
+                                        <option key={level} value={level}>
+                                            {level === 'ALL' ? 'Tất cả' : level}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                        )}
+
+                        {/* Unit Filter - Only for CLASS */}
+                        {activeTab === 'CLASS' && (
+                            <div>
+                                <label htmlFor="unit-filter" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
+                                    Unit
+                                </label>
+                                <select
+                                    id="unit-filter"
+                                    value={selectedLevel}
+                                    onChange={(e) => setSelectedLevel(e.target.value)}
+                                    className="w-full px-3 sm:px-4 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                    aria-label="Lọc theo unit câu hỏi lớp học"
+                                >
+                                    {[...Array.from({length: 12}, (_, i) => i + 1), 'ALL'].map(unit => (
+                                        <option key={unit === 'ALL' ? 'ALL' : unit} value={unit === 'ALL' ? 'ALL' : `LEVEL_${unit}`}>
+                                            {unit === 'ALL' ? 'Tất cả' : `Unit ${unit}`}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                        )}
 
                         {/* Category Filter */}
                         <div>
@@ -683,13 +840,20 @@ const QBApproval = () => {
                                                     <span className="px-1.5 sm:px-2 py-0.5 sm:py-1 bg-blue-100 text-blue-800 text-[10px] sm:text-xs font-semibold rounded uppercase">
                                                         {q.questionType.replace(/_/g, ' ')}
                                                     </span>
-                                                    <span className="px-1.5 sm:px-2 py-0.5 sm:py-1 bg-amber-100 text-amber-800 text-[10px] sm:text-xs font-semibold rounded uppercase">
-                                                        {q.level}
-                                                    </span>
-                                                    <span className="px-1.5 sm:px-2 py-0.5 sm:py-1 bg-purple-100 text-purple-800 text-[10px] sm:text-xs font-semibold rounded uppercase">
+                                                    {/* Show Level for COURSE questions, Unit for CLASS questions */}
+                                                    {q.unit ? (
+                                                        <span className="px-1.5 sm:px-2 py-0.5 sm:py-1 bg-purple-100 text-purple-800 text-[10px] sm:text-xs font-semibold rounded">
+                                                            Unit {q.unit}
+                                                        </span>
+                                                    ) : (
+                                                        <span className="px-1.5 sm:px-2 py-0.5 sm:py-1 bg-amber-100 text-amber-800 text-[10px] sm:text-xs font-semibold rounded">
+                                                            {q.level}
+                                                        </span>
+                                                    )}
+                                                    <span className="px-1.5 sm:px-2 py-0.5 sm:py-1 bg-green-100 text-green-800 text-[10px] sm:text-xs font-semibold rounded">
                                                         {q.categoryName || 'N/A'}
                                                     </span>
-                                                    <span className="px-1.5 sm:px-2 py-0.5 sm:py-1 bg-green-100 text-green-800 text-[10px] sm:text-xs font-semibold rounded">
+                                                    <span className="px-1.5 sm:px-2 py-0.5 sm:py-1 bg-gray-100 text-gray-800 text-[10px] sm:text-xs font-semibold rounded">
                                                         {q.points} pts
                                                     </span>
                                                     <span className={`px-1.5 sm:px-2 py-0.5 sm:py-1 text-[10px] sm:text-xs font-semibold rounded ${
@@ -841,96 +1005,139 @@ const QBApproval = () => {
 
             {/* Detailed Preview Modal */}
             {showPreviewModal && previewQuestion && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                    <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
                         {/* Header */}
-                        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-                            <div>
-                                <h2 className="text-xl font-bold text-gray-900">Chi Tiết Câu Hỏi</h2>
-                                <p className="text-sm text-gray-500 mt-1">Question #{previewQuestion.id}</p>
+                        <div className="sticky top-0 bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4 z-10">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+                                        <Eye className="w-6 h-6 text-white" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xl font-bold text-white">Chi Tiết Câu Hỏi</h3>
+                                        <p className="text-sm text-blue-100 mt-0.5">ID: #{previewQuestion.id}</p>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => setShowPreviewModal(false)}
+                                    className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+                                >
+                                    <X className="w-5 h-5 text-white" />
+                                </button>
                             </div>
-                            <button
-                                onClick={() => setShowPreviewModal(false)}
-                                className="text-gray-400 hover:text-gray-600 transition-colors p-1 hover:bg-gray-100 rounded-lg"
-                            >
-                                <X className="w-6 h-6" />
-                            </button>
+
+                            {/* Status badges */}
+                            <div className="flex items-center gap-2 mt-4 flex-wrap">
+                                <span className={`px-3 py-1.5 rounded-lg font-semibold text-sm ${
+                                    previewQuestion.verificationStatus === 'APPROVED' ? 'bg-green-500 text-white' :
+                                    previewQuestion.verificationStatus === 'REJECTED' ? 'bg-red-500 text-white' :
+                                    'bg-amber-500 text-white'
+                                }`}>
+                                    {previewQuestion.verificationStatus === 'APPROVED' ? '✅ Đã duyệt' :
+                                     previewQuestion.verificationStatus === 'REJECTED' ? '❌ Đã từ chối' : '⏳ Chờ duyệt'}
+                                </span>
+                                <span className="px-3 py-1.5 bg-white/20 text-white rounded-lg font-semibold text-sm">
+                                    {previewQuestion.questionType?.replace(/_/g, ' ')}
+                                </span>
+                                <span className="px-3 py-1.5 bg-white/20 text-white rounded-lg font-semibold text-sm">
+                                    {previewQuestion.level}
+                                </span>
+                                <span className="px-3 py-1.5 bg-white/20 text-white rounded-lg font-semibold text-sm">
+                                    {previewQuestion.points} điểm
+                                </span>
+                                {previewQuestion.duplicateScore !== undefined && (
+                                    <span className={`px-3 py-1.5 rounded-lg font-semibold text-sm ${
+                                        previewQuestion.duplicateScore > 50
+                                            ? 'bg-red-500 text-white'
+                                            : 'bg-green-500 text-white'
+                                    }`}>
+                                        Trùng: {previewQuestion.duplicateScore}%
+                                    </span>
+                                )}
+                            </div>
                         </div>
 
                         {/* Content */}
                         <div className="flex-1 overflow-y-auto p-6 space-y-6">
-                            {/* Badges */}
-                            <div className="flex flex-wrap gap-2">
-                                <span className="px-3 py-1.5 bg-indigo-100 text-indigo-800 rounded-lg font-semibold">
-                                    #{previewQuestion.id}
-                                </span>
-                                <span className="px-3 py-1.5 bg-blue-100 text-blue-800 rounded-lg font-semibold uppercase">
-                                    {previewQuestion.questionType.replace(/_/g, ' ')}
-                                </span>
-                                <span className="px-3 py-1.5 bg-amber-100 text-amber-800 rounded-lg font-semibold">
-                                    {previewQuestion.level}
-                                </span>
+                            {/* Question Info Bar */}
+                            <div className="flex flex-wrap items-center gap-2 text-sm">
                                 <span className="px-3 py-1.5 bg-purple-100 text-purple-800 rounded-lg font-semibold">
                                     {previewQuestion.categoryName || 'N/A'}
                                 </span>
-                                <span className="px-3 py-1.5 bg-green-100 text-green-800 rounded-lg font-semibold">
-                                    {previewQuestion.points} points
-                                </span>
-                                <span className={`px-3 py-1.5 rounded-lg font-semibold ${
-                                    previewQuestion.duplicateScore > 50
-                                        ? 'bg-red-100 text-red-800'
-                                        : 'bg-emerald-100 text-emerald-800'
-                                }`}>
-                                    Trùng: {previewQuestion.duplicateScore}%
-                                </span>
                             </div>
 
-                            {/* Question */}
-                            <div className="bg-gray-50 rounded-xl p-4">
-                                <h3 className="text-sm font-semibold text-gray-700 mb-2">Câu hỏi:</h3>
-                                <p className="text-lg font-medium text-gray-900">{previewQuestion.questionText}</p>
+                            {/* Question Content Card */}
+                            <div className="bg-gradient-to-br from-gray-50 to-blue-50 rounded-xl p-6 border border-gray-200">
+                                <div className="flex items-start gap-3 mb-4">
+                                    <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                                        <FileText className="w-5 h-5 text-white" />
+                                    </div>
+                                    <h4 className="text-lg font-bold text-gray-900">Nội dung câu hỏi</h4>
+                                </div>
+                                <p className="text-gray-900 text-base leading-relaxed pl-11">{previewQuestion.questionText}</p>
                             </div>
 
-                            {/* Media */}
+                            {/* Question Image */}
+                            {previewQuestion.imageUrl && (
+                                <div className="rounded-xl overflow-hidden border border-gray-200">
+                                    <div className="bg-gray-50 px-4 py-2 border-b border-gray-200">
+                                        <p className="text-sm font-semibold text-gray-700">🖼️ Hình ảnh</p>
+                                    </div>
+                                    <div className="p-4 bg-white">
+                                        <img
+                                            src={previewQuestion.imageUrl}
+                                            alt="Question image"
+                                            className="max-w-full h-auto mx-auto rounded-lg shadow-sm"
+                                            onError={(e) => {
+                                                e.target.style.display = 'none';
+                                                console.error('Failed to load image:', previewQuestion.imageUrl);
+                                            }}
+                                        />
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Audio */}
                             {previewQuestion.questionMediaUrl && (
-                                <div>
-                                    <h3 className="text-sm font-semibold text-gray-700 mb-2">Audio/Video:</h3>
-                                    <audio controls className="w-full">
-                                        <source src={previewQuestion.questionMediaUrl} type="audio/mpeg" />
-                                        Your browser does not support the audio element.
-                                    </audio>
+                                <div className="rounded-xl overflow-hidden border border-gray-200">
+                                    <div className="bg-gray-50 px-4 py-2 border-b border-gray-200">
+                                        <p className="text-sm font-semibold text-gray-700">🎵 Audio</p>
+                                    </div>
+                                    <div className="p-4 bg-white">
+                                        <audio controls src={previewQuestion.questionMediaUrl} className="w-full" />
+                                    </div>
                                 </div>
                             )}
 
                             {/* Options */}
                             {previewQuestion.options && previewQuestion.options.length > 0 && (
-                                <div>
-                                    <h3 className="text-sm font-semibold text-gray-700 mb-3">Đáp án:</h3>
-                                    <div className="space-y-2">
+                                <div className="rounded-xl overflow-hidden border border-gray-200">
+                                    <div className="bg-gray-50 px-4 py-2 border-b border-gray-200">
+                                        <p className="text-sm font-semibold text-gray-700">Các lựa chọn</p>
+                                    </div>
+                                    <div className="p-4 bg-white space-y-3">
                                         {previewQuestion.options.map((opt) => (
                                             <div
                                                 key={opt.id}
-                                                className={`p-4 rounded-xl border-2 transition-all ${
+                                                className={`flex items-start gap-3 p-3 rounded-lg border-2 transition-all ${
                                                     opt.isCorrect
-                                                        ? 'bg-green-50 border-green-500 shadow-sm'
-                                                        : 'bg-white border-gray-200 hover:border-gray-300'
+                                                        ? 'bg-green-50 border-green-300 shadow-sm'
+                                                        : 'bg-gray-50 border-gray-200 hover:border-gray-300'
                                                 }`}
                                             >
-                                                <div className="flex items-start gap-3">
-                                                    <span className={`flex items-center justify-center w-8 h-8 rounded-full font-bold ${
-                                                        opt.isCorrect ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-600'
-                                                    }`}>
-                                                        {opt.optionOrder}
-                                                    </span>
-                                                    <span className={`flex-1 font-medium ${
-                                                        opt.isCorrect ? 'text-green-800' : 'text-gray-700'
-                                                    }`}>
+                                                <span className={`flex-shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-sm font-bold ${
+                                                    opt.isCorrect ? 'bg-green-600 text-white shadow-sm' : 'bg-gray-200 text-gray-600'
+                                                }`}>
+                                                    {opt.optionOrder}
+                                                </span>
+                                                <div className="flex-1">
+                                                    <p className={`font-medium ${opt.isCorrect ? 'text-green-900' : 'text-gray-900'}`}>
                                                         {opt.optionText}
-                                                    </span>
+                                                    </p>
                                                     {opt.isCorrect && (
-                                                        <span className="flex items-center gap-1 text-green-700 font-bold bg-green-100 px-2 py-1 rounded-full text-sm">
-                                                            <CheckCircle className="w-4 h-4" />
-                                                            Đúng
+                                                        <span className="inline-block mt-1.5 px-2.5 py-0.5 text-xs font-semibold bg-green-600 text-white rounded-md">
+                                                            ✓ Đáp án đúng
                                                         </span>
                                                     )}
                                                 </div>
@@ -942,9 +1149,13 @@ const QBApproval = () => {
 
                             {/* Correct Answer for non-MCQ */}
                             {previewQuestion.correctAnswer && (
-                                <div className="bg-green-50 border border-green-200 rounded-xl p-4">
-                                    <h3 className="text-sm font-semibold text-green-800 mb-2">Đáp án đúng:</h3>
-                                    <p className="text-green-900 font-medium">{previewQuestion.correctAnswer}</p>
+                                <div className="rounded-xl overflow-hidden border border-green-200">
+                                    <div className="bg-green-50 px-4 py-2 border-b border-green-200">
+                                        <p className="text-sm font-semibold text-green-800">Đáp án đúng</p>
+                                    </div>
+                                    <div className="p-4 bg-white">
+                                        <p className="text-green-900 font-medium">{previewQuestion.correctAnswer}</p>
+                                    </div>
                                 </div>
                             )}
 
@@ -953,38 +1164,37 @@ const QBApproval = () => {
                              previewQuestion.explanation !== 'null' &&
                              !previewQuestion.explanation.includes('[APPROVAL FEEDBACK]') &&
                              !previewQuestion.explanation.includes('[REJECTION REASON]') && (
-                                <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-                                    <div className="flex items-start gap-2">
-                                        <Info className="w-5 h-5 text-blue-600 mt-0.5" />
-                                        <div>
-                                            <h3 className="text-sm font-semibold text-blue-800 mb-1">Giải thích:</h3>
-                                            <p className="text-blue-900">{previewQuestion.explanation}</p>
-                                        </div>
+                                <div className="rounded-xl overflow-hidden border border-blue-200">
+                                    <div className="bg-blue-50 px-4 py-2 border-b border-blue-200">
+                                        <p className="text-sm font-semibold text-blue-800 flex items-center gap-2">
+                                            💡 Giải thích
+                                        </p>
+                                    </div>
+                                    <div className="p-4 bg-white">
+                                        <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">{previewQuestion.explanation}</p>
                                     </div>
                                 </div>
                             )}
 
                             {/* Metadata */}
                             <div className="grid grid-cols-2 gap-4 text-sm">
-                                <div className="bg-gray-50 rounded-lg p-3">
-                                    <span className="text-gray-600">Ngày tạo:</span>
-                                    <span className="ml-2 font-medium text-gray-900">
-                                        {new Date(previewQuestion.createdAt).toLocaleDateString('vi-VN')}
-                                    </span>
+                                <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                                    <p className="text-gray-500 text-xs font-medium mb-1">Ngày tạo</p>
+                                    <p className="text-gray-900 font-medium">{new Date(previewQuestion.createdAt).toLocaleString('vi-VN')}</p>
                                 </div>
-                                <div className="bg-gray-50 rounded-lg p-3">
-                                    <span className="text-gray-600">Cập nhật:</span>
-                                    <span className="ml-2 font-medium text-gray-900">
-                                        {new Date(previewQuestion.updatedAt).toLocaleDateString('vi-VN')}
-                                    </span>
+                                <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                                    <p className="text-gray-500 text-xs font-medium mb-1">Cập nhật</p>
+                                    <p className="text-gray-900 font-medium">{new Date(previewQuestion.updatedAt).toLocaleString('vi-VN')}</p>
                                 </div>
                             </div>
 
-                            {/* Approval History - Show rejection reason */}
+                            {/* Approval History */}
                             {approvalHistory.length > 0 && (
-                                <div className="mt-4">
-                                    <h3 className="text-sm font-semibold text-gray-800 mb-3">Lịch sử duyệt</h3>
-                                    <div className="space-y-2">
+                                <div className="rounded-xl overflow-hidden border-2 border-gray-200">
+                                    <div className="bg-gray-50 px-4 py-2 border-b border-gray-200">
+                                        <p className="text-sm font-semibold text-gray-700">📜 Lịch sử duyệt</p>
+                                    </div>
+                                    <div className="p-4 bg-white space-y-3">
                                         {approvalHistory.map((history) => (
                                             <div
                                                 key={history.id}
@@ -1035,37 +1245,39 @@ const QBApproval = () => {
                         </div>
 
                         {/* Footer Actions */}
-                        <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4 flex justify-end gap-3">
-                            <button
-                                onClick={() => setShowPreviewModal(false)}
-                                className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors font-medium"
-                            >
-                                Đóng
-                            </button>
-                            {statusFilter === 'PENDING' && previewQuestion.verificationStatus === 'PENDING' && (
-                                <>
-                                    <button
-                                        onClick={() => {
-                                            setShowPreviewModal(false);
-                                            handleReject(previewQuestion.id);
-                                        }}
-                                        className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium flex items-center gap-2"
-                                    >
-                                        <XCircle className="w-4 h-4" />
-                                        Từ chối
-                                    </button>
-                                    <button
-                                        onClick={() => {
-                                            setShowPreviewModal(false);
-                                            handleApprove(previewQuestion.id);
-                                        }}
-                                        className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium flex items-center gap-2"
-                                    >
-                                        <CheckCircle className="w-4 h-4" />
-                                        Duyệt câu hỏi này
-                                    </button>
-                                </>
-                            )}
+                        <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4">
+                            <div className="flex items-center justify-end gap-3">
+                                <button
+                                    onClick={() => setShowPreviewModal(false)}
+                                    className="px-6 py-2.5 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors font-medium"
+                                >
+                                    Đóng
+                                </button>
+                                {statusFilter === 'PENDING' && previewQuestion.verificationStatus === 'PENDING' && (
+                                    <>
+                                        <button
+                                            onClick={() => {
+                                                setShowPreviewModal(false);
+                                                handleReject(previewQuestion.id);
+                                            }}
+                                            className="px-6 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium flex items-center gap-2"
+                                        >
+                                            <XCircle className="w-4 h-4" />
+                                            Từ chối
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                setShowPreviewModal(false);
+                                                handleApprove(previewQuestion.id);
+                                            }}
+                                            className="px-6 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium flex items-center gap-2"
+                                        >
+                                            <CheckCircle className="w-4 h-4" />
+                                            Duyệt câu hỏi này
+                                        </button>
+                                    </>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>
