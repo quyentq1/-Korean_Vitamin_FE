@@ -58,6 +58,7 @@ import QBApproval from './pages/Manager/QBApproval.jsx';
 import StaffDashboard from './pages/Staff/StaffDashboard.jsx';
 import StaffRegistrationManagement from './pages/Staff/RegistrationManagement.jsx';
 import StaffReports from './pages/Staff/StaffReports.jsx';
+import MailManagement from './pages/Staff/MailManagement.jsx';
 import ManagerDashboard from './pages/Manager/ManagerDashboard.jsx';
 import SystemSettings from './pages/Admin/SystemSettings.jsx';
 import UserManagement from './pages/Admin/UserManagement.jsx';
@@ -91,6 +92,7 @@ import Profile from './pages/Profile.jsx';
 import './App.css';
 
 import ChatbotWidget from './components/ChatbotWidget';
+import GuestKoreanChatbot from './components/AI/GuestKoreanChatbot';
 
 /**
  * Unauthorized Page Component
@@ -296,6 +298,13 @@ function App() {
               </StaffLayout>
             </StaffRoute>
           } />
+          <Route path="/staff/mail" element={
+            <StaffRoute>
+              <StaffLayout>
+                <MailManagement />
+              </StaffLayout>
+            </StaffRoute>
+          } />
           <Route path="/registrations" element={
             <StaffRoute>
               <StaffLayout>
@@ -398,6 +407,7 @@ function App() {
 
         {/* Global Widgets */}
         <ChatbotWidget />
+        <GuestKoreanChatbot />
       </AuthProvider>
     </BrowserRouter>
   );

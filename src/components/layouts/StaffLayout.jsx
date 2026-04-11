@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 import {
     Users, BookOpen, ClipboardList, Bell, LogOut, Search,
-    Menu, X, Home, Calendar, TrendingUp, Settings, Activity
+    Menu, X, Home, Calendar, TrendingUp, Settings, Activity, Mail
 } from 'lucide-react';
 import Swal from 'sweetalert2';
 import LanguageSwitcher from '../LanguageSwitcher';
@@ -41,10 +41,8 @@ const StaffLayout = ({ children }) => {
     const navItems = [
         { icon: <Home className="w-5 h-5" />, label: t('staff.dashboard.title'), path: '/staff' },
         { icon: <Users className="w-5 h-5" />, label: t('staff.dashboard.studentManagement'), path: '/student-management' },
-        { icon: <BookOpen className="w-5 h-5" />, label: t('staff.dashboard.classManagement'), path: '/class-management' },
         { icon: <ClipboardList className="w-5 h-5" />, label: t('staff.dashboard.registrationManagement'), path: '/registrations' },
-        { icon: <Settings className="w-5 h-5" />, label: t('staff.dashboard.roleManagement'), path: '/role-management' },
-        { icon: <Activity className="w-5 h-5" />, label: t('staff.dashboard.reports'), path: '/reports' },
+        { icon: <Mail className="w-5 h-5" />, label: 'Quản lý Email', path: '/staff/mail' },
     ];
 
     // Check if current path is active

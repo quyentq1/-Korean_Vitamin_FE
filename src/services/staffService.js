@@ -20,6 +20,34 @@ export const staffService = {
         }
     },
 
+    // ==================== MAIL MANAGEMENT ====================
+
+    /**
+     * Get all users for mail sending (except GUEST)
+     * GET /api/staff/mail/users
+     */
+    getMailUsers: async () => {
+        try {
+            return await axiosClient.get('/staff/mail/users');
+        } catch (error) {
+            console.error('Error fetching mail users:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * Send custom email
+     * POST /api/staff/mail/send
+     */
+    sendCustomMail: async (payload) => {
+        try {
+            return await axiosClient.post('/staff/mail/send', payload);
+        } catch (error) {
+            console.error('Error sending custom mail:', error);
+            throw error;
+        }
+    },
+
     // ==================== STUDENT MANAGEMENT ====================
 
     /**
