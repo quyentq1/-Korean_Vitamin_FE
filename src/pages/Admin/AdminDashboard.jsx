@@ -282,19 +282,19 @@ const AdminDashboard = () => {
           </div>
         </Card>
 
-        {/* Doanh thu */}
+        {/* Bài thi */}
         <Card className="p-6 hover:shadow-lg transition-shadow">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600 mb-1">Doanh thu</p>
-              <p className="text-3xl font-bold text-gray-900">{formatCurrency(stats.totalRevenue)}</p>
-              <p className="text-xs text-green-600 mt-2 flex items-center gap-1">
-                <TrendingUp className="w-3 h-3" />
-                +12% so với tháng trước
+              <p className="text-sm text-gray-600 mb-1">Bài thi</p>
+              <p className="text-3xl font-bold text-gray-900">{formatNumber(stats.totalExams)}</p>
+              <p className="text-xs text-blue-600 mt-2 flex items-center gap-1">
+                <FileText className="w-3 h-3" />
+                {stats.publishedExams} đã xuất bản
               </p>
             </div>
-            <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center">
-              <DollarSign className="w-6 h-6 text-emerald-600" />
+            <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+              <FileText className="w-6 h-6 text-purple-600" />
             </div>
           </div>
         </Card>
@@ -314,115 +314,85 @@ const AdminDashboard = () => {
           <p className="text-sm text-gray-600">Giáo viên đang hoạt động</p>
         </Card>
 
-        {/* Tỷ lệ hoàn thành */}
+        {/* Lần thi */}
         <Card className="p-6">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">Tỷ lệ hoàn thành</h3>
+            <h3 className="text-lg font-semibold text-gray-900">Lần thi</h3>
             <div className="w-10 h-10 bg-teal-100 rounded-full flex items-center justify-center">
-              <CheckCircle className="w-5 h-5 text-teal-600" />
+              <FileText className="w-5 h-5 text-teal-600" />
             </div>
           </div>
-          <p className="text-4xl font-bold text-gray-900 mb-2">78%</p>
-          <p className="text-sm text-gray-600">Học viên hoàn thành khóa học</p>
+          <p className="text-4xl font-bold text-gray-900 mb-2">{formatNumber(stats.publishedExams)}</p>
+          <p className="text-sm text-gray-600">Đã xuất bản</p>
         </Card>
 
-        {/* Thời gian trung bình */}
+        {/* Chờ phê duyệt */}
         <Card className="p-6">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">Thời gian học</h3>
+            <h3 className="text-lg font-semibold text-gray-900">Chờ phê duyệt</h3>
             <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
-              <Clock className="w-5 h-5 text-orange-600" />
+              <AlertCircle className="w-5 h-5 text-orange-600" />
             </div>
           </div>
-          <p className="text-4xl font-bold text-gray-900 mb-2">4.5h</p>
-          <p className="text-sm text-gray-600">Trung bình mỗi ngày</p>
+          <p className="text-4xl font-bold text-gray-900 mb-2">{formatNumber(stats.pendingApprovals)}</p>
+          <p className="text-sm text-gray-600">Bài thi/chương trình</p>
         </Card>
       </div>
 
-      {/* Liên kết nhanh và hoạt động gần đây */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Liên kết nhanh */}
-        <Card className="p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Liên kết nhanh</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {quickLinks.map((link, index) => (
-              <Link
-                key={index}
-                to={link.path}
-                className="group"
-              >
-                <div className="p-4 rounded-lg border border-gray-200 hover:border-primary-300 hover:shadow-md transition-all">
-                  <div className="flex items-start gap-3">
-                    <div className={`w-10 h-10 ${link.color} rounded-lg flex items-center justify-center flex-shrink-0`}>
-                      <link.icon className="w-5 h-5 text-white" />
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="font-medium text-gray-900 group-hover:text-primary-600 transition-colors">
-                        {link.title}
-                      </h4>
-                      <p className="text-sm text-gray-600 mt-1">{link.description}</p>
-                    </div>
-                    <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-primary-600 transition-colors" />
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </Card>
-
-        {/* Hoạt động gần đây */}
-        <Card className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">Hoạt động gần đây</h3>
-            <Link
-              to="/"
-              className="text-sm text-primary-600 hover:text-primary-700 font-medium"
+      {/* Hoạt động gần đây */}
+      <Card className="mb-6 p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-gray-900">Hoạt động gần đây</h3>
+          <Link
+            to="/"
+            className="text-sm text-primary-600 hover:text-primary-700 font-medium"
+          >
+            Xem tất cả
+          </Link>
+        </div>
+        <div className="space-y-4">
+          {recentActivities.map((activity) => (
+            <div
+              key={activity.id}
+              className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors"
             >
-              Xem tất cả
-            </Link>
-          </div>
-          <div className="space-y-4">
-            {recentActivities.map((activity) => (
-              <div
-                key={activity.id}
-                className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                <div className={`w-10 h-10 ${activity.bgColor} rounded-full flex items-center justify-center flex-shrink-0`}>
-                  <activity.icon className={`w-5 h-5 ${activity.color}`} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 truncate">
-                    {activity.action}
-                  </p>
-                  <p className="text-xs text-gray-600 mt-1">
-                    {activity.user} • {activity.time}
-                  </p>
-                </div>
+              <div className={`w-10 h-10 ${activity.bgColor} rounded-full flex items-center justify-center flex-shrink-0`}>
+                <activity.icon className={`w-5 h-5 ${activity.color}`} />
               </div>
-            ))}
-          </div>
-        </Card>
-      </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-gray-900 truncate">
+                  {activity.action}
+                </p>
+                <p className="text-xs text-gray-600 mt-1">
+                  {activity.user} • {activity.time}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </Card>
 
       {/* Thông báo hệ thống */}
       <Card className="mt-6 p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Thông báo hệ thống</h3>
         <div className="space-y-3">
-          <div className="flex items-start gap-3 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
-            <AlertCircle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
-            <div className="flex-1">
-              <p className="text-sm font-medium text-yellow-900">Cập nhật hệ thống</p>
-              <p className="text-xs text-yellow-700 mt-1">
-                Hệ thống sẽ được bảo trì vào ngày 15/02/2025 từ 22:00 đến 23:00.
-              </p>
+          {stats.pendingApprovals > 0 ? (
+            <div className="flex items-start gap-3 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+              <AlertCircle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="text-sm font-medium text-yellow-900">Chờ phê duyệt</p>
+                <p className="text-xs text-yellow-700 mt-1">
+                  Có {stats.pendingApprovals} bài thi/chương trình đang chờ phê duyệt.
+                </p>
+              </div>
             </div>
-          </div>
+          ) : null}
           <div className="flex items-start gap-3 p-3 bg-green-50 rounded-lg border border-green-200">
             <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
             <div className="flex-1">
-              <p className="text-sm font-medium text-green-900">Tính năng mới</p>
+              <p className="text-sm font-medium text-green-900">Tổng quan hệ thống</p>
               <p className="text-xs text-green-700 mt-1">
-                Tính năng chấm bài viết bằng AI đã được cập nhật và cải thiện độ chính xác.
+                {stats.activeUsers} / {stats.totalUsers} người dùng đang hoạt động.
               </p>
             </div>
           </div>

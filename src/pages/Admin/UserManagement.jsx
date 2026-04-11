@@ -294,7 +294,7 @@ const UserManagement = () => {
                 user.email,
                 user.role,
                 user.status,
-                user.expirationDate || 'N/A',
+                user.expirationDate || 'Chưa có',
                 user.lastLogin
             ].join(','))
         ].join('\n');
@@ -478,7 +478,7 @@ const UserManagement = () => {
             header: t('userMgmt.email', 'Email'),
             sortable: true,
             className: 'min-w-[200px]',
-            render: (value, row) => <span className="text-gray-600">{row?.email || 'N/A'}</span>
+            render: (value, row) => <span className="text-gray-600">{row?.email || 'Chưa có'}</span>
         },
         {
             key: 'role',
@@ -502,14 +502,43 @@ const UserManagement = () => {
             header: t('userMgmt.expirationDate', 'Ngày hết hạn'),
             sortable: true,
             className: 'min-w-[120px]',
-            render: (value, row) => <span className="text-gray-600">{row?.expirationDate || 'N/A'}</span>
+            render: (value, row) => <span className="text-gray-600">{row?.expirationDate || 'Chưa có'}</span>
         },
         {
             key: 'lastLogin',
             header: t('userMgmt.lastLogin', 'Đăng nhập cuối'),
             sortable: true,
             className: 'min-w-[150px]',
-            render: (value, row) => <span className="text-gray-600">{row?.lastLogin || 'N/A'}</span>
+            render: (value, row) => {
+                const lastLogin = row?.lastLogin;
+                if (!lastLogin) return <span className="text-gray-400">Chưa đăng nhập</span>;
+                
+                const loginDate = new Date(lastLogin);
+                const now = new Date();
+                const diffDays = Math.floor((now - loginDate) / (1000 * 60 * 60 * 24));
+                
+                let formatted;
+                if (diffDays === 0) {
+                    formatted = 'Hôm nay';
+                } else if (diffDays === 1) {
+                    formatted = 'Hôm qua';
+                } else if (diffDays < 7) {
+                    formatted = `${diffDays} ngày trước`;
+                } else if (diffDays < 30) {
+                    formatted = `${Math.floor(diffDays / 7)} tuần trước`;
+                } else if (diffDays < 365) {
+                    formatted = `${Math.floor(diffDays / 30)} tháng trước`;
+                } else {
+                    formatted = `${Math.floor(diffDays / 365)} năm trước`;
+                }
+                
+                return (
+                    <div className="flex flex-col">
+                        <span className="text-gray-600 font-medium">{formatted}</span>
+                        <span className="text-xs text-gray-400">{loginDate.toLocaleDateString('vi-VN')}</span>
+                    </div>
+                );
+            }
         },
         {
             key: 'actions',
@@ -1306,7 +1335,7 @@ const UserManagement = () => {
                                 <h3 className="text-2xl font-bold text-gray-900 mb-1">
                                     {currentUser?.fullName || currentUser?.name || 'Unknown'}
                                 </h3>
-                                <p className="text-gray-600">@{currentUser?.username || 'N/A'}</p>
+                                <p className="text-gray-600">@{currentUser?.username || 'Chưa có'}</p>
                                 <div className="flex items-center gap-3 mt-3">
                                     <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
                                         currentUser?.role === 'STUDENT' ? 'bg-blue-100 text-blue-700' :
@@ -1315,7 +1344,7 @@ const UserManagement = () => {
                                         currentUser?.role === 'EDUCATION_MANAGER' ? 'bg-orange-100 text-orange-700' :
                                         'bg-gray-100 text-gray-700'
                                     }`}>
-                                        {currentUser?.role || 'N/A'}
+                                        {currentUser?.role || 'Chưa có'}
                                     </span>
                                     <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
                                         currentUser?.active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'
@@ -1337,15 +1366,15 @@ const UserManagement = () => {
                                 <div className="space-y-3">
                                     <div className="flex justify-between items-center py-2 border-b border-gray-100">
                                         <span className="text-sm text-gray-500">Email</span>
-                                        <span className="text-sm font-medium text-gray-900">{currentUser?.email || 'N/A'}</span>
+                                        <span className="text-sm font-medium text-gray-900">{currentUser?.email || 'Chưa có'}</span>
                                     </div>
                                     <div className="flex justify-between items-center py-2 border-b border-gray-100">
                                         <span className="text-sm text-gray-500">Điện thoại</span>
-                                        <span className="text-sm font-medium text-gray-900">{currentUser?.phone || 'N/A'}</span>
+                                        <span className="text-sm font-medium text-gray-900">{currentUser?.phone || 'Chưa có'}</span>
                                     </div>
                                     <div className="flex justify-between items-center py-2">
                                         <span className="text-sm text-gray-500">Địa chỉ</span>
-                                        <span className="text-sm font-medium text-gray-900">{currentUser?.address || 'N/A'}</span>
+                                        <span className="text-sm font-medium text-gray-900">{currentUser?.address || 'Chưa có'}</span>
                                     </div>
                                 </div>
                             </div>
@@ -1362,12 +1391,12 @@ const UserManagement = () => {
                                         <span className="text-sm font-medium text-gray-900">
                                             {currentUser?.gender === 'MALE' ? 'Nam' :
                                              currentUser?.gender === 'FEMALE' ? 'Nữ' :
-                                             currentUser?.gender || 'N/A'}
+                                             currentUser?.gender || 'Chưa có'}
                                         </span>
                                     </div>
                                     <div className="flex justify-between items-center py-2 border-b border-gray-100">
                                         <span className="text-sm text-gray-500">Ngày sinh</span>
-                                        <span className="text-sm font-medium text-gray-900">{currentUser?.dateOfBirth || 'N/A'}</span>
+                                        <span className="text-sm font-medium text-gray-900">{currentUser?.dateOfBirth || 'Chưa có'}</span>
                                     </div>
                                     <div className="flex justify-between items-center py-2">
                                         <span className="text-sm text-gray-500">Avatar</span>
@@ -1389,7 +1418,7 @@ const UserManagement = () => {
                                 <div className="space-y-3">
                                     <div className="flex justify-between items-center py-2 border-b border-gray-100">
                                         <span className="text-sm text-gray-500">ID</span>
-                                        <span className="text-sm font-medium text-gray-900">#{currentUser?.id || 'N/A'}</span>
+                                        <span className="text-sm font-medium text-gray-900">#{currentUser?.id || 'Chưa có'}</span>
                                     </div>
                                     <div className="flex justify-between items-center py-2 border-b border-gray-100">
                                         <span className="text-sm text-gray-500">Trạng thái</span>

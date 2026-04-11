@@ -434,7 +434,7 @@ const TeachersManagement = () => {
                 </div>
                 <div>
                   <p className="text-sm text-gray-500 mb-1">Số điện thoại</p>
-                  <p className="font-medium">{selectedTeacher.phone || 'N/A'}</p>
+                  <p className="font-medium">{selectedTeacher.phone || 'Chưa có'}</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-500 mb-1">Số khóa học</p>

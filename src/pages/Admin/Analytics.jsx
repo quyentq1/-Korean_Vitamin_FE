@@ -584,8 +584,8 @@ const Analytics = () => {
                     data={levelDistributionData}
                     cx="50%"
                     cy="50%"
-                    labelLine={false}
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                    labelLine={true}
+                    label={({ name, value }) => `${name}: ${value}`}
                     outerRadius={90}
                     innerRadius={50}
                     paddingAngle={2}
