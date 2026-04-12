@@ -72,6 +72,14 @@ export const classService = {
 
     createClassExam: async (classId, examData) => {
         return await axiosClient.post(`/teacher/classes/${classId}/exams`, examData);
+    },
+
+    getClassScoreboard: async (classId) => {
+        return await axiosClient.get(`/teacher/classes/${classId}/scoreboard`);
+    },
+
+    toggleClassExamVisibility: async (classId, examId) => {
+        return await axiosClient.patch(`/teacher/classes/${classId}/exams/${examId}/visibility`);
     }
 };
 

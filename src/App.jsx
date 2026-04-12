@@ -33,7 +33,6 @@ import TestResult from './pages/Test/TestResult.jsx';
 import Forum from './pages/Shared/Forum.jsx';
 import QuestionBank from './pages/Teacher/QuestionBank.jsx';
 import GradingQueue from './pages/Teacher/GradingQueue.jsx';
-import TeacherSessions from './pages/Teacher/TeacherSessions.jsx';
 import SessionApproval from './pages/Manager/SessionApproval.jsx';
 import QuestionApproval from './pages/Manager/QuestionApproval.jsx';
 import ExamApproval from './pages/Manager/ExamApproval.jsx';
@@ -74,9 +73,7 @@ import AIChatbot from './components/AIChatbot.jsx';
 import ExamIntro from './pages/Exam/ExamIntro.jsx';
 import ExamTaking from './pages/Exam/ExamTaking.jsx';
 import ExamResult from './pages/Exam/ExamResult.jsx';
-import QuestionImport from './pages/Teacher/QuestionImport.jsx';
 import GradingDetail from './pages/Teacher/GradingDetail.jsx';
-import TagManagement from './pages/Teacher/TagManagement.jsx';
 import StudentExamList from './pages/Student/StudentExamList.jsx';
 import ExamHistory from './pages/Student/ExamHistory.jsx';
 import StudentDashboard from './pages/Student/StudentDashboard.jsx';
@@ -215,7 +212,6 @@ function App() {
             <Route path="grading-queue" element={<GradingQueue />} />
             <Route path="create-quiz" element={<CreateQuiz />} />
             <Route path="reports" element={<TeacherReports />} />
-            <Route path="question-import" element={<QuestionImport />} />
             <Route path="grading/:attemptId" element={<GradingDetail />} />
             <Route path="exam-management" element={<ExamManagement />} />
             <Route path="exam-management/create" element={<ExamEditor />} />
@@ -224,8 +220,6 @@ function App() {
             <Route path="exam-attempts/:id" element={<ExamAttempts />} />
             <Route path="class-exams" element={<ClassExamManagement />} />
             <Route path="class-exams/:classId" element={<ClassExamManagement />} />
-            <Route path="sessions" element={<TeacherSessions />} />
-            <Route path="tag-management" element={<TagManagement />} />
           </Route>
 
           {/* Legacy Teacher Routes (for backwards compatibility) */}
@@ -233,7 +227,6 @@ function App() {
           <Route path="/question-bank" element={<Navigate to="/teacher/question-bank" replace />} />
           <Route path="/grading-queue" element={<Navigate to="/teacher/grading-queue" replace />} />
           <Route path="/teacher-reports" element={<Navigate to="/teacher/reports" replace />} />
-          <Route path="/teacher-sessions" element={<Navigate to="/teacher/sessions" replace />} />
           <Route path="/exam-management" element={<Navigate to="/teacher/exam-management" replace />} />
 
           {/* Staff Routes - Staff Only */}

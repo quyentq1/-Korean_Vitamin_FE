@@ -210,12 +210,6 @@ const ExamManagement = () => {
     }
   };
 
-  // Handle delete
-  const handleDelete = (exam) => {
-    setExamToDelete(exam);
-    setShowDeleteModal(true);
-  };
-
   const confirmDelete = async () => {
     if (!examToDelete) return;
 
@@ -640,22 +634,6 @@ const ExamManagement = () => {
                         icon={<Edit className="w-4 h-4" />}
                         onClick={() => navigate(`/teacher/exam-editor/${exam.id}`)}
                         title={t('exam.edit', 'Chỉnh sửa')}
-                      />
-                      {exam.published && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          icon={<CheckCircle2 className="w-4 h-4" />}
-                          onClick={() => handlePublishToggle(exam)}
-                          title={exam.published ? t('exam.unpublish', 'Hủy đăng') : t('exam.publish', 'Đăng')}
-                        />
-                      )}
-                      <Button
-                        variant="danger"
-                        size="sm"
-                        icon={<Trash2 className="w-4 h-4" />}
-                        onClick={() => handleDelete(exam)}
-                        title={t('exam.delete', 'Xóa')}
                       />
                     </div>
                   </div>

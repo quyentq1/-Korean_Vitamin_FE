@@ -49,7 +49,7 @@ import QuestionBankModal from '../../components/Teacher/QuestionBankModal';
 
 // Utils
 import { validateExamBeforePublish, canEditExam } from '../../utils/examValidator';
-import { getQuestionStructure } from '../../constants/topikStructure';
+import { getQuestionStructure, READING_STRUCTURE, LISTENING_STRUCTURE, WRITING_STRUCTURE } from '../../constants/topikStructure';
 import { getClassQuestionPoints } from '../../constants/topikClassStructure';
 
 // Styles
@@ -553,9 +553,9 @@ const ExamEditor = () => {
           if (category) {
             // Get structure from topikStructure
             const structures = {
-              'READING': require('../../constants/topikStructure').READING_STRUCTURE,
-              'LISTENING': require('../../constants/topikStructure').LISTENING_STRUCTURE,
-              'WRITING': require('../../constants/topikStructure').WRITING_STRUCTURE
+              'READING': READING_STRUCTURE,
+              'LISTENING': LISTENING_STRUCTURE,
+              'WRITING': WRITING_STRUCTURE
             };
             const structure = structures[category]?.find(s => s.type === q.topikType);
             points = structure?.pointsPerQuestion || 1;
@@ -1588,16 +1588,6 @@ const ExamEditor = () => {
               <div className="p-6">
                 {/* Action Buttons */}
                 <div className="space-y-3 mb-6">
-                  <Button
-                    variant="primary"
-                    className="w-full"
-                    icon={<Plus className="w-4 h-4" />}
-                    onClick={handleAddQuestion}
-                    disabled={exam?.published} // Disable if published
-                  >
-                    {t('exam.addQuestion', 'Thêm Câu Hỏi Mới')}
-                  </Button>
-
                   <Button
                     variant="secondary"
                     className="w-full"

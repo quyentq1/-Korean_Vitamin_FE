@@ -66,25 +66,18 @@ const ExamStructureBuilder = ({
     }));
   }, [isClassExam]);
 
-  // Initialize topikTypeCounts with default values from structure
+  // Initialize topikTypeCounts from CURRENT structure's defaults (preserves values when switching Auto→Custom)
   React.useEffect(() => {
     const structure = topikLevel === 'TOPIK_I' ? TOPIK_I_STRUCTURE : TOPIK_II_STRUCTURE;
     const defaultCounts = {};
 
-    // Initialize all topikTypes with 0
-    const allTypes = [
+    // Only initialize types that exist in this exam's structure
+    [
       ...(structure.reading || []),
       ...(structure.listening || []),
       ...(structure.writing || [])
-    ];
-
-    allTypes.forEach(item => {
-      defaultCounts[item.type] = 0;
-    });
-
-    // Set default counts based on structure
-    allTypes.forEach(item => {
-      defaultCounts[item.type] = item.count;
+    ].forEach(item => {
+      defaultCounts[item.type] = item.count; // Pre-fill with structure default
     });
 
     setTopikTypeCounts(defaultCounts);
@@ -92,14 +85,15 @@ const ExamStructureBuilder = ({
 
   const structure = topikLevel === 'TOPIK_I' ? TOPIK_I_STRUCTURE : TOPIK_II_STRUCTURE;
 
-  // Get all topikTypes grouped by category
+  // Get TopikTypes ONLY from the current exam structure (not global lists)
+  // This ensures Custom mode stays within the bounds of the defined exam structure
   const getTopikTypesByCategory = () => {
-    const allTypes = {
-      READING: READING_STRUCTURE,
-      LISTENING: LISTENING_STRUCTURE,
-      WRITING: WRITING_STRUCTURE
+    const currentStructure = topikLevel === 'TOPIK_I' ? TOPIK_I_STRUCTURE : TOPIK_II_STRUCTURE;
+    return {
+      READING: currentStructure.reading || [],
+      LISTENING: currentStructure.listening || [],
+      WRITING: currentStructure.writing || []
     };
-    return allTypes;
   };
 
   // Toggle section expand/collapse
@@ -507,8 +501,11 @@ const ExamStructureBuilder = ({
         <div className="px-6 py-4 bg-gradient-to-r from-amber-50 to-orange-50 border-b border-amber-200">
           <div className="flex items-center gap-2 mb-4 text-amber-800">
             <Info className="w-4 h-4" />
-            <span className="text-sm font-semibold">Tùy chỉnh theo TopikType (R1, R2, L1, L2...)</span>
+            <span className="text-sm font-semibold">Tùy chỉnh số câu theo từng TopikType trong cấu trúc đề</span>
           </div>
+          <p className="text-xs text-amber-600 mb-4">
+            Chỉ các loại câu hỏi thuộc cấu trúc đề thi <strong>{topikLevel === 'TOPIK_I' ? 'TOPIK I' : 'TOPIK II'}</strong> được hiển thị. Thay đổi số lượng câu cho từng loại theo nhu cầu.
+          </p>
 
           <div className="space-y-4">
             {/* Reading TopikTypes */}

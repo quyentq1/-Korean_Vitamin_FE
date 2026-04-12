@@ -32,6 +32,10 @@ const QuestionFormModal = ({ isOpen, onClose, questionId, defaultTarget = 'COURS
   const { t } = useTranslation();
   const isEditMode = !!questionId;
 
+  // Available levels from teacher's assigned courses (for CLASS questions)
+  const [availableLevels, setAvailableLevels] = useState([]);
+  const [initialClassLevelLoaded, setInitialClassLevelLoaded] = useState(false);
+
   // State
   const [submitting, setSubmitting] = useState(false);
   const [loadingQuestion, setLoadingQuestion] = useState(isEditMode);
@@ -58,6 +62,7 @@ const QuestionFormModal = ({ isOpen, onClose, questionId, defaultTarget = 'COURS
     answerType: 'SINGLE', // ALWAYS SINGLE - only one correct answer
     category: '',
     level: 'LEVEL_1', // For COURSE
+    classLevel: '', // For CLASS - will be auto-set from availableLevels after fetch
     unit: 1, // For CLASS - Unit from 1-12
     topikType: '', // NEW: TOPIK type (R1, L1, W51...)
     points: 1, // NEW: Default points
@@ -74,15 +79,41 @@ const QuestionFormModal = ({ isOpen, onClose, questionId, defaultTarget = 'COURS
 
   // Validation errors
   const [validationErrors, setValidationErrors] = useState({});
+
+  // Fetch distinct levels from teacher's assigned courses (used for CLASS question level picker)
+  React.useEffect(() => {
+    const fetchLevels = async () => {
+      try {
+        const data = await teacherService.getTeacherDistinctLevels();
+        const levels = Array.isArray(data) ? data : [];
+        setAvailableLevels(levels);
+        
+        // Auto-set classLevel to first available level if not in edit mode
+        if (!isEditMode && levels.length > 0 && !initialClassLevelLoaded && question.questionTarget === 'CLASS') {
+          setQuestion(prev => ({ ...prev, classLevel: levels[0] }));
+          setInitialClassLevelLoaded(true);
+        }
+      } catch (err) {
+        console.error('Failed to fetch distinct levels:', err);
+      }
+    };
+    fetchLevels();
+  }, []);
   // Load existing question when in edit mode
   useEffect(() => {
     if (!isEditMode) {
+      // Auto-set classLevel to first available level for CLASS questions
+      const defaultClassLevel = (defaultTarget === 'CLASS' && availableLevels.length > 0) 
+        ? availableLevels[0] 
+        : '';
+      
       setQuestion({
         questionTarget: defaultTarget, // Use defaultTarget from props
         questionType: 'MULTIPLE_CHOICE',
         answerType: 'SINGLE',
         category: '',
         level: 'LEVEL_1',
+        classLevel: defaultClassLevel,
         unit: 1,
         topikType: '', // NEW: Reset topikType
         points: 1,
@@ -204,7 +235,19 @@ const QuestionFormModal = ({ isOpen, onClose, questionId, defaultTarget = 'COURS
           questionTarget: calculatedQuestionTarget, // Use calculated value from level/unit
           questionType: questionTypeValue,
           answerType: 'SINGLE', // ALWAYS SINGLE - override from API
-          level: data.level || 'LEVEL_1',
+          level: (calculatedQuestionTarget === 'COURSE') ? (data.level || 'LEVEL_1') : 'LEVEL_1',
+          classLevel: (calculatedQuestionTarget === 'CLASS') ? (() => {
+            // Convert LEVEL_X to course level for dropdown display
+            const levelToCourseLevel = {
+              'LEVEL_1': 'BEGINNER',
+              'LEVEL_2': 'BEGINNER',
+              'LEVEL_3': 'INTERMEDIATE',
+              'LEVEL_4': 'INTERMEDIATE',
+              'LEVEL_5': 'ADVANCED',
+              'LEVEL_6': 'ADVANCED',
+            };
+            return levelToCourseLevel[data.level] || data.level || '';
+          })() : '', // CLASS level - convert LEVEL_X to course level
           unit: data.unit || 1, // NEW: Load unit for CLASS
           topikType: topikTypeValue, // NEW: Load topikType
           points: data.points || 1, // NEW: Load points
@@ -275,10 +318,11 @@ const QuestionFormModal = ({ isOpen, onClose, questionId, defaultTarget = 'COURS
     if (!question.questionTarget) errors.questionTarget = 'Vui lòng chọn đối tượng câu hỏi';
     // questionType is auto-set from topikType, no need to validate
 
-    // Validate level for COURSE, unit for CLASS
+    // Validate level for COURSE, classLevel+unit for CLASS
     if (question.questionTarget === 'COURSE') {
       if (!question.level) errors.level = 'Vui lòng chọn cấp độ';
     } else if (question.questionTarget === 'CLASS') {
+      if (!question.classLevel) errors.classLevel = 'Vui lòng chọn cấp độ khóa học';
       if (!question.unit) errors.unit = 'Vui lòng chọn Unit';
     }
 
@@ -352,6 +396,21 @@ const QuestionFormModal = ({ isOpen, onClose, questionId, defaultTarget = 'COURS
         useTextInput = getClassQuestionAnswerType(question.topikType) === 'TEXT_INPUT';
       }
 
+      // Map course level (BEGINNER/INTERMEDIATE/ADVANCED) → QuestionLevel (LEVEL_1..6)
+      // Also handle case where classLevel is already in LEVEL_X format
+      const courseLevelToQuestionLevel = {
+        BEGINNER: 'LEVEL_2',
+        INTERMEDIATE: 'LEVEL_4',
+        ADVANCED: 'LEVEL_6',
+      };
+      // If already in LEVEL_X format, use as-is; otherwise map from course level
+      let mappedClassLevel = null;
+      if (question.classLevel?.startsWith('LEVEL_')) {
+        mappedClassLevel = question.classLevel;
+      } else {
+        mappedClassLevel = courseLevelToQuestionLevel[question.classLevel] || null;
+      }
+
       const requestData = {
         question: {
           questionTarget: question.questionTarget, // NEW: COURSE or CLASS
@@ -359,9 +418,10 @@ const QuestionFormModal = ({ isOpen, onClose, questionId, defaultTarget = 'COURS
           answerType: question.answerType,
           ...(question.questionTarget === 'COURSE'
             ? { level: question.level }
-            : { unit: question.unit }
-          ), // NEW: level for COURSE, unit for CLASS
+            : { unit: question.unit, level: mappedClassLevel }
+          ), // CLASS: send both mapped QuestionLevel + unit
           topikType: question.topikType || null, // NEW: Include topikType
+
           questionText: question.content,
           explanation: question.explanation,
           questionMediaUrl: audioUrl || null,
@@ -696,7 +756,12 @@ const QuestionFormModal = ({ isOpen, onClose, questionId, defaultTarget = 'COURS
                   value={question.questionTarget}
                   onChange={e => {
                     const newTarget = e.target.value;
-                    setQuestion({ ...question, questionTarget: newTarget, topikType: '' });
+                    // Auto-set classLevel to first available when switching to CLASS
+                    if (newTarget === 'CLASS' && availableLevels.length > 0) {
+                      setQuestion({ ...question, questionTarget: newTarget, topikType: '', classLevel: availableLevels[0] });
+                    } else {
+                      setQuestion({ ...question, questionTarget: newTarget, topikType: '' });
+                    }
                   }}
                 >
                   <option value="COURSE">Khóa học (Course)</option>
@@ -709,7 +774,7 @@ const QuestionFormModal = ({ isOpen, onClose, questionId, defaultTarget = 'COURS
                 )}
               </div>
 
-              {/* Level (for COURSE) or Unit (for CLASS) */}
+              {/* Level (for COURSE) or Level + Unit (for CLASS) */}
               {question.questionTarget === 'COURSE' ? (
                 <div>
                   <label className="block font-medium text-gray-700 mb-2 flex items-center gap-2 text-sm sm:text-base">
@@ -735,29 +800,67 @@ const QuestionFormModal = ({ isOpen, onClose, questionId, defaultTarget = 'COURS
                   )}
                 </div>
               ) : (
-                <div>
-                  <label className="block font-medium text-gray-700 mb-2 flex items-center gap-2 text-sm sm:text-base">
-                    <BarChart3 className="w-4 h-4 text-gray-500" />
-                    Unit <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    className="w-full px-3 sm:px-4 py-2 sm:py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition-all bg-white shadow-sm text-sm"
-                    value={question.unit}
-                    onChange={e => setQuestion({ ...question, unit: parseInt(e.target.value) })}
-                  >
-                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(unitNum => (
-                      <option key={unitNum} value={unitNum}>
-                        Unit {unitNum}
-                      </option>
-                    ))}
-                  </select>
-                  {validationErrors.unit && (
-                    <p className="text-red-500 text-xs sm:text-sm mt-1 flex items-center gap-1">
-                      <X className="w-3 h-3" />{validationErrors.unit}
-                    </p>
-                  )}
-                </div>
+                <>
+                  {/* CLASS – Step 1: Chọn Level từ khóa học của teacher */}
+                  <div>
+                    <label className="block font-medium text-gray-700 mb-2 flex items-center gap-2 text-sm sm:text-base">
+                      <BarChart3 className="w-4 h-4 text-gray-500" />
+                      Cấp độ khóa học <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      className="w-full px-3 sm:px-4 py-2 sm:py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition-all bg-white shadow-sm text-sm"
+                      value={question.classLevel}
+                      onChange={e => setQuestion({ ...question, classLevel: e.target.value })}
+                    >
+                      <option value="">-- Chọn cấp độ --</option>
+                      {availableLevels.length > 0 ? (
+                        availableLevels.map(lvl => {
+                          const labels = {
+                            BEGINNER: 'Sơ cấp (Beginner)',
+                            INTERMEDIATE: 'Trung cấp (Intermediate)',
+                            ADVANCED: 'Cao cấp (Advanced)',
+                          };
+                          return (
+                            <option key={lvl} value={lvl}>{labels[lvl] || lvl}</option>
+                          );
+                        })
+                      ) : (
+                        <option disabled>Đang tải cấp độ...</option>
+                      )}
+                    </select>
+                    {validationErrors.classLevel && (
+                      <p className="text-red-500 text-xs sm:text-sm mt-1 flex items-center gap-1">
+                        <X className="w-3 h-3" />{validationErrors.classLevel}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* CLASS – Step 2: Chọn Unit */}
+                  <div>
+                    <label className="block font-medium text-gray-700 mb-2 flex items-center gap-2 text-sm sm:text-base">
+                      <BarChart3 className="w-4 h-4 text-gray-500" />
+                      Unit <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      className="w-full px-3 sm:px-4 py-2 sm:py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition-all bg-white shadow-sm text-sm"
+                      value={question.unit}
+                      onChange={e => setQuestion({ ...question, unit: parseInt(e.target.value) })}
+                    >
+                      {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(unitNum => (
+                        <option key={unitNum} value={unitNum}>
+                          Unit {unitNum}
+                        </option>
+                      ))}
+                    </select>
+                    {validationErrors.unit && (
+                      <p className="text-red-500 text-xs sm:text-sm mt-1 flex items-center gap-1">
+                        <X className="w-3 h-3" />{validationErrors.unit}
+                      </p>
+                    )}
+                  </div>
+                </>
               )}
+
 
               {/* TopikType - Show different options based on questionTarget */}
               <div>

@@ -168,6 +168,11 @@ export const teacherService = {
         return await axiosClient.get('/teacher/courses');
     },
 
+    // Get distinct course levels from teacher's assigned courses (for CLASS question level picker)
+    getTeacherDistinctLevels: async () => {
+        return await axiosClient.get('/teacher/courses/distinct-levels');
+    },
+
     // NEW: Get class info by ID (for creating exam from class)
     getClassInfo: async (classId) => {
         return await axiosClient.get(`/teacher/classes/${classId}`);
