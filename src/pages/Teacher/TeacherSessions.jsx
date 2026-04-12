@@ -6,6 +6,7 @@ import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import CreateSessionModal from '../../components/CreateSessionModal';
 import RescheduleSessionModal from '../../components/RescheduleSessionModal';
+import Swal from 'sweetalert2';
 
 const TeacherSessions = () => {
     const { t } = useTranslation();
@@ -64,18 +65,68 @@ const TeacherSessions = () => {
     };
 
     const handleCancelSession = async (sessionId) => {
-        if (!confirm(t('teacher.sessions.confirmCancel'))) return;
+        // Show confirmation first
+        const confirmResult = await Swal.fire({
+            icon: 'question',
+            title: 'Hủy buổi học',
+            text: t('teacher.sessions.confirmCancel') || 'Bạn có chắc muốn hủy buổi học này?',
+            showCancelButton: true,
+            confirmButtonText: 'Hủy',
+            cancelButtonText: 'Không',
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#6b7280',
+            reverseButtons: true
+        });
+
+        if (!confirmResult.isConfirmed) {
+            return;
+        }
+
+        // Show input for reason
+        const { value: reason } = await Swal.fire({
+            icon: 'question',
+            title: 'Lý do hủy',
+            text: t('teacher.sessions.cancelReason') || 'Vui lòng nhập lý do hủy buổi học',
+            input: 'text',
+            inputPlaceholder: 'Nhập lý do...',
+            showCancelButton: true,
+            confirmButtonText: 'Hủy buổi',
+            cancelButtonText: 'Bỏ qua',
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#6b7280',
+            reverseButtons: true,
+            inputValidator: (value) => {
+                if (!value || value.trim() === '') {
+                    return 'Vui lòng nhập lý do!'
+                }
+                return true
+            }
+        });
+
+        if (reason === null || reason === undefined) {
+            return; // User cancelled
+        }
 
         try {
-            const reason = prompt(t('teacher.sessions.cancelReason'));
-            if (reason === null) return; // User cancelled
-
             await teacherService.cancelSession(sessionId, reason);
             fetchSessions();
-            // Show success notification
+            Swal.fire({
+                icon: 'success',
+                title: 'Đã hủy',
+                text: 'Buổi học đã được hủy thành công.',
+                confirmButtonText: 'Đồng ý',
+                confirmButtonColor: '#22c55e',
+                timer: 2000
+            });
         } catch (error) {
             console.error('Error cancelling session:', error);
-            // Show error notification
+            Swal.fire({
+                icon: 'error',
+                title: 'Lỗi',
+                text: 'Không thể hủy buổi học. Vui lòng thử lại.',
+                confirmButtonText: 'Đồng ý',
+                confirmButtonColor: '#ef4444'
+            });
         }
     };
 

@@ -7,9 +7,17 @@ const ExamReviewModal = ({ isOpen, onClose, attempt, exam }) => {
 
     const questions = exam.examQuestions || [];
 
+    // Calculate totalPoints from exam questions if not set or is 0
+    const calculatedTotalPoints = exam.totalPoints && exam.totalPoints > 0
+        ? exam.totalPoints
+        : questions.reduce((sum, eq) => sum + (eq.points || 0), 0);
+
+    // Fallback: use autoScore if totalScore is null
+    const actualScore = attempt.totalScore != null ? attempt.totalScore : attempt.autoScore;
+
     // Calculate pass/fail
-    const scorePercentage = attempt.totalScore
-        ? Math.round((attempt.totalScore / exam.totalPoints) * 100)
+    const scorePercentage = actualScore && calculatedTotalPoints > 0
+        ? Math.round((actualScore / calculatedTotalPoints) * 100)
         : 0;
     const passed = scorePercentage >= (exam.passingScore || 60);
 
@@ -323,7 +331,7 @@ const ExamReviewModal = ({ isOpen, onClose, attempt, exam }) => {
                             {passed ? '✓ ĐẠT' : '✗ KHÔNG ĐẠT'}
                         </div>
                         <div className="text-xs sm:text-sm text-gray-600">
-                            <span className="font-semibold">{attempt.totalScore || 0}/{exam.totalPoints || 0} điểm</span>
+                            <span className="font-semibold">{actualScore || 0}/{calculatedTotalPoints} điểm</span>
                             <span className="mx-1">•</span>
                             <span>{scorePercentage}%</span>
                             <span className="mx-1">•</span>

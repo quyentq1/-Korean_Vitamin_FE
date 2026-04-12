@@ -4,6 +4,7 @@ import examService from '../../services/examService';
 import useExamSecurity from '../../hooks/useExamSecurity';
 import useExamTimer from '../../hooks/useExamTimer';
 import { generateExamVariant } from '../../utils/examVariantGenerator';
+import Swal from 'sweetalert2';
 
 const ExamTaking = () => {
     const { examId, attemptId } = useParams();
@@ -72,8 +73,15 @@ const ExamTaking = () => {
 
             } catch (error) {
                 console.error("Failed to load exam", error);
-                alert("Lỗi tải đề thi.");
-                navigate('/dashboard');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi tải đề thi',
+                    text: 'Không thể tải bài thi. Vui lòng thử lại.',
+                    confirmButtonText: 'Về trang chủ',
+                    confirmButtonColor: '#3b82f6'
+                }).then(() => {
+                    navigate('/dashboard');
+                });
             } finally {
                 setLoading(false);
             }
@@ -109,24 +117,52 @@ const ExamTaking = () => {
     };
 
     const handleSubmit = async (autoSubmit = false) => {
-        if (!autoSubmit && !window.confirm("Bạn có chắc chắn muốn nộp bài? Hành động này không thể hoàn tác.")) {
-            return;
-        }
+        const showConfirmAndSubmit = async () => {
+            const result = await Swal.fire({
+                icon: 'question',
+                title: 'Xác nhận nộp bài',
+                text: 'Bạn có chắc chắn muốn nộp bài? Hành động này không thể hoàn tác.',
+                showCancelButton: true,
+                confirmButtonText: 'Nộp bài',
+                cancelButtonText: 'Làm tiếp',
+                confirmButtonColor: '#22c55e',
+                cancelButtonColor: '#6b7280',
+                reverseButtons: true
+            });
 
-        setIsSubmitting(true);
-        stopTimer();
-        if (document.fullscreenElement) {
-            document.exitFullscreen().catch(() => { });
-        }
+            if (result.isConfirmed) {
+                await performSubmit();
+            }
+        };
 
-        try {
-            await examService.submitExam(attemptId);
-            // Navigate to result page
-            navigate(`/exam/result/${attemptId}`);
-        } catch (error) {
-            console.error("Submit error", error);
-            alert("Lỗi nộp bài. Vui lòng thử lại.");
-            setIsSubmitting(false);
+        const performSubmit = async () => {
+            setIsSubmitting(true);
+            stopTimer();
+            if (document.fullscreenElement) {
+                document.exitFullscreen().catch(() => { });
+            }
+
+            try {
+                await examService.submitExam(attemptId);
+                // Navigate to result page
+                navigate(`/exam/result/${attemptId}`);
+            } catch (error) {
+                console.error("Submit error", error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi nộp bài',
+                    text: 'Không thể nộp bài thi. Vui lòng thử lại.',
+                    confirmButtonText: 'Đồng ý',
+                    confirmButtonColor: '#ef4444'
+                });
+                setIsSubmitting(false);
+            }
+        };
+
+        if (!autoSubmit) {
+            await showConfirmAndSubmit();
+        } else {
+            await performSubmit();
         }
     };
 

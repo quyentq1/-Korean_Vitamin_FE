@@ -334,6 +334,24 @@ export const teacherService = {
         return await axiosClient.get('/teacher/questions/by-course-level', {
             params: { courseLevel }
         });
+    },
+
+    // Check if exam title already exists
+    checkExamTitleExists: async (title, excludeId = null) => {
+        const params = { title };
+        if (excludeId) {
+            params.excludeId = excludeId;
+        }
+        return await axiosClient.get('/teacher/exams/check-title', { params });
+    },
+
+    // Check if exam code already exists
+    checkExamCodeExists: async (code, excludeId = null) => {
+        const params = { code };
+        if (excludeId) {
+            params.excludeId = excludeId;
+        }
+        return await axiosClient.get('/teacher/exams/check-code', { params });
     }
 };
 

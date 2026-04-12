@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import Swal from 'sweetalert2';
+import useDebounce from '../../hooks/useDebounce';
 import {
   Save,
   ArrowLeft,
@@ -71,6 +72,16 @@ const ExamEditor = () => {
   const [questionToDelete, setQuestionToDelete] = useState(null);
   const [courses, setCourses] = useState([]);
 
+  // Title validation state
+  const [titleChecking, setTitleChecking] = useState(false);
+  const [titleExists, setTitleExists] = useState(false);
+  const [titleErrorMessage, setTitleErrorMessage] = useState('');
+
+  // Code validation state
+  const [codeChecking, setCodeChecking] = useState(false);
+  const [codeExists, setCodeExists] = useState(false);
+  const [codeErrorMessage, setCodeErrorMessage] = useState('');
+
   // Get courseId from URL query parameter (when coming from MyCourses page)
   const courseIdFromUrl = searchParams.get('courseId');
   // Get classId from URL query parameter (when coming from ClassExamManagement page)
@@ -121,6 +132,78 @@ const ExamEditor = () => {
       setLoading(false);
     }
   }, [id]);
+
+  // Debounced title validation
+  const debouncedTitle = useDebounce(formData.title, 500);
+
+  useEffect(() => {
+    const checkTitleExists = async () => {
+      // Only check if title is not empty and at least 3 characters
+      if (!debouncedTitle || debouncedTitle.trim().length < 3) {
+        setTitleExists(false);
+        setTitleErrorMessage('');
+        setTitleChecking(false);
+        return;
+      }
+
+      setTitleChecking(true);
+      setTitleErrorMessage('');
+
+      try {
+        // Check title exists (exclude current exam when editing)
+        const excludeId = id && id !== 'create' ? parseInt(id) : null;
+        const response = await teacherService.checkExamTitleExists(debouncedTitle.trim(), excludeId);
+
+        setTitleExists(response.exists);
+        if (response.exists) {
+          setTitleErrorMessage(response.message || 'Tiêu đề bài kiểm tra đã tồn tại!');
+        }
+      } catch (err) {
+        console.error('Failed to check title:', err);
+        setTitleErrorMessage('');
+      } finally {
+        setTitleChecking(false);
+      }
+    };
+
+    checkTitleExists();
+  }, [debouncedTitle, id]);
+
+  // Debounced code validation
+  const debouncedCode = useDebounce(formData.code, 500);
+
+  useEffect(() => {
+    const checkCodeExists = async () => {
+      // Only check if code is not empty and at least 2 characters
+      if (!debouncedCode || debouncedCode.trim().length < 2) {
+        setCodeExists(false);
+        setCodeErrorMessage('');
+        setCodeChecking(false);
+        return;
+      }
+
+      setCodeChecking(true);
+      setCodeErrorMessage('');
+
+      try {
+        // Check code exists (exclude current exam when editing)
+        const excludeId = id && id !== 'create' ? parseInt(id) : null;
+        const response = await teacherService.checkExamCodeExists(debouncedCode.trim(), excludeId);
+
+        setCodeExists(response.exists);
+        if (response.exists) {
+          setCodeErrorMessage(response.message || 'Mã bài kiểm tra đã tồn tại!');
+        }
+      } catch (err) {
+        console.error('Failed to check code:', err);
+        setCodeErrorMessage('');
+      } finally {
+        setCodeChecking(false);
+      }
+    };
+
+    checkCodeExists();
+  }, [debouncedCode, id]);
 
   // Fetch assigned courses
   const fetchCourses = async () => {
@@ -538,6 +621,42 @@ const ExamEditor = () => {
           return;
         }
 
+        // Validate title uniqueness
+        if (titleExists) {
+          Swal.fire({
+            icon: 'warning',
+            title: 'Tiêu đề bị trùng',
+            text: titleErrorMessage || 'Tiêu đề bài kiểm tra đã tồn tại. Vui lòng chọn tiêu đề khác.',
+            confirmButtonColor: '#3b82f6'
+          });
+          setSaving(false);
+          return;
+        }
+
+        // Validate code
+        if (!formData.code || formData.code.trim() === '') {
+          Swal.fire({
+            icon: 'warning',
+            title: 'Thiếu thông tin',
+            text: 'Vui lòng nhập mã bài kiểm tra.',
+            confirmButtonColor: '#3b82f6'
+          });
+          setSaving(false);
+          return;
+        }
+
+        // Validate code uniqueness
+        if (codeExists) {
+          Swal.fire({
+            icon: 'warning',
+            title: 'Mã bài kiểm tra bị trùng',
+            text: codeErrorMessage || 'Mã bài kiểm tra đã tồn tại trong hệ thống. Vui lòng chọn mã khác.',
+            confirmButtonColor: '#3b82f6'
+          });
+          setSaving(false);
+          return;
+        }
+
         // Validate duration
         if (!formData.duration || formData.duration <= 0) {
           Swal.fire({
@@ -925,8 +1044,15 @@ const ExamEditor = () => {
                 variant="primary"
                 icon={<Save className="w-4 h-4" />}
                 onClick={handleSave}
-                disabled={saving}
+                disabled={saving || titleExists || codeExists}
                 className="shadow-lg"
+                title={
+                  titleExists
+                    ? 'Tiêu đề bị trùng'
+                    : codeExists
+                    ? 'Mã bài kiểm tra bị trùng'
+                    : ''
+                }
               >
                 {saving ? (
                   <>
@@ -1041,8 +1167,32 @@ const ExamEditor = () => {
                         value={formData.title}
                         onChange={(e) => handleFormChange('title', e.target.value)}
                         placeholder={t('exam.titlePlaceholder', 'Nhập tiêu đề bài kiểm tra...')}
-                        className="text-lg font-medium"
+                        className={`text-lg font-medium ${
+                          titleExists ? 'border-red-500 focus:border-red-500' : ''
+                        }`}
                       />
+
+                      {/* Real-time validation feedback */}
+                      {formData.title && formData.title.trim().length >= 3 && (
+                        <div className="mt-2 flex items-center gap-2 text-sm">
+                          {titleChecking ? (
+                            <div className="flex items-center gap-2 text-gray-500">
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                              <span>Đang kiểm tra...</span>
+                            </div>
+                          ) : titleExists ? (
+                            <div className="flex items-center gap-2 text-red-600">
+                              <AlertCircle className="w-4 h-4" />
+                              <span>{titleErrorMessage || 'Tiêu đề đã tồn tại!'}</span>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-2 text-green-600">
+                              <CheckCircle2 className="w-4 h-4" />
+                              <span>Tiêu đề có thể sử dụng</span>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
 
                     {/* Code */}
@@ -1055,7 +1205,32 @@ const ExamEditor = () => {
                         value={formData.code}
                         onChange={(e) => handleFormChange('code', e.target.value)}
                         placeholder={t('exam.codePlaceholder', 'VD: EXAM-001')}
+                        className={`${
+                          codeExists ? 'border-red-500 focus:border-red-500' : ''
+                        }`}
                       />
+
+                      {/* Real-time validation feedback */}
+                      {formData.code && formData.code.trim().length >= 2 && (
+                        <div className="mt-2 flex items-center gap-2 text-sm">
+                          {codeChecking ? (
+                            <div className="flex items-center gap-2 text-gray-500">
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                              <span>Đang kiểm tra...</span>
+                            </div>
+                          ) : codeExists ? (
+                            <div className="flex items-center gap-2 text-red-600">
+                              <AlertCircle className="w-4 h-4" />
+                              <span>{codeErrorMessage || 'Mã bài kiểm tra đã tồn tại!'}</span>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-2 text-green-600">
+                              <CheckCircle2 className="w-4 h-4" />
+                              <span>Mã có thể sử dụng</span>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
 
                     {/* Course Selection - ONLY show for Course exams, NOT Class exams */}

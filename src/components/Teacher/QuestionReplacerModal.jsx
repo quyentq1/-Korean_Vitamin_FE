@@ -15,6 +15,7 @@ import {
   AlertCircle,
   CheckCircle2
 } from 'lucide-react';
+import Swal from 'sweetalert2';
 
 /**
  * QuestionReplacerModal Component
@@ -149,7 +150,13 @@ const QuestionReplacerModal = ({
   // Replace with specific question (by code or selection)
   const handleReplaceWithSelected = () => {
     if (selectedNewQuestions.length !== selectedForReplacement.length) {
-      alert('Vui lòng chọn câu hỏi mới cho tất cả các câu cần đổi');
+      Swal.fire({
+        icon: 'warning',
+        title: 'Thiếu câu hỏi mới',
+        text: 'Vui lòng chọn câu hỏi mới cho tất cả các câu cần đổi',
+        confirmButtonText: 'Đồng ý',
+        confirmButtonColor: '#f59e0b'
+      });
       return;
     }
 

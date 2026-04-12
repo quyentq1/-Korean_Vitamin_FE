@@ -94,8 +94,23 @@ const TestRunner = () => {
                             // Sync local quota with backend
                             handleLimitExceeded();
 
-                            alert('🔒 Bạn đã hết lượt làm bài miễn phí (2/2).\n\nVui lòng đăng ký tài khoản để tiếp tục học!');
-                            navigate('/signup');
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Đã hết lượt miễn phí!',
+                                text: 'Bạn đã dùng hết 2 lượt thi miễn phí. Vui lòng đăng ký tài khoản để tiếp tục học.',
+                                confirmButtonText: 'Đăng ký ngay',
+                                cancelButtonText: 'Về trang chủ',
+                                showCancelButton: true,
+                                confirmButtonColor: '#3b82f6',
+                                cancelButtonColor: '#6b7280',
+                                reverseButtons: true
+                            }).then((result) => {
+                                if (result.isConfirmed) {
+                                    navigate('/signup');
+                                } else {
+                                    navigate('/free-tests');
+                                }
+                            });
                             return;
                         }
                         errorMessage += "Dữ liệu không hợp lệ.";
@@ -108,8 +123,15 @@ const TestRunner = () => {
                     errorMessage += error.message || "Vui lòng thử lại.";
                 }
 
-                alert(errorMessage);
-                navigate('/free-tests');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Không thể tải bài thi',
+                    text: errorMessage,
+                    confirmButtonText: 'Về trang chủ',
+                    confirmButtonColor: '#3b82f6'
+                }).then(() => {
+                    navigate('/free-tests');
+                });
             } finally {
                 setLoading(false);
             }
@@ -151,8 +173,18 @@ const TestRunner = () => {
         stopTimer();
 
         try {
+            console.log("📤 Submitting exam with attemptId:", attemptId);
+            console.log("📝 Current answers count:", Object.keys(answers).length);
+
             // Call API to fully submit exam and calculate grade
             const finalAttempt = await examPublicService.submitExam(attemptId);
+
+            console.log("✅ Submit API returned successfully!");
+            console.log("📊 Final attempt data:", finalAttempt);
+            console.log("📊 Status:", finalAttempt.status);
+            console.log("📊 TotalScore:", finalAttempt.totalScore);
+            console.log("📊 AutoScore:", finalAttempt.autoScore);
+            console.log("📊 SubmitTime:", finalAttempt.submitTime);
 
             // Record completion with REAL score from backend
             const score = finalAttempt.autoScore ? Math.floor(finalAttempt.autoScore) :
@@ -219,7 +251,13 @@ const TestRunner = () => {
                 errorMessage += error.message || "Vui lòng thử lại.";
             }
 
-            alert(errorMessage);
+            Swal.fire({
+                icon: 'error',
+                title: 'Lỗi nộp bài',
+                text: errorMessage,
+                confirmButtonText: 'Đồng ý',
+                confirmButtonColor: '#ef4444'
+            });
             setIsSubmitting(false);
             stopTimer(); // Stop timer but don't navigate
         }

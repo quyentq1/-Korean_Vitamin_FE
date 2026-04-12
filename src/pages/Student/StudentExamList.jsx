@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import examService from '../../services/examService';
 import { useAuth } from '../../contexts/AuthContext';
+import Swal from 'sweetalert2';
 
 /**
  * StudentExamList - Danh sách bài luyện tập trong khóa học
@@ -112,7 +113,13 @@ const StudentExamList = () => {
     }
     if (!exam.id) {
       console.error('Exam ID is missing!', exam);
-      alert('Lỗi: Thiếu ID bài thi');
+      Swal.fire({
+        icon: 'error',
+        title: 'Lỗi bài thi',
+        text: 'Thiếu ID bài thi. Vui lòng tải lại trang.',
+        confirmButtonText: 'Đồng ý',
+        confirmButtonColor: '#ef4444'
+      });
       return;
     }
     console.log('Navigating to:', `/exam/${exam.id}/intro`);

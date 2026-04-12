@@ -44,8 +44,15 @@ const ExamResult = () => {
             }
 
             // Show confetti if score >= 80%
-            const percentage = attemptData.totalScore
-                ? Math.round((attemptData.totalScore / attemptData.exam?.totalPoints) * 100)
+            const calculatedTotalPointsConfetti = attemptData.exam?.totalPoints && attemptData.exam.totalPoints > 0
+                ? attemptData.exam.totalPoints
+                : (attemptData.exam?.examQuestions || []).reduce((sum, eq) => sum + (eq.points || 0), 0);
+
+            // Fallback: use autoScore if totalScore is null
+            const actualScoreConfetti = attemptData.totalScore != null ? attemptData.totalScore : attemptData.autoScore;
+
+            const percentage = actualScoreConfetti && calculatedTotalPointsConfetti > 0
+                ? Math.round((actualScoreConfetti / calculatedTotalPointsConfetti) * 100)
                 : 0;
 
             if (percentage >= 80) {
@@ -111,8 +118,16 @@ const ExamResult = () => {
         );
     }
 
-    const scorePercentage = attempt.totalScore
-        ? Math.round((attempt.totalScore / exam.totalPoints) * 100)
+    // Calculate totalPoints from exam questions if not set or is 0
+    const calculatedTotalPoints = exam.totalPoints && exam.totalPoints > 0
+        ? exam.totalPoints
+        : (exam.examQuestions || []).reduce((sum, eq) => sum + (eq.points || 0), 0);
+
+    // Fallback: use autoScore if totalScore is null
+    const actualScore = attempt.totalScore != null ? attempt.totalScore : attempt.autoScore;
+
+    const scorePercentage = actualScore && calculatedTotalPoints > 0
+        ? Math.round((actualScore / calculatedTotalPoints) * 100)
         : 0;
     const passed = scorePercentage >= (exam.passingScore || 60);
 
@@ -168,7 +183,7 @@ const ExamResult = () => {
                             </div>
                             <div className="flex items-center gap-2">
                                 <TrendingUp className="w-5 h-5" />
-                                <span>Điểm của bạn: {attempt.totalScore || 0}/{exam.totalPoints}</span>
+                                <span>Điểm của bạn: {actualScore || 0}/{calculatedTotalPoints}</span>
                             </div>
                         </div>
                     </div>
@@ -200,18 +215,25 @@ const ExamResult = () => {
                             <div>
                                 <p className="text-sm text-gray-500">Câu đúng (Trắc nghiệm)</p>
                                 <p className="text-xl font-bold text-gray-900">
-                                    {attempt.answers?.filter(a => {
-                                        // Chỉ tính đúng/sai cho trắc nghiệm (READING/LISTENING/MULTIPLE_CHOICE)
-                                        const question = exam.examQuestions?.find(eq => eq.id === a.examQuestion?.id);
-                                        if (!question || !question.question) return false;
-                                                const type = question.question.questionType;
-                                                return (type === 'READING' || type === 'LISTENING' || type === 'MULTIPLE_CHOICE') && a.isCorrect === true;
-                                            }).length || 0}/{exam.examQuestions?.filter(eq => {
-                                                // Chỉ đếm câu trắc nghiệm
-                                                if (!eq.question) return false;
-                                                const type = eq.question.questionType;
-                                                return type === 'READING' || type === 'LISTENING' || type === 'MULTIPLE_CHOICE';
-                                            }).length || 0}
+                                    {(() => {
+                                        // Get ALL multiple choice questions
+                                        const allMCQuestions = exam.examQuestions?.filter(eq => {
+                                            if (!eq.question) return false;
+                                            const type = eq.question.questionType;
+                                            return type === 'READING' || type === 'LISTENING' || type === 'MULTIPLE_CHOICE';
+                                        }) || [];
+
+                                        // Count correct answers (including unanswered = incorrect)
+                                        let mcCorrectCount = 0;
+                                        allMCQuestions.forEach(eq => {
+                                            const answer = attempt.answers?.find(a => a.examQuestion?.id === eq.id);
+                                            if (answer && answer.isCorrect === true) {
+                                                mcCorrectCount++;
+                                            }
+                                        });
+
+                                        return `${mcCorrectCount}/${allMCQuestions.length}`;
+                                    })()}
                                 </p>
                             </div>
                         </div>
@@ -239,19 +261,31 @@ const ExamResult = () => {
                         return type === 'READING' || type === 'LISTENING' || type === 'MULTIPLE_CHOICE';
                     }) || [];
 
-                    const mcCorrect = attempt.answers.filter(a => {
-                        const question = exam.examQuestions?.find(eq => eq.id === a.examQuestion?.id);
-                        if (!question || !question.question) return false;
-                        const type = question.question.questionType;
-                        return (type === 'READING' || type === 'LISTENING' || type === 'MULTIPLE_CHOICE') && a.isCorrect === true;
-                    }).length;
+                    // Count correct answers (from answered questions)
+                    let mcCorrect = 0;
+                    let mcIncorrect = 0;
 
-                    const mcIncorrect = attempt.answers.filter(a => {
-                        const question = exam.examQuestions?.find(eq => eq.id === a.examQuestion?.id);
-                        if (!question || !question.question) return false;
-                        const type = question.question.questionType;
-                        return (type === 'READING' || type === 'LISTENING' || type === 'MULTIPLE_CHOICE') && a.isCorrect === false;
-                    }).length;
+                    // Loop through ALL multiple choice questions
+                    mcQuestions.forEach(eq => {
+                        // Find if student answered this question
+                        const answer = attempt.answers.find(a => a.examQuestion?.id === eq.id);
+
+                        if (answer) {
+                            // Student answered this question
+                            if (answer.isCorrect === true) {
+                                mcCorrect++;
+                            } else if (answer.isCorrect === false) {
+                                mcIncorrect++;
+                            }
+                            // If isCorrect is null/undefined, count as incorrect
+                            else {
+                                mcIncorrect++;
+                            }
+                        } else {
+                            // Student did NOT answer this question → Count as INCORRECT
+                            mcIncorrect++;
+                        }
+                    });
 
                     // Check if there are writing/speaking questions
                     const hasWritingOrSpeaking = exam.examQuestions?.some(eq => {

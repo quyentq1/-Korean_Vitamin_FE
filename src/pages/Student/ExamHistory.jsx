@@ -56,7 +56,7 @@ const ExamHistory = () => {
                 return (
                     <span className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
                         <Clock className="w-4 h-4" />
-                        Chấm chờ
+                        Chờ Chấm Điểm
                     </span>
                 );
             default:
@@ -208,8 +208,13 @@ const ExamHistory = () => {
                                 </thead>
                                 <tbody className="divide-y divide-gray-200">
                                     {filteredAttempts.map((attempt) => {
-                                        const percentage = attempt.exam?.totalPoints
-                                            ? Math.round((attempt.totalScore / attempt.exam.totalPoints) * 100)
+                                        // Handle edge case where totalPoints is 0 or not set
+                                        const totalPoints = attempt.exam?.totalPoints && attempt.exam.totalPoints > 0
+                                            ? attempt.exam.totalPoints
+                                            : (attempt.totalScore || 1); // Fallback to score if totalPoints is invalid
+
+                                        const percentage = totalPoints > 0
+                                            ? Math.round((attempt.totalScore / totalPoints) * 100)
                                             : 0;
 
                                         return (
@@ -240,7 +245,7 @@ const ExamHistory = () => {
                                                         attempt.totalScore > 0 ? (
                                                             <div className="flex items-center gap-2">
                                                                 <span className={`text-lg font-bold ${getScoreColor(percentage)} px-3 py-1 rounded-lg`}>
-                                                                    {attempt.totalScore}/{attempt.exam?.totalPoints || 0}
+                                                                    {attempt.totalScore}/{totalPoints}
                                                                 </span>
                                                                 <span className="text-sm text-gray-500">({percentage}%)</span>
                                                             </div>

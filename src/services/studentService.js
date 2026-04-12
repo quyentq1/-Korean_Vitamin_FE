@@ -274,36 +274,6 @@ export const studentService = {
         return await axiosClient.get(`/student/results/${resultId}`);
     },
 
-    // ==================== PROGRESS ====================
-
-    /**
-     * Get learning progress
-     * GET /student/progress
-     */
-    getProgress: async () => {
-        return await axiosClient.get('/student/progress');
-    },
-
-    // ==================== STATISTICS ====================
-
-    /**
-     * Get student statistics
-     * GET /student/statistics
-     */
-    getStatistics: async () => {
-        return await axiosClient.get('/student/statistics');
-    },
-
-    // ==================== SCHEDULE ====================
-
-    /**
-     * Get student schedule
-     * GET /student/schedule
-     */
-    getSchedule: async () => {
-        return await axiosClient.get('/student/schedule');
-    },
-
     // ==================== PROFILE ====================
 
     /**
