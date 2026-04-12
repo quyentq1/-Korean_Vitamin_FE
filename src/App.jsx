@@ -178,9 +178,6 @@ function App() {
             <Route path="exams" element={<StudentExams />} />
             <Route path="results" element={<TestResult />} />
             <Route path="attempts/history" element={<ExamHistory />} />
-            <Route path="progress" element={<TestLibrary />} />
-            <Route path="statistics" element={<StudentDashboard />} />
-            <Route path="schedule" element={<MySchedule />} />
             <Route path="mail" element={<StudentMail />} />
             <Route path="profile" element={<Profile />} />
           </Route>
@@ -196,8 +193,6 @@ function App() {
 
           {/* Legacy Routes - Redirect to new Student routes */}
           <Route path="/learner-dashboard" element={<Navigate to="/student/dashboard" replace />} />
-          <Route path="/test-library" element={<Navigate to="/student/progress" replace />} />
-          <Route path="/my-schedule" element={<Navigate to="/student/schedule" replace />} />
           <Route path="/writing-submission" element={<Navigate to="/student/mail" replace />} />
 
           {/* Forum - All authenticated users */}

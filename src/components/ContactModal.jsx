@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import Swal from 'sweetalert2';
 
 const ContactModal = ({ isOpen, onClose }) => {
     const { t } = useTranslation();
@@ -24,9 +25,18 @@ const ContactModal = ({ isOpen, onClose }) => {
         e.preventDefault();
         // In a real app, you would send this data to a backend
         console.log('Form submitted:', formData);
-        alert(t('contactModal.successMessage', 'Gửi thông tin thành công! Chúng tôi sẽ liên hệ lại sớm.'));
-        onClose();
-        setFormData({ name: '', email: '', phone: '', message: '' });
+        Swal.fire({
+            icon: 'success',
+            title: 'Gửi thành công!',
+            text: t('contactModal.successMessage', 'Chúng tôi sẽ liên hệ lại sớm.'),
+            confirmButtonText: 'Đồng ý',
+            confirmButtonColor: '#22c55e',
+            timer: 2000,
+            timerProgressBar: true
+        }).then(() => {
+            onClose();
+            setFormData({ name: '', email: '', phone: '', message: '' });
+        });
     };
 
     return (

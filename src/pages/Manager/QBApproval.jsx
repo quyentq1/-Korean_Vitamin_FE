@@ -43,9 +43,8 @@ const QBApproval = () => {
     const [approvalHistory, setApprovalHistory] = useState([]);
 
     useEffect(() => {
-        alert('QBApproval Component Mounted! Active Tab: ' + activeTab);
+        console.log('🚀 QBApproval Component Mounted! Active Tab:', activeTab);
         console.log('=== Component Mounted ===');
-        console.log('Active Tab:', activeTab);
         fetchQuestions();
     }, [statusFilter]);
 

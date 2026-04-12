@@ -224,7 +224,19 @@ const RoleManagement = () => {
 
   // Handle delete role
   const handleDeleteRole = async (role) => {
-    if (window.confirm(t('roleManagement.deleteConfirmation', `Bạn có chắc muốn xóa vai trò ${role.name}?`))) {
+    const result = await Swal.fire({
+      icon: 'question',
+      title: 'Xác nhận xóa',
+      text: t('roleManagement.deleteConfirmation', `Bạn có chắc chắn muốn xóa vai trò ${role.name}?`),
+      showCancelButton: true,
+      confirmButtonText: 'Xóa',
+      cancelButtonText: 'Hủy',
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#6b7280',
+      reverseButtons: true
+    });
+
+    if (result.isConfirmed) {
       try {
         await userService.deleteRole(role.id);
         setAlert({ show: true, type: 'success', message: t('roleManagement.deleteRoleSuccess') });
@@ -233,7 +245,6 @@ const RoleManagement = () => {
         console.error('Error deleting role:', error);
         setAlert({ show: true, type: 'error', message: t('roleManagement.deleteRoleError') });
       }
-    }
   };
 
   // Handle open permission modal
@@ -1016,5 +1027,5 @@ const RoleManagement = () => {
     </PageContainer >
   );
 };
-
+}
 export default RoleManagement;

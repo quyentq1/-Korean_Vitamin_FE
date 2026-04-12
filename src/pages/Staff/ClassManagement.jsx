@@ -32,6 +32,7 @@ import { Loading } from '../../components/ui/Loading';
 import CreateClassModal from '../../components/Staff/CreateClassModal';
 import staffService from '../../services/staffService';
 import educationManagerService from '../../services/educationManagerService';
+import Swal from 'sweetalert2';
 import courseService from '../../services/courseService';
 
 const ClassManagement = () => {
@@ -390,7 +391,19 @@ const ClassManagement = () => {
 
   // Handle delete schedule
   const handleDeleteSchedule = async (scheduleId) => {
-    if (!window.confirm(t('classManagement.deleteScheduleConfirmation') || 'Bạn có chắc chắn muốn xóa lịch học này?')) {
+    const result = await Swal.fire({
+      icon: 'question',
+      title: 'Xác nhận xóa',
+      text: t('classManagement.deleteScheduleConfirmation') || 'Bạn có chắc chắn muốn xóa lịch học này?',
+      showCancelButton: true,
+      confirmButtonText: 'Xóa',
+      cancelButtonText: 'Hủy',
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#6b7280',
+      reverseButtons: true
+    });
+
+    if (!result.isConfirmed) {
       return;
     }
 
@@ -413,7 +426,19 @@ const ClassManagement = () => {
 
   // Handle delete class
   const handleDeleteClass = async (cls) => {
-    if (window.confirm(t('classManagement.deleteConfirmation') || `Bạn có chắc muốn xóa lớp ${cls.className}?`)) {
+    const result = await Swal.fire({
+      icon: 'question',
+      title: 'Xác nhận xóa',
+      text: t('classManagement.deleteConfirmation') || `Bạn có chắc chắn muốn xóa lớp ${cls.className}?`,
+      showCancelButton: true,
+      confirmButtonText: 'Xóa',
+      cancelButtonText: 'Hủy',
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#6b7280',
+      reverseButtons: true
+    });
+
+    if (result.isConfirmed) {
       try {
         // BUG-13 FIX: Implemented actual API call
         await staffService.deleteClass(cls.id);
@@ -453,11 +478,29 @@ const ClassManagement = () => {
       key: 'teacherName',
       label: ts('classManagement.teacher', 'Teacher'),
       render: (cls) => {
-        const teacherNames = cls.teacherName
-          ? cls.teacherName
-          : (cls.teachers && cls.teachers.length > 0
-              ? cls.teachers.map(t => t.teacher?.fullName || t.teacher?.name).join(', ')
-              : null);
+        // Check multiple possible fields for teacher information
+        let teacherNames = null;
+
+        // Method 1: Check direct teacherName field
+        if (cls.teacherName) {
+          teacherNames = cls.teacherName;
+        }
+        // Method 2: Check teachers array on class object
+        else if (cls.teachers && cls.teachers.length > 0) {
+          teacherNames = cls.teachers
+            .map(t => t.teacher?.fullName || t.teacher?.name || t.fullName || t.name)
+            .filter(name => name) // Filter out null/undefined
+            .join(', ');
+        }
+        // Method 3: Check classEntity.teacher
+        else if (cls.classEntity && cls.classEntity.teacher) {
+          const t = cls.classEntity.teacher;
+          teacherNames = t.fullName || t.name;
+        }
+        // Method 4: Check if class has a teacher object directly
+        else if (cls.teacher) {
+          teacherNames = cls.teacher.fullName || cls.teacher.name;
+        }
 
         return (
           <span className="text-gray-600">

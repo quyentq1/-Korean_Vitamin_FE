@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import userService from '../../services/userService';
+import Swal from 'sweetalert2';
 
 const ManualStudentForm = ({ onSuccess, onCancel }) => {
     const { t } = useTranslation();
@@ -55,7 +56,13 @@ const ManualStudentForm = ({ onSuccess, onCancel }) => {
             onSuccess();
         } catch (error) {
             console.error('Error creating student:', error);
-            alert(error.response?.data?.message || 'Failed to create student');
+            Swal.fire({
+                icon: 'error',
+                title: 'Lỗi tạo học viên',
+                text: error.response?.data?.message || 'Không thể tạo học viên. Vui lòng thử lại.',
+                confirmButtonText: 'Đồng ý',
+                confirmButtonColor: '#ef4444'
+            });
         } finally {
             setSubmitting(false);
         }

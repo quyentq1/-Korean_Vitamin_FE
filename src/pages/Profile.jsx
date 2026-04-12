@@ -3,8 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import authService from '../services/authService';
 import CourseStatus from '../components/Learner/CourseStatus';
-// Assuming you have a sweetalert or toast utility, we use a basic alert if not available
-// import { toast } from 'react-hot-toast';
+import Swal from 'sweetalert2';
 
 const Profile = () => {
     const { t } = useTranslation();
@@ -50,13 +49,25 @@ const Profile = () => {
 
         // Validate file type
         if (!file.type.startsWith('image/')) {
-            alert('Chỉ chấp nhận file hình ảnh');
+            Swal.fire({
+                icon: 'error',
+                title: 'Sai định dạng',
+                text: 'Chỉ chấp nhận file hình ảnh (JPG, PNG, GIF...)',
+                confirmButtonText: 'Đồng ý',
+                confirmButtonColor: '#ef4444'
+            });
             return;
         }
 
         // Validate file size (max 5MB)
         if (file.size > 5 * 1024 * 1024) {
-            alert('Kích thước file không được vượt quá 5MB');
+            Swal.fire({
+                icon: 'error',
+                title: 'File quá lớn',
+                text: 'Kích thước file không được vượt quá 5MB',
+                confirmButtonText: 'Đồng ý',
+                confirmButtonColor: '#ef4444'
+            });
             return;
         }
 
@@ -85,7 +96,13 @@ const Profile = () => {
             updateUser({ ...user, avatar: data.url });
         } catch (err) {
             console.error('Error uploading avatar:', err);
-            alert('Không thể tải lên ảnh đại diện. Vui lòng thử lại.');
+            Swal.fire({
+                icon: 'error',
+                title: 'Lỗi tải lên',
+                text: 'Không thể tải lên ảnh đại diện. Vui lòng thử lại.',
+                confirmButtonText: 'Đồng ý',
+                confirmButtonColor: '#ef4444'
+            });
         } finally {
             setUploadingAvatar(false);
         }
@@ -149,8 +166,6 @@ const Profile = () => {
                                 {[
                                     { id: 'info', name: 'Thông tin cá nhân', icon: '👤' },
                                     { id: 'password', name: 'Đổi mật khẩu', icon: '🔒' },
-                                    { id: 'history', name: 'Lịch sử thi', icon: '📝' },
-                                    { id: 'courses', name: 'Khoá học của tôi', icon: '📚' }
                                 ].map((tab) => (
                                     <button
                                         key={tab.id}

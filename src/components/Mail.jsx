@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import Swal from 'sweetalert2';
 import {
   Mail as MailIcon,
   Inbox,
@@ -459,7 +460,13 @@ const ComposeMail = ({ onClose, onSend, userRole }) => {
 
   const handleSend = () => {
     if (!to || !subject) {
-      alert('Vui lòng nhập người nhận và chủ đề');
+      Swal.fire({
+        icon: 'warning',
+        title: 'Thiếu thông tin',
+        text: 'Vui lòng nhập người nhận và chủ đề',
+        confirmButtonText: 'Đồng ý',
+        confirmButtonColor: '#f59e0b'
+      });
       return;
     }
 

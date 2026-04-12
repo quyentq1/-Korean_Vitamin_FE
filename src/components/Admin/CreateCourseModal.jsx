@@ -31,11 +31,23 @@ const CreateCourseModal = ({ onClose, onSubmit }) => {
         const file = e.target.files[0];
         if (file) {
             if (file.size > 5 * 1024 * 1024) {
-                alert('Kích thước ảnh không được vượt quá 5MB');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'File quá lớn',
+                    text: 'Kích thước ảnh không được vượt quá 5MB',
+                    confirmButtonText: 'Đồng ý',
+                    confirmButtonColor: '#ef4444'
+                });
                 return;
             }
             if (!file.type.startsWith('image/')) {
-                alert('Chỉ chấp nhận file ảnh');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Sai định dạng',
+                    text: 'Chỉ chấp nhận file hình ảnh',
+                    confirmButtonText: 'Đồng ý',
+                    confirmButtonColor: '#ef4444'
+                });
                 return;
             }
 
@@ -56,15 +68,33 @@ const CreateCourseModal = ({ onClose, onSubmit }) => {
                 const data = await response.json();
                 setFormData(prev => ({ ...prev, thumbnailUrl: data.url }));
             } catch (error) {
-                alert('Không thể tải ảnh lên. Vui lòng thử lại.');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi tải ảnh',
+                    text: 'Không thể tải ảnh lên. Vui lòng thử lại.',
+                    confirmButtonText: 'Đồng ý',
+                    confirmButtonColor: '#ef4444'
+                });
             }
         }
     };
 
     const handleRemoveImage = () => {
-        if (confirm('Bạn có chắc muốn xóa ảnh này?')) {
-            setFormData(prev => ({ ...prev, thumbnailUrl: '' }));
-        }
+        Swal.fire({
+            icon: 'question',
+            title: 'Xóa ảnh',
+            text: 'Bạn có chắc muốn xóa ảnh này?',
+            showCancelButton: true,
+            confirmButtonText: 'Xóa',
+            cancelButtonText: 'Hủy',
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#6b7280',
+            reverseButtons: true
+        }).then((result) => {
+            if (result.isConfirmed) {
+                setFormData(prev => ({ ...prev, thumbnailUrl: '' }));
+            }
+        });
     };
 
     const handleSubmit = (e) => {
@@ -94,12 +124,24 @@ const CreateCourseModal = ({ onClose, onSubmit }) => {
         }
 
         if (missingFields.length > 0) {
-            alert(`⚠️ Thiếu thông tin bắt buộc:\n\n• ${missingFields.join('\n• ')}`);
+            Swal.fire({
+                icon: 'warning',
+                title: 'Thiếu thông tin',
+                html: `⚠️ Vui lòng điền các trường sau:<br/><br/>• ${missingFields.join('<br/>• ')}`,
+                confirmButtonText: 'Đồng ý',
+                confirmButtonColor: '#f59e0b'
+            });
             return;
         }
 
         if (Number(currentData.fee) <= 0) {
-            alert('⚠️ Học phí phải lớn hơn 0');
+            Swal.fire({
+                icon: 'warning',
+                title: 'Học phí không hợp lệ',
+                text: '⚠️ Học phí phải lớn hơn 0',
+                confirmButtonText: 'Đồng ý',
+                confirmButtonColor: '#f59e0b'
+            });
             return;
         }
 

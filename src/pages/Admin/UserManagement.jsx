@@ -174,7 +174,19 @@ const UserManagement = () => {
 
     // Handle delete
     const handleDelete = async (user) => {
-        if (!window.confirm(t('userMgmt.confirmDelete', `Bạn có chắc chắn muốn xóa người dùng ${user.name}?`))) {
+        const result = await Swal.fire({
+            icon: 'question',
+            title: 'Xác nhận xóa',
+            text: t('userMgmt.confirmDelete', `Bạn có chắc chắn muốn xóa người dùng ${user.name}?`),
+            showCancelButton: true,
+            confirmButtonText: 'Xóa',
+            cancelButtonText: 'Hủy',
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#6b7280',
+            reverseButtons: true
+        });
+
+        if (!result.isConfirmed) {
             return;
         }
 
@@ -190,7 +202,19 @@ const UserManagement = () => {
     };
 
     const handleBulkDelete = async () => {
-        if (!window.confirm(t('userMgmt.confirmBulkDelete', `Bạn có chắc chắn muốn xóa ${selectedUsers.length} người dùng đã chọn?`))) {
+        const result = await Swal.fire({
+            icon: 'question',
+            title: 'Xác nhận xóa hàng loạt',
+            text: t('userMgmt.confirmBulkDelete', `Bạn có chắc chắn muốn xóa ${selectedUsers.length} người dùng đã chọn?`),
+            showCancelButton: true,
+            confirmButtonText: 'Xóa',
+            cancelButtonText: 'Hủy',
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#6b7280',
+            reverseButtons: true
+        });
+
+        if (!result.isConfirmed) {
             return;
         }
 

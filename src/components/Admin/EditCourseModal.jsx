@@ -36,11 +36,23 @@ const EditCourseModal = ({ course, onClose, onSubmit }) => {
         const file = e.target.files[0];
         if (file) {
             if (file.size > 5 * 1024 * 1024) {
-                alert('Kích thước ảnh không được vượt quá 5MB');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'File quá lớn',
+                    text: 'Kích thước ảnh không được vượt quá 5MB',
+                    confirmButtonText: 'Đồng ý',
+                    confirmButtonColor: '#ef4444'
+                });
                 return;
             }
             if (!file.type.startsWith('image/')) {
-                alert('Chỉ chấp nhận file ảnh');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Sai định dạng',
+                    text: 'Chỉ chấp nhận file hình ảnh',
+                    confirmButtonText: 'Đồng ý',
+                    confirmButtonColor: '#ef4444'
+                });
                 return;
             }
 
@@ -67,15 +79,33 @@ const EditCourseModal = ({ course, onClose, onSubmit }) => {
                     return updated;
                 });
             } catch (error) {
-                alert('Không thể tải ảnh lên. Vui lòng thử lại.');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi tải ảnh',
+                    text: 'Không thể tải ảnh lên. Vui lòng thử lại.',
+                    confirmButtonText: 'Đồng ý',
+                    confirmButtonColor: '#ef4444'
+                });
             }
         }
     };
 
     const handleRemoveImage = () => {
-        if (confirm('Bạn có chắc muốn xóa ảnh này?')) {
-            setFormData(prev => ({ ...prev, thumbnailUrl: '' }));
-        }
+        Swal.fire({
+            icon: 'question',
+            title: 'Xóa ảnh',
+            text: 'Bạn có chắc muốn xóa ảnh này?',
+            showCancelButton: true,
+            confirmButtonText: 'Xóa',
+            cancelButtonText: 'Hủy',
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#6b7280',
+            reverseButtons: true
+        }).then((result) => {
+            if (result.isConfirmed) {
+                setFormData(prev => ({ ...prev, thumbnailUrl: '' }));
+            }
+        });
     };
 
     const handleSubmit = (e) => {

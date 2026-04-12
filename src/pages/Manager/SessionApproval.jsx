@@ -4,6 +4,7 @@ import { managerService } from '../../services/managerService';
 import { Calendar, Clock, MapPin, User, Check, X, Filter } from 'lucide-react';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
+import Swal from 'sweetalert2';
 
 const SessionApproval = () => {
     const { t } = useTranslation();
@@ -45,31 +46,94 @@ const SessionApproval = () => {
     };
 
     const handleApprove = async (sessionId) => {
-        if (!confirm(t('manager.sessions.confirmApprove'))) return;
+        const result = await Swal.fire({
+            icon: 'question',
+            title: 'Xác nhận duyệt',
+            text: t('manager.sessions.confirmApprove') || 'Bạn có chắc chắn muốn duyệt yêu cầu này?',
+            showCancelButton: true,
+            confirmButtonText: 'Duyệt',
+            cancelButtonText: 'Hủy',
+            confirmButtonColor: '#22c55e',
+            cancelButtonColor: '#6b7280',
+            reverseButtons: true
+        });
+
+        if (!result.isConfirmed) {
+            return;
+        }
 
         try {
             setProcessing(sessionId);
             await managerService.approveReschedule(sessionId);
             fetchRequests();
+            Swal.fire({
+                icon: 'success',
+                title: 'Đã duyệt',
+                text: 'Yêu cầu đã được duyệt thành công.',
+                confirmButtonText: 'Đồng ý',
+                confirmButtonColor: '#22c55e',
+                timer: 2000
+            });
         } catch (error) {
             console.error('Error approving reschedule:', error);
-            // Show error notification
+            Swal.fire({
+                icon: 'error',
+                title: 'Lỗi',
+                text: 'Không thể duyệt yêu cầu.',
+                confirmButtonText: 'Đồng ý',
+                confirmButtonColor: '#ef4444'
+            });
         } finally {
             setProcessing(null);
         }
     };
 
     const handleReject = async (sessionId) => {
-        const reason = prompt(t('manager.sessions.rejectReason'));
-        if (!reason) return; // User cancelled or empty reason
+        const { value: reason } = await Swal.fire({
+            icon: 'question',
+            title: 'Từ chối yêu cầu',
+            text: t('manager.sessions.rejectReason') || 'Vui lòng nhập lý do từ chối',
+            input: 'text',
+            inputPlaceholder: 'Nhập lý do...',
+            showCancelButton: true,
+            confirmButtonText: 'Từ chối',
+            cancelButtonText: 'Bỏ qua',
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#6b7280',
+            reverseButtons: true,
+            inputValidator: (value) => {
+                if (!value || value.trim() === '') {
+                    return 'Vui lòng nhập lý do!'
+                }
+                return true
+            }
+        });
+
+        if (!reason) {
+            return; // User cancelled
+        }
 
         try {
             setProcessing(sessionId);
             await managerService.rejectReschedule(sessionId, reason);
             fetchRequests();
+            Swal.fire({
+                icon: 'success',
+                title: 'Đã từ chối',
+                text: 'Yêu cầu đã bị từ chối.',
+                confirmButtonText: 'Đồng ý',
+                confirmButtonColor: '#22c55e',
+                timer: 2000
+            });
         } catch (error) {
             console.error('Error rejecting reschedule:', error);
-            // Show error notification
+            Swal.fire({
+                icon: 'error',
+                title: 'Lỗi',
+                text: 'Không thể từ chối yêu cầu.',
+                confirmButtonText: 'Đồng ý',
+                confirmButtonColor: '#ef4444'
+            });
         } finally {
             setProcessing(null);
         }

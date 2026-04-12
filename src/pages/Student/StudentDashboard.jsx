@@ -8,7 +8,6 @@ import {
   TrendingUp,
   Clock,
   CheckCircle,
-  Calendar,
   Award,
   BarChart3,
   ArrowRight,
@@ -206,7 +205,7 @@ const StudentDashboard = () => {
                 <Target className="w-6 h-6 text-indigo-600" />
                 Hành động nhanh
               </h2>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="grid grid-cols-2 gap-3">
                 <button
                   onClick={() => navigate('/student/my-courses')}
                   className="group bg-gradient-to-br from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200 rounded-xl p-4 transition-all duration-300 border-2 border-transparent hover:border-blue-300"
@@ -220,20 +219,6 @@ const StudentDashboard = () => {
                 >
                   <FileText className="w-8 h-8 text-purple-600 mx-auto mb-2 group-hover:scale-110 transition-transform" />
                   <p className="text-sm font-semibold text-gray-800 text-center">Bài kiểm tra</p>
-                </button>
-                <button
-                  onClick={() => navigate('/student/schedule')}
-                  className="group bg-gradient-to-br from-green-50 to-green-100 hover:from-green-100 hover:to-green-200 rounded-xl p-4 transition-all duration-300 border-2 border-transparent hover:border-green-300"
-                >
-                  <Calendar className="w-8 h-8 text-green-600 mx-auto mb-2 group-hover:scale-110 transition-transform" />
-                  <p className="text-sm font-semibold text-gray-800 text-center">Lịch học</p>
-                </button>
-                <button
-                  onClick={() => navigate('/student/progress')}
-                  className="group bg-gradient-to-br from-amber-50 to-amber-100 hover:from-amber-100 hover:to-amber-200 rounded-xl p-4 transition-all duration-300 border-2 border-transparent hover:border-amber-300"
-                >
-                  <BarChart3 className="w-8 h-8 text-amber-600 mx-auto mb-2 group-hover:scale-110 transition-transform" />
-                  <p className="text-sm font-semibold text-gray-800 text-center">Tiến độ</p>
                 </button>
               </div>
             </div>

@@ -5,6 +5,7 @@ import courseService from '../../services/courseService';
 import { Table, Button, Input, Modal, Badge, Alert, PageHeader, PageActions, PageContainer, Card } from '../../components/ui';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
+import Swal from 'sweetalert2';
 
 const CourseManagement = () => {
     const { t } = useTranslation();
@@ -115,10 +116,22 @@ const CourseManagement = () => {
     
     // Handle delete
     const handleDelete = async (course) => {
-        if (!window.confirm(t('courseMgmt.confirmDelete', `Bạn có chắc chắn muốn xóa khóa học ${course.name}?`))) {
+        const result = await Swal.fire({
+            icon: 'question',
+            title: 'Xác nhận xóa',
+            text: t('courseMgmt.confirmDelete', `Bạn có chắc chắn muốn xóa khóa học ${course.name}?`),
+            showCancelButton: true,
+            confirmButtonText: 'Xóa',
+            cancelButtonText: 'Hủy',
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#6b7280',
+            reverseButtons: true
+        });
+
+        if (!result.isConfirmed) {
             return;
         }
-        
+
         try {
             await courseService.deleteCourse(course.id);
             await fetchCourses();
@@ -128,9 +141,21 @@ const CourseManagement = () => {
             setError(t('courseMgmt.deleteError', 'Không thể xóa khóa học'));
         }
     };
-    
+
     const handleBulkDelete = async () => {
-        if (!window.confirm(t('courseMgmt.confirmBulkDelete', `Bạn có chắc chắn muốn xóa ${selectedCourses.length} khóa học đã chọn?`))) {
+        const result = await Swal.fire({
+            icon: 'question',
+            title: 'Xác nhận xóa hàng loạt',
+            text: t('courseMgmt.confirmBulkDelete', `Bạn có chắc chắn muốn xóa ${selectedCourses.length} khóa học đã chọn?`),
+            showCancelButton: true,
+            confirmButtonText: 'Xóa',
+            cancelButtonText: 'Hủy',
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#6b7280',
+            reverseButtons: true
+        });
+
+        if (!result.isConfirmed) {
             return;
         }
         
