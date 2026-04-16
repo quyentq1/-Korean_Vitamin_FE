@@ -7,9 +7,9 @@ const CourseDetailModal = ({ course, onClose }) => {
     if (!course) return null;
 
     const levelLabels = {
-        'BEGINNER': 'Sơ cấp',
-        'INTERMEDIATE': 'Trung cấp',
-        'ADVANCED': 'Cao cấp'
+        'BEGINNER': 'TOPIK I',
+        'INTERMEDIATE': 'TOPIK II',
+        'ADVANCED': 'ESP'
     };
 
     const statusLabels = {

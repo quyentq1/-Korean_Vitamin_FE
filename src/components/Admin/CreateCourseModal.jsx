@@ -233,9 +233,9 @@ const CreateCourseModal = ({ onClose, onSubmit }) => {
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Trình độ</label>
                             <select value={formData.level} onChange={e => setFormData({...formData, level: e.target.value})} className="w-full px-3 py-2 border rounded-lg">
-                                <option value="BEGINNER">Sơ cấp</option>
-                                <option value="INTERMEDIATE">Trung cấp</option>
-                                <option value="ADVANCED">Cao cấp</option>
+                                <option value="BEGINNER">TOPIK I</option>
+                                <option value="INTERMEDIATE">TOPIK II</option>
+                                <option value="ADVANCED">ESP</option>
                             </select>
                         </div>
                         <div>
@@ -333,7 +333,7 @@ const CreateCourseModal = ({ onClose, onSubmit }) => {
                             value={formData.courseTags}
                             onChange={e => setFormData({...formData, courseTags: e.target.value})}
                             className="w-full px-3 py-2 border rounded-lg"
-                            placeholder="VD: TOPIK, Sơ cấp, Ngữ pháp, Listening (cách nhau bằng dấu phẩy)"
+                            placeholder="VD: TOPIK, TOPIK I, Ngữ pháp, Listening (cách nhau bằng dấu phẩy)"
                         />
                     </div>
 

@@ -37,7 +37,7 @@ const Curriculum = () => {
 
     const curriculums = [
         {
-            level: t('curriculum.beginner.title', 'Sơ cấp'),
+            level: t('curriculum.beginner.title', 'TOPIK I'),
             levelEn: 'Beginner',
             icon: '📘',
             color: 'from-blue-400 to-blue-600',
@@ -52,7 +52,7 @@ const Curriculum = () => {
             duration: '3-6 ' + t('curriculum.months', 'tháng'),
         },
         {
-            level: t('curriculum.intermediate.title', 'Trung cấp'),
+            level: t('curriculum.intermediate.title', 'TOPIK II'),
             levelEn: 'Intermediate',
             icon: '📗',
             color: 'from-green-400 to-green-600',
@@ -67,7 +67,7 @@ const Curriculum = () => {
             duration: '6-12 ' + t('curriculum.months', 'tháng'),
         },
         {
-            level: t('curriculum.advanced.title', 'Cao cấp'),
+            level: t('curriculum.advanced.title', 'ESP'),
             levelEn: 'Advanced',
             icon: '📙',
             color: 'from-orange-400 to-orange-600',

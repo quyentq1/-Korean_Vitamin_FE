@@ -47,9 +47,9 @@ const MyCourses = () => {
 
   const getLevelBadge = (level) => {
     const levelConfig = {
-      BEGINNER: { variant: 'success', label: t('course.level.beginner', 'Sơ cấp') },
-      INTERMEDIATE: { variant: 'warning', label: t('course.level.intermediate', 'Trung cấp') },
-      ADVANCED: { variant: 'error', label: t('course.level.advanced', 'Cao cấp') }
+      BEGINNER: { variant: 'success', label: t('course.level.beginner', 'TOPIK I') },
+      INTERMEDIATE: { variant: 'warning', label: t('course.level.intermediate', 'TOPIK II') },
+      ADVANCED: { variant: 'error', label: t('course.level.advanced', 'ESP') }
     };
 
     const config = levelConfig[level] || levelConfig.BEGINNER;

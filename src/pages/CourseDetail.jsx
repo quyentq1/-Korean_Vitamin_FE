@@ -263,7 +263,7 @@ const CourseDetail = () => {
                                 <div>
                                     <p className="text-xs text-gray-500">Độ khó</p>
                                     <p className="font-semibold text-gray-900">
-                                        {course.level === 'BEGINNER' ? 'Cơ bản' : course.level === 'INTERMEDIATE' ? 'Trung cấp' : 'Nâng cao'}
+                                        {course.level === 'BEGINNER' ? 'TOPIK I' : course.level === 'INTERMEDIATE' ? 'TOPIK II' : 'ESP'}
                                     </p>
                                 </div>
                             </div>

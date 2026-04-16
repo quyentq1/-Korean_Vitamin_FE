@@ -57,8 +57,8 @@ export const Badge = ({
 export const LevelBadge = ({ level, className = '', ...props }) => {
   const levelConfig = {
     beginner: { label: 'Người mới bắt đầu', className: 'bg-badge-beginner bg text-badge-beginner-text' },
-    intermediate: { label: 'Trung cấp', className: 'bg-badge-intermediate bg text-badge-intermediate-text' },
-    advanced: { label: 'Cao cấp', className: 'bg-badge-advanced bg text-badge-advanced-text' }
+    intermediate: { label: 'TOPIK II', className: 'bg-badge-intermediate bg text-badge-intermediate-text' },
+    advanced: { label: 'ESP', className: 'bg-badge-advanced bg text-badge-advanced-text' }
   };
 
   const config = levelConfig[level?.toLowerCase()] || levelConfig.beginner;

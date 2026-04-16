@@ -502,9 +502,9 @@ const CourseManagement = () => {
                             icon="📊"
                         >
                             <option value="all">{t('courseMgmt.allLevels', 'Tất cả')}</option>
-                            <option value="beginner">{t('courseMgmt.beginner', 'Sơ cấp')}</option>
-                            <option value="intermediate">{t('courseMgmt.intermediate', 'Trung cấp')}</option>
-                            <option value="advanced">{t('courseMgmt.advanced', 'Cao cấp')}</option>
+                            <option value="beginner">{t('courseMgmt.beginner', 'TOPIK I')}</option>
+                            <option value="intermediate">{t('courseMgmt.intermediate', 'TOPIK II')}</option>
+                            <option value="advanced">{t('courseMgmt.advanced', 'ESP')}</option>
                         </Input>
                     </div>
                     
@@ -695,9 +695,9 @@ const CourseManagement = () => {
                             placeholder={t('courseMgmt.levelPlaceholder', 'Chọn trình độ...')}
                             required
                         >
-                            <option value="beginner">{t('courseMgmt.beginner', 'Sơ cấp')}</option>
-                            <option value="intermediate">{t('courseMgmt.intermediate', 'Trung cấp')}</option>
-                            <option value="advanced">{t('courseMgmt.advanced', 'Cao cấp')}</option>
+                            <option value="beginner">{t('courseMgmt.beginner', 'TOPIK I')}</option>
+                            <option value="intermediate">{t('courseMgmt.intermediate', 'TOPIK II')}</option>
+                            <option value="advanced">{t('courseMgmt.advanced', 'ESP')}</option>
                         </Input>
                         <Input
                             type="number"
@@ -791,9 +791,9 @@ const CourseManagement = () => {
                                 placeholder={t('courseMgmt.levelPlaceholder', 'Chọn trình độ...')}
                                 required
                             >
-                                <option value="beginner">{t('courseMgmt.beginner', 'Sơ cấp')}</option>
-                                <option value="intermediate">{t('courseMgmt.intermediate', 'Trung cấp')}</option>
-                                <option value="advanced">{t('courseMgmt.advanced', 'Cao cấp')}</option>
+                                <option value="beginner">{t('courseMgmt.beginner', 'TOPIK I')}</option>
+                                <option value="intermediate">{t('courseMgmt.intermediate', 'TOPIK II')}</option>
+                                <option value="advanced">{t('courseMgmt.advanced', 'ESP')}</option>
                             </Input>
                             <Input
                                 type="number"

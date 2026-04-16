@@ -74,7 +74,7 @@
         "downloadSyllabus": "Tải giáo trình",
         "whyChoose": "Tại sao chọn giáo trình của chúng tôi?",
         "beginner": {
-            "title": "Sơ cấp",
+            "title": "TOPIK I",
             "desc": "Nền tảng cơ bản cho người mới bắt đầu. Học Hangul, chào hỏi cơ bản và hội thoại hàng ngày.",
             "feature1": "Bảng chữ cái Hangul",
             "feature2": "Ngữ pháp cơ bản",
@@ -82,7 +82,7 @@
             "feature4": "Hội thoại hàng ngày"
         },
         "intermediate": {
-            "title": "Trung cấp",
+            "title": "TOPIK II",
             "desc": "Mở rộng vốn từ vựng và ngữ pháp. Tập trung vào cấu trúc câu phức tạp và viết.",
             "feature1": "1000+ từ vựng",
             "feature2": "Ngữ pháp nâng cao",
@@ -90,7 +90,7 @@
             "feature4": "Viết bài luận"
         },
         "advanced": {
-            "title": "Cao cấp",
+            "title": "ESP",
             "desc": "Thành thạo tiếng Hàn chuyên nghiệp. Chuẩn bị cho TOPIK cấp cao và phiên dịch kinh doanh.",
             "feature1": "Từ vựng chuyên ngành",
             "feature2": "Văn bản học thuật",
@@ -225,7 +225,7 @@
         "requirements": "Yêu cầu",
         "objectives": "Mục tiêu",
         "beginner": "Cơ bản",
-        "intermediate": "Trung cấp",
+        "intermediate": "TOPIK II",
         "advanced": "Nâng cao",
         "courseInfo": "Thông tin khóa học",
         "enrollmentInfo": "Thông tin tuyển sinh",
@@ -908,9 +908,9 @@
         "contactManager": "Vui lòng liên hệ Education Manager để được assigned vào khóa học.",
         "course": {
             "level": {
-                "beginner": "Sơ cấp",
-                "intermediate": "Trung cấp",
-                "advanced": "Cao cấp"
+                "beginner": "TOPIK I",
+                "intermediate": "TOPIK II",
+                "advanced": "ESP"
             },
             "status": {
                 "draft": "Bản nháp",

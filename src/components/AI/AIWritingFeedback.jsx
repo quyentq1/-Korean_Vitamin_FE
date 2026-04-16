@@ -227,7 +227,7 @@ const AIWritingFeedback = ({ submissionId, content, autoAnalyze = false }) => {
                             </div>
                             <div className="p-3 bg-blue-50 rounded-lg text-center">
                                 <p className="text-lg font-bold text-blue-600">{feedback.vocabStats.intermediate}</p>
-                                <p className="text-xs text-gray-600">Trung cấp</p>
+                                <p className="text-xs text-gray-600">TOPIK II</p>
                             </div>
                             <div className="p-3 bg-purple-50 rounded-lg text-center">
                                 <p className="text-lg font-bold text-purple-600">{feedback.vocabStats.advanced}</p>

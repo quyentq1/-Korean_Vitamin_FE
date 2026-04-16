@@ -88,9 +88,9 @@ const StudentCourseDetail = () => {
   };
 
   const levelLabels = {
-    'BEGINNER': 'Sơ cấp',
-    'INTERMEDIATE': 'Trung cấp',
-    'ADVANCED': 'Cao cấp'
+    'BEGINNER': 'TOPIK I',
+    'INTERMEDIATE': 'TOPIK II',
+    'ADVANCED': 'ESP'
   };
 
   // Parse YouTube ID from URL

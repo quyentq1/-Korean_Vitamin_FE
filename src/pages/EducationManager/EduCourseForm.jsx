@@ -216,7 +216,7 @@ const EduCourseForm = () => {
     const fields = [
         { name: 'name', label: 'Tên khóa học', type: 'text', span: 2, placeholder: 'VD: TOPIK I - Level 1', required: true },
         { name: 'code', label: 'Mã khóa học', type: 'text', placeholder: 'VD: TOPIK-I-L1', required: true },
-        { name: 'level', label: 'Trình độ', type: 'select', options: ['BEGINNER', 'INTERMEDIATE', 'ADVANCED'], optionLabels: ['Sơ cấp', 'Trung cấp', 'Cao cấp'] },
+        { name: 'level', label: 'Trình độ', type: 'select', options: ['BEGINNER', 'INTERMEDIATE', 'ADVANCED'], optionLabels: ['TOPIK I', 'TOPIK II', 'ESP'] },
         { name: 'status', label: 'Trạng thái', type: 'select', options: ['DRAFT', 'PUBLISHED', 'ARCHIVED'], optionLabels: ['Bản nháp', 'Đã công bố', 'Lưu trữ'] },
         { name: 'teacherId', label: 'Giáo viên phụ trách', type: 'teacher-select', span: 2 },
         { name: 'fee', label: 'Học phí (₫)', type: 'number', placeholder: 'VD: 2000000', required: true },
@@ -350,7 +350,7 @@ const EduCourseForm = () => {
                     <div className="sm:col-span-2">
                         <label className="block text-sm font-medium text-gray-700 mb-1">Yêu cầu / Điều kiện tiên quyết</label>
                         <textarea name="requirements" value={form.requirements || ''} onChange={handleChange} rows={2}
-                            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-violet-400 outline-none resize-none" placeholder="VD: Cần biết tiếng Hàn cơ bản, đã hoàn thành khóa học Sơ cấp..." />
+                            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-violet-400 outline-none resize-none" placeholder="VD: Cần biết tiếng Hàn cơ bản, đã hoàn thành khóa học TOPIK I..." />
                     </div>
 
                     {/* NEW: Detailed Syllabus */}
@@ -405,7 +405,7 @@ const EduCourseForm = () => {
                             value={form.courseTags || ''}
                             onChange={handleChange}
                             className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-violet-400 outline-none"
-                            placeholder="VD: TOPIK, Sơ cấp, Ngữ pháp, Listening (cách nhau bằng dấu phẩy)"
+                            placeholder="VD: TOPIK, TOPIK I, Ngữ pháp, Listening (cách nhau bằng dấu phẩy)"
                         />
                     </div>
 

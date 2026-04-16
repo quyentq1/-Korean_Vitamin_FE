@@ -816,9 +816,9 @@ const QuestionFormModal = ({ isOpen, onClose, questionId, defaultTarget = 'COURS
                       {availableLevels.length > 0 ? (
                         availableLevels.map(lvl => {
                           const labels = {
-                            BEGINNER: 'Sơ cấp (Beginner)',
-                            INTERMEDIATE: 'Trung cấp (Intermediate)',
-                            ADVANCED: 'Cao cấp (Advanced)',
+                            BEGINNER: 'TOPIK I (Beginner)',
+                            INTERMEDIATE: 'TOPIK II (Intermediate)',
+                            ADVANCED: 'ESP (Advanced)',
                           };
                           return (
                             <option key={lvl} value={lvl}>{labels[lvl] || lvl}</option>

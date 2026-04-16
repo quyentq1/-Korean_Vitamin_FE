@@ -31,7 +31,7 @@ const ChatbotWidget = () => {
             const lowerInput = userMsg.text.toLowerCase();
 
             if (lowerInput.includes("giá") || lowerInput.includes("học phí")) {
-                botText = "Khóa sơ cấp A1: 2.500.000đ/khóa. Trung cấp B2: 3.500.000đ/khóa. Bạn quan tâm khóa nào ạ?";
+                botText = "Khóa TOPIK I A1: 2.500.000đ/khóa. TOPIK II B2: 3.500.000đ/khóa. Bạn quan tâm khóa nào ạ?";
             } else if (lowerInput.includes("lịch") || lowerInput.includes("thời gian")) {
                 botText = "Chúng tôi có lớp sáng (8h-10h), chiều (14h-16h) và tối (18h-20h).";
             } else if (lowerInput.includes("địa chỉ") || lowerInput.includes("ở đâu")) {

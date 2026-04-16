@@ -411,7 +411,7 @@ const ExamStructureBuilder = ({
           <div className="flex items-center gap-2 text-sm text-blue-700">
             <Info className="w-4 h-4" />
             <span>
-              Khóa học cấp độ <strong>{courseLevel === 'BEGINNER' ? 'Sơ cấp' : courseLevel === 'INTERMEDIATE' ? 'Trung cấp' : 'Cao cấp'}</strong>
+              Khóa học cấp độ <strong>{courseLevel === 'BEGINNER' ? 'TOPIK I' : courseLevel === 'INTERMEDIATE' ? 'TOPIK II' : 'ESP'}</strong>
               - Chỉ random câu hỏi phù hợp với cấp độ này
             </span>
           </div>

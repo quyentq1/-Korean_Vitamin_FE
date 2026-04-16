@@ -259,7 +259,7 @@ const LandingPage = () => {
                             },
                             {
                                 title: 'Luyện Thi TOPIK II',
-                                level: 'Cao cấp',
+                                level: 'ESP',
                                 duration: '4 tháng',
                                 price: '6.000.000 VNĐ',
                                 students: 280,
