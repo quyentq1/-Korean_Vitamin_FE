@@ -20,7 +20,7 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
-import Homepage from './pages/HomePage/HomePage.jsx';
+import HomePage from './pages/HomePage/Homepage.jsx';
 import Dashboard from './pages/Dashboard/Dashboard.jsx';
 import Curriculum from './pages/Curriculum.jsx';
 import ExamPrep from './pages/ExamPrep.jsx';
@@ -127,7 +127,7 @@ function App() {
           <Route path="/signup" element={<Signup />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
-          <Route path="/" element={<Homepage />} />
+          <Route path="/" element={<HomePage />} />
           <Route path="/unauthorized" element={<UnauthorizedPage />} />
 
           {/* Public Course & Test Routes */}

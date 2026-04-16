@@ -1,11 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
-/**
- * ConsultationPopup Modal Component
- * Shown to guests after completing 2 free tests
- * Collects contact information for staff follow-up
- */
 const ConsultationPopup = ({ isOpen, onClose, onSubmit }) => {
     const { t } = useTranslation();
 
@@ -18,10 +13,10 @@ const ConsultationPopup = ({ isOpen, onClose, onSubmit }) => {
     });
 
     const [errors, setErrors] = useState({});
+    const [touched, setTouched] = useState({});
     const [submitting, setSubmitting] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
 
-    // Auto-dismiss success message after 4 seconds
     useEffect(() => {
         if (showSuccess) {
             const timer = setTimeout(() => {
@@ -32,52 +27,208 @@ const ConsultationPopup = ({ isOpen, onClose, onSubmit }) => {
         }
     }, [showSuccess, onClose]);
 
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
-        // Clear error when user types
-        if (errors[name]) {
-            setErrors(prev => ({ ...prev, [name]: '' }));
+    const sanitizeValue = (name, value) => {
+        switch (name) {
+            case 'fullName':
+                return value
+                    .replace(/\s+/g, ' ')
+                    .replace(/^\s+/g, '');
+            case 'email':
+                return value.replace(/\s/g, '').toLowerCase();
+            case 'phone':
+                return value.replace(/[^\d]/g, '').slice(0, 10);
+            case 'message':
+                return value.replace(/^\s+/g, '');
+            default:
+                return value;
+        }
+    };
+
+    const validateField = (name, value) => {
+        const trimmedValue = typeof value === 'string' ? value.trim() : value;
+
+        switch (name) {
+            case 'fullName': {
+                if (!trimmedValue) {
+                    return t('consultation.errorNameRequired', 'Vui lòng nhập họ và tên');
+                }
+
+                if (trimmedValue.length < 2) {
+                    return t('consultation.errorNameTooShort', 'Họ và tên phải có ít nhất 2 ký tự');
+                }
+
+                if (trimmedValue.length > 50) {
+                    return t('consultation.errorNameTooLong', 'Họ và tên không được vượt quá 50 ký tự');
+                }
+
+                // Chỉ cho phép chữ cái tiếng Việt, khoảng trắng
+                if (!/^[a-zA-ZÀ-ỹ\s]+$/.test(trimmedValue)) {
+                    return t(
+                        'consultation.errorNameInvalid',
+                        'Họ và tên không được chứa số hoặc ký tự đặc biệt'
+                    );
+                }
+
+                // Không cho nhập toàn khoảng trắng hoặc quá nhiều khoảng trắng liên tiếp
+                if (/\s{2,}/.test(value)) {
+                    return t(
+                        'consultation.errorNameSpacing',
+                        'Họ và tên không được chứa quá nhiều khoảng trắng liên tiếp'
+                    );
+                }
+
+                return '';
+            }
+
+            case 'email': {
+                if (!trimmedValue) {
+                    return t('consultation.errorEmailRequired', 'Vui lòng nhập email');
+                }
+
+                if (trimmedValue.length > 100) {
+                    return t('consultation.errorEmailTooLong', 'Email không được vượt quá 100 ký tự');
+                }
+
+                if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedValue)) {
+                    return t('consultation.errorEmailInvalid', 'Email không đúng định dạng');
+                }
+
+                if (trimmedValue.includes('..')) {
+                    return t(
+                        'consultation.errorEmailConsecutiveDots',
+                        'Email không được chứa 2 dấu chấm liên tiếp'
+                    );
+                }
+
+                return '';
+            }
+
+            case 'phone': {
+                if (!trimmedValue) {
+                    return t('consultation.errorPhoneRequired', 'Vui lòng nhập số điện thoại');
+                }
+
+                if (!/^0\d+$/.test(trimmedValue)) {
+                    return t(
+                        'consultation.errorPhoneStartZero',
+                        'Số điện thoại phải bắt đầu bằng số 0'
+                    );
+                }
+
+                if (trimmedValue.length < 10) {
+                    return t(
+                        'consultation.errorPhoneTooShort',
+                        'Số điện thoại phải gồm đúng 10 chữ số'
+                    );
+                }
+
+                if (trimmedValue.length > 10) {
+                    return t(
+                        'consultation.errorPhoneTooLong',
+                        'Số điện thoại không được vượt quá 10 chữ số'
+                    );
+                }
+
+                if (!/^0\d{9}$/.test(trimmedValue)) {
+                    return t(
+                        'consultation.errorPhoneInvalid',
+                        'Số điện thoại không hợp lệ, vui lòng nhập 10 số và bắt đầu bằng 0'
+                    );
+                }
+
+                return '';
+            }
+
+            case 'message': {
+                if (trimmedValue && trimmedValue.length > 500) {
+                    return t(
+                        'consultation.errorMessageTooLong',
+                        'Lời nhắn không được vượt quá 500 ký tự'
+                    );
+                }
+                return '';
+            }
+
+            default:
+                return '';
         }
     };
 
     const validateForm = () => {
         const newErrors = {};
 
-        if (!formData.fullName.trim()) {
-            newErrors.fullName = t('consultation.errorName', 'Vui lòng nhập họ tên');
-        }
-
-        if (!formData.email.trim()) {
-            newErrors.email = t('consultation.errorEmail', 'Vui lòng nhập email');
-        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-            newErrors.email = t('consultation.errorEmailInvalid', 'Email không hợp lệ');
-        }
-
-        if (!formData.phone.trim()) {
-            newErrors.phone = t('consultation.errorPhone', 'Vui lòng nhập số điện thoại');
-        } else if (!/^0\d{9}$/.test(formData.phone)) {
-            newErrors.phone = t('consultation.errorPhoneInvalid', 'Số điện thoại không hợp lệ (10 số, bắt đầu bằng 0)');
-        }
+        Object.keys(formData).forEach((field) => {
+            const error = validateField(field, formData[field]);
+            if (error) {
+                newErrors[field] = error;
+            }
+        });
 
         return newErrors;
+    };
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        const sanitizedValue = sanitizeValue(name, value);
+
+        setFormData((prev) => ({
+            ...prev,
+            [name]: sanitizedValue,
+        }));
+
+        // Validate realtime sau khi người dùng đã chạm vào field
+        if (touched[name]) {
+            const error = validateField(name, sanitizedValue);
+            setErrors((prev) => ({
+                ...prev,
+                [name]: error,
+            }));
+        }
+    };
+
+    const handleBlur = (e) => {
+        const { name, value } = e.target;
+
+        setTouched((prev) => ({
+            ...prev,
+            [name]: true,
+        }));
+
+        const error = validateField(name, value);
+        setErrors((prev) => ({
+            ...prev,
+            [name]: error,
+        }));
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
 
+        const allTouched = Object.keys(formData).reduce((acc, key) => {
+            acc[key] = true;
+            return acc;
+        }, {});
+
+        setTouched(allTouched);
+
         const validationErrors = validateForm();
+        setErrors(validationErrors);
+
         if (Object.keys(validationErrors).length > 0) {
-            setErrors(validationErrors);
             return;
         }
 
         setSubmitting(true);
         try {
-            await onSubmit(formData);
-            // Show success message
+            await onSubmit({
+                ...formData,
+                fullName: formData.fullName.trim(),
+                email: formData.email.trim().toLowerCase(),
+                phone: formData.phone.trim(),
+                message: formData.message.trim(),
+            });
+
             setShowSuccess(true);
-            // Reset form
             setFormData({
                 fullName: '',
                 email: '',
@@ -86,6 +237,7 @@ const ConsultationPopup = ({ isOpen, onClose, onSubmit }) => {
                 message: '',
             });
             setErrors({});
+            setTouched({});
         } catch (error) {
             console.error('Error submitting consultation:', error);
             setErrors({
@@ -100,9 +252,7 @@ const ConsultationPopup = ({ isOpen, onClose, onSubmit }) => {
 
     return (
         <div className="fixed inset-0 z-[1400] flex items-center justify-center p-4 bg-black bg-opacity-50 animate-fade-in">
-            {/* Modal Container */}
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg animate-scale-up overflow-hidden">
-                {/* Success State */}
                 {showSuccess ? (
                     <div className="p-8 text-center">
                         <div className="w-20 h-20 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center mx-auto mb-6 animate-bounce">
@@ -138,33 +288,16 @@ const ConsultationPopup = ({ isOpen, onClose, onSubmit }) => {
                     </div>
                 ) : (
                     <>
-                        {/* Header */}
                         <div className="bg-gradient-to-r from-primary-500 to-primary-600 p-6 text-white">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <h2 className="text-2xl font-bold mb-1">
-                                        {t('consultation.title', 'Đăng Ký Tư Vấn')}
-                                    </h2>
-                                    <p className="text-white/90 text-sm">
-                                        {t('consultation.subtitle', 'Nhân viên sẽ liên hệ hỗ trợ bạn trong vòng 24 giờ')}
-                                    </p>
-                                </div>
-                                <button
-                                    onClick={onClose}
-                                    className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/20 transition"
-                                >
-                                    <span className="text-2xl">×</span>
-                                </button>
-                            </div>
+                            <h2 className="text-2xl font-bold mb-1">
+                                {t('consultation.title', 'Đăng Ký Tư Vấn')}
+                            </h2>
+                            <p className="text-white/90 text-sm">
+                                {t('consultation.subtitle', 'Nhân viên sẽ liên hệ hỗ trợ bạn trong vòng 24 giờ')}
+                            </p>
                         </div>
 
-                        {/* Body */}
                         <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                            <p className="text-gray-600 text-sm mb-4">
-                                {t('consultation.description', 'Để lại thông tin bên dưới, chúng tôi sẽ liên hệ tư vấn về các khóa học và lộ trình học phù hợp với bạn.')}
-                            </p>
-
-                            {/* Full Name */}
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     {t('consultation.fullName', 'Họ và tên')} <span className="text-error-500">*</span>
@@ -174,35 +307,43 @@ const ConsultationPopup = ({ isOpen, onClose, onSubmit }) => {
                                     name="fullName"
                                     value={formData.fullName}
                                     onChange={handleChange}
-                                    className={`w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/20 transition ${errors.fullName ? 'border-error-500' : 'border-gray-200'
-                                        }`}
+                                    onBlur={handleBlur}
+                                    maxLength={50}
+                                    className={`w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 transition ${
+                                        errors.fullName
+                                            ? 'border-red-500 focus:ring-red-200'
+                                            : 'border-gray-200 focus:ring-primary-500/20'
+                                    }`}
                                     placeholder={t('consultation.fullNamePlaceholder', 'Nguyễn Văn A')}
                                 />
                                 {errors.fullName && (
-                                    <p className="text-error-500 text-sm mt-1">{errors.fullName}</p>
+                                    <p className="text-red-500 text-sm mt-1">{errors.fullName}</p>
                                 )}
                             </div>
 
-                            {/* Email */}
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     {t('consultation.email', 'Email')} <span className="text-error-500">*</span>
                                 </label>
                                 <input
-                                    type="email"
+                                    type="text"
                                     name="email"
                                     value={formData.email}
                                     onChange={handleChange}
-                                    className={`w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/20 transition ${errors.email ? 'border-error-500' : 'border-gray-200'
-                                        }`}
+                                    onBlur={handleBlur}
+                                    maxLength={100}
+                                    className={`w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 transition ${
+                                        errors.email
+                                            ? 'border-red-500 focus:ring-red-200'
+                                            : 'border-gray-200 focus:ring-primary-500/20'
+                                    }`}
                                     placeholder="example@email.com"
                                 />
                                 {errors.email && (
-                                    <p className="text-error-500 text-sm mt-1">{errors.email}</p>
+                                    <p className="text-red-500 text-sm mt-1">{errors.email}</p>
                                 )}
                             </div>
 
-                            {/* Phone */}
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     {t('consultation.phone', 'Số điện thoại')} <span className="text-error-500">*</span>
@@ -212,16 +353,21 @@ const ConsultationPopup = ({ isOpen, onClose, onSubmit }) => {
                                     name="phone"
                                     value={formData.phone}
                                     onChange={handleChange}
-                                    className={`w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/20 transition ${errors.phone ? 'border-error-500' : 'border-gray-200'
-                                        }`}
+                                    onBlur={handleBlur}
+                                    inputMode="numeric"
+                                    maxLength={10}
+                                    className={`w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 transition ${
+                                        errors.phone
+                                            ? 'border-red-500 focus:ring-red-200'
+                                            : 'border-gray-200 focus:ring-primary-500/20'
+                                    }`}
                                     placeholder="0123456789"
                                 />
                                 {errors.phone && (
-                                    <p className="text-error-500 text-sm mt-1">{errors.phone}</p>
+                                    <p className="text-red-500 text-sm mt-1">{errors.phone}</p>
                                 )}
                             </div>
 
-                            {/* Contact Time */}
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     {t('consultation.contactTime', 'Thời gian liên hệ')}
@@ -238,9 +384,6 @@ const ConsultationPopup = ({ isOpen, onClose, onSubmit }) => {
                                 </select>
                             </div>
 
-
-
-                            {/* Message */}
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     {t('consultation.message', 'Lời nhắn')} <span className="text-gray-400 text-xs">(optional)</span>
@@ -249,13 +392,25 @@ const ConsultationPopup = ({ isOpen, onClose, onSubmit }) => {
                                     name="message"
                                     value={formData.message}
                                     onChange={handleChange}
+                                    onBlur={handleBlur}
                                     rows="3"
-                                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/20 transition resize-none"
+                                    maxLength={500}
+                                    className={`w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 transition resize-none ${
+                                        errors.message
+                                            ? 'border-red-500 focus:ring-red-200'
+                                            : 'border-gray-200 focus:ring-primary-500/20'
+                                    }`}
                                     placeholder={t('consultation.messagePlaceholder', 'Nhập ghi chú hoặc yêu cầu của bạn...')}
                                 />
+                                {errors.message && (
+                                    <p className="text-red-500 text-sm mt-1">{errors.message}</p>
+                                )}
                             </div>
 
-                            {/* Actions */}
+                            {errors.submit && (
+                                <p className="text-red-500 text-sm">{errors.submit}</p>
+                            )}
+
                             <div className="flex gap-3 pt-4">
                                 <button
                                     type="button"
@@ -267,7 +422,7 @@ const ConsultationPopup = ({ isOpen, onClose, onSubmit }) => {
                                 <button
                                     type="submit"
                                     disabled={submitting}
-                                    className="flex-1 px-6 py-3 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-xl font-bold hover:shadow-lg transition disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
+                                    className="flex-1 px-6 py-3 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-xl font-bold hover:shadow-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     {submitting
                                         ? t('consultation.submitting', 'Đang gửi...')

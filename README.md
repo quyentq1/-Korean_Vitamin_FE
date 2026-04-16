@@ -228,9 +228,9 @@ vercel --prod
 Production variables are in `.env.production`:
 
 ```bash
-VITE_API_BASE_URL=https://api.koreatine.com/api
+VITE_API_BASE_URL=https://api.kvit.io.vn/api
 VITE_APP_NAME=Korean Vitamin
-VITE_APP_URL=https://koreatine.com
+VITE_APP_URL=https://kvit.io.vn.com
 VITE_ENABLE_DEBUG=false
 VITE_ENABLE_ANALYTICS=true
 ```

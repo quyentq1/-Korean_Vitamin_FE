@@ -25,7 +25,7 @@ export default defineConfig({
 
           // Pages
           'pages': [
-            './src/pages/HomePage/HomePage.jsx',
+            './src/pages/HomePage/Homepage.jsx',
             './src/pages/Login.jsx',
             './src/pages/Student/StudentDashboard.jsx',
           ],

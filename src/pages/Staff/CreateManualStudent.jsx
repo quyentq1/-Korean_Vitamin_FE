@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams, useLocation } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
-    User, Mail, Phone, MapPin, Calendar, GraduationCap, Users, UserPlus,
+    User, Mail, Phone, MapPin, GraduationCap, UserPlus,
     CheckCircle, XCircle, Loader2, ArrowLeft, ArrowRight, Save
 } from 'lucide-react';
 import Swal from 'sweetalert2';
 import staffService from '../../services/staffService';
-import consultationService from '../../services/consultationService';
 
 /**
  * Manual Student Creation Form
@@ -16,11 +15,7 @@ import consultationService from '../../services/consultationService';
 const CreateManualStudent = () => {
     const { t } = useTranslation();
     const navigate = useNavigate();
-    const location = useLocation();
     const { studentId } = useParams();
-
-    const prefilledData = location.state?.prefilledData || {};
-    const fromConsultationId = location.state?.fromConsultationId || null;
 
     const [currentStep, setCurrentStep] = useState(1);
     const [loading, setLoading] = useState(false);
@@ -28,14 +23,13 @@ const CreateManualStudent = () => {
     const [courses, setCourses] = useState([]);
     const [classes, setClasses] = useState([]);
 
-    // Form data
     const [formData, setFormData] = useState({
         // Step 1: Personal Information
-        fullName: prefilledData.fullName || '',
+        fullName: '',
         dateOfBirth: '',
         gender: 'male',
-        email: prefilledData.email || '',
-        phone: prefilledData.phone || '',
+        email: '',
+        phone: '',
         address: '',
         avatar: '',
 
@@ -49,10 +43,11 @@ const CreateManualStudent = () => {
         sendWelcomeEmail: true
     });
 
-    // Validation errors
     const [errors, setErrors] = useState({});
 
-    // Fetch courses on mount
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const phoneRegex = /^(0|\+84)\d{9}$/;
+
     useEffect(() => {
         const fetchCourses = async () => {
             try {
@@ -69,7 +64,6 @@ const CreateManualStudent = () => {
         fetchCourses();
     }, []);
 
-    // Fetch classes when courses are selected
     useEffect(() => {
         if (formData.courseIds.length > 0) {
             const fetchClasses = async () => {
@@ -93,51 +87,97 @@ const CreateManualStudent = () => {
         }
     }, [formData.courseIds]);
 
-    // Handle input change
+    const validateField = (field, value) => {
+        switch (field) {
+            case 'fullName':
+                if (!value.trim()) return `${t('staff.createStudent.fullName')} is required`;
+                if (value.trim().length < 2) return `${t('staff.createStudent.fullName')} must be at least 2 characters`;
+                return '';
+
+            case 'dateOfBirth':
+                if (!value) return `${t('staff.createStudent.dob')} is required`;
+                return '';
+
+            case 'email':
+                if (!value.trim()) return `${t('common.email')} is required`;
+                if (!emailRegex.test(value.trim())) return 'Invalid email format';
+                return '';
+
+            case 'phone':
+                if (!value.trim()) return `${t('common.phone')} is required`;
+                if (!phoneRegex.test(value.trim())) {
+                    return 'Số điện thoại không hợp lệ. Ví dụ: 0987654321 hoặc +84987654321';
+                }
+                return '';
+
+            case 'courseIds':
+                if (!value || value.length === 0) return `${t('staff.createStudent.courses')} is required`;
+                return '';
+
+            default:
+                return '';
+        }
+    };
+
     const handleChange = (field, value) => {
-        setFormData(prev => ({ ...prev, [field]: value }));
-        // Clear error when user starts typing
-        if (errors[field]) {
-            setErrors(prev => ({ ...prev, [field]: '' }));
+        let processedValue = value;
+
+        if (field === 'email') {
+            processedValue = value.trimStart();
         }
+
+        if (field === 'phone') {
+            processedValue = value.replace(/[^\d+]/g, '');
+
+            // Chỉ cho phép dấu + ở đầu chuỗi
+            if (processedValue.includes('+')) {
+                processedValue =
+                    (processedValue.startsWith('+') ? '+' : '') +
+                    processedValue.replace(/\+/g, '').replace(/^\+/, '');
+            }
+        }
+
+        setFormData((prev) => ({
+            ...prev,
+            [field]: processedValue
+        }));
+
+        const error = validateField(field, processedValue);
+        setErrors((prev) => ({
+            ...prev,
+            [field]: error
+        }));
     };
 
-    // Validate step 1
     const validateStep1 = () => {
-        const newErrors = {};
+        const newErrors = {
+            fullName: validateField('fullName', formData.fullName),
+            dateOfBirth: validateField('dateOfBirth', formData.dateOfBirth),
+            email: validateField('email', formData.email),
+            phone: validateField('phone', formData.phone)
+        };
 
-        if (!formData.fullName.trim()) {
-            newErrors.fullName = t('staff.createStudent.fullName') + ' is required';
-        }
-        if (!formData.dateOfBirth) {
-            newErrors.dateOfBirth = t('staff.createStudent.dob') + ' is required';
-        }
-        if (!formData.email.trim()) {
-            newErrors.email = t('common.email') + ' is required';
-        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-            newErrors.email = 'Invalid email format';
-        }
-        if (!formData.phone.trim()) {
-            newErrors.phone = t('common.phone') + ' is required';
-        }
+        setErrors((prev) => ({
+            ...prev,
+            ...newErrors
+        }));
 
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
+        return !Object.values(newErrors).some(Boolean);
     };
 
-    // Validate step 2
     const validateStep2 = () => {
-        const newErrors = {};
+        const newErrors = {
+            courseIds: validateField('courseIds', formData.courseIds)
+        };
 
-        if (formData.courseIds.length === 0) {
-            newErrors.courseIds = t('staff.createStudent.courses') + ' is required';
-        }
+        setErrors((prev) => ({
+            ...prev,
+            ...newErrors
+        }));
 
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
+        return !Object.values(newErrors).some(Boolean);
     };
 
-    // Handle next step
     const handleNext = () => {
         if (currentStep === 1 && validateStep1()) {
             setCurrentStep(2);
@@ -146,64 +186,65 @@ const CreateManualStudent = () => {
         }
     };
 
-    // Handle previous step
     const handlePrevious = () => {
         if (currentStep > 1) {
             setCurrentStep(currentStep - 1);
         }
     };
 
-    // Handle course selection
     const handleCourseToggle = (courseId) => {
-        setFormData(prev => {
+        setFormData((prev) => {
             const newCourseIds = prev.courseIds.includes(courseId)
-                ? prev.courseIds.filter(id => id !== courseId)
+                ? prev.courseIds.filter((id) => id !== courseId)
                 : [...prev.courseIds, courseId];
 
-            // Clear classId if courseIds change
             return {
                 ...prev,
                 courseIds: newCourseIds,
                 classId: ''
             };
         });
+
+        setErrors((prev) => ({
+            ...prev,
+            courseIds: ''
+        }));
     };
 
-    // Handle submit
     const handleSubmit = async () => {
-        if (!validateStep1() || !validateStep2()) {
+        const isStep1Valid = validateStep1();
+        const isStep2Valid = validateStep2();
+
+        if (!isStep1Valid || !isStep2Valid) {
             return;
         }
 
         try {
             setLoading(true);
 
-            const response = await staffService.createManualStudent(formData);
+            const payload = {
+                ...formData,
+                fullName: formData.fullName.trim(),
+                email: formData.email.trim(),
+                phone: formData.phone.trim(),
+                address: formData.address.trim(),
+                notes: formData.notes.trim(),
+                password: formData.password.trim()
+            };
 
-            if (fromConsultationId) {
-                try {
-                    await consultationService.updateStatus(fromConsultationId, 'ACCOUNT_CREATED');
-                } catch (updateErr) {
-                    console.error("Failed to update consultation status", updateErr);
-                }
-            }
+            await staffService.createManualStudent(payload);
 
             Swal.fire({
                 icon: 'success',
                 title: t('staff.createStudent.success'),
                 text: t('staff.createStudent.emailSent'),
-                confirmButtonColor: '#667eea',
+                confirmButtonColor: '#667eea'
             }).then(() => {
-                if (fromConsultationId) {
-                    navigate('/registrations'); // Quay lại trang Tư vấn
-                } else {
-                    navigate('/student-management');
-                }
+                navigate('/student-management');
             });
         } catch (error) {
             console.error('Error creating student:', error);
 
-            // Format error message for display
             const errorMsg = error.message || t('errors.tryAgain') || 'Vui lòng thử lại';
             const isValidationError = errorMsg.includes('Dữ liệu không hợp lệ');
 
@@ -211,14 +252,13 @@ const CreateManualStudent = () => {
                 icon: 'error',
                 title: t('errors.error') || 'Lỗi',
                 [isValidationError ? 'html' : 'text']: errorMsg.replace(/\n/g, '<br/>'),
-                confirmButtonColor: '#667eea',
+                confirmButtonColor: '#667eea'
             });
         } finally {
             setLoading(false);
         }
     };
 
-    // Calculate progress
     const progress = (currentStep / 3) * 100;
 
     return (
@@ -238,8 +278,12 @@ const CreateManualStudent = () => {
                         <UserPlus className="w-6 h-6" />
                     </div>
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-900">{t('staff.createStudent.title')}</h1>
-                        <p className="text-gray-500 text-sm">{t('staff.createStudent.manualTitle')}</p>
+                        <h1 className="text-2xl font-bold text-gray-900">
+                            {t('staff.createStudent.title')}
+                        </h1>
+                        <p className="text-gray-500 text-sm">
+                            {t('staff.createStudent.manualTitle')}
+                        </p>
                     </div>
                 </div>
 
@@ -337,7 +381,9 @@ const CreateManualStudent = () => {
                                                 onChange={(e) => handleChange('gender', e.target.value)}
                                                 className="hidden"
                                             />
-                                            <span className="capitalize">{t(`staff.students.${gender}`)}</span>
+                                            <span className="capitalize">
+                                                {t(`staff.students.${gender}`)}
+                                            </span>
                                         </label>
                                     ))}
                                 </div>
@@ -430,7 +476,8 @@ const CreateManualStudent = () => {
                         <div className="flex items-center gap-2 pb-4 border-b border-gray-100">
                             <GraduationCap className="w-5 h-5 text-blue-600" />
                             <h2 className="text-lg font-semibold text-gray-900">
-                                {t('staff.createStudent.step2')}: {t('staff.createStudent.courses')} & {t('staff.createStudent.class')}
+                                {t('staff.createStudent.step2')}: {t('staff.createStudent.courses')} &{' '}
+                                {t('staff.createStudent.class')}
                             </h2>
                         </div>
 
@@ -533,7 +580,6 @@ const CreateManualStudent = () => {
                             </h2>
                         </div>
 
-                        {/* Review Sections */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {/* Personal Info */}
                             <div className="bg-gray-50 rounded-xl p-4">
@@ -549,12 +595,16 @@ const CreateManualStudent = () => {
                                     <div className="flex justify-between">
                                         <span className="text-gray-500">{t('staff.createStudent.dob')}</span>
                                         <span className="font-medium">
-                                            {formData.dateOfBirth ? new Date(formData.dateOfBirth).toLocaleDateString('vi-VN') : '-'}
+                                            {formData.dateOfBirth
+                                                ? new Date(formData.dateOfBirth).toLocaleDateString('vi-VN')
+                                                : '-'}
                                         </span>
                                     </div>
                                     <div className="flex justify-between">
                                         <span className="text-gray-500">{t('staff.createStudent.gender')}</span>
-                                        <span className="font-medium capitalize">{t(`staff.students.${formData.gender}`)}</span>
+                                        <span className="font-medium capitalize">
+                                            {t(`staff.students.${formData.gender}`)}
+                                        </span>
                                     </div>
                                     <div className="flex justify-between">
                                         <span className="text-gray-500">{t('common.email')}</span>
@@ -577,17 +627,19 @@ const CreateManualStudent = () => {
                                     <div>
                                         <span className="text-gray-500">{t('staff.createStudent.courses')}</span>
                                         <div className="font-medium mt-1">
-                                            {formData.courseIds.map(id => {
-                                                const course = courses.find(c => c.id === id);
-                                                return course ? course.name : id;
-                                            }).join(', ')}
+                                            {formData.courseIds
+                                                .map((id) => {
+                                                    const course = courses.find((c) => c.id === id);
+                                                    return course ? course.name : id;
+                                                })
+                                                .join(', ')}
                                         </div>
                                     </div>
                                     {formData.classId && (
                                         <div className="flex justify-between">
                                             <span className="text-gray-500">{t('staff.createStudent.class')}</span>
                                             <span className="font-medium">
-                                                {classes.find(c => c.id === formData.classId)?.name || formData.classId}
+                                                {classes.find((c) => c.id === formData.classId)?.name || formData.classId}
                                             </span>
                                         </div>
                                     )}
