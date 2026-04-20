@@ -81,6 +81,29 @@ export const handleLoginSubmit = async (
         return { success: false, error: errorMessage };
       }
 
+      // Check for locked account (message starts with "LOCKED:")
+      if (errorMessage.startsWith('LOCKED:')) {
+        const lockedReason = errorMessage.replace('LOCKED:', '');
+        await Swal.fire({
+          icon: 'warning',
+          title: 'Tài khoản đã bị khóa',
+          html: `<div style="text-align:left;padding:8px 0;">
+            <p style="margin-bottom:12px;color:#666;">Tài khoản của bạn đã bị khóa. Vui lòng liên hệ trung tâm để được hỗ trợ.</p>
+            <div style="background:#FEF2F2;border-left:4px solid #EF4444;padding:12px 16px;border-radius:6px;">
+              <p style="margin:0;color:#991B1B;font-weight:600;margin-bottom:4px;">Lý do khóa:</p>
+              <p style="margin:0;color:#991B1B;">${lockedReason}</p>
+            </div>
+            <p style="margin-top:12px;color:#666;font-size:13px;">Hotline hỗ trợ: <strong>0869.627.078</strong></p>
+          </div>`,
+          confirmButtonColor: '#dc2626',
+          confirmButtonText: 'Đã hiểu',
+          allowOutsideClick: false
+        });
+
+        if (onError) onError(errorMessage);
+        return { success: false, error: errorMessage };
+      }
+
       // Check for "Incorrect password" error
       if (errorMessage === 'Incorrect password' ||
         errorMessage.toLowerCase().includes('incorrect password') ||
