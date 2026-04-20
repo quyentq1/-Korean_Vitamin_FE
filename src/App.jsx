@@ -12,6 +12,9 @@ import EduTestManagement from './pages/EducationManager/EduTestManagement';
 import EduTestEditor from './pages/EducationManager/EduTestEditor';
 import EduTeacherManagement from './pages/EducationManager/EduTeacherManagement';
 import EduStudentManagement from './pages/EducationManager/EduStudentManagement';
+import EduScheduleManagement from './pages/EducationManager/EduScheduleManagement';
+import EduAttendanceHistory from './pages/EducationManager/EduAttendanceHistory';
+import EduTeachingStats from './pages/EducationManager/EduTeachingStats';
 import StudentLayout from './components/layouts/StudentLayout';
 import StaffLayout from './components/layouts/StaffLayout';
 import TeacherLayout from './components/layouts/TeacherLayout';
@@ -53,6 +56,8 @@ import ExamEditor from './pages/Teacher/ExamEditor.jsx';
 import ExamDetail from './pages/Teacher/ExamDetail.jsx';
 import ExamAttempts from './pages/Teacher/ExamAttempts.jsx';
 import ClassExamManagement from './pages/Teacher/ClassExamManagement.jsx';
+import TeacherAttendance from './pages/Teacher/TeacherAttendance.jsx';
+import TeacherClassManagement from './pages/Teacher/TeacherClassManagement.jsx';
 import QBApproval from './pages/Manager/QBApproval.jsx';
 import StaffDashboard from './pages/Staff/StaffDashboard.jsx';
 import StaffRegistrationManagement from './pages/Staff/RegistrationManagement.jsx';
@@ -220,6 +225,8 @@ function App() {
             <Route path="exam-attempts/:id" element={<ExamAttempts />} />
             <Route path="class-exams" element={<ClassExamManagement />} />
             <Route path="class-exams/:classId" element={<ClassExamManagement />} />
+            <Route path="attendance" element={<TeacherAttendance />} />
+            <Route path="class-management" element={<TeacherClassManagement />} />
           </Route>
 
           {/* Legacy Teacher Routes (for backwards compatibility) */}
@@ -338,6 +345,10 @@ function App() {
             <Route path="qb-approval" element={<QuestionApproval />} />
             <Route path="exam-approval" element={<ExamApproval />} />
             <Route path="test-approval" element={<EduTestManagement />} />
+            {/* Attendance & Schedule Routes */}
+            <Route path="schedules" element={<EduScheduleManagement />} />
+            <Route path="attendance" element={<EduAttendanceHistory />} />
+            <Route path="teaching-stats" element={<EduTeachingStats />} />
           </Route>
 
           {/* Manager Routes - Manager Only */}

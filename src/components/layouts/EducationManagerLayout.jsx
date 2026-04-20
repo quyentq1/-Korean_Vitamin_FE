@@ -4,7 +4,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import {
     LayoutDashboard, BookOpen, Users, GraduationCap, ClipboardList,
     LogOut, Menu, X, ChevronRight, Settings, User,
-    CheckCircle, FileCheck, BarChart3
+    CheckCircle, FileCheck, BarChart3, Calendar, ClipboardCheck, TrendingUp
 } from 'lucide-react';
 import Swal from 'sweetalert2';
 import NotificationBell from '../NotificationBell';
@@ -31,6 +31,14 @@ const navItems = [
             { icon: BookOpen, label: 'Khóa học', path: '/edu-manager/courses' },
             { icon: Users, label: 'Lớp học', path: '/edu-manager/classes' },
             { icon: ClipboardList, label: 'Bài test', path: '/edu-manager/tests' },
+            { icon: Calendar, label: 'Quản lý lịch học', path: '/edu-manager/schedules' },
+        ]
+    },
+    {
+        section: 'Điểm danh',
+        items: [
+            { icon: ClipboardCheck, label: 'Lịch sử điểm danh', path: '/edu-manager/attendance' },
+            { icon: TrendingUp, label: 'Thống kê dạy/học', path: '/edu-manager/teaching-stats' },
         ]
     },
 ];

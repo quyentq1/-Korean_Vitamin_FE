@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 import {
     BookOpen, FileText, Users, TrendingUp, LogOut, Search,
-    Menu, X, Home, CheckCircle, Clock, Library
+    Menu, X, Home, CheckCircle, Clock, Library, ClipboardCheck
 } from 'lucide-react';
 import Swal from 'sweetalert2';
 import LanguageSwitcher from '../LanguageSwitcher';
@@ -47,6 +47,7 @@ const TeacherLayout = () => {
         { icon: <BookOpen className="w-5 h-5" />, label: t('teacher.dashboard.questionBank'), path: '/teacher/question-bank' },
         { icon: <CheckCircle className="w-5 h-5" />, label: t('teacher.dashboard.grading'), path: '/teacher/grading-queue' },
         { icon: <TrendingUp className="w-5 h-5" />, label: t('teacher.dashboard.reports'), path: '/teacher/reports' },
+        { icon: <ClipboardCheck className="w-5 h-5" />, label: 'Quản lý lớp học', path: '/teacher/class-management' },
     ], [t]);
 
     // Check if current path is active
