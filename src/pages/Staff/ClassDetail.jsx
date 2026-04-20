@@ -956,6 +956,8 @@ const ClassDetail = () => {
       {showAddScheduleModal && (
         <AddScheduleModal
           classId={id}
+          classStartDate={classData?.startDate}
+          classEndDate={classData?.endDate}
           onClose={() => setShowAddScheduleModal(false)}
           onSuccess={() => {
             setShowAddScheduleModal(false);
@@ -968,6 +970,8 @@ const ClassDetail = () => {
       {showEditScheduleModal && selectedScheduleToEdit && (
         <EditScheduleModal
           classId={id}
+          classStartDate={classData?.startDate}
+          classEndDate={classData?.endDate}
           schedule={selectedScheduleToEdit}
           onClose={() => {
             setShowEditScheduleModal(false);

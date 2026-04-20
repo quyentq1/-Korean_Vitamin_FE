@@ -1,249 +1,168 @@
-import React, { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
+import React, { useState } from 'react';
 import { teacherService } from '../services/teacherService';
-import { X, Calendar, Clock } from 'lucide-react';
+import Swal from 'sweetalert2';
+import { X, Calendar, Clock, AlertTriangle, Loader2 } from 'lucide-react';
 
-const RescheduleSessionModal = ({ session, onClose, onSuccess }) => {
-    const { t } = useTranslation();
+const RescheduleSessionModal = ({ session, onClose, onSuccess, classStartDate, classEndDate }) => {
     const [loading, setLoading] = useState(false);
-    const [errors, setErrors] = useState({});
+    const [newDate, setNewDate] = useState('');
+    const [newStartTime, setNewStartTime] = useState(session?.startTime?.substring(0, 5) || '');
+    const [newEndTime, setNewEndTime] = useState(session?.endTime?.substring(0, 5) || '');
+    const [reason, setReason] = useState('');
 
-    const [formData, setFormData] = useState({
-        newDate: '',
-        newStartTime: session?.startTime || '09:00',
-        newEndTime: session?.endTime || '11:00',
-        reason: ''
-    });
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const minDate = tomorrow.toISOString().split('T')[0];
 
-    useEffect(() => {
-        if (session) {
-            setFormData({
-                newDate: '',
-                newStartTime: session.startTime,
-                newEndTime: session.endTime,
-                reason: ''
-            });
-        }
-    }, [session]);
-
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }));
-        // Clear error for this field
-        if (errors[name]) {
-            setErrors(prev => ({
-                ...prev,
-                [name]: null
-            }));
-        }
-    };
-
-    const validate = () => {
-        const newErrors = {};
-
-        if (!formData.newDate) {
-            newErrors.newDate = t('teacher.rescheduleSession.errors.dateRequired');
-        }
-        if (!formData.newStartTime) {
-            newErrors.newStartTime = t('teacher.rescheduleSession.errors.startTimeRequired');
-        }
-        if (!formData.newEndTime) {
-            newErrors.newEndTime = t('teacher.rescheduleSession.errors.endTimeRequired');
-        }
-        if (formData.newStartTime >= formData.newEndTime) {
-            newErrors.newEndTime = t('teacher.rescheduleSession.errors.endTimeAfterStart');
-        }
-        if (!formData.reason) {
-            newErrors.reason = t('teacher.rescheduleSession.errors.reasonRequired');
-        }
-
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
-    };
+    // Compute max date from class end date
+    const maxDate = classEndDate || null;
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (!newDate) { Swal.fire('Thiếu thông tin', 'Vui lòng chọn ngày mới', 'warning'); return; }
+        if (!newStartTime) { Swal.fire('Thiếu thông tin', 'Vui lòng nhập giờ bắt đầu', 'warning'); return; }
+        if (!newEndTime) { Swal.fire('Thiếu thông tin', 'Vui lòng nhập giờ kết thúc', 'warning'); return; }
+        if (newStartTime >= newEndTime) { Swal.fire('Lỗi', 'Giờ kết thúc phải sau giờ bắt đầu', 'warning'); return; }
+        if (!reason.trim()) { Swal.fire('Thiếu thông tin', 'Vui lòng nhập lý do dời lịch', 'warning'); return; }
 
-        if (!validate()) {
+        // Validate date is within class date range
+        if (classStartDate && newDate < classStartDate) {
+            Swal.fire('Lỗi', `Ngày dời lịch không được trước ngày bắt đầu lớp học (${new Date(classStartDate).toLocaleDateString('vi-VN')})`, 'warning');
+            return;
+        }
+        if (classEndDate && newDate > classEndDate) {
+            Swal.fire('Lỗi', `Ngày dời lịch không được sau ngày kết thúc lớp học (${new Date(classEndDate).toLocaleDateString('vi-VN')})`, 'warning');
             return;
         }
 
+        setLoading(true);
         try {
-            setLoading(true);
-
-            const rescheduleData = {
-                newDate: formData.newDate,
-                newStartTime: formData.newStartTime,
-                newEndTime: formData.newEndTime,
-                reason: formData.reason
-            };
-
-            await teacherService.requestReschedule(session.id, rescheduleData);
-
+            await teacherService.rescheduleSession(session.scheduleId, {
+                newDate,
+                newStartTime,
+                newEndTime,
+                reason: reason.trim()
+            });
+            Swal.fire({
+                icon: 'success',
+                title: 'Dời lịch thành công!',
+                text: 'Đã gửi email thông báo đến học viên và quản lý đào tạo.',
+                confirmButtonColor: '#6366f1',
+                timer: 3000,
+                timerProgressBar: true
+            });
             onSuccess();
-        } catch (error) {
-            console.error('Error requesting reschedule:', error);
-            if (error.response?.data?.message) {
-                setErrors({ submit: error.response.data.message });
-            } else {
-                setErrors({ submit: t('teacher.rescheduleSession.errors.requestFailed') });
-            }
+        } catch (err) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Dời lịch thất bại',
+                text: err?.response?.data?.message || 'Đã có lỗi xảy ra, vui lòng thử lại.',
+                confirmButtonColor: '#6366f1'
+            });
         } finally {
             setLoading(false);
         }
     };
 
+    const formatDate = (dateStr) => {
+        if (!dateStr) return '';
+        try {
+            return new Date(dateStr).toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' });
+        } catch { return dateStr; }
+    };
+
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl max-w-lg w-full shadow-2xl relative">
+                {/* Loading overlay */}
+                {loading && (
+                    <div className="absolute inset-0 bg-white/70 rounded-2xl z-10 flex items-center justify-center">
+                        <div className="text-center">
+                            <Loader2 className="w-10 h-10 text-indigo-600 animate-spin mx-auto mb-3" />
+                            <p className="text-sm font-medium text-gray-600">Đang xử lý dời lịch...</p>
+                        </div>
+                    </div>
+                )}
+
                 {/* Header */}
-                <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-                    <h2 className="text-xl font-semibold text-gray-900">
-                        {t('teacher.rescheduleSession.title')}
-                    </h2>
-                    <button
-                        onClick={onClose}
-                        className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                    >
+                <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-t-2xl px-6 py-5 text-white flex items-center justify-between">
+                    <div>
+                        <h2 className="text-lg font-bold">Dời lịch học</h2>
+                        <p className="text-indigo-100 text-sm mt-0.5">Buổi {session?.lessonNumber} - {session?.className}</p>
+                    </div>
+                    <button onClick={onClose} disabled={loading}
+                        className="p-2 hover:bg-white/20 rounded-lg transition-colors disabled:opacity-30">
                         <X className="w-5 h-5" />
                     </button>
                 </div>
 
-                {/* Current Session Info */}
-                <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
-                    <h3 className="text-sm font-medium text-gray-700 mb-2">
-                        {t('teacher.rescheduleSession.currentSession')}
-                    </h3>
+                {/* Current Info */}
+                <div className="px-6 py-4 bg-gray-50 border-b border-gray-100">
+                    <p className="text-xs font-semibold text-gray-400 uppercase mb-2">Lịch hiện tại</p>
                     <div className="flex flex-wrap gap-4 text-sm">
-                        <div className="flex items-center gap-1">
-                            <Calendar className="w-4 h-4 text-gray-500" />
-                            <span className="font-medium">{session?.sessionDate}</span>
+                        <div className="flex items-center gap-1.5 text-gray-700">
+                            <Calendar className="w-4 h-4 text-indigo-400" />
+                            <span className="font-medium">{formatDate(session?.lessonDate)}</span>
                         </div>
-                        <div className="flex items-center gap-1">
-                            <Clock className="w-4 h-4 text-gray-500" />
-                            <span className="font-medium">{session?.startTime} - {session?.endTime}</span>
+                        <div className="flex items-center gap-1.5 text-gray-700">
+                            <Clock className="w-4 h-4 text-indigo-400" />
+                            <span className="font-medium">{session?.startTime?.substring(0, 5)} - {session?.endTime?.substring(0, 5)}</span>
                         </div>
-                        {session?.location && (
-                            <div className="text-gray-600">
-                                <span className="font-medium">{t('teacher.rescheduleSession.location')}:</span> {session.location}
-                            </div>
-                        )}
                     </div>
                 </div>
 
-                {/* Form */}
-                <form onSubmit={handleSubmit} className="p-6">
-                    <div className="space-y-4">
-                        {/* Warning Message */}
-                        <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                            <p className="text-sm text-yellow-800">
-                                {t('teacher.rescheduleSession.warning')}
-                            </p>
-                        </div>
+                <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                    <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-2">
+                        <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
+                        <p className="text-xs text-amber-800">Chỉ có thể dời lịch trước ít nhất 1 ngày.</p>
+                    </div>
 
-                        {/* New Date */}
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                            Ngày mới <span className="text-red-500">*</span>
+                        </label>
+                        <input type="date" value={newDate} onChange={e => setNewDate(e.target.value)}
+                            min={minDate} max={maxDate} disabled={loading}
+                            className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm disabled:bg-gray-100 disabled:cursor-not-allowed" />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                {t('teacher.rescheduleSession.newDate')} <span className="text-red-500">*</span>
+                            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                                Giờ bắt đầu <span className="text-red-500">*</span>
                             </label>
-                            <input
-                                type="date"
-                                name="newDate"
-                                value={formData.newDate}
-                                onChange={handleChange}
-                                min={new Date().toISOString().split('T')[0]}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            />
-                            {errors.newDate && (
-                                <p className="mt-1 text-sm text-red-600">{errors.newDate}</p>
-                            )}
+                            <input type="time" value={newStartTime} onChange={e => setNewStartTime(e.target.value)}
+                                disabled={loading}
+                                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm disabled:bg-gray-100 disabled:cursor-not-allowed" />
                         </div>
-
-                        {/* New Time */}
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    {t('teacher.rescheduleSession.newStartTime')} <span className="text-red-500">*</span>
-                                </label>
-                                <input
-                                    type="time"
-                                    name="newStartTime"
-                                    value={formData.newStartTime}
-                                    onChange={handleChange}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                />
-                                {errors.newStartTime && (
-                                    <p className="mt-1 text-sm text-red-600">{errors.newStartTime}</p>
-                                )}
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    {t('teacher.rescheduleSession.newEndTime')} <span className="text-red-500">*</span>
-                                </label>
-                                <input
-                                    type="time"
-                                    name="newEndTime"
-                                    value={formData.newEndTime}
-                                    onChange={handleChange}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                />
-                                {errors.newEndTime && (
-                                    <p className="mt-1 text-sm text-red-600">{errors.newEndTime}</p>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* Reason */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                {t('teacher.rescheduleSession.reason')} <span className="text-red-500">*</span>
+                            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                                Giờ kết thúc <span className="text-red-500">*</span>
                             </label>
-                            <textarea
-                                name="reason"
-                                value={formData.reason}
-                                onChange={handleChange}
-                                rows={4}
-                                placeholder={t('teacher.rescheduleSession.reasonPlaceholder')}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            />
-                            {errors.reason && (
-                                <p className="mt-1 text-sm text-red-600">{errors.reason}</p>
-                            )}
-                        </div>
-
-                        {/* Additional Notes */}
-                        <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                            <p className="text-sm text-blue-800">
-                                {t('teacher.rescheduleSession.info')}
-                            </p>
+                            <input type="time" value={newEndTime} onChange={e => setNewEndTime(e.target.value)}
+                                disabled={loading}
+                                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm disabled:bg-gray-100 disabled:cursor-not-allowed" />
                         </div>
                     </div>
 
-                    {/* Error Message */}
-                    {errors.submit && (
-                        <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                            <p className="text-sm text-red-600">{errors.submit}</p>
-                        </div>
-                    )}
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                            Lý do dời lịch <span className="text-red-500">*</span>
+                        </label>
+                        <textarea value={reason} onChange={e => setReason(e.target.value)}
+                            rows={3} placeholder="Nhập lý do dời lịch..." disabled={loading}
+                            className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm resize-none disabled:bg-gray-100 disabled:cursor-not-allowed" />
+                    </div>
 
-                    {/* Actions */}
-                    <div className="mt-6 flex justify-end gap-3">
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-                        >
-                            {t('common.cancel')}
+                    <div className="flex justify-end gap-3 pt-2">
+                        <button type="button" onClick={onClose} disabled={loading}
+                            className="px-5 py-2.5 border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 text-sm font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+                            Huỷ
                         </button>
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            {loading ? t('common.submitting') : t('teacher.rescheduleSession.submit')}
+                        <button type="submit" disabled={loading}
+                            className="px-5 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-xl hover:shadow-lg disabled:opacity-40 disabled:cursor-not-allowed text-sm font-medium transition-all inline-flex items-center gap-2">
+                            {loading && <Loader2 className="w-4 h-4 animate-spin" />}
+                            {loading ? 'Đang xử lý...' : 'Xác nhận dời lịch'}
                         </button>
                     </div>
                 </form>

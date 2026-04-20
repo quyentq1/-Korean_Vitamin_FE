@@ -4,7 +4,7 @@ import { X, Calendar, Clock } from 'lucide-react';
 import educationManagerService from '../../services/educationManagerService';
 import Swal from 'sweetalert2';
 
-const AddScheduleModal = ({ classId, onClose, onSuccess }) => {
+const AddScheduleModal = ({ classId, classStartDate, classEndDate, onClose, onSuccess }) => {
     const { t } = useTranslation();
     const [loading, setLoading] = useState(false);
     const [lessonNumber, setLessonNumber] = useState('');
@@ -22,6 +22,26 @@ const AddScheduleModal = ({ classId, onClose, onSuccess }) => {
                 icon: 'warning',
                 title: 'Thiếu thông tin',
                 text: 'Vui lòng nhập số buổi, ngày học và giờ học',
+                confirmButtonColor: '#667eea'
+            });
+            return;
+        }
+
+        // Validate date is within class date range
+        if (classStartDate && lessonDate < classStartDate) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Lỗi',
+                text: `Ngày học không được trước ngày bắt đầu lớp học (${new Date(classStartDate).toLocaleDateString('vi-VN')})`,
+                confirmButtonColor: '#667eea'
+            });
+            return;
+        }
+        if (classEndDate && lessonDate > classEndDate) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Lỗi',
+                text: `Ngày học không được sau ngày kết thúc lớp học (${new Date(classEndDate).toLocaleDateString('vi-VN')})`,
                 confirmButtonColor: '#667eea'
             });
             return;
@@ -106,6 +126,8 @@ const AddScheduleModal = ({ classId, onClose, onSuccess }) => {
                             type="date"
                             value={lessonDate}
                             onChange={(e) => setLessonDate(e.target.value)}
+                            min={classStartDate || undefined}
+                            max={classEndDate || undefined}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         />
                     </div>
