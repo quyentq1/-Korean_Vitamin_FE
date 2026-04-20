@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import studentService from '../../services/studentService';
 import examService from '../../services/examService';
+import StudentAttendanceTab from '../../components/Student/StudentAttendanceTab';
 import Swal from 'sweetalert2';
 
 const StudentClassDetail = () => {
@@ -108,14 +109,19 @@ const StudentClassDetail = () => {
     return <span className={`px-3 py-1 rounded-full text-xs font-semibold ${badge.className}`}>{badge.text}</span>;
   };
 
-  const getScheduleStatusBadge = (status) => {
-    const badges = {
-      'SCHEDULED': { text: 'Sắp tới', className: 'bg-blue-100 text-blue-700' },
-      'COMPLETED': { text: 'Đã xong', className: 'bg-green-100 text-green-700' },
-      'CANCELLED': { text: 'Đã hủy', className: 'bg-red-100 text-red-700' }
-    };
-    const badge = badges[status] || { text: status, className: 'bg-gray-100 text-gray-700' };
-    return <span className={`px-2 py-1 rounded text-xs font-semibold ${badge.className}`}>{badge.text}</span>;
+  const getScheduleStatusBadge = (schedule) => {
+    if (schedule.status === 'CANCELLED') {
+      return <span className="px-2 py-1 rounded text-xs font-semibold bg-red-100 text-red-700">Đã hủy</span>;
+    }
+    if (schedule.status === 'COMPLETED') {
+      return <span className="px-2 py-1 rounded text-xs font-semibold bg-green-100 text-green-700">Đã xong</span>;
+    }
+    const now = new Date();
+    const scheduleEnd = new Date(`${schedule.lessonDate}T${schedule.endTime || '23:59'}`);
+    if (scheduleEnd < now) {
+      return <span className="px-2 py-1 rounded text-xs font-semibold bg-gray-100 text-gray-600">Đã qua</span>;
+    }
+    return <span className="px-2 py-1 rounded text-xs font-semibold bg-blue-100 text-blue-700">Sắp tới</span>;
   };
 
   if (loading) {
@@ -180,7 +186,7 @@ const StudentClassDetail = () => {
           {/* Tabs */}
           <div className="border-b border-gray-200 px-6 bg-gray-50">
             <div className="flex gap-6 overflow-x-auto">
-              {['overview', 'schedule', 'exams'].map(tab => (
+              {['overview', 'schedule', 'exams', 'attendance'].map(tab => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
@@ -193,6 +199,7 @@ const StudentClassDetail = () => {
                   {tab === 'overview' && 'Tổng quan'}
                   {tab === 'schedule' && 'Lịch học'}
                   {tab === 'exams' && 'Bài luyện tập'}
+                  {tab === 'attendance' && 'Điểm danh'}
                 </button>
               ))}
             </div>
@@ -267,7 +274,7 @@ const StudentClassDetail = () => {
                   <div className="bg-amber-50 rounded-lg p-4">
                     <Clock className="w-5 h-5 text-amber-600 mb-2" />
                     <p className="text-xs text-gray-600">Sắp tới</p>
-                    <p className="font-bold text-gray-900">{schedules.filter(s => s.status === 'SCHEDULED').length}</p>
+                    <p className="font-bold text-gray-900">{schedules.filter(s => s.status === 'SCHEDULED' && new Date(`${s.lessonDate}T${s.endTime || '23:59'}`) >= new Date()).length}</p>
                   </div>
                 </div>
               </div>
@@ -294,7 +301,7 @@ const StudentClassDetail = () => {
                           <div className="flex-1">
                             <div className="flex items-center gap-3 mb-2">
                               <span className="font-bold text-gray-900">Buổi {schedule.lessonNumber}</span>
-                              {getScheduleStatusBadge(schedule.status)}
+                              {getScheduleStatusBadge(schedule)}
                             </div>
                             {schedule.topic && (
                               <p className="text-gray-700 mb-2">{schedule.topic}</p>
@@ -390,6 +397,11 @@ const StudentClassDetail = () => {
                   </div>
                 )}
               </div>
+            )}
+
+            {/* Attendance Tab */}
+            {activeTab === 'attendance' && (
+              <StudentAttendanceTab classId={classId} />
             )}
           </div>
         </div>
