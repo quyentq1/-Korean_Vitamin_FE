@@ -298,6 +298,20 @@ export const studentService = {
      */
     changePassword: async (data) => {
         return await axiosClient.post('/student/change-password', data);
+    },
+
+    // ==================== ATTENDANCE ====================
+
+    getClassAttendance: async (classId) => {
+        return await axiosClient.get(`/student/classes/${classId}/attendance`);
+    },
+
+    getSessionAttendanceList: async (classId, scheduleId) => {
+        return await axiosClient.get(`/student/classes/${classId}/attendance/sessions/${scheduleId}`);
+    },
+
+    getAttendanceOverview: async () => {
+        return await axiosClient.get('/student/attendance-overview');
     }
 };
 

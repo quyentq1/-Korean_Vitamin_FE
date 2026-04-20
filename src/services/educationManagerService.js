@@ -258,6 +258,46 @@ const educationManagerService = {
     cleanupNotifications: async () => {
         return await axiosClient.delete('/education-manager/notifications/cleanup');
     },
+
+    // ==================== SCHEDULE MANAGEMENT ====================
+
+    createClassSchedule: async (classId, scheduleData) => {
+        return await axiosClient.post(`/education-manager/classes/${classId}/schedules`, scheduleData);
+    },
+
+    updateClassSchedule: async (classId, scheduleId, scheduleData) => {
+        return await axiosClient.put(`/education-manager/classes/${classId}/schedules/${scheduleId}`, scheduleData);
+    },
+
+    deleteClassSchedule: async (classId, scheduleId) => {
+        return await axiosClient.delete(`/education-manager/classes/${classId}/schedules/${scheduleId}`);
+    },
+
+    // ==================== ATTENDANCE MANAGEMENT ====================
+
+    getClassAttendanceHistory: async (classId) => {
+        return await axiosClient.get(`/education-manager/classes/${classId}/attendance-history`);
+    },
+
+    getClassAttendanceStats: async (classId) => {
+        return await axiosClient.get(`/education-manager/classes/${classId}/attendance-stats`);
+    },
+
+    getScheduleAttendance: async (scheduleId) => {
+        return await axiosClient.get(`/education-manager/attendance/schedule/${scheduleId}`);
+    },
+
+    getTeacherTeachingDays: async (params = {}) => {
+        return await axiosClient.get('/education-manager/teachers/teaching-days', { params });
+    },
+
+    getStudentAttendanceDays: async () => {
+        return await axiosClient.get('/education-manager/students/attendance-days');
+    },
+
+    unlockStudent: async (studentId) => {
+        return await axiosClient.post(`/education-manager/students/${studentId}/unlock`);
+    },
 };
 
 export default educationManagerService;

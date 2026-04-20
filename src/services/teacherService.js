@@ -60,7 +60,11 @@ export const teacherService = {
     },
 
     requestReschedule: async (sessionId, rescheduleData) => {
-        return await axiosClient.post(`/teacher/sessions/${sessionId}/reschedule`, rescheduleData);
+        return await axiosClient.put(`/teacher/schedules/${sessionId}/reschedule`, rescheduleData);
+    },
+
+    rescheduleSession: async (scheduleId, data) => {
+        return await axiosClient.put(`/teacher/schedules/${scheduleId}/reschedule`, data);
     },
 
     // Reports
@@ -357,6 +361,28 @@ export const teacherService = {
             params.excludeId = excludeId;
         }
         return await axiosClient.get('/teacher/exams/check-code', { params });
+    },
+
+    // ==================== ATTENDANCE ====================
+
+    getTodaySchedules: async () => {
+        return await axiosClient.get('/teacher/attendance/today-schedules');
+    },
+
+    getScheduleAttendance: async (scheduleId) => {
+        return await axiosClient.get(`/teacher/attendance/schedule/${scheduleId}`);
+    },
+
+    markAttendance: async (data) => {
+        return await axiosClient.post('/teacher/attendance/save', data);
+    },
+
+    saveAttendance: async (data) => {
+        return await axiosClient.post('/teacher/attendance/save', data);
+    },
+
+    getClassAttendanceResults: async (classId) => {
+        return await axiosClient.get(`/teacher/attendance/class/${classId}/results`);
     }
 };
 
