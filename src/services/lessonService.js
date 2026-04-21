@@ -6,9 +6,14 @@ export const lessonService = {
         return await axiosClient.get(`/lessons/course/${courseId}/preview`);
     },
 
-    // Authenticated: Get all lessons for a course
+    // Authenticated: Get published lessons for a course
     getCourseLessons: async (courseId) => {
         return await axiosClient.get(`/lessons/course/${courseId}`);
+    },
+
+    // Admin: Get all lessons for a course (including unpublished)
+    getAllCourseLessons: async (courseId) => {
+        return await axiosClient.get(`/lessons/course/${courseId}/all`);
     },
 
     // Authenticated: Get a specific lesson

@@ -18,7 +18,7 @@ const CurriculumSection = ({ courseId }) => {
     const fetchLessons = async () => {
         try {
             setLoading(true);
-            const data = await lessonService.getCourseLessons(courseId);
+            const data = await lessonService.getAllCourseLessons(courseId);
             const list = Array.isArray(data) ? data : (data.data || []);
             list.sort((a, b) => (a.lessonOrder || 0) - (b.lessonOrder || 0));
             setLessons(list);
