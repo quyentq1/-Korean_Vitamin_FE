@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Save, Upload, FileText, Award, User, Tags, X } from 'lucide-react';
+import { ArrowLeft, Save, Upload, FileText, Award, User, Tags, X, BookOpen } from 'lucide-react';
 import educationManagerService from '../../services/educationManagerService';
 import courseService from '../../services/courseService';
+import CurriculumSection from '../../components/EducationManager/CurriculumSection';
 import Swal from 'sweetalert2';
 
 const EduCourseForm = () => {
@@ -156,7 +157,6 @@ const EduCourseForm = () => {
             'Học phí': form.fee,
             'Ảnh khóa học': form.thumbnailUrl,
             'Mục tiêu': form.objectives,
-            'Giáo trình chi tiết': form.syllabus,
             'Cấu trúc bài kiểm tra': form.testSummary,
             'Thông tin giáo viên': form.instructorInfo
         };
@@ -199,11 +199,16 @@ const EduCourseForm = () => {
             if (isEdit) {
                 await educationManagerService.updateCourse(id, payload);
                 Swal.fire('Thành công!', 'Đã cập nhật khóa học', 'success');
+                navigate('/edu-manager/courses');
             } else {
-                await educationManagerService.createCourse(payload);
-                Swal.fire('Thành công!', 'Đã tạo khóa học mới', 'success');
+                const data = await educationManagerService.createCourse(payload);
+                const newId = data?.id || data?.data?.id;
+                if (newId) {
+                    navigate(`/edu-manager/courses/edit/${newId}`);
+                } else {
+                    navigate('/edu-manager/courses');
+                }
             }
-            navigate('/edu-manager/courses');
         } catch (e) {
             Swal.fire('Lỗi', e?.message || 'Không thể lưu khóa học', 'error');
         } finally {
@@ -228,7 +233,7 @@ const EduCourseForm = () => {
     ];
 
     return (
-        <div className="max-w-3xl mx-auto space-y-5">
+        <div className="max-w-5xl mx-auto space-y-5">
             <div className="flex items-center gap-3">
                 <button onClick={() => navigate(-1)} className="p-2 rounded-lg hover:bg-gray-100 text-gray-500">
                     <ArrowLeft className="w-5 h-5" />
@@ -353,15 +358,19 @@ const EduCourseForm = () => {
                             className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-violet-400 outline-none resize-none" placeholder="VD: Cần biết tiếng Hàn cơ bản, đã hoàn thành khóa học TOPIK I..." />
                     </div>
 
-                    {/* NEW: Detailed Syllabus */}
-                    <div className="sm:col-span-2">
-                        <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
-                            <FileText className="w-4 h-4" />
-                            Giáo trình chi tiết
-                            <span className="text-red-500">*</span>
-                        </label>
-                        <textarea name="syllabus" value={form.syllabus || ''} onChange={handleChange} rows={4}
-                            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-violet-400 outline-none resize-none" placeholder="Mô tả chi tiết nội dung từng bài học, từng tuần... (có thể dùng Markdown)" />
+                    {/* NEW: Detailed Syllabus (legacy field, keep hidden) */}
+                    <input type="hidden" name="syllabus" value={form.syllabus || ''} />
+
+                    {/* Curriculum Section */}
+                    <div className="sm:col-span-2 border-t border-gray-100 pt-5 mt-2">
+                        {isEdit && id ? (
+                            <CurriculumSection courseId={parseInt(id)} />
+                        ) : (
+                            <div className="text-center py-8 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
+                                <BookOpen className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+                                <p className="text-sm text-gray-500">Lưu khóa học trước, sau đó thêm giáo trình</p>
+                            </div>
+                        )}
                     </div>
 
                     {/* NEW: Test Structure Summary */}
