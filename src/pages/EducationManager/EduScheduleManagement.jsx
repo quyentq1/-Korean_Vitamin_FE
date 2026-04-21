@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import educationManagerService from '../../services/educationManagerService';
+import Swal from 'sweetalert2';
 
 const EduScheduleManagement = () => {
     const [classes, setClasses] = useState([]);
@@ -9,7 +10,7 @@ const EduScheduleManagement = () => {
     const [showAddModal, setShowAddModal] = useState(false);
     const [editingSchedule, setEditingSchedule] = useState(null);
     const [form, setForm] = useState({ lessonNumber: '', lessonDate: '', startTime: '', endTime: '', topic: '', room: '' });
-    const [message, setMessage] = useState(null);
+    const toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 3000, timerProgressBar: true });
 
     useEffect(() => {
         fetchClasses();
@@ -30,10 +31,19 @@ const EduScheduleManagement = () => {
         try {
             const cls = classes.find(c => c.id === classId);
             if (cls && cls.schedules) {
-                setSchedules(cls.schedules);
+                const normalizedSchedules = cls.schedules.map(s => ({
+                    ...s,
+                    id: s.id || s.scheduleId,
+                }));
+                setSchedules(normalizedSchedules);
             } else {
                 const detail = await educationManagerService.getClassDetails(classId);
-                setSchedules(detail?.schedules || []);
+                const rawSchedules = detail?.schedules || detail?.data?.schedules || [];
+                const normalizedSchedules = rawSchedules.map(s => ({
+                    ...s,
+                    id: s.id || s.scheduleId,
+                }));
+                setSchedules(normalizedSchedules);
             }
         } catch (error) {
             console.error('Error fetching schedules:', error);
@@ -45,7 +55,12 @@ const EduScheduleManagement = () => {
 
     const handleAddSchedule = async () => {
         if (!selectedClass || !form.lessonNumber || !form.lessonDate || !form.startTime || !form.endTime) {
-            setMessage({ type: 'error', text: 'Vui lòng điền đầy đủ thông tin' });
+            toast.fire({ icon: 'error', title: 'Vui lòng điền đầy đủ thông tin' });
+            return;
+        }
+
+        if (form.startTime >= form.endTime) {
+            toast.fire({ icon: 'error', title: 'Giờ bắt đầu phải trước giờ kết thúc' });
             return;
         }
 
@@ -53,11 +68,11 @@ const EduScheduleManagement = () => {
         const cls = classes.find(c => c.id === selectedClass);
         if (cls) {
             if (cls.startDate && form.lessonDate < cls.startDate) {
-                setMessage({ type: 'error', text: `Ngày học không được trước ngày bắt đầu lớp học (${new Date(cls.startDate).toLocaleDateString('vi-VN')})` });
+                toast.fire({ icon: 'error', title: `Ngày học không được trước ngày bắt đầu lớp học (${new Date(cls.startDate).toLocaleDateString('vi-VN')})` });
                 return;
             }
             if (cls.endDate && form.lessonDate > cls.endDate) {
-                setMessage({ type: 'error', text: `Ngày học không được sau ngày kết thúc lớp học (${new Date(cls.endDate).toLocaleDateString('vi-VN')})` });
+                toast.fire({ icon: 'error', title: `Ngày học không được sau ngày kết thúc lớp học (${new Date(cls.endDate).toLocaleDateString('vi-VN')})` });
                 return;
             }
         }
@@ -73,25 +88,30 @@ const EduScheduleManagement = () => {
             });
             setShowAddModal(false);
             setForm({ lessonNumber: '', lessonDate: '', startTime: '', endTime: '', topic: '', room: '' });
-            setMessage({ type: 'success', text: 'Thêm lịch học thành công!' });
+            toast.fire({ icon: 'success', title: 'Thêm lịch học thành công!' });
             selectClass(selectedClass);
         } catch (error) {
-            setMessage({ type: 'error', text: 'Lỗi khi thêm lịch học' });
+            toast.fire({ icon: 'error', title: 'Lỗi khi thêm lịch học' });
         }
     };
 
     const handleEditSchedule = async () => {
         if (!selectedClass || !editingSchedule) return;
 
+        if (form.startTime >= form.endTime) {
+            toast.fire({ icon: 'error', title: 'Giờ bắt đầu phải trước giờ kết thúc' });
+            return;
+        }
+
         // Validate date is within class date range
         const cls = classes.find(c => c.id === selectedClass);
         if (cls) {
             if (cls.startDate && form.lessonDate < cls.startDate) {
-                setMessage({ type: 'error', text: `Ngày học không được trước ngày bắt đầu lớp học (${new Date(cls.startDate).toLocaleDateString('vi-VN')})` });
+                toast.fire({ icon: 'error', title: `Ngày học không được trước ngày bắt đầu lớp học (${new Date(cls.startDate).toLocaleDateString('vi-VN')})` });
                 return;
             }
             if (cls.endDate && form.lessonDate > cls.endDate) {
-                setMessage({ type: 'error', text: `Ngày học không được sau ngày kết thúc lớp học (${new Date(cls.endDate).toLocaleDateString('vi-VN')})` });
+                toast.fire({ icon: 'error', title: `Ngày học không được sau ngày kết thúc lớp học (${new Date(cls.endDate).toLocaleDateString('vi-VN')})` });
                 return;
             }
         }
@@ -107,25 +127,43 @@ const EduScheduleManagement = () => {
             });
             setEditingSchedule(null);
             setForm({ lessonNumber: '', lessonDate: '', startTime: '', endTime: '', topic: '', room: '' });
-            setMessage({ type: 'success', text: 'Cập nhật lịch học thành công!' });
+            toast.fire({ icon: 'success', title: 'Cập nhật lịch học thành công!' });
             selectClass(selectedClass);
         } catch (error) {
-            setMessage({ type: 'error', text: 'Lỗi khi cập nhật lịch học' });
+            toast.fire({ icon: 'error', title: 'Lỗi khi cập nhật lịch học' });
         }
     };
 
     const handleDeleteSchedule = async (scheduleId) => {
-        if (!window.confirm('Bạn có chắc muốn xóa lịch học này?')) return;
+        const schedule = schedules.find(s => s.id === scheduleId);
+        if (schedule?.status === 'COMPLETED') {
+            toast.fire({ icon: 'error', title: 'Không thể xóa lịch học đã điểm danh' });
+            return;
+        }
+        const result = await Swal.fire({
+            icon: 'warning',
+            title: 'Xóa lịch học?',
+            text: 'Bạn có chắc muốn xóa lịch học này?',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            confirmButtonText: 'Xóa',
+            cancelButtonText: 'Hủy',
+        });
+        if (!result.isConfirmed) return;
         try {
             await educationManagerService.deleteClassSchedule(selectedClass, scheduleId);
-            setMessage({ type: 'success', text: 'Xóa lịch học thành công!' });
+            toast.fire({ icon: 'success', title: 'Xóa lịch học thành công!' });
             selectClass(selectedClass);
         } catch (error) {
-            setMessage({ type: 'error', text: 'Lỗi khi xóa lịch học' });
+            toast.fire({ icon: 'error', title: 'Lỗi khi xóa lịch học' });
         }
     };
 
     const openEditModal = (schedule) => {
+        if (schedule.status === 'COMPLETED') {
+            toast.fire({ icon: 'error', title: 'Không thể sửa lịch học đã điểm danh' });
+            return;
+        }
         setEditingSchedule(schedule);
         setForm({
             lessonNumber: schedule.lessonNumber?.toString() || '',
@@ -156,12 +194,6 @@ const EduScheduleManagement = () => {
                     </button>
                 )}
             </div>
-
-            {message && (
-                <div className={`p-3 rounded-lg ${message.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
-                    {message.text}
-                </div>
-            )}
 
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
                 {/* Class list */}
@@ -229,6 +261,9 @@ const EduScheduleManagement = () => {
                                                 </span>
                                             </td>
                                             <td className="px-4 py-3 text-center">
+                                                {s.status === 'COMPLETED' ? (
+                                                    <span className="text-xs text-gray-400">Đã điểm danh</span>
+                                                ) : (
                                                 <div className="flex justify-center gap-2">
                                                     <button
                                                         onClick={() => openEditModal(s)}
@@ -243,6 +278,7 @@ const EduScheduleManagement = () => {
                                                         Xóa
                                                     </button>
                                                 </div>
+                                                )}
                                             </td>
                                         </tr>
                                     ))}
