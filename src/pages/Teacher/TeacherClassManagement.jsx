@@ -501,7 +501,9 @@ const TeacherClassManagement = () => {
                                             const marked = session.totalMarked > 0;
                                             const canMark = new Date() >= new Date(`${session.lessonDate}T${session.startTime || '00:00'}`);
                                             const isFuture = new Date(`${session.lessonDate}T23:59`) > new Date();
-                                            const canReschedule = !marked && isFuture && session.status !== 'CANCELLED';
+                                            const d = new Date();
+                                            const today = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+                                            const canReschedule = !marked && session.lessonDate > today && session.status !== 'CANCELLED';
                                             const borderColor = marked ? 'border-l-green-500' : canMark ? 'border-l-indigo-500' : 'border-l-gray-300';
                                             return (
                                                 <div key={session.scheduleId}
