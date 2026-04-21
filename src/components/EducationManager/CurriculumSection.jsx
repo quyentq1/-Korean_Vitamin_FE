@@ -5,7 +5,7 @@ import LessonCard from './LessonCard';
 import LessonEditorModal from './LessonEditorModal';
 import Swal from 'sweetalert2';
 
-const CurriculumSection = ({ courseId }) => {
+const CurriculumSection = ({ courseId, onLessonsChange }) => {
     const [lessons, setLessons] = useState([]);
     const [loading, setLoading] = useState(true);
     const [editorOpen, setEditorOpen] = useState(false);
@@ -22,9 +22,11 @@ const CurriculumSection = ({ courseId }) => {
             const list = Array.isArray(data) ? data : (data.data || []);
             list.sort((a, b) => (a.lessonOrder || 0) - (b.lessonOrder || 0));
             setLessons(list);
+            onLessonsChange?.(list.length);
         } catch (err) {
             console.error('Failed to load lessons:', err);
             setLessons([]);
+            onLessonsChange?.(0);
         } finally {
             setLoading(false);
         }

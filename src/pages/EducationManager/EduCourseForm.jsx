@@ -35,6 +35,7 @@ const EduCourseForm = () => {
         courseTags: '',
         teacherId: null // New field for assigned teacher
     });
+    const [lessonCount, setLessonCount] = useState(0);
 
     useEffect(() => {
         // Load teachers
@@ -181,6 +182,12 @@ const EduCourseForm = () => {
         // Validation - Fee must be positive number
         if (Number(form.fee) <= 0) {
             Swal.fire('Lỗi', 'Học phí phải lớn hơn 0', 'warning');
+            return;
+        }
+
+        // Validation - Must have at least 1 lesson when editing
+        if (isEdit && lessonCount === 0) {
+            Swal.fire('Thiếu giáo trình', 'Vui lòng thêm ít nhất 1 bài học vào giáo trình trước khi lưu.', 'warning');
             return;
         }
 
@@ -364,7 +371,7 @@ const EduCourseForm = () => {
                     {/* Curriculum Section */}
                     <div className="sm:col-span-2 border-t border-gray-100 pt-5 mt-2">
                         {isEdit && id ? (
-                            <CurriculumSection courseId={parseInt(id)} />
+                            <CurriculumSection courseId={parseInt(id)} onLessonsChange={setLessonCount} />
                         ) : (
                             <div className="text-center py-8 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
                                 <BookOpen className="w-8 h-8 text-gray-300 mx-auto mb-2" />
