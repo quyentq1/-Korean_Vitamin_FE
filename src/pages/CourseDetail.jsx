@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate } from 'react-router-dom';
-import { BookOpen, FileText, Clock, ArrowRight } from 'lucide-react';
+import { BookOpen, FileText, Clock, ArrowRight, Video, Eye } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import ContactModal from '../components/ContactModal';
@@ -10,6 +10,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useGuestContext } from '../hooks/useGuestContext';
 import courseService from '../services/courseService';
 import examService from '../services/examService';
+import lessonService from '../services/lessonService';
 
 const CourseDetail = () => {
     const { id } = useParams();
@@ -23,6 +24,9 @@ const CourseDetail = () => {
     const [error, setError] = useState(null);
     const [practiceExams, setPracticeExams] = useState([]);
     const [examsLoading, setExamsLoading] = useState(false);
+    const [lessons, setLessons] = useState([]);
+    const [lessonsLoading, setLessonsLoading] = useState(false);
+    const [expandedLesson, setExpandedLesson] = useState(null);
 
     // Legacy static data for fallback
     const staticCourseData = {
@@ -120,6 +124,17 @@ const CourseDetail = () => {
                             requirements: data.requirements,
                             schedule: data.schedule
                         });
+
+                        // Fetch lessons for DB courses
+                        setLessonsLoading(true);
+                        lessonService.getCourseLessons(data.id)
+                            .then(res => {
+                                const list = Array.isArray(res) ? res : (res.data || []);
+                                list.sort((a, b) => (a.lessonOrder || 0) - (b.lessonOrder || 0));
+                                setLessons(list);
+                            })
+                            .catch(() => setLessons([]))
+                            .finally(() => setLessonsLoading(false));
 
                         // Record course interest for guest users
                         if (!isAuthenticated) {
@@ -417,7 +432,70 @@ const CourseDetail = () => {
                     )}
 
                     {/* Curriculum */}
-                    {course.curriculum && course.curriculum.length > 0 && (
+                    {!isNaN(id) && lessons.length > 0 ? (
+                        /* DB course with lessons from API */
+                        <div className="bg-white rounded-2xl shadow-sm p-6 sm:p-8 mb-6">
+                            <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('courseDetail.curriculum', 'Nội dung khóa học')}</h2>
+                            <p className="text-sm text-gray-400 mb-4">{lessons.length} bài học &middot; {lessons.reduce((s, l) => s + (l.durationMinutes || 0), 0)} phút</p>
+                            <div className="space-y-3">
+                                {lessons.map((lesson) => (
+                                    <div key={lesson.id} className="border border-gray-200 rounded-xl overflow-hidden">
+                                        <button
+                                            onClick={() => setExpandedLesson(expandedLesson === lesson.id ? null : lesson.id)}
+                                            className="w-full flex items-center gap-3 p-4 hover:bg-gray-50 transition-colors text-left"
+                                        >
+                                            <span className="w-8 h-8 bg-blue-100 text-blue-700 rounded-lg flex items-center justify-center text-sm font-bold shrink-0">
+                                                {lesson.lessonOrder}
+                                            </span>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="font-medium text-gray-900 truncate">{lesson.title}</span>
+                                                    {lesson.isPreview && (
+                                                        <span className="shrink-0 text-[10px] px-1.5 py-0.5 rounded-full bg-green-100 text-green-700 font-medium">
+                                                            <Eye className="w-3 h-3 inline mr-0.5" />Miễn phí
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <div className="flex items-center gap-3 mt-0.5 text-xs text-gray-400">
+                                                    {lesson.durationMinutes && <span>{lesson.durationMinutes} phút</span>}
+                                                    {lesson.videoUrl && <span className="flex items-center gap-0.5"><Video className="w-3 h-3" /> Video</span>}
+                                                </div>
+                                            </div>
+                                            <svg className={`w-5 h-5 text-gray-400 transition-transform shrink-0 ${expandedLesson === lesson.id ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                            </svg>
+                                        </button>
+                                        {expandedLesson === lesson.id && (
+                                            <div className="px-4 pb-4 border-t border-gray-100">
+                                                {lesson.videoUrl && (
+                                                    <div className="mb-3">
+                                                        {lesson.videoUrl.includes('youtube.com') || lesson.videoUrl.includes('youtu.be') ? (
+                                                            (() => {
+                                                                const match = lesson.videoUrl.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^#&?]{11})/);
+                                                                return match ? (
+                                                                    <iframe width="100%" style={{ aspectRatio: '16/9', height: 'auto' }} src={`https://www.youtube.com/embed/${match[1]}`} frameBorder="0" allowFullScreen className="rounded-lg" />
+                                                                ) : (
+                                                                    <a href={lesson.videoUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline text-sm">Mở video</a>
+                                                                );
+                                                            })()
+                                                        ) : (
+                                                            <video src={lesson.videoUrl} controls className="w-full rounded-lg" />
+                                                        )}
+                                                    </div>
+                                                )}
+                                                {lesson.content ? (
+                                                    <div className="prose prose-sm max-w-none text-gray-700" dangerouslySetInnerHTML={{ __html: lesson.content }} />
+                                                ) : (
+                                                    <p className="text-sm text-gray-400 italic">Chưa có nội dung chi tiết</p>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    ) : course.curriculum && course.curriculum.length > 0 ? (
+                        /* Static course with hardcoded curriculum */
                         <div className="bg-white rounded-2xl shadow-sm p-6 sm:p-8 mb-6">
                             <h2 className="text-2xl font-bold text-gray-900 mb-4">{t('courseDetail.curriculum', 'Nội dung khóa học')}</h2>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -433,7 +511,11 @@ const CourseDetail = () => {
                                 ))}
                             </div>
                         </div>
-                    )}
+                    ) : !isNaN(id) && lessonsLoading ? (
+                        <div className="bg-white rounded-2xl shadow-sm p-6 sm:p-8 mb-6 flex justify-center">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+                        </div>
+                    ) : null}
 
                     {/* Practice Exams Section - NEW */}
                     {practiceExams.length > 0 && (

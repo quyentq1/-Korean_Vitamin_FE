@@ -15,11 +15,14 @@ import {
   DollarSign,
   User,
   Tags,
-  CheckCircle2
+  CheckCircle2,
+  Video,
+  Eye
 } from 'lucide-react';
 import classService from '../../services/classService';
 import studentService from '../../services/studentService';
 import courseService from '../../services/courseService';
+import lessonService from '../../services/lessonService';
 
 const StudentCourseDetail = () => {
   const { courseId } = useParams();
@@ -30,6 +33,9 @@ const StudentCourseDetail = () => {
   const [classes, setClasses] = useState([]);
   const [schedules, setSchedules] = useState([]);
   const [exams, setExams] = useState([]);
+  const [lessons, setLessons] = useState([]);
+  const [lessonsLoading, setLessonsLoading] = useState(false);
+  const [expandedLesson, setExpandedLesson] = useState(null);
 
   useEffect(() => {
     fetchCourseData();
@@ -43,6 +49,17 @@ const StudentCourseDetail = () => {
       try {
         const courseDetails = await courseService.getCourseById(courseId);
         setCourseData(courseDetails);
+
+        // Fetch lessons for this course
+        setLessonsLoading(true);
+        lessonService.getCourseLessons(courseId)
+          .then(res => {
+            const list = Array.isArray(res) ? res : (res.data || []);
+            list.sort((a, b) => (a.lessonOrder || 0) - (b.lessonOrder || 0));
+            setLessons(list);
+          })
+          .catch(() => setLessons([]))
+          .finally(() => setLessonsLoading(false));
       } catch (err) {
         console.warn('Failed to fetch course details:', err);
       }
@@ -326,19 +343,81 @@ const StudentCourseDetail = () => {
             {/* Curriculum Tab */}
             {activeTab === 'curriculum' && (
               <div className="space-y-6">
-                {courseData?.syllabus ? (
-                  <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-5">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                      <FileText className="w-5 h-5 text-blue-600" />
-                      Giáo trình chi tiết
-                    </h3>
-                    <div className="text-gray-700 whitespace-pre-wrap prose prose-sm max-w-none">
-                      {courseData.syllabus}
+                {/* Lessons */}
+                {lessonsLoading ? (
+                  <div className="flex justify-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600" />
+                  </div>
+                ) : lessons.length > 0 ? (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                        <BookOpen className="w-5 h-5 text-indigo-600" />
+                        Bài học ({lessons.length})
+                      </h3>
+                      <span className="text-sm text-gray-400">
+                        Tổng: {lessons.reduce((s, l) => s + (l.durationMinutes || 0), 0)} phút
+                      </span>
                     </div>
+                    {lessons.map((lesson) => (
+                      <div key={lesson.id} className="border border-gray-200 rounded-xl overflow-hidden">
+                        <button
+                          onClick={() => setExpandedLesson(expandedLesson === lesson.id ? null : lesson.id)}
+                          className="w-full flex items-center gap-3 p-4 hover:bg-gray-50 transition-colors text-left"
+                        >
+                          <span className="w-8 h-8 bg-indigo-100 text-indigo-700 rounded-lg flex items-center justify-center text-sm font-bold shrink-0">
+                            {lesson.lessonOrder}
+                          </span>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium text-gray-900 truncate">{lesson.title}</span>
+                              {lesson.isPreview && (
+                                <span className="shrink-0 text-[10px] px-1.5 py-0.5 rounded-full bg-green-100 text-green-700 font-medium">
+                                  <Eye className="w-3 h-3 inline mr-0.5" />Xem trước
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-3 mt-0.5 text-xs text-gray-400">
+                              {lesson.durationMinutes && <span>{lesson.durationMinutes} phút</span>}
+                              {lesson.videoUrl && <span className="flex items-center gap-0.5"><Video className="w-3 h-3" /> Video</span>}
+                              {lesson.description && <span className="truncate max-w-[200px]">{lesson.description}</span>}
+                            </div>
+                          </div>
+                          <svg className={`w-5 h-5 text-gray-400 transition-transform shrink-0 ${expandedLesson === lesson.id ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </button>
+                        {expandedLesson === lesson.id && (
+                          <div className="px-4 pb-4 border-t border-gray-100">
+                            {lesson.videoUrl && (
+                              <div className="mb-3">
+                                {lesson.videoUrl.includes('youtube.com') || lesson.videoUrl.includes('youtu.be') ? (
+                                  (() => {
+                                    const match = lesson.videoUrl.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^#&?]{11})/);
+                                    return match ? (
+                                      <iframe width="100%" style={{ aspectRatio: '16/9', height: 'auto' }} src={`https://www.youtube.com/embed/${match[1]}`} frameBorder="0" allowFullScreen className="rounded-lg" />
+                                    ) : (
+                                      <a href={lesson.videoUrl} target="_blank" rel="noopener noreferrer" className="text-indigo-600 underline text-sm">Mở video</a>
+                                    );
+                                  })()
+                                ) : (
+                                  <video src={lesson.videoUrl} controls className="w-full rounded-lg" />
+                                )}
+                              </div>
+                            )}
+                            {lesson.content ? (
+                              <div className="prose prose-sm max-w-none text-gray-700" dangerouslySetInnerHTML={{ __html: lesson.content }} />
+                            ) : (
+                              <p className="text-sm text-gray-400 italic">Chưa có nội dung chi tiết</p>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    ))}
                   </div>
                 ) : (
                   <div className="text-center text-gray-500 py-10">
-                    <FileText className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                    <BookOpen className="w-12 h-12 mx-auto mb-3 text-gray-300" />
                     <p>Chưa có giáo trình</p>
                   </div>
                 )}
