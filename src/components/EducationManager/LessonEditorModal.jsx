@@ -17,6 +17,7 @@ const LessonEditorModal = ({ courseId, lesson, onClose, onSuccess }) => {
         videoUrl: '',
         durationMinutes: '',
         isPreview: false,
+        published: false,
         lessonOrder: 1,
     });
 
@@ -30,6 +31,7 @@ const LessonEditorModal = ({ courseId, lesson, onClose, onSuccess }) => {
                 videoUrl: url,
                 durationMinutes: lesson.durationMinutes || '',
                 isPreview: lesson.isPreview || false,
+                published: lesson.published || false,
                 lessonOrder: lesson.lessonOrder || 1,
             });
             if (url) {
@@ -91,6 +93,7 @@ const LessonEditorModal = ({ courseId, lesson, onClose, onSuccess }) => {
                 videoUrl: form.videoUrl || null,
                 durationMinutes: form.durationMinutes ? parseInt(form.durationMinutes) : null,
                 isPreview: form.isPreview,
+                published: form.published,
                 lessonOrder: form.lessonOrder,
                 active: true,
                 course: { id: courseId },
@@ -245,18 +248,33 @@ const LessonEditorModal = ({ courseId, lesson, onClose, onSuccess }) => {
                         )}
                     </div>
 
-                    <div className="flex items-center gap-2">
-                        <input
-                            type="checkbox"
-                            id="isPreview"
-                            name="isPreview"
-                            checked={form.isPreview}
-                            onChange={handleChange}
-                            className="w-4 h-4 accent-violet-600"
-                        />
-                        <label htmlFor="isPreview" className="text-sm text-gray-700">
-                            Cho phép xem trước (hiện cho khách)
-                        </label>
+                    <div className="flex items-center gap-6">
+                        <div className="flex items-center gap-2">
+                            <input
+                                type="checkbox"
+                                id="published"
+                                name="published"
+                                checked={form.published}
+                                onChange={handleChange}
+                                className="w-4 h-4 accent-blue-600"
+                            />
+                            <label htmlFor="published" className="text-sm text-gray-700">
+                                Xuất bản bài học
+                            </label>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <input
+                                type="checkbox"
+                                id="isPreview"
+                                name="isPreview"
+                                checked={form.isPreview}
+                                onChange={handleChange}
+                                className="w-4 h-4 accent-violet-600"
+                            />
+                            <label htmlFor="isPreview" className="text-sm text-gray-700">
+                                Cho phép xem trước (hiện cho khách)
+                            </label>
+                        </div>
                     </div>
 
                     {/* TipTap Editor */}

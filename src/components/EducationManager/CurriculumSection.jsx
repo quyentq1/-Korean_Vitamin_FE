@@ -73,6 +73,19 @@ const CurriculumSection = ({ courseId }) => {
         }
     };
 
+    const handleTogglePublished = async (lesson) => {
+        try {
+            await lessonService.updateLesson(lesson.id, {
+                ...lesson,
+                course: { id: courseId },
+                published: !lesson.published,
+            });
+            await fetchLessons();
+        } catch (err) {
+            Swal.fire('Lỗi', 'Không thể cập nhật', 'error');
+        }
+    };
+
     const handleMove = async (index, direction) => {
         const newIndex = index + direction;
         if (newIndex < 0 || newIndex >= lessons.length) return;
@@ -145,6 +158,7 @@ const CurriculumSection = ({ courseId }) => {
                             onEdit={() => handleEdit(lesson)}
                             onDelete={() => handleDelete(lesson)}
                             onTogglePreview={() => handleTogglePreview(lesson)}
+                            onTogglePublished={() => handleTogglePublished(lesson)}
                             onMoveUp={() => handleMove(index, -1)}
                             onMoveDown={() => handleMove(index, 1)}
                         />

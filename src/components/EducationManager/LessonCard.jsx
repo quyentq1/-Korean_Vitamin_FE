@@ -1,6 +1,6 @@
-import { GripVertical, Pencil, Trash2, Eye, EyeOff, ChevronUp, ChevronDown, Clock, Video } from 'lucide-react';
+import { GripVertical, Pencil, Trash2, Eye, EyeOff, ChevronUp, ChevronDown, Clock, Video, Globe, GlobeLock } from 'lucide-react';
 
-const LessonCard = ({ lesson, index, total, onEdit, onDelete, onTogglePreview, onMoveUp, onMoveDown }) => {
+const LessonCard = ({ lesson, index, total, onEdit, onDelete, onTogglePreview, onTogglePublished, onMoveUp, onMoveDown }) => {
     return (
         <div className="flex items-center gap-3 p-3 bg-white border border-gray-200 rounded-xl hover:border-violet-200 transition-colors group">
             {/* Drag handle / Order */}
@@ -13,6 +13,11 @@ const LessonCard = ({ lesson, index, total, onEdit, onDelete, onTogglePreview, o
             <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                     <h4 className="text-sm font-medium text-gray-900 truncate">{lesson.title}</h4>
+                    {lesson.published && (
+                        <span className="shrink-0 text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700">
+                            Xuất bản
+                        </span>
+                    )}
                     {lesson.isPreview && (
                         <span className="shrink-0 text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-green-100 text-green-700">
                             Xem trước
@@ -38,6 +43,18 @@ const LessonCard = ({ lesson, index, total, onEdit, onDelete, onTogglePreview, o
 
             {/* Actions */}
             <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button
+                    type="button"
+                    onClick={onTogglePublished}
+                    className={`p-1.5 rounded-lg transition-colors ${
+                        lesson.published
+                            ? 'text-blue-600 hover:bg-blue-50'
+                            : 'text-gray-400 hover:bg-gray-100'
+                    }`}
+                    title={lesson.published ? 'Bỏ xuất bản' : 'Xuất bản bài học'}
+                >
+                    {lesson.published ? <Globe className="w-4 h-4" /> : <GlobeLock className="w-4 h-4" />}
+                </button>
                 <button
                     type="button"
                     onClick={onTogglePreview}
