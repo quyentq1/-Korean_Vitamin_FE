@@ -377,7 +377,9 @@ const TeacherSessions = () => {
                                                 </button>
                                                 <button
                                                     onClick={() => handleRescheduleSession(session)}
-                                                    className="inline-flex items-center gap-2 px-3 py-2 text-sm bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
+                                                    disabled={!session.sessionDate || (() => { const d=new Date(); return session.sessionDate.split('T')[0] <= `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; })()}
+                                                    className="inline-flex items-center gap-2 px-3 py-2 text-sm bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-blue-100"
+                                                    title={!session.sessionDate || (() => { const d=new Date(); return session.sessionDate.split('T')[0] <= `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; })() ? 'Chỉ có thể dời lịch trước ít nhất 1 ngày' : ''}
                                                 >
                                                     <RefreshCw className="w-4 h-4" />
                                                     {t('teacher.sessions.reschedule')}
