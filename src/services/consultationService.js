@@ -9,6 +9,22 @@ const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8080';
  */
 const consultationService = {
     /**
+     * Kiểm tra email/sdt đã có đơn tư vấn chưa duyệt chưa
+     * GET /api/public/consultation/check?email=...&phone=...
+     * @returns {{ hasPending: boolean, field: "email"|"phone"|"" }}
+     */
+    checkPending: async (email, phone) => {
+        const params = {};
+        if (email) params.email = email;
+        if (phone) params.phone = phone;
+        const response = await axios.get(
+            `${API_BASE}/api/public/consultation/check`,
+            { params, timeout: 8000 }
+        );
+        return response.data;
+    },
+
+    /**
      * Gửi form tư vấn của khách (sau khi hết 2 bài test miễn phí)
      * @param {Object} formData - { fullName, email, phone, contactTime, testInterested, message }
      */

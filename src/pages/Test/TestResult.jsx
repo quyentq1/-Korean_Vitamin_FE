@@ -5,7 +5,8 @@ import Confetti from 'react-confetti';
 import { useWindowSize } from 'react-use';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
-import UpgradeModal from '../../components/UpgradeModal';
+import ConsultationPopup from '../../components/ConsultationPopup';
+import consultationService from '../../services/consultationService';
 import axiosClient from '../../api/axiosClient';
 
 const TestResult = () => {
@@ -252,10 +253,12 @@ const TestResult = () => {
 
             <Footer />
 
-            <UpgradeModal
+            <ConsultationPopup
                 isOpen={showUpgradeModal}
                 onClose={() => setShowUpgradeModal(false)}
-                testsTaken={quota?.completed || 0}
+                onSubmit={async (formData) => {
+                    await consultationService.submitConsultation(formData);
+                }}
             />
         </div>
     );

@@ -17,7 +17,7 @@ const SystemSettings = () => {
     const [generalSettings, setGeneralSettings] = useState({
         siteName: 'Korean Vitamin',
         contactEmail: 'contact@koreanvitamin.com',
-        hotline: '0123456789'
+        hotline: '0869627078'
     });
     const [emailSettings, setEmailSettings] = useState({
         smtpHost: 'smtp.gmail.com',
@@ -32,7 +32,7 @@ const SystemSettings = () => {
         zalopayEnabled: false,
         bankTransferEnabled: true,
         bankName: 'Vietcombank',
-        bankAccount: '1234567890',
+        bankAccount: '8696270780',
         bankBranch: 'Hà Nội'
     });
     
@@ -373,7 +373,7 @@ const SystemSettings = () => {
                                                     type="text"
                                                     value={paymentSettings.bankAccount}
                                                     onChange={(e) => setPaymentSettings({...paymentSettings, bankAccount: e.target.value})}
-                                                    placeholder="1234567890"
+                                                    placeholder="8696270780"
                                                 />
                                             </div>
                                             

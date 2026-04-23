@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Search, Edit2, Trash2, Eye, CheckCircle, XCircle, Archive, RefreshCw } from 'lucide-react';
+import { Plus, Search, Edit2, Eye, CheckCircle, XCircle, Archive, RefreshCw } from 'lucide-react';
 import educationManagerService from '../../services/educationManagerService';
 import Swal from 'sweetalert2';
 import CourseDetailModal from '../../components/EducationManager/CourseDetailModal';
@@ -53,27 +53,6 @@ const EduCourseManagement = () => {
             fetchCourses();
         } catch (e) {
             Swal.fire('Lỗi', 'Không thể thay đổi trạng thái', 'error');
-        }
-    };
-
-    const handleDelete = async (course) => {
-        const result = await Swal.fire({
-            title: 'Xóa khóa học?',
-            text: `Bạn có chắc muốn xóa "${course.name}"?`,
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#ef4444',
-            confirmButtonText: 'Xóa',
-            cancelButtonText: 'Hủy',
-        });
-        if (result.isConfirmed) {
-            try {
-                await educationManagerService.deleteCourse(course.id);
-                fetchCourses();
-                Swal.fire('Đã xóa!', '', 'success');
-            } catch (e) {
-                Swal.fire('Lỗi', 'Không thể xóa khóa học', 'error');
-            }
         }
     };
 
@@ -159,7 +138,6 @@ const EduCourseManagement = () => {
                                                 <button onClick={() => handlePublish(course)} className={`p-1.5 rounded-lg ${course.status === 'PUBLISHED' ? 'text-amber-400 hover:bg-amber-50' : 'text-green-500 hover:bg-green-50'}`} title={course.status === 'PUBLISHED' ? 'Unpublish' : 'Publish'}>
                                                     {course.status === 'PUBLISHED' ? <XCircle className="w-4 h-4" /> : <CheckCircle className="w-4 h-4" />}
                                                 </button>
-                                                <button onClick={() => handleDelete(course)} className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50"><Trash2 className="w-4 h-4" /></button>
                                             </div>
                                         </td>
                                     </tr>

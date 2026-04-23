@@ -4,7 +4,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { BookOpen, FileText, Clock, ArrowRight, Video, Eye } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import ContactModal from '../components/ContactModal';
+import ConsultationPopup from '../components/ConsultationPopup';
+import consultationService from '../services/consultationService';
 import CoursePreview from '../components/CoursePreview';
 import { useAuth } from '../contexts/AuthContext';
 import { useGuestContext } from '../hooks/useGuestContext';
@@ -616,7 +617,9 @@ const CourseDetail = () => {
             </div>
 
             <Footer />
-            <ContactModal isOpen={isContactModalOpen} onClose={() => setIsContactModalOpen(false)} courseName={course.title} />
+            <ConsultationPopup isOpen={isContactModalOpen} onClose={() => setIsContactModalOpen(false)} onSubmit={async (formData) => {
+                await consultationService.submitConsultation(formData);
+            }} />
         </div>
     );
 };

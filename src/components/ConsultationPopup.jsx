@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import Swal from 'sweetalert2';
+import consultationService from '../services/consultationService';
 
 const ConsultationPopup = ({ isOpen, onClose, onSubmit }) => {
     const { t } = useTranslation();
@@ -220,6 +222,35 @@ const ConsultationPopup = ({ isOpen, onClose, onSubmit }) => {
 
         setSubmitting(true);
         try {
+            // Check duplicate pending consultation
+            try {
+                const checkResult = await consultationService.checkPending(
+                    formData.email.trim().toLowerCase(),
+                    formData.phone.trim()
+                );
+
+                if (checkResult.hasPending) {
+                    setSubmitting(false);
+                    onClose();
+
+                    const fieldLabel = checkResult.field === 'email'
+                        ? formData.email.trim()
+                        : formData.phone.trim();
+                    const fieldType = checkResult.field === 'email' ? 'Email' : 'Số điện thoại';
+
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Đã gửi yêu cầu trước đó',
+                        html: `<strong>${fieldType}</strong> <em>${fieldLabel}</em> đã có đơn tư vấn đang chờ xử lý.<br>Vui lòng đợi nhân viên liên hệ lại nhé!`,
+                        confirmButtonText: 'Đã hiểu',
+                        confirmButtonColor: '#3b82f6',
+                    });
+                    return;
+                }
+            } catch (checkError) {
+                console.warn('Check pending failed, proceeding with submission:', checkError);
+            }
+
             await onSubmit({
                 ...formData,
                 fullName: formData.fullName.trim(),
@@ -361,7 +392,7 @@ const ConsultationPopup = ({ isOpen, onClose, onSubmit }) => {
                                             ? 'border-red-500 focus:ring-red-200'
                                             : 'border-gray-200 focus:ring-primary-500/20'
                                     }`}
-                                    placeholder="0123456789"
+                                    placeholder="0869627078"
                                 />
                                 {errors.phone && (
                                     <p className="text-red-500 text-sm mt-1">{errors.phone}</p>

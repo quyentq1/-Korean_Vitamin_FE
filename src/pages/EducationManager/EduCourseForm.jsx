@@ -18,10 +18,7 @@ const EduCourseForm = () => {
         code: '',
         description: '',
         fee: 0,
-        price: 0,
-        discountPrice: 0,
         duration: 60,
-        schedule: '',
         active: true,
         level: 'BEGINNER',
         status: 'DRAFT',
@@ -196,8 +193,6 @@ const EduCourseForm = () => {
             const payload = {
                 ...form,
                 fee: Number(form.fee),
-                price: Number(form.price) || 0,
-                discountPrice: Number(form.discountPrice) || 0,
                 duration: Number(form.duration) || null,
             };
 
@@ -232,10 +227,7 @@ const EduCourseForm = () => {
         { name: 'status', label: 'Trạng thái', type: 'select', options: ['DRAFT', 'PUBLISHED', 'ARCHIVED'], optionLabels: ['Bản nháp', 'Đã công bố', 'Lưu trữ'] },
         { name: 'teacherId', label: 'Giáo viên phụ trách', type: 'teacher-select', span: 2 },
         { name: 'fee', label: 'Học phí (₫)', type: 'number', placeholder: 'VD: 2000000', required: true },
-        { name: 'price', label: 'Giá niêm yết (₫)', type: 'number', placeholder: 'VD: 2500000' },
-        { name: 'discountPrice', label: 'Giá ưu đãi (₫)', type: 'number', placeholder: 'VD: 1800000' },
         { name: 'duration', label: 'Thời lượng (giờ)', type: 'number', placeholder: 'VD: 60' },
-        { name: 'schedule', label: 'Lịch học mẫu', type: 'text', placeholder: 'VD: Thứ 2, 4, 6 - 18:00-20:00' },
         { name: 'promoVideoUrl', label: 'Video giới thiệu URL', type: 'text', span: 2, placeholder: 'https://youtube.com/...' },
     ];
 

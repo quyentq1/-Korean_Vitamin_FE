@@ -31,7 +31,7 @@ const ResetPasswordModal = ({ user, onClose, onSubmit }) => {
     };
 
     const generateRandomPassword = () => {
-        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0869627078!@#$%^&*';
         const password = Array.from({ length: 12 }, () =>
             chars.charAt(Math.floor(Math.random() * chars.length))
         ).join('');

@@ -3,7 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
-import ContactModal from '../../components/ContactModal';
+import ConsultationPopup from '../../components/ConsultationPopup';
+import consultationService from '../../services/consultationService';
 import { useAuth } from '../../contexts/AuthContext';
 
 const HomePage = () => {
@@ -704,9 +705,12 @@ const HomePage = () => {
             </section>
 
             {/* Contact Modal */}
-            <ContactModal
+            <ConsultationPopup
                 isOpen={isContactModalOpen}
                 onClose={() => setIsContactModalOpen(false)}
+                onSubmit={async (formData) => {
+                    await consultationService.submitConsultation(formData);
+                }}
             />
 
             {/* Footer */}
@@ -748,7 +752,7 @@ const HomePage = () => {
                             <h3 className="text-lg font-bold mb-4">{t('landing.footer.contact', 'Liên hệ')}</h3>
                             <ul className="space-y-2 text-gray-400 text-sm">
                                 <li>📧 contact@koreanvitamin.vn</li>
-                                <li>📱 +84 123 456 789</li>
+                                <li>📱 +84 869 627 078</li>
                                 <li>📍 Hà Nội, Việt Nam</li>
                             </ul>
                             <div className="flex gap-3 mt-4">

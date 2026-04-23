@@ -22,6 +22,24 @@ const QuestionApproval = () => {
     const [selectedQuestion, setSelectedQuestion] = useState(null);
     const [showDetailModal, setShowDetailModal] = useState(false);
     const [actionLoading, setActionLoading] = useState(false);
+    const [selectedIds, setSelectedIds] = useState(new Set());
+
+    const toggleSelect = (id) => {
+        setSelectedIds(prev => {
+            const next = new Set(prev);
+            if (next.has(id)) next.delete(id); else next.add(id);
+            return next;
+        });
+    };
+
+    const toggleSelectAll = () => {
+        const pendingIds = questions.filter(q => q.verificationStatus === 'PENDING').map(q => q.id);
+        if (selectedIds.size === pendingIds.length) {
+            setSelectedIds(new Set());
+        } else {
+            setSelectedIds(new Set(pendingIds));
+        }
+    };
 
     const fetchPendingQuestions = async () => {
         try {
@@ -173,6 +191,61 @@ const QuestionApproval = () => {
         setShowDetailModal(true);
     };
 
+    const handleBulkApprove = async () => {
+        const { value: feedback } = await Swal.fire({
+            icon: 'question',
+            title: `Duyệt ${selectedIds.size} câu hỏi?`,
+            input: 'textarea',
+            inputLabel: 'Phản hồi (tùy chọn)',
+            inputPlaceholder: 'Nhập ghi chú hoặc để trống...',
+            showCancelButton: true,
+            confirmButtonText: 'Duyệt tất cả',
+            cancelButtonText: 'Hủy',
+            confirmButtonColor: '#22c55e',
+        });
+        if (feedback !== undefined) {
+            try {
+                setActionLoading(true);
+                await educationManagerService.bulkApproveQuestions([...selectedIds], feedback || '');
+                setSelectedIds(new Set());
+                Swal.fire({ icon: 'success', title: `Đã duyệt ${selectedIds.size} câu hỏi!`, timer: 2000, showConfirmButton: false });
+                fetchPendingQuestions();
+            } catch (error) {
+                Swal.fire({ icon: 'error', title: 'Lỗi', text: 'Không thể duyệt câu hỏi', timer: 2000, showConfirmButton: false });
+            } finally {
+                setActionLoading(false);
+            }
+        }
+    };
+
+    const handleBulkReject = async () => {
+        const { value: reason } = await Swal.fire({
+            icon: 'warning',
+            title: `Từ chối ${selectedIds.size} câu hỏi?`,
+            input: 'textarea',
+            inputLabel: 'Lý do từ chối',
+            inputPlaceholder: 'Nhập lý do...',
+            showCancelButton: true,
+            confirmButtonText: 'Từ chối tất cả',
+            cancelButtonText: 'Hủy',
+            confirmButtonColor: '#ef4444',
+            inputValidator: (value) => { if (!value) return 'Vui lòng nhập lý do'; }
+        });
+        if (reason) {
+            try {
+                setActionLoading(true);
+                await educationManagerService.bulkRejectQuestions([...selectedIds], reason);
+                setSelectedIds(new Set());
+                Swal.fire({ icon: 'success', title: `Đã từ chối ${selectedIds.size} câu hỏi!`, timer: 2000, showConfirmButton: false });
+                fetchPendingQuestions();
+            } catch (error) {
+                Swal.fire({ icon: 'error', title: 'Lỗi', text: 'Không thể từ chối câu hỏi', timer: 2000, showConfirmButton: false });
+            } finally {
+                setActionLoading(false);
+            }
+        }
+    };
+
     const getTypeBadge = (type) => {
         const colors = {
             'MULTIPLE_CHOICE': 'bg-blue-100 text-blue-700',
@@ -244,6 +317,18 @@ const QuestionApproval = () => {
                         >
                             <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
                         </button>
+
+                        {questions.filter(q => q.verificationStatus === 'PENDING').length > 0 && (
+                            <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer ml-2">
+                                <input
+                                    type="checkbox"
+                                    checked={selectedIds.size > 0 && selectedIds.size === questions.filter(q => q.verificationStatus === 'PENDING').length}
+                                    onChange={toggleSelectAll}
+                                    className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                />
+                                Chọn tất cả
+                            </label>
+                        )}
                     </div>
 
                     {/* Tab buttons */}
@@ -272,6 +357,35 @@ const QuestionApproval = () => {
                 </div>
             </div>
 
+            {/* Bulk Action Bar */}
+            {selectedIds.size > 0 && (
+                <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-4 mb-6 flex items-center justify-between">
+                    <span className="text-sm font-medium text-indigo-700">Đã chọn {selectedIds.size} câu hỏi</span>
+                    <div className="flex items-center gap-3">
+                        <button
+                            onClick={handleBulkApprove}
+                            disabled={actionLoading}
+                            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium disabled:opacity-50 flex items-center gap-2"
+                        >
+                            <CheckCircle className="w-4 h-4" /> Duyệt tất cả
+                        </button>
+                        <button
+                            onClick={handleBulkReject}
+                            disabled={actionLoading}
+                            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm font-medium disabled:opacity-50 flex items-center gap-2"
+                        >
+                            <XCircle className="w-4 h-4" /> Từ chối tất cả
+                        </button>
+                        <button
+                            onClick={() => setSelectedIds(new Set())}
+                            className="px-3 py-2 text-gray-600 hover:text-gray-800 text-sm"
+                        >
+                            Bỏ chọn
+                        </button>
+                    </div>
+                </div>
+            )}
+
             {/* Questions List */}
             <div className="space-y-4">
                 {questions.length === 0 ? (
@@ -287,6 +401,16 @@ const QuestionApproval = () => {
                             className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow"
                         >
                             <div className="flex items-start justify-between gap-4">
+                                {/* Checkbox */}
+                                {question.verificationStatus === 'PENDING' && (
+                                    <input
+                                        type="checkbox"
+                                        checked={selectedIds.has(question.id)}
+                                        onChange={() => toggleSelect(question.id)}
+                                        className="w-5 h-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 mt-1 shrink-0"
+                                    />
+                                )}
+
                                 {/* Left: Question Info */}
                                 <div className="flex-1">
                                     {/* Badges */}
