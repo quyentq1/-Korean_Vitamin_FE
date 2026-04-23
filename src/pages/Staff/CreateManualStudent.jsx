@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
     User, Mail, Phone, MapPin, GraduationCap, UserPlus,
@@ -16,12 +16,14 @@ const CreateManualStudent = () => {
     const { t } = useTranslation();
     const navigate = useNavigate();
     const { studentId } = useParams();
+    const location = useLocation();
 
     const [currentStep, setCurrentStep] = useState(1);
     const [loading, setLoading] = useState(false);
     const [fetchingCourses, setFetchingCourses] = useState(false);
     const [courses, setCourses] = useState([]);
     const [classes, setClasses] = useState([]);
+    const [fromConsultationId, setFromConsultationId] = useState(null);
 
     const [formData, setFormData] = useState({
         // Step 1: Personal Information
@@ -44,6 +46,22 @@ const CreateManualStudent = () => {
     });
 
     const [errors, setErrors] = useState({});
+
+    // Pre-fill form from consultation data
+    useEffect(() => {
+        if (location.state?.prefilledData) {
+            const data = location.state.prefilledData;
+            setFromConsultationId(location.state.fromConsultationId || null);
+            setFormData(prev => ({
+                ...prev,
+                fullName: data.fullName || '',
+                email: data.email || '',
+                phone: data.phone || '',
+                address: data.address || '',
+                dateOfBirth: data.dateOfBirth || '',
+            }));
+        }
+    }, [location.state]);
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const phoneRegex = /^(0|\+84)\d{9}$/;
@@ -229,7 +247,8 @@ const CreateManualStudent = () => {
                 phone: formData.phone.trim(),
                 address: formData.address.trim(),
                 notes: formData.notes.trim(),
-                password: formData.password.trim()
+                password: formData.password.trim(),
+                consultationRequestId: fromConsultationId
             };
 
             await staffService.createManualStudent(payload);

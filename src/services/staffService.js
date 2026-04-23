@@ -23,14 +23,27 @@ export const staffService = {
     // ==================== MAIL MANAGEMENT ====================
 
     /**
-     * Get all users for mail sending (except GUEST)
-     * GET /api/staff/mail/users
+     * Get users for mail sending with optional filters
+     * GET /api/staff/mail/users?courseId=1&classId=2&teacherId=3&role=STUDENT
      */
-    getMailUsers: async () => {
+    getMailUsers: async (filters = {}) => {
         try {
-            return await axiosClient.get('/staff/mail/users');
+            return await axiosClient.get('/staff/mail/users', { params: filters });
         } catch (error) {
             console.error('Error fetching mail users:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * Get filter options for mail (courses, classes, teachers)
+     * GET /api/staff/mail/filters
+     */
+    getMailFilters: async () => {
+        try {
+            return await axiosClient.get('/staff/mail/filters');
+        } catch (error) {
+            console.error('Error fetching mail filters:', error);
             throw error;
         }
     },
