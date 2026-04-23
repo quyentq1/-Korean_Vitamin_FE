@@ -125,7 +125,7 @@ const EduCourseManagement = () => {
                                             <p className="text-xs text-gray-400 mt-0.5 line-clamp-1">{course.description}</p>
                                         </td>
                                         <td className="px-5 py-4 text-sm text-gray-600">{course.code}</td>
-                                        <td className="px-5 py-4 text-sm text-gray-600">{course.price?.toLocaleString('vi-VN')}₫</td>
+                                        <td className="px-5 py-4 text-sm text-gray-600">{course.fee?.toLocaleString('vi-VN')}₫</td>
                                         <td className="px-5 py-4">
                                             <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${statusConfig[course.status]?.color || 'bg-gray-100 text-gray-600'}`}>
                                                 {statusConfig[course.status]?.label || course.status}
