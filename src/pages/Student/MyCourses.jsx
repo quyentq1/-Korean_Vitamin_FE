@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import studentService from '../../services/studentService';
 import classService from '../../services/classService';
+import CertificateSubmitModal from '../../components/Student/CertificateSubmitModal';
 
 /**
  * MyCourses - Modern UI
@@ -28,9 +29,12 @@ const MyCourses = () => {
   const [courses, setCourses] = useState([]);
   const [viewMode, setViewMode] = useState('grid');
   const [searchQuery, setSearchQuery] = useState('');
+  const [showCertModal, setShowCertModal] = useState(false);
+  const [eligibleCourses, setEligibleCourses] = useState([]);
 
   useEffect(() => {
     fetchCourses();
+    studentService.getCertificateEligible().then(setEligibleCourses).catch(() => {});
   }, []);
 
   const fetchCourses = async () => {
@@ -361,6 +365,15 @@ const MyCourses = () => {
                     <Play className="w-4 h-4" />
                     Tiếp tục học
                   </button>
+                  {course.status === 'ACTIVE' && eligibleCourses.some(e => e.courseId == course.id) && (
+                    <button
+                      onClick={() => setShowCertModal(true)}
+                      className="w-full py-2.5 mt-2 bg-amber-50 text-amber-700 border border-amber-200 rounded-xl font-semibold hover:bg-amber-100 transition flex items-center justify-center gap-2 text-sm"
+                    >
+                      <Award className="w-4 h-4" />
+                      Nộp chứng chỉ
+                    </button>
+                  )}
                 </div>
               </div>
             ))}
@@ -443,6 +456,16 @@ const MyCourses = () => {
           </div>
         )}
       </div>
+
+      <CertificateSubmitModal
+        isOpen={showCertModal}
+        onClose={() => setShowCertModal(false)}
+        eligibleCourses={eligibleCourses}
+        onSubmitted={() => {
+          fetchCourses();
+          studentService.getCertificateEligible().then(setEligibleCourses).catch(() => {});
+        }}
+      />
     </div>
   );
 };

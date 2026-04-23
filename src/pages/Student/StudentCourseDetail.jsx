@@ -23,6 +23,7 @@ import classService from '../../services/classService';
 import studentService from '../../services/studentService';
 import courseService from '../../services/courseService';
 import lessonService from '../../services/lessonService';
+import CertificateSubmitModal from '../../components/Student/CertificateSubmitModal';
 
 const StudentCourseDetail = () => {
   const { courseId } = useParams();
@@ -36,6 +37,8 @@ const StudentCourseDetail = () => {
   const [lessons, setLessons] = useState([]);
   const [lessonsLoading, setLessonsLoading] = useState(false);
   const [expandedLesson, setExpandedLesson] = useState(null);
+  const [showCertModal, setShowCertModal] = useState(false);
+  const [eligibleCourses, setEligibleCourses] = useState([]);
 
   useEffect(() => {
     fetchCourseData();
@@ -45,30 +48,25 @@ const StudentCourseDetail = () => {
     try {
       setLoading(true);
 
-      // Fetch full course details
+      // Fetch full course details (public API, may fail)
       try {
         const courseDetails = await courseService.getCourseById(courseId);
         setCourseData(courseDetails);
-
-        // Fetch lessons for this course
-        setLessonsLoading(true);
-        lessonService.getCourseLessons(courseId)
-          .then(res => {
-            const list = Array.isArray(res) ? res : (res.data || []);
-            list.sort((a, b) => (a.lessonOrder || 0) - (b.lessonOrder || 0));
-            setLessons(list);
-          })
-          .catch(() => setLessons([]))
-          .finally(() => setLessonsLoading(false));
       } catch (err) {
-        console.warn('Failed to fetch course details:', err);
+        console.warn('Failed to fetch course details from public API:', err);
       }
 
       // Get my classes and filter by this course
-      const classesData = await classService.getMyClasses();
-      const courseClasses = (classesData || []).filter(
-        cls => cls.courseId === parseInt(courseId)
-      );
+      let courseClasses = [];
+      try {
+        const classesData = await classService.getMyClasses();
+        const allClasses = Array.isArray(classesData) ? classesData : (classesData?.data || []);
+        courseClasses = allClasses.filter(cls =>
+          String(cls.courseId) === String(courseId)
+        );
+      } catch (err) {
+        console.warn('Failed to fetch my classes:', err);
+      }
 
       setClasses(courseClasses);
 
@@ -77,7 +75,7 @@ const StudentCourseDetail = () => {
       for (const cls of courseClasses) {
         try {
           const classSchedules = await classService.getClassSchedules(cls.classId);
-          allSchedules.push(...(classSchedules || []).map(s => ({
+          allSchedules.push(...(Array.isArray(classSchedules) ? classSchedules : []).map(s => ({
             ...s,
             className: cls.className
           })));
@@ -90,13 +88,36 @@ const StudentCourseDetail = () => {
       // Get exams for this course
       try {
         const examsData = await studentService.getExams('AVAILABLE');
-        const courseExams = (examsData?.data || examsData || []).filter(
-          exam => exam.courseId === parseInt(courseId) || exam.course?.id === parseInt(courseId)
+        const allExams = Array.isArray(examsData) ? examsData : (examsData?.data || []);
+        const courseExams = allExams.filter(
+          exam => String(exam.courseId) === String(courseId) || String(exam.course?.id) === String(courseId)
         );
         setExams(courseExams);
       } catch (err) {
         console.warn('Failed to fetch exams');
       }
+
+      // Get lessons
+      try {
+        setLessonsLoading(true);
+        const res = await lessonService.getCourseLessons(courseId);
+        const list = Array.isArray(res) ? res : (res?.data || []);
+        list.sort((a, b) => (a.lessonOrder || 0) - (b.lessonOrder || 0));
+        setLessons(list);
+      } catch (err) {
+        console.warn('Failed to fetch lessons');
+      } finally {
+        setLessonsLoading(false);
+      }
+
+      // Fetch eligible courses for certificate
+      try {
+        const eligible = await studentService.getCertificateEligible();
+        setEligibleCourses(Array.isArray(eligible) ? eligible : []);
+      } catch (err) {
+        console.warn('Failed to fetch eligible courses');
+      }
+
     } catch (error) {
       console.error('Error fetching course data:', error);
     } finally {
@@ -482,7 +503,7 @@ const StudentCourseDetail = () => {
                         <div
                           key={cls.id}
                           className="border border-gray-200 rounded-xl p-4 hover:border-indigo-300 hover:shadow-md transition-all cursor-pointer"
-                          onClick={() => navigate(`/student/classes/${cls.classId}`)}
+                          onClick={() => navigate(`/student/class/${cls.classId}`)}
                         >
                           <div className="flex items-start justify-between mb-3">
                             <div>
@@ -516,6 +537,33 @@ const StudentCourseDetail = () => {
                     </div>
                   )}
                 </div>
+
+                {/* Certificate Submit */}
+                {eligibleCourses.length > 0 && (
+                  <div className="bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200 rounded-xl p-5">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                      <Award className="w-5 h-5 text-amber-600" />
+                      Nộp chứng chỉ
+                    </h3>
+                    <p className="text-sm text-gray-600 mb-4">
+                      Bạn có thể nộp chứng chỉ TOPIK/OPIc cho các lớp đã hoàn thành với tỷ lệ điểm danh trên 80%.
+                    </p>
+                    <button
+                      onClick={() => setShowCertModal(true)}
+                      className="px-5 py-2.5 bg-amber-500 text-white rounded-xl font-semibold hover:bg-amber-600 transition flex items-center gap-2"
+                    >
+                      <Award className="w-4 h-4" />
+                      Nộp chứng chỉ
+                    </button>
+                  </div>
+                )}
+
+                <CertificateSubmitModal
+                  isOpen={showCertModal}
+                  onClose={() => setShowCertModal(false)}
+                  eligibleCourses={eligibleCourses}
+                  onSubmitted={fetchCourseData}
+                />
 
                 {/* Schedule */}
                 <div>

@@ -312,7 +312,29 @@ export const studentService = {
 
     getAttendanceOverview: async () => {
         return await axiosClient.get('/student/attendance-overview');
-    }
+    },
+
+    // ==================== CERTIFICATE SUBMISSION ====================
+
+    getCertificateEligible: async () => {
+        return await axiosClient.get('/student/certificate/eligible');
+    },
+
+    getCertificateSubmissions: async () => {
+        return await axiosClient.get('/student/certificate/submissions');
+    },
+
+    submitCertificate: async ({ classStudentId, certificateType, notes, file }) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('classStudentId', classStudentId);
+        formData.append('certificateType', certificateType);
+        if (notes) formData.append('notes', notes);
+        const response = await axiosClient.post('/student/certificate/submit', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        return response.data;
+    },
 };
 
 export default studentService;
