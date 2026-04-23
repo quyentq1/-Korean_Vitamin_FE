@@ -15,6 +15,7 @@ import EduStudentManagement from './pages/EducationManager/EduStudentManagement'
 import EduScheduleManagement from './pages/EducationManager/EduScheduleManagement';
 import EduAttendanceHistory from './pages/EducationManager/EduAttendanceHistory';
 import EduTeachingStats from './pages/EducationManager/EduTeachingStats';
+import CertificateApproval from './pages/EducationManager/CertificateApproval';
 import StudentLayout from './components/layouts/StudentLayout';
 import StaffLayout from './components/layouts/StaffLayout';
 import TeacherLayout from './components/layouts/TeacherLayout';
@@ -35,6 +36,7 @@ import TestRunner from './pages/Test/TestRunner.jsx';
 import TestResult from './pages/Test/TestResult.jsx';
 import Forum from './pages/Shared/Forum.jsx';
 import QuestionBank from './pages/Teacher/QuestionBank.jsx';
+import QuestionImport from './pages/Teacher/QuestionImport.jsx';
 import GradingQueue from './pages/Teacher/GradingQueue.jsx';
 import SessionApproval from './pages/Manager/SessionApproval.jsx';
 import QuestionApproval from './pages/Manager/QuestionApproval.jsx';
@@ -214,6 +216,7 @@ function App() {
             <Route path="dashboard" element={<TeacherDashboard />} />
             <Route path="my-courses" element={<TeacherMyCourses />} />
             <Route path="question-bank" element={<QuestionBank />} />
+            <Route path="question-import" element={<QuestionImport />} />
             <Route path="grading-queue" element={<GradingQueue />} />
             <Route path="create-quiz" element={<CreateQuiz />} />
             <Route path="reports" element={<TeacherReports />} />
@@ -349,6 +352,7 @@ function App() {
             <Route path="schedules" element={<EduScheduleManagement />} />
             <Route path="attendance" element={<EduAttendanceHistory />} />
             <Route path="teaching-stats" element={<EduTeachingStats />} />
+            <Route path="certificates" element={<CertificateApproval />} />
           </Route>
 
           {/* Manager Routes - Manager Only */}

@@ -203,6 +203,16 @@ const educationManagerService = {
         return await axiosClient.post(`/education-manager/questions/${id}/reject`, { feedback });
     },
 
+    // Bulk approve questions
+    bulkApproveQuestions: async (ids, feedback = '') => {
+        return await axiosClient.post('/education-manager/questions/bulk-approve', { questionIds: ids, feedback });
+    },
+
+    // Bulk reject questions
+    bulkRejectQuestions: async (ids, reason) => {
+        return await axiosClient.post('/education-manager/questions/bulk-reject', { questionIds: ids, reason });
+    },
+
     // Check for duplicate questions
     checkDuplicate: async (questionText) => {
         return await axiosClient.post('/education-manager/questions/check-duplicate', {
@@ -297,6 +307,24 @@ const educationManagerService = {
 
     unlockStudent: async (studentId) => {
         return await axiosClient.post(`/education-manager/students/${studentId}/unlock`);
+    },
+
+    // ==================== CERTIFICATE APPROVAL ====================
+
+    getCertificates: async (status) => {
+        const params = status && status !== 'all' ? { status } : {};
+        const response = await axiosClient.get('/education-manager/certificates', { params });
+        return response.data;
+    },
+
+    approveCertificate: async (id) => {
+        const response = await axiosClient.post(`/education-manager/certificates/${id}/approve`);
+        return response.data;
+    },
+
+    rejectCertificate: async (id, reason) => {
+        const response = await axiosClient.post(`/education-manager/certificates/${id}/reject`, { reason });
+        return response.data;
     },
 };
 

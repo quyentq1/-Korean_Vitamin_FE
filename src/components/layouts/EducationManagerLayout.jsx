@@ -4,7 +4,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import {
     LayoutDashboard, BookOpen, Users, GraduationCap, ClipboardList,
     LogOut, Menu, X, ChevronRight, Settings, User,
-    CheckCircle, FileCheck, BarChart3, Calendar, ClipboardCheck, TrendingUp
+    CheckCircle, FileCheck, BarChart3, Calendar, ClipboardCheck, TrendingUp, Award
 } from 'lucide-react';
 import Swal from 'sweetalert2';
 import NotificationBell from '../NotificationBell';
@@ -23,6 +23,7 @@ const navItems = [
             { icon: CheckCircle, label: 'Duyệt Câu Hỏi', path: '/edu-manager/qb-approval' },
             { icon: FileCheck, label: 'Duyệt Bài Thi', path: '/edu-manager/exam-approval' },
             { icon: FileCheck, label: 'Duyệt Đề Thi', path: '/edu-manager/test-approval' },
+            { icon: Award, label: 'Duyệt Chứng Chỉ', path: '/edu-manager/certificates' },
         ]
     },
     {
@@ -30,7 +31,8 @@ const navItems = [
         items: [
             { icon: BookOpen, label: 'Khóa học', path: '/edu-manager/courses' },
             { icon: Users, label: 'Lớp học', path: '/edu-manager/classes' },
-            { icon: ClipboardList, label: 'Bài test', path: '/edu-manager/tests' },
+            { icon: GraduationCap, label: 'Giáo viên', path: '/edu-manager/teachers' },
+            { icon: Users, label: 'Học viên', path: '/edu-manager/students' },
             { icon: Calendar, label: 'Quản lý lịch học', path: '/edu-manager/schedules' },
         ]
     },
