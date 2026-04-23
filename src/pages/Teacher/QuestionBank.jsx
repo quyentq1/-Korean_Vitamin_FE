@@ -875,7 +875,7 @@ const QuestionBank = () => {
                 <Button
                   variant="secondary"
                   icon={<Download className="w-4 h-4" />}
-                  onClick={() => navigate('/question-import')}
+                  onClick={() => navigate('/teacher/question-import')}
                 >
                   {t('qb.importExcel', 'Import Excel')}
                 </Button>
@@ -1462,7 +1462,7 @@ const QuestionBank = () => {
             label: t('qb.import', 'Import Excel'),
             icon: Download,
             variant: 'secondary',
-            onClick: () => navigate('/question-import'),
+            onClick: () => navigate('/teacher/question-import'),
           },
           {
             label: t('qb.createCategory', 'Tạo danh mục'),

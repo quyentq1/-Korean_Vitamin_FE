@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import Swal from 'sweetalert2';
 import {
   Plus,
   Edit,
@@ -15,7 +16,9 @@ import {
   XCircle,
   AlertCircle,
   FileText,
-  X
+  X,
+  Link as LinkIcon,
+  Copy
 } from 'lucide-react';
 
 // UI Components
@@ -232,11 +235,68 @@ const ExamManagement = () => {
 
   // Get published status badge
   const getPublishedBadge = (exam) => {
-    // Only show published status (no approval workflow)
+    if (exam.approvalStatus === 'APPROVED') {
+      return <Badge variant="info">{t('exam.approved', 'Đã duyệt')}</Badge>;
+    }
+    if (exam.approvalStatus === 'REJECTED') {
+      return <Badge variant="danger">{t('exam.rejected', 'Từ chối')}</Badge>;
+    }
     if (exam.published) {
       return <Badge variant="success">{t('exam.published', 'Đã xuất bản')}</Badge>;
-    } else {
-      return <Badge variant="secondary">{t('exam.draft', 'Nháp')}</Badge>;
+    }
+    return <Badge variant="secondary">{t('exam.draft', 'Nháp')}</Badge>;
+  };
+
+  // Check if exam is locked (approved or published — cannot edit/delete)
+  const isLocked = (exam) => {
+    return exam.published || exam.approvalStatus === 'APPROVED';
+  };
+
+  // Generate student link for exam
+  const getExamLink = (exam) => {
+    const base = window.location.origin;
+    const isClassExam = exam.examCategory === 'PRACTICE' && (exam.classEntity || exam.classId);
+    const courseId = exam.course?.id || exam.courseId;
+    const classId = exam.classEntity?.id || exam.classId;
+
+    if (isClassExam && classId) {
+      return `${base}/student/class/${classId}`;
+    }
+    if (courseId) {
+      return `${base}/student/courses/${courseId}`;
+    }
+    return `${base}/exam/${exam.id}/intro`;
+  };
+
+  // Copy exam link to clipboard
+  const handleCopyLink = async (exam) => {
+    const link = getExamLink(exam);
+    try {
+      await navigator.clipboard.writeText(link);
+      Swal.fire({
+        icon: 'success',
+        title: 'Đã sao chép!',
+        html: `<div class="text-sm text-gray-600 break-all">${link}</div>`,
+        timer: 2000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+      });
+    } catch {
+      // Fallback for older browsers
+      const textarea = document.createElement('textarea');
+      textarea.value = link;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+      Swal.fire({
+        icon: 'success',
+        title: 'Đã sao chép!',
+        html: `<div class="text-sm text-gray-600 break-all">${link}</div>`,
+        timer: 2000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+      });
     }
   };
 
@@ -633,7 +693,15 @@ const ExamManagement = () => {
                         size="sm"
                         icon={<Edit className="w-4 h-4" />}
                         onClick={() => navigate(`/teacher/exam-editor/${exam.id}`)}
-                        title={t('exam.edit', 'Chỉnh sửa')}
+                        title={isLocked(exam) ? 'Không thể chỉnh sửa (đã duyệt/xuất bản)' : t('exam.edit', 'Chỉnh sửa')}
+                        disabled={isLocked(exam)}
+                      />
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        icon={<Copy className="w-4 h-4" />}
+                        onClick={() => handleCopyLink(exam)}
+                        title="Sao chép link gửi cho học viên"
                       />
                     </div>
                   </div>

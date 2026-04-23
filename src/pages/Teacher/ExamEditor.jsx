@@ -256,12 +256,14 @@ const ExamEditor = () => {
       const response = await teacherService.getExam(id);
       setExam(response);
 
-      // Check if exam is already approved - cannot edit approved exams
-      if (response.approvalStatus === 'APPROVED') {
+      // Check if exam is already approved or published - cannot edit
+      if (response.approvalStatus === 'APPROVED' || response.published) {
         await Swal.fire({
           icon: 'warning',
           title: 'Không thể chỉnh sửa',
-          text: 'Bài kiểm tra này đã được duyệt. Không thể chỉnh sửa bài thi đã được duyệt.',
+          text: response.published
+            ? 'Bài kiểm tra này đã xuất bản. Không thể chỉnh sửa.'
+            : 'Bài kiểm tra này đã được duyệt. Không thể chỉnh sửa bài thi đã được duyệt.',
           confirmButtonColor: '#ef4444',
           footer: 'Vui lòng liên hệ Education Manager nếu cần thay đổi.'
         });
