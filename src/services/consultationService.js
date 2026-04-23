@@ -18,7 +18,7 @@ const consultationService = {
         if (email) params.email = email;
         if (phone) params.phone = phone;
         const response = await axios.get(
-            `${API_BASE}/api/public/consultation/check`,
+            `${API_BASE}/public/consultation/check`,
             { params, timeout: 8000 }
         );
         return response.data;
@@ -30,7 +30,7 @@ const consultationService = {
      */
     submitConsultation: async (formData) => {
         const response = await axios.post(
-            `${API_BASE}/api/public/consultation`,
+            `${API_BASE}/public/consultation`,
             {
                 fullName: formData.fullName,
                 email: formData.email,
