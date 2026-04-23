@@ -171,13 +171,13 @@ const QuestionBankModal = ({
             <div className="flex items-center gap-2 px-3 py-1.5 bg-white/20 rounded-lg">
               <FileText className="w-4 h-4 text-white" />
               <span className="text-white font-medium">
-                {availableQuestions.length} câu hỏi
+                {availableQuestions.length} {t('teacher.questionBank.questions')}
               </span>
             </div>
             <div className="flex items-center gap-2 px-3 py-1.5 bg-white/20 rounded-lg">
               <Check className="w-4 h-4 text-white" />
               <span className="text-white font-medium">
-                {selectedQuestions.length} đã chọn
+                {selectedQuestions.length} {t('teacher.questionBank.selected')}
               </span>
             </div>
           </div>
@@ -233,7 +233,7 @@ const QuestionBankModal = ({
                     : 'bg-white text-gray-700 border-2 border-gray-200 hover:border-gray-300'
                 }`}
               >
-                Tất cả
+                {t('teacher.questionBank.all')}
               </button>
               {topikTypes.slice(0, 10).map(topikType => (
                 <button
@@ -257,7 +257,7 @@ const QuestionBankModal = ({
           {loading ? (
             <div className="flex flex-col items-center justify-center py-12">
               <Loader2 className="w-8 h-8 text-blue-600 animate-spin mb-4" />
-              <p className="text-gray-600">Đang tải câu hỏi...</p>
+              <p className="text-gray-600">{t('teacher.questionBank.loadingQuestions')}</p>
             </div>
           ) : displayQuestions.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
@@ -265,14 +265,14 @@ const QuestionBankModal = ({
                 <Search className="w-8 h-8 text-gray-400" />
               </div>
               <p className="text-gray-600 font-medium">
-                {searchTerm ? 'Không tìm thấy câu hỏi phù hợp' : 'Không có câu hỏi nào'}
+                {searchTerm ? t('teacher.questionBank.noResults') : t('teacher.questionBank.noQuestions')}
               </p>
               {searchTerm && (
                 <button
                   onClick={() => setSearchTerm('')}
                   className="mt-3 text-blue-600 hover:text-blue-700 font-medium underline"
                 >
-                  Xóa bộ lọc
+                  {t('teacher.questionBank.clearFilters')}
                 </button>
               )}
             </div>
@@ -339,7 +339,7 @@ const QuestionBankModal = ({
                           {isAlreadyAdded && (
                             <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full text-xs font-medium">
                               <Check className="w-3 h-3" />
-                              Đã thêm
+                              {t('teacher.questionBank.alreadyAdded')}
                             </span>
                           )}
                         </div>
@@ -348,9 +348,9 @@ const QuestionBankModal = ({
                         </p>
                         {question.options && question.options.length > 0 && (
                           <div className="mt-2 flex items-center gap-2 text-xs text-gray-500">
-                            <span>{question.options.length} đáp án</span>
+                            <span>{question.options.length} {t('teacher.questionBank.answers')}</span>
                             <span>•</span>
-                            <span>{question.points || 1} điểm</span>
+                            <span>{question.points || 1} {t('teacher.questionBank.points')}</span>
                           </div>
                         )}
                       </div>
@@ -387,10 +387,10 @@ const QuestionBankModal = ({
             <div className="text-sm text-gray-600">
               {selectedQuestions.length > 0 ? (
                 <span className="font-medium text-blue-700">
-                  Đã chọn {selectedQuestions.length} câu hỏi
+                  {t('teacher.questionBank.selectedCount', { count: selectedQuestions.length })}
                 </span>
               ) : (
-                <span>Chưa chọn câu hỏi nào</span>
+                <span>{t('teacher.questionBank.noneSelected')}</span>
               )}
             </div>
 
@@ -399,7 +399,7 @@ const QuestionBankModal = ({
                 onClick={onClose}
                 className="px-6 py-2.5 rounded-xl font-semibold text-gray-700 border-2 border-gray-200 bg-white hover:bg-gray-50 transition-all duration-200 hover:shadow-md"
               >
-                Hủy
+                {t('teacher.questionBank.cancel')}
               </button>
               <button
                 onClick={onAddSelected}
@@ -407,7 +407,7 @@ const QuestionBankModal = ({
                 className="px-6 py-2.5 rounded-xl font-semibold text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-lg flex items-center gap-2"
               >
                 <Plus className="w-4 h-4" />
-                Thêm {selectedQuestions.length > 0 && `(${selectedQuestions.length})`}
+                {t('teacher.questionBank.add')} {selectedQuestions.length > 0 && `(${selectedQuestions.length})`}
               </button>
             </div>
           </div>

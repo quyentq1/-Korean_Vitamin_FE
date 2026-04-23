@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { X, FileText, Award, User, Tags, Calendar, Clock, DollarSign, Globe, BookOpen, CheckCircle2, Video, Eye } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import lessonService from '../../services/lessonService';
 
 const CourseDetailModal = ({ course, onClose }) => {

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Plus, Trash2, Eye } from 'lucide-react';
 
 /**
@@ -6,6 +7,7 @@ import { Plus, Trash2, Eye } from 'lucide-react';
  * Priority 1: Question Bank
  */
 const CreateFillBlankQuestion = ({ initialData, onSubmit, onCancel }) => {
+    const { t } = useTranslation();
     const [formData, setFormData] = useState({
         questionText: '',
         category: '',
@@ -62,19 +64,19 @@ const CreateFillBlankQuestion = ({ initialData, onSubmit, onCancel }) => {
         const newErrors = {};
 
         if (!formData.questionText.trim()) {
-            newErrors.questionText = 'Vui lòng nhập nội dung câu hỏi';
+            newErrors.questionText = t('teacher.createFillBlank.errorQuestionRequired');
         }
 
         if (formData.blanks.length === 0 || formData.blanks.every(b => !b.trim())) {
-            newErrors.blanks = 'Cần ít nhất 1 chỗ trống';
+            newErrors.blanks = t('teacher.createFillBlank.errorMinBlank');
         }
 
         if (formData.correctAnswers.some(a => !a.trim())) {
-            newErrors.correctAnswers = 'Vui lòng nhập đáp án cho tất cả chỗ trống';
+            newErrors.correctAnswers = t('teacher.createFillBlank.errorAnswerRequired');
         }
 
         if (!formData.category) {
-            newErrors.category = 'Vui lòng chọn danh mục';
+            newErrors.category = t('teacher.createFillBlank.errorCategoryRequired');
         }
 
         setErrors(newErrors);
@@ -120,17 +122,17 @@ const CreateFillBlankQuestion = ({ initialData, onSubmit, onCancel }) => {
                 <div className="flex items-center justify-between">
                     <div>
                         <h3 className="text-lg font-semibold text-gray-900">
-                            Tạo Câu Hỏi Điền Từ
+                            {t('teacher.createFillBlank.title')}
                         </h3>
                         <p className="text-sm text-gray-600 mt-1">
-                            Tạo câu hỏi với chỗ trống cần điền
+                            {t('teacher.createFillBlank.subtitle')}
                         </p>
                     </div>
                     <button
                         type="button"
                         onClick={() => setShowPreview(!showPreview)}
                         className="p-2 text-green-600 hover:text-green-700 hover:bg-green-100 rounded-lg transition-colors"
-                        title="Xem trước"
+                        title={t('teacher.createFillBlank.preview')}
                     >
                         <Eye className="w-5 h-5" />
                     </button>
@@ -141,22 +143,21 @@ const CreateFillBlankQuestion = ({ initialData, onSubmit, onCancel }) => {
             <form onSubmit={handleSubmit} className="p-6 space-y-6">
                 {/* Instructions */}
                 <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                    <h4 className="text-sm font-semibold text-blue-900 mb-2">💡 Hướng dẫn</h4>
+                    <h4 className="text-sm font-semibold text-blue-900 mb-2">{t('teacher.createFillBlank.guide')}</h4>
                     <p className="text-sm text-blue-800">
-                        Nhập câu đầy đủ, sau đó chọn các từ cần làm chỗ trống ở phía dưới.
-                        Ví dụ: "Tôi _______ học tiếng Hàn." → Chọn "đang" để làm chỗ trống.
+                        {t('teacher.createFillBlank.guideDesc')}
                     </p>
                 </div>
 
                 {/* Question Text */}
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Câu đầy đủ <span className="text-red-500">*</span>
+                        {t('teacher.createFillBlank.fullSentence')} <span className="text-red-500">*</span>
                     </label>
                     <textarea
                         value={formData.questionText}
                         onChange={(e) => setFormData({ ...formData, questionText: e.target.value })}
-                        placeholder="Nhập câu đầy đủ... VD: Tôi đang học tiếng Hàn"
+                        placeholder={t('teacher.createFillBlank.fullSentencePlaceholder')}
                         rows={3}
                         className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none ${
                             errors.questionText ? 'border-red-500' : 'border-gray-300'
@@ -171,7 +172,7 @@ const CreateFillBlankQuestion = ({ initialData, onSubmit, onCancel }) => {
                 <div>
                     <div className="flex items-center justify-between mb-3">
                         <label className="block text-sm font-medium text-gray-700">
-                            Chỗ trống <span className="text-red-500">*</span>
+                            {t('teacher.createFillBlank.blanks')} <span className="text-red-500">*</span>
                         </label>
                         <button
                             type="button"
@@ -179,7 +180,7 @@ const CreateFillBlankQuestion = ({ initialData, onSubmit, onCancel }) => {
                             className="text-sm text-green-600 hover:text-green-700 flex items-center gap-1"
                         >
                             <Plus className="w-4 h-4" />
-                            Thêm chỗ trống
+                            {t('teacher.createFillBlank.addBlank')}
                         </button>
                     </div>
 
@@ -189,25 +190,25 @@ const CreateFillBlankQuestion = ({ initialData, onSubmit, onCancel }) => {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                     <div>
                                         <label className="block text-xs font-medium text-gray-600 mb-1">
-                                            Chọn từ cần làm chỗ trống:
+                                            {t('teacher.createFillBlank.selectWordForBlank')}
                                         </label>
                                         <input
                                             type="text"
                                             value={blank}
                                             onChange={(e) => handleBlankChange(index, e.target.value)}
-                                            placeholder="VD: đang"
+                                            placeholder={t('teacher.createFillBlank.wordExample')}
                                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm"
                                         />
                                     </div>
                                     <div>
                                         <label className="block text-xs font-medium text-gray-600 mb-1">
-                                            Đáp án đúng:
+                                            {t('teacher.createFillBlank.correctAnswer')}
                                         </label>
                                         <input
                                             type="text"
                                             value={formData.correctAnswers[index]}
                                             onChange={(e) => handleAnswerChange(index, e.target.value)}
-                                            placeholder="Đáp án (có thể nhiều đáp án, ngăn cách bởi |)"
+                                            placeholder={t('teacher.createFillBlank.answerPlaceholder')}
                                             className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm ${
                                                 errors.correctAnswers ? 'border-red-500' : 'border-gray-300'
                                             }`}
@@ -224,7 +225,7 @@ const CreateFillBlankQuestion = ({ initialData, onSubmit, onCancel }) => {
                                         className="mt-2 text-sm text-red-600 hover:text-red-700 flex items-center gap-1"
                                     >
                                         <Trash2 className="w-3 h-3" />
-                                        Xóa chỗ trống này
+                                        {t('teacher.createFillBlank.removeBlank')}
                                     </button>
                                 )}
                             </div>
@@ -240,7 +241,7 @@ const CreateFillBlankQuestion = ({ initialData, onSubmit, onCancel }) => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Danh mục <span className="text-red-500">*</span>
+                            {t('teacher.createFillBlank.category')} <span className="text-red-500">*</span>
                         </label>
                         <select
                             value={formData.category}
@@ -249,12 +250,12 @@ const CreateFillBlankQuestion = ({ initialData, onSubmit, onCancel }) => {
                                 errors.category ? 'border-red-500' : 'border-gray-300'
                             }`}
                         >
-                            <option value="">Chọn danh mục</option>
-                            <option value="Grammar">Ngữ pháp</option>
-                            <option value="Vocabulary">Từ vựng</option>
-                            <option value="Reading">Đọc hiểu</option>
-                            <option value="Listening">Nghe hiểu</option>
-                            <option value="Writing">Viết</option>
+                            <option value="">{t('teacher.createFillBlank.selectCategory')}</option>
+                            <option value="Grammar">{t('teacher.createFillBlank.catGrammar')}</option>
+                            <option value="Vocabulary">{t('teacher.createFillBlank.catVocabulary')}</option>
+                            <option value="Reading">{t('teacher.createFillBlank.catReading')}</option>
+                            <option value="Listening">{t('teacher.createFillBlank.catListening')}</option>
+                            <option value="Writing">{t('teacher.createFillBlank.catWriting')}</option>
                         </select>
                         {errors.category && (
                             <p className="text-sm text-red-600 mt-1">{errors.category}</p>
@@ -263,16 +264,16 @@ const CreateFillBlankQuestion = ({ initialData, onSubmit, onCancel }) => {
 
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Độ khó
+                            {t('teacher.createFillBlank.difficulty')}
                         </label>
                         <select
                             value={formData.difficulty}
                             onChange={(e) => setFormData({ ...formData, difficulty: e.target.value })}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                         >
-                            <option value="EASY">Dễ</option>
-                            <option value="MEDIUM">Trung bình</option>
-                            <option value="HARD">Khó</option>
+                            <option value="EASY">{t('teacher.createFillBlank.easy')}</option>
+                            <option value="MEDIUM">{t('teacher.createFillBlank.medium')}</option>
+                            <option value="HARD">{t('teacher.createFillBlank.hard')}</option>
                         </select>
                     </div>
                 </div>
@@ -280,7 +281,7 @@ const CreateFillBlankQuestion = ({ initialData, onSubmit, onCancel }) => {
                 {/* Points */}
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Số điểm
+                        {t('teacher.createFillBlank.points')}
                     </label>
                     <input
                         type="number"
@@ -295,12 +296,12 @@ const CreateFillBlankQuestion = ({ initialData, onSubmit, onCancel }) => {
                 {/* Explanation */}
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Giải thích (Optional)
+                        {t('teacher.createFillBlank.explanationOptional')}
                     </label>
                     <textarea
                         value={formData.explanation}
                         onChange={(e) => setFormData({ ...formData, explanation: e.target.value })}
-                        placeholder="Giải thích ngữ pháp hoặc từ vựng..."
+                        placeholder={t('teacher.createFillBlank.explanationPlaceholder')}
                         rows={3}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none"
                     />
@@ -309,7 +310,7 @@ const CreateFillBlankQuestion = ({ initialData, onSubmit, onCancel }) => {
                 {/* Preview */}
                 {showPreview && formData.questionText && (
                     <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                        <h4 className="text-sm font-semibold text-gray-700 mb-3">Xem trước</h4>
+                        <h4 className="text-sm font-semibold text-gray-700 mb-3">{t('teacher.createFillBlank.preview')}</h4>
                         <div className="bg-white p-4 rounded-lg">
                             <p
                                 className="text-gray-900 leading-relaxed"
@@ -317,7 +318,7 @@ const CreateFillBlankQuestion = ({ initialData, onSubmit, onCancel }) => {
                             />
                             <div className="mt-4 pt-4 border-t border-gray-200">
                                 <p className="text-sm text-gray-600">
-                                    <strong>Đáp án:</strong>
+                                    <strong>{t('teacher.createFillBlank.answerLabel')}</strong>
                                 </p>
                                 <ol className="list-decimal list-inside mt-2 space-y-1">
                                     {formData.correctAnswers.filter(a => a.trim()).map((answer, index) => (
@@ -338,13 +339,13 @@ const CreateFillBlankQuestion = ({ initialData, onSubmit, onCancel }) => {
                         onClick={onCancel}
                         className="px-6 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
                     >
-                        Hủy
+                        {t('teacher.createFillBlank.cancel')}
                     </button>
                     <button
                         type="submit"
                         className="px-6 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all shadow-md"
                     >
-                        Lưu Câu Hỏi
+                        {t('teacher.createFillBlank.saveQuestion')}
                     </button>
                 </div>
             </form>

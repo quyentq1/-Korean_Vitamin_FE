@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Search, Filter, SlidersHorizontal, X } from 'lucide-react';
 
 /**
@@ -6,6 +7,7 @@ import { Search, Filter, SlidersHorizontal, X } from 'lucide-react';
  * Priority 1: Question Bank
  */
 const QuestionSearchFilter = ({ onFilterChange, initialFilters = {} }) => {
+    const { t } = useTranslation();
     const [filters, setFilters] = useState({
         searchTerm: '',
         category: '',
@@ -52,27 +54,27 @@ const QuestionSearchFilter = ({ onFilterChange, initialFilters = {} }) => {
     ];
 
     const questionTypes = [
-        { value: 'MULTIPLE_CHOICE', label: 'Trắc nghiệm' },
-        { value: 'FILL_BLANK', label: 'Điền từ' },
-        { value: 'READING', label: 'Đọc hiểu' },
-        { value: 'LISTENING', label: 'Nghe hiểu' },
-        { value: 'WRITING', label: 'Viết' },
-        { value: 'SPEAKING', label: 'Nói' },
-        { value: 'SHORT_ANSWER', label: 'Tự luận ngắn' },
-        { value: 'ESSAY', label: 'Luận' }
+        { value: 'MULTIPLE_CHOICE', label: t('teacher.questionFilter.typeMCQ') },
+        { value: 'FILL_BLANK', label: t('teacher.questionFilter.typeFillBlank') },
+        { value: 'READING', label: t('teacher.questionFilter.typeReading') },
+        { value: 'LISTENING', label: t('teacher.questionFilter.typeListening') },
+        { value: 'WRITING', label: t('teacher.questionFilter.typeWriting') },
+        { value: 'SPEAKING', label: t('teacher.questionFilter.typeSpeaking') },
+        { value: 'SHORT_ANSWER', label: t('teacher.questionFilter.typeShortAnswer') },
+        { value: 'ESSAY', label: t('teacher.questionFilter.typeEssay') }
     ];
 
     const difficulties = [
-        { value: 'EASY', label: 'Dễ', color: 'bg-green-100 text-green-700' },
-        { value: 'MEDIUM', label: 'Trung bình', color: 'bg-yellow-100 text-yellow-700' },
-        { value: 'HARD', label: 'Khó', color: 'bg-red-100 text-red-700' }
+        { value: 'EASY', label: t('teacher.questionFilter.easy'), color: 'bg-green-100 text-green-700' },
+        { value: 'MEDIUM', label: t('teacher.questionFilter.medium'), color: 'bg-yellow-100 text-yellow-700' },
+        { value: 'HARD', label: t('teacher.questionFilter.hard'), color: 'bg-red-100 text-red-700' }
     ];
 
     const statuses = [
-        { value: 'DRAFT', label: 'Bản nháp', color: 'bg-gray-100 text-gray-700' },
-        { value: 'PENDING', label: 'Chờ duyệt', color: 'bg-yellow-100 text-yellow-700' },
-        { value: 'APPROVED', label: 'Đã duyệt', color: 'bg-green-100 text-green-700' },
-        { value: 'REJECTED', label: 'Từ chối', color: 'bg-red-100 text-red-700' }
+        { value: 'DRAFT', label: t('teacher.questionFilter.statusDraft'), color: 'bg-gray-100 text-gray-700' },
+        { value: 'PENDING', label: t('teacher.questionFilter.statusPending'), color: 'bg-yellow-100 text-yellow-700' },
+        { value: 'APPROVED', label: t('teacher.questionFilter.statusApproved'), color: 'bg-green-100 text-green-700' },
+        { value: 'REJECTED', label: t('teacher.questionFilter.statusRejected'), color: 'bg-red-100 text-red-700' }
     ];
 
     return (
@@ -86,7 +88,7 @@ const QuestionSearchFilter = ({ onFilterChange, initialFilters = {} }) => {
                             type="text"
                             value={filters.searchTerm}
                             onChange={(e) => handleFilterChange('searchTerm', e.target.value)}
-                            placeholder="Tìm kiếm câu hỏi, tags..."
+                            placeholder={t('teacher.questionFilter.searchPlaceholder')}
                             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                         />
                         {filters.searchTerm && (
@@ -108,7 +110,7 @@ const QuestionSearchFilter = ({ onFilterChange, initialFilters = {} }) => {
                         }`}
                     >
                         <SlidersHorizontal className="w-4 h-4" />
-                        Lọc
+                        {t('teacher.questionFilter.filter')}
                     </button>
 
                     {hasActiveFilters && (
@@ -116,7 +118,7 @@ const QuestionSearchFilter = ({ onFilterChange, initialFilters = {} }) => {
                             onClick={clearFilters}
                             className="px-4 py-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
                         >
-                            Xóa lọc
+                            {t('teacher.questionFilter.clearFilters')}
                         </button>
                     )}
                 </div>
@@ -129,14 +131,14 @@ const QuestionSearchFilter = ({ onFilterChange, initialFilters = {} }) => {
                         {/* Category */}
                         <div>
                             <label className="block text-xs font-medium text-gray-700 mb-1.5">
-                                Danh mục
+                                {t('teacher.questionFilter.category')}
                             </label>
                             <select
                                 value={filters.category}
                                 onChange={(e) => handleFilterChange('category', e.target.value)}
                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
                             >
-                                <option value="">Tất cả</option>
+                                <option value="">{t('teacher.questionFilter.all')}</option>
                                 {categories.map(cat => (
                                     <option key={cat} value={cat}>{cat}</option>
                                 ))}
@@ -146,14 +148,14 @@ const QuestionSearchFilter = ({ onFilterChange, initialFilters = {} }) => {
                         {/* Question Type */}
                         <div>
                             <label className="block text-xs font-medium text-gray-700 mb-1.5">
-                                Loại câu hỏi
+                                {t('teacher.questionFilter.questionType')}
                             </label>
                             <select
                                 value={filters.questionType}
                                 onChange={(e) => handleFilterChange('questionType', e.target.value)}
                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
                             >
-                                <option value="">Tất cả</option>
+                                <option value="">{t('teacher.questionFilter.all')}</option>
                                 {questionTypes.map(type => (
                                     <option key={type.value} value={type.value}>{type.label}</option>
                                 ))}
@@ -163,14 +165,14 @@ const QuestionSearchFilter = ({ onFilterChange, initialFilters = {} }) => {
                         {/* Difficulty */}
                         <div>
                             <label className="block text-xs font-medium text-gray-700 mb-1.5">
-                                Độ khó
+                                {t('teacher.questionFilter.difficulty')}
                             </label>
                             <select
                                 value={filters.difficulty}
                                 onChange={(e) => handleFilterChange('difficulty', e.target.value)}
                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
                             >
-                                <option value="">Tất cả</option>
+                                <option value="">{t('teacher.questionFilter.all')}</option>
                                 {difficulties.map(diff => (
                                     <option key={diff.value} value={diff.value}>{diff.label}</option>
                                 ))}
@@ -180,14 +182,14 @@ const QuestionSearchFilter = ({ onFilterChange, initialFilters = {} }) => {
                         {/* Status */}
                         <div>
                             <label className="block text-xs font-medium text-gray-700 mb-1.5">
-                                Trạng thái
+                                {t('teacher.questionFilter.status')}
                             </label>
                             <select
                                 value={filters.status}
                                 onChange={(e) => handleFilterChange('status', e.target.value)}
                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
                             >
-                                <option value="">Tất cả</option>
+                                <option value="">{t('teacher.questionFilter.all')}</option>
                                 {statuses.map(status => (
                                     <option key={status.value} value={status.value}>{status.label}</option>
                                 ))}
@@ -197,7 +199,7 @@ const QuestionSearchFilter = ({ onFilterChange, initialFilters = {} }) => {
                         {/* Tags */}
                         <div className="md:col-span-2">
                             <label className="block text-xs font-medium text-gray-700 mb-1.5">
-                                Tags
+                                {t('teacher.questionFilter.tags')}
                             </label>
                             <input
                                 type="text"
@@ -215,7 +217,7 @@ const QuestionSearchFilter = ({ onFilterChange, initialFilters = {} }) => {
                             <div className="flex flex-wrap gap-2">
                                 {filters.category && (
                                     <span className="inline-flex items-center gap-1 px-2 py-1 bg-indigo-100 text-indigo-700 rounded-full text-xs">
-                                        Danh mục: {filters.category}
+                                        {t('teacher.questionFilter.category')}: {filters.category}
                                         <button
                                             onClick={() => handleFilterChange('category', '')}
                                             className="hover:text-indigo-900"
@@ -226,7 +228,7 @@ const QuestionSearchFilter = ({ onFilterChange, initialFilters = {} }) => {
                                 )}
                                 {filters.questionType && (
                                     <span className="inline-flex items-center gap-1 px-2 py-1 bg-indigo-100 text-indigo-700 rounded-full text-xs">
-                                        Loại: {questionTypes.find(t => t.value === filters.questionType)?.label}
+                                        {t('teacher.questionFilter.typeShort')}: {questionTypes.find(t => t.value === filters.questionType)?.label}
                                         <button
                                             onClick={() => handleFilterChange('questionType', '')}
                                             className="hover:text-indigo-900"
@@ -237,7 +239,7 @@ const QuestionSearchFilter = ({ onFilterChange, initialFilters = {} }) => {
                                 )}
                                 {filters.difficulty && (
                                     <span className="inline-flex items-center gap-1 px-2 py-1 bg-indigo-100 text-indigo-700 rounded-full text-xs">
-                                        Độ khó: {difficulties.find(d => d.value === filters.difficulty)?.label}
+                                        {t('teacher.questionFilter.difficulty')}: {difficulties.find(d => d.value === filters.difficulty)?.label}
                                         <button
                                             onClick={() => handleFilterChange('difficulty', '')}
                                             className="hover:text-indigo-900"
@@ -248,7 +250,7 @@ const QuestionSearchFilter = ({ onFilterChange, initialFilters = {} }) => {
                                 )}
                                 {filters.status && (
                                     <span className="inline-flex items-center gap-1 px-2 py-1 bg-indigo-100 text-indigo-700 rounded-full text-xs">
-                                        Trạng thái: {statuses.find(s => s.value === filters.status)?.label}
+                                        {t('teacher.questionFilter.status')}: {statuses.find(s => s.value === filters.status)?.label}
                                         <button
                                             onClick={() => handleFilterChange('status', '')}
                                             className="hover:text-indigo-900"

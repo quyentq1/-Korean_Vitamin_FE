@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Plus, Trash2, BookOpen, FileText } from 'lucide-react';
 
 /**
@@ -6,6 +7,7 @@ import { Plus, Trash2, BookOpen, FileText } from 'lucide-react';
  * Priority 1: Question Bank
  */
 const CreateReadingQuestion = ({ initialData, onSubmit, onCancel }) => {
+    const { t } = useTranslation();
     const [formData, setFormData] = useState({
         passageTitle: '',
         passageContent: '',
@@ -77,23 +79,23 @@ const CreateReadingQuestion = ({ initialData, onSubmit, onCancel }) => {
         const newErrors = {};
 
         if (!formData.passageTitle.trim()) {
-            newErrors.passageTitle = 'Vui lòng nhập tiêu đề bài đọc';
+            newErrors.passageTitle = t('teacher.createReading.errorTitleRequired');
         }
 
         if (!formData.passageContent.trim()) {
-            newErrors.passageContent = 'Vui lòng nhập nội dung bài đọc';
+            newErrors.passageContent = t('teacher.createReading.errorContentRequired');
         }
 
         formData.questions.forEach((q, index) => {
             if (!q.questionText.trim()) {
-                newErrors[`question_${index}`] = 'Câu hỏi không được để trống';
+                newErrors[`question_${index}`] = t('teacher.createReading.errorQuestionEmpty');
             }
             const validOptions = q.options.filter(opt => opt.trim());
             if (validOptions.length < 2) {
-                newErrors[`options_${index}`] = 'Cần ít nhất 2 đáp án';
+                newErrors[`options_${index}`] = t('teacher.createReading.errorMinOptions');
             }
             if (!q.correctAnswer) {
-                newErrors[`answer_${index}`] = 'Chưa chọn đáp án đúng';
+                newErrors[`answer_${index}`] = t('teacher.createReading.errorNoCorrectAnswer');
             }
         });
 
@@ -122,10 +124,10 @@ const CreateReadingQuestion = ({ initialData, onSubmit, onCancel }) => {
                     </div>
                     <div>
                         <h3 className="text-lg font-semibold text-gray-900">
-                            Tạo Câu Hỏi Đọc Hiểu
+                            {t('teacher.createReading.title')}
                         </h3>
                         <p className="text-sm text-gray-600 mt-1">
-                            Tạo bài đọc với nhiều câu hỏi đi kèm
+                            {t('teacher.createReading.subtitle')}
                         </p>
                     </div>
                 </div>
@@ -137,13 +139,13 @@ const CreateReadingQuestion = ({ initialData, onSubmit, onCancel }) => {
                 <div className="space-y-4">
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Tiêu đề bài đọc <span className="text-red-500">*</span>
+                            {t('teacher.createReading.passageTitle')} <span className="text-red-500">*</span>
                         </label>
                         <input
                             type="text"
                             value={formData.passageTitle}
                             onChange={(e) => setFormData({ ...formData, passageTitle: e.target.value })}
-                            placeholder="VD: Bài đọc về văn hóa Hàn Quốc"
+                            placeholder={t('teacher.createReading.passageTitlePlaceholder')}
                             className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 ${
                                 errors.passageTitle ? 'border-red-500' : 'border-gray-300'
                             }`}
@@ -155,29 +157,29 @@ const CreateReadingQuestion = ({ initialData, onSubmit, onCancel }) => {
 
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Loại bài đọc
+                            {t('teacher.createReading.passageType')}
                         </label>
                         <select
                             value={formData.passageType}
                             onChange={(e) => setFormData({ ...formData, passageType: e.target.value })}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                         >
-                            <option value="ACADEMIC">Học thuật</option>
-                            <option value="NEWS">Tin tức</option>
-                            <option value="STORY">Truyện ngắn</option>
-                            <option value="CONVERSATION">Hội thoại</option>
-                            <option value="ANNOUNCEMENT">Thông báo</option>
+                            <option value="ACADEMIC">{t('teacher.createReading.typeAcademic')}</option>
+                            <option value="NEWS">{t('teacher.createReading.typeNews')}</option>
+                            <option value="STORY">{t('teacher.createReading.typeStory')}</option>
+                            <option value="CONVERSATION">{t('teacher.createReading.typeConversation')}</option>
+                            <option value="ANNOUNCEMENT">{t('teacher.createReading.typeAnnouncement')}</option>
                         </select>
                     </div>
 
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Nội dung bài đọc <span className="text-red-500">*</span>
+                            {t('teacher.createReading.passageContent')} <span className="text-red-500">*</span>
                         </label>
                         <textarea
                             value={formData.passageContent}
                             onChange={(e) => setFormData({ ...formData, passageContent: e.target.value })}
-                            placeholder="Dán nội dung bài đọc tại đây..."
+                            placeholder={t('teacher.createReading.passageContentPlaceholder')}
                             rows={10}
                             className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 resize-none ${
                                 errors.passageContent ? 'border-red-500' : 'border-gray-300'
@@ -193,22 +195,22 @@ const CreateReadingQuestion = ({ initialData, onSubmit, onCancel }) => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Độ khó
+                            {t('teacher.createReading.difficulty')}
                         </label>
                         <select
                             value={formData.difficulty}
                             onChange={(e) => setFormData({ ...formData, difficulty: e.target.value })}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                         >
-                            <option value="EASY">Dễ</option>
-                            <option value="MEDIUM">Trung bình</option>
-                            <option value="HARD">Khó</option>
+                            <option value="EASY">{t('teacher.createReading.easy')}</option>
+                            <option value="MEDIUM">{t('teacher.createReading.medium')}</option>
+                            <option value="HARD">{t('teacher.createReading.hard')}</option>
                         </select>
                     </div>
 
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Số điểm mỗi câu
+                            {t('teacher.createReading.pointsPerQuestion')}
                         </label>
                         <input
                             type="number"
@@ -225,7 +227,7 @@ const CreateReadingQuestion = ({ initialData, onSubmit, onCancel }) => {
                 <div>
                     <div className="flex items-center justify-between mb-4">
                         <h4 className="text-md font-semibold text-gray-900">
-                            Câu hỏi ({formData.questions.length})
+                            {t('teacher.createReading.questions')} ({formData.questions.length})
                         </h4>
                         <button
                             type="button"
@@ -233,7 +235,7 @@ const CreateReadingQuestion = ({ initialData, onSubmit, onCancel }) => {
                             className="px-4 py-2 text-purple-600 bg-purple-100 rounded-lg hover:bg-purple-200 transition-colors flex items-center gap-2 text-sm font-medium"
                         >
                             <Plus className="w-4 h-4" />
-                            Thêm câu hỏi
+                            {t('teacher.createReading.addQuestion')}
                         </button>
                     </div>
 
@@ -242,7 +244,7 @@ const CreateReadingQuestion = ({ initialData, onSubmit, onCancel }) => {
                             <div key={qIndex} className="p-4 bg-gray-50 rounded-lg border border-gray-200">
                                 <div className="flex items-start justify-between mb-3">
                                     <h5 className="text-sm font-semibold text-gray-900">
-                                        Câu {qIndex + 1}
+                                        {t('teacher.createReading.questionN', { n: qIndex + 1 })}
                                     </h5>
                                     {formData.questions.length > 1 && (
                                         <button
@@ -260,7 +262,7 @@ const CreateReadingQuestion = ({ initialData, onSubmit, onCancel }) => {
                                     <textarea
                                         value={question.questionText}
                                         onChange={(e) => updateQuestion(qIndex, 'questionText', e.target.value)}
-                                        placeholder="Nhập câu hỏi..."
+                                        placeholder={t('teacher.createReading.questionPlaceholder')}
                                         rows={2}
                                         className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 resize-none text-sm ${
                                             errors[`question_${qIndex}`] ? 'border-red-500' : 'border-gray-300'
@@ -290,7 +292,7 @@ const CreateReadingQuestion = ({ initialData, onSubmit, onCancel }) => {
                                                 type="text"
                                                 value={option}
                                                 onChange={(e) => updateQuestionOption(qIndex, oIndex, e.target.value)}
-                                                placeholder={`Đáp án ${oIndex + 1}`}
+                                                placeholder={t('teacher.createReading.answerN', { n: oIndex + 1 })}
                                                 className="flex-1 px-3 py-1.5 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm"
                                             />
                                         </div>
@@ -309,7 +311,7 @@ const CreateReadingQuestion = ({ initialData, onSubmit, onCancel }) => {
                                         type="text"
                                         value={question.explanation}
                                         onChange={(e) => updateQuestion(qIndex, 'explanation', e.target.value)}
-                                        placeholder="Giải thích (optional)"
+                                        placeholder={t('teacher.createReading.explanationOptional')}
                                         className="w-full px-3 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm"
                                     />
                                 </div>
@@ -321,7 +323,7 @@ const CreateReadingQuestion = ({ initialData, onSubmit, onCancel }) => {
                 {/* Tags */}
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Tags (Optional)
+                        {t('teacher.createReading.tagsOptional')}
                     </label>
                     <input
                         type="text"
@@ -337,17 +339,17 @@ const CreateReadingQuestion = ({ initialData, onSubmit, onCancel }) => {
 
                 {/* Preview */}
                 <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                    <h4 className="text-sm font-semibold text-gray-700 mb-3">Xem trước</h4>
+                    <h4 className="text-sm font-semibold text-gray-700 mb-3">{t('teacher.createReading.preview')}</h4>
                     <div className="bg-white p-4 rounded-lg max-h-96 overflow-y-auto">
-                        <h5 className="font-semibold text-gray-900 mb-2">{formData.passageTitle || 'Tiêu đề...'}</h5>
+                        <h5 className="font-semibold text-gray-900 mb-2">{formData.passageTitle || t('teacher.createReading.titlePlaceholder')}</h5>
                         <p className="text-sm text-gray-700 whitespace-pre-wrap mb-4">
-                            {formData.passageContent || 'Nội dung bài đọc...'}
+                            {formData.passageContent || t('teacher.createReading.contentPlaceholder')}
                         </p>
                         <div className="border-t border-gray-200 pt-4">
                             {formData.questions.map((q, index) => (
                                 <div key={index} className="mb-3">
                                     <p className="text-sm font-medium text-gray-900">
-                                        {index + 1}. {q.questionText || 'Câu hỏi...'}
+                                        {index + 1}. {q.questionText || t('teacher.createReading.questionPlaceholder')}
                                     </p>
                                 </div>
                             ))}
@@ -362,13 +364,13 @@ const CreateReadingQuestion = ({ initialData, onSubmit, onCancel }) => {
                         onClick={onCancel}
                         className="px-6 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
                     >
-                        Hủy
+                        {t('teacher.createReading.cancel')}
                     </button>
                     <button
                         type="submit"
                         className="px-6 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all shadow-md"
                     >
-                        Lưu Bài Đọc
+                        {t('teacher.createReading.savePassage')}
                     </button>
                 </div>
             </form>

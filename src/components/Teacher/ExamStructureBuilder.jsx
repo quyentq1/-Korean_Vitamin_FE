@@ -151,7 +151,7 @@ const ExamStructureBuilder = ({
         bgColor: 'bg-green-50',
         borderColor: 'border-green-200',
         icon: <CheckCircle2 className="w-4 h-4" />,
-        message: `${available}/${requiredCount} câu`
+        message: `${available}/${requiredCount} ${t('teacher.examStructure.questions')}`
       };
     } else if (available > 0) {
       return {
@@ -160,7 +160,7 @@ const ExamStructureBuilder = ({
         bgColor: 'bg-yellow-50',
         borderColor: 'border-yellow-200',
         icon: <AlertCircle className="w-4 h-4" />,
-        message: `${available}/${requiredCount} câu (thiếu)`
+        message: `${available}/${requiredCount} ${t('teacher.examStructure.questionsMissing')}`
       };
     } else {
       return {
@@ -169,7 +169,7 @@ const ExamStructureBuilder = ({
         bgColor: 'bg-red-50',
         borderColor: 'border-red-200',
         icon: <AlertCircle className="w-4 h-4" />,
-        message: `0/${requiredCount} câu (không có)`
+        message: `0/${requiredCount} ${t('teacher.examStructure.questionsNone')}`
       };
     }
   };
@@ -395,10 +395,10 @@ const ExamStructureBuilder = ({
             </div>
             <div>
               <h3 className="text-lg font-semibold text-gray-900">
-                Tạo Đề Tự Động Theo Cấu Trúc TOPIK
+                {t('teacher.examStructure.title')}
               </h3>
               <p className="text-sm text-gray-600">
-                {topikLevel === 'TOPIK_I' ? 'TOPIK I (Cấp độ 1-2)' : 'TOPIK II (Cấp độ 3-6)'}
+                {topikLevel === 'TOPIK_I' ? t('teacher.examStructure.topikI') : t('teacher.examStructure.topikII')}
               </p>
             </div>
           </div>
@@ -411,8 +411,8 @@ const ExamStructureBuilder = ({
           <div className="flex items-center gap-2 text-sm text-blue-700">
             <Info className="w-4 h-4" />
             <span>
-              Khóa học cấp độ <strong>{courseLevel === 'BEGINNER' ? 'TOPIK I' : courseLevel === 'INTERMEDIATE' ? 'TOPIK II' : 'ESP'}</strong>
-              - Chỉ random câu hỏi phù hợp với cấp độ này
+              {t('teacher.examStructure.courseLevel')} <strong>{courseLevel === 'BEGINNER' ? 'TOPIK I' : courseLevel === 'INTERMEDIATE' ? 'TOPIK II' : 'ESP'}</strong>
+              - {t('teacher.examStructure.courseLevelDesc')}
             </span>
           </div>
         </div>
@@ -424,7 +424,7 @@ const ExamStructureBuilder = ({
           <div className="flex items-center gap-2 text-sm text-amber-700">
             <Info className="w-4 h-4" />
             <span>
-              <strong>Lưu ý:</strong> Phần Viết (Writing) chỉ có sẵn khi tạo đề thi cho Lớp học (Class). Với Khóa học (Course), bạn chỉ có thể tạo phần Đọc và Nghe.
+              <strong>{t('teacher.examStructure.note')}:</strong> {t('teacher.examStructure.writingOnlyForClass')}
             </span>
           </div>
         </div>
@@ -434,7 +434,7 @@ const ExamStructureBuilder = ({
       <div className="px-6 py-3 border-b border-gray-200">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4 flex-wrap">
-            <span className="text-sm font-medium text-gray-700">Chọn phần thi:</span>
+            <span className="text-sm font-medium text-gray-700">{t('teacher.examStructure.selectSections')}:</span>
 
             <label className="flex items-center gap-2 cursor-pointer">
               <input
@@ -443,7 +443,7 @@ const ExamStructureBuilder = ({
                 onChange={() => toggleSectionSelection('reading')}
                 className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
               />
-              <span className="text-sm text-gray-700">Đọc (Reading)</span>
+              <span className="text-sm text-gray-700">{t('teacher.examStructure.reading')}</span>
             </label>
 
             <label className="flex items-center gap-2 cursor-pointer">
@@ -453,7 +453,7 @@ const ExamStructureBuilder = ({
                 onChange={() => toggleSectionSelection('listening')}
                 className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
               />
-              <span className="text-sm text-gray-700">Nghe (Listening)</span>
+              <span className="text-sm text-gray-700">{t('teacher.examStructure.listening')}</span>
             </label>
 
             {/* NEW: Only show Writing option for Class exams */}
@@ -465,7 +465,7 @@ const ExamStructureBuilder = ({
                   onChange={() => toggleSectionSelection('writing')}
                   className="w-4 h-4 text-green-600 rounded focus:ring-green-500"
                 />
-                <span className="text-sm text-gray-700">Viết (Writing)</span>
+                <span className="text-sm text-gray-700">{t('teacher.examStructure.writing')}</span>
               </label>
             )}
           </div>
@@ -501,10 +501,10 @@ const ExamStructureBuilder = ({
         <div className="px-6 py-4 bg-gradient-to-r from-amber-50 to-orange-50 border-b border-amber-200">
           <div className="flex items-center gap-2 mb-4 text-amber-800">
             <Info className="w-4 h-4" />
-            <span className="text-sm font-semibold">Tùy chỉnh số câu theo từng TopikType trong cấu trúc đề</span>
+            <span className="text-sm font-semibold">{t('teacher.examStructure.customTopikType')}</span>
           </div>
           <p className="text-xs text-amber-600 mb-4">
-            Chỉ các loại câu hỏi thuộc cấu trúc đề thi <strong>{topikLevel === 'TOPIK_I' ? 'TOPIK I' : 'TOPIK II'}</strong> được hiển thị. Thay đổi số lượng câu cho từng loại theo nhu cầu.
+            {t('teacher.examStructure.customDesc', { level: topikLevel === 'TOPIK_I' ? 'TOPIK I' : 'TOPIK II' })}
           </p>
 
           <div className="space-y-4">
@@ -513,7 +513,7 @@ const ExamStructureBuilder = ({
               <div className="bg-white rounded-lg p-4 border border-blue-200">
                 <div className="flex items-center gap-2 mb-3 text-blue-700 font-semibold">
                   <BookOpen className="w-4 h-4" />
-                  <span>Đọc (Reading)</span>
+                  <span>{t('teacher.examStructure.reading')}</span>
                 </div>
                 <div className="grid grid-cols-3 gap-3">
                   {topikTypesByCategory.READING.map(item => {
@@ -563,7 +563,7 @@ const ExamStructureBuilder = ({
               <div className="bg-white rounded-lg p-4 border border-purple-200">
                 <div className="flex items-center gap-2 mb-3 text-purple-700 font-semibold">
                   <Headphones className="w-4 h-4" />
-                  <span>Nghe (Listening)</span>
+                  <span>{t('teacher.examStructure.listening')}</span>
                 </div>
                 <div className="grid grid-cols-3 gap-3">
                   {topikTypesByCategory.LISTENING.map(item => {
@@ -613,7 +613,7 @@ const ExamStructureBuilder = ({
               <div className="bg-white rounded-lg p-4 border border-green-200">
                 <div className="flex items-center gap-2 mb-3 text-green-700 font-semibold">
                   <PenTool className="w-4 h-4" />
-                  <span>Viết (Writing)</span>
+                  <span>{t('teacher.examStructure.writing')}</span>
                 </div>
                 <div className="grid grid-cols-4 gap-3">
                   {topikTypesByCategory.WRITING.map(item => {
@@ -660,7 +660,7 @@ const ExamStructureBuilder = ({
           </div>
 
           <p className="mt-3 text-xs text-amber-700">
-            ⚠️ Custom mode cho phép chọn số lượng câu theo từng TopikType. Tắt để dùng cấu trúc TOPIK chuẩn.
+            {t('teacher.examStructure.customWarning')}
           </p>
         </div>
       )}
@@ -677,9 +677,9 @@ const ExamStructureBuilder = ({
               >
                 <div className="flex items-center gap-2">
                   <BookOpen className="w-5 h-5 text-blue-600" />
-                  <span className="font-semibold text-gray-900">Phần Đọc (Reading)</span>
+                  <span className="font-semibold text-gray-900">{t('teacher.examStructure.sectionReading')}</span>
                   <span className="text-sm text-gray-600">
-                    {structure.reading.reduce((sum, item) => sum + item.count, 0)} câu
+                    {structure.reading.reduce((sum, item) => sum + item.count, 0)} {t('teacher.examStructure.questions')}
                   </span>
                 </div>
                 {expandedSections.reading ? (
@@ -701,7 +701,7 @@ const ExamStructureBuilder = ({
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
                             <span className="font-semibold text-gray-900">{item.type}</span>
-                            <span className="text-xs text-gray-500">Câu {item.range[0]}-{item.range[1]}</span>
+                            <span className="text-xs text-gray-500">{t('teacher.examStructure.questionRange', { from: item.range[0], to: item.range[1] })}</span>
                             <span className={`text-xs px-2 py-0.5 rounded-full ${availability.bgColor} ${availability.color}`}>
                               {availability.message}
                             </span>
@@ -709,8 +709,8 @@ const ExamStructureBuilder = ({
                           <p className="text-sm text-gray-600">{item.description}</p>
                         </div>
                         <div className="text-right">
-                          <div className="text-sm font-medium text-gray-700">{item.count} câu</div>
-                          <div className="text-xs text-gray-500">{item.pointsPerQuestion} điểm/câu</div>
+                          <div className="text-sm font-medium text-gray-700">{item.count} {t('teacher.examStructure.questions')}</div>
+                          <div className="text-xs text-gray-500">{item.pointsPerQuestion} {t('teacher.examStructure.pointsPerQuestion')}</div>
                         </div>
                       </div>
                     );
@@ -729,9 +729,9 @@ const ExamStructureBuilder = ({
               >
                 <div className="flex items-center gap-2">
                   <Headphones className="w-5 h-5 text-purple-600" />
-                  <span className="font-semibold text-gray-900">Phần Nghe (Listening)</span>
+                  <span className="font-semibold text-gray-900">{t('teacher.examStructure.sectionListening')}</span>
                   <span className="text-sm text-gray-600">
-                    {structure.listening.reduce((sum, item) => sum + item.count, 0)} câu
+                    {structure.listening.reduce((sum, item) => sum + item.count, 0)} {t('teacher.examStructure.questions')}
                   </span>
                 </div>
                 {expandedSections.listening ? (
@@ -753,7 +753,7 @@ const ExamStructureBuilder = ({
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
                             <span className="font-semibold text-gray-900">{item.type}</span>
-                            <span className="text-xs text-gray-500">Câu {item.range[0]}-{item.range[1]}</span>
+                            <span className="text-xs text-gray-500">{t('teacher.examStructure.questionRange', { from: item.range[0], to: item.range[1] })}</span>
                             <span className={`text-xs px-2 py-0.5 rounded-full ${availability.bgColor} ${availability.color}`}>
                               {availability.message}
                             </span>
@@ -761,8 +761,8 @@ const ExamStructureBuilder = ({
                           <p className="text-sm text-gray-600">{item.description}</p>
                         </div>
                         <div className="text-right">
-                          <div className="text-sm font-medium text-gray-700">{item.count} câu</div>
-                          <div className="text-xs text-gray-500">{item.pointsPerQuestion} điểm/câu</div>
+                          <div className="text-sm font-medium text-gray-700">{item.count} {t('teacher.examStructure.questions')}</div>
+                          <div className="text-xs text-gray-500">{item.pointsPerQuestion} {t('teacher.examStructure.pointsPerQuestion')}</div>
                         </div>
                       </div>
                     );
@@ -781,9 +781,9 @@ const ExamStructureBuilder = ({
               >
                 <div className="flex items-center gap-2">
                   <PenTool className="w-5 h-5 text-green-600" />
-                  <span className="font-semibold text-gray-900">Phần Viết (Writing)</span>
+                  <span className="font-semibold text-gray-900">{t('teacher.examStructure.sectionWriting')}</span>
                   <span className="text-sm text-gray-600">
-                    {structure.writing.reduce((sum, item) => sum + item.count, 0)} câu
+                    {structure.writing.reduce((sum, item) => sum + item.count, 0)} {t('teacher.examStructure.questions')}
                   </span>
                 </div>
                 {expandedSections.writing ? (
@@ -805,7 +805,7 @@ const ExamStructureBuilder = ({
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
                             <span className="font-semibold text-gray-900">{item.type}</span>
-                            <span className="text-xs text-gray-500">Câu {item.range[0]}-{item.range[1]}</span>
+                            <span className="text-xs text-gray-500">{t('teacher.examStructure.questionRange', { from: item.range[0], to: item.range[1] })}</span>
                             <span className={`text-xs px-2 py-0.5 rounded-full ${availability.bgColor} ${availability.color}`}>
                               {availability.message}
                             </span>
@@ -813,8 +813,8 @@ const ExamStructureBuilder = ({
                           <p className="text-sm text-gray-600">{item.description}</p>
                         </div>
                         <div className="text-right">
-                          <div className="text-sm font-medium text-gray-700">{item.count} câu</div>
-                          <div className="text-xs text-gray-500">{item.pointsPerQuestion} điểm/câu</div>
+                          <div className="text-sm font-medium text-gray-700">{item.count} {t('teacher.examStructure.questions')}</div>
+                          <div className="text-xs text-gray-500">{item.pointsPerQuestion} {t('teacher.examStructure.pointsPerQuestion')}</div>
                         </div>
                       </div>
                     );
@@ -831,11 +831,11 @@ const ExamStructureBuilder = ({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-6">
             <div className="text-sm">
-              <span className="text-gray-600">Tổng câu hỏi: </span>
+              <span className="text-gray-600">{t('teacher.examStructure.totalQuestions')}: </span>
               <span className="font-bold text-gray-900">{totals.totalQuestions}</span>
             </div>
             <div className="text-sm">
-              <span className="text-gray-600">Tổng điểm: </span>
+              <span className="text-gray-600">{t('teacher.examStructure.totalPoints')}: </span>
               <span className="font-bold text-gray-900">{totals.totalPoints}</span>
             </div>
           </div>
@@ -852,12 +852,12 @@ const ExamStructureBuilder = ({
             {isGenerating ? (
               <>
                 <RefreshCw className="w-5 h-5 animate-spin" />
-                Đang tạo...
+                {t('teacher.examStructure.generating')}
               </>
             ) : (
               <>
                 <Wand2 className="w-5 h-5" />
-                Tạo Đề Thi
+                {t('teacher.examStructure.generateExam')}
               </>
             )}
           </button>
@@ -867,7 +867,7 @@ const ExamStructureBuilder = ({
           <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
             <div className="flex items-center gap-2 text-sm text-red-700">
               <AlertCircle className="w-4 h-4" />
-              <span>Không đủ câu hỏi trong ngân hàng. Hãy thêm câu hỏi hoặc giảm số lượng câu.</span>
+              <span>{t('teacher.examStructure.notEnoughQuestions')}</span>
             </div>
           </div>
         )}

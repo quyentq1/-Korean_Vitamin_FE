@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Upload, Download, FileSpreadsheet, CheckCircle, AlertCircle, X, Loader2 } from 'lucide-react';
 import { teacherService } from '../../services/teacherService';
 import Swal from 'sweetalert2';
@@ -8,6 +9,7 @@ import Swal from 'sweetalert2';
  * Priority 3: Excel Import Enhancements
  */
 const ImportQuestions = ({ teacherId, onImportComplete, onClose }) => {
+    const { t } = useTranslation();
     const [file, setFile] = useState(null);
     const [dragging, setDragging] = useState(false);
     const [uploading, setUploading] = useState(false);
@@ -54,13 +56,13 @@ const ImportQuestions = ({ teacherId, onImportComplete, onClose }) => {
         // Check file extension
         const fileName = selectedFile.name.toLowerCase();
         if (!fileName.endsWith('.xlsx') && !fileName.endsWith('.xls')) {
-            setError('Chỉ chấp nhận file Excel (.xlsx, .xls)');
+            setError(t('teacher.importQuestions.errorExcelOnly'));
             return;
         }
 
         // Check file size (max 10MB)
         if (selectedFile.size > 10 * 1024 * 1024) {
-            setError('Kích thước file không được vượt quá 10MB');
+            setError(t('teacher.importQuestions.errorFileSize'));
             return;
         }
 
@@ -84,8 +86,8 @@ const ImportQuestions = ({ teacherId, onImportComplete, onClose }) => {
 
             Swal.fire({
                 icon: 'success',
-                title: 'Thành công',
-                text: 'Đã tải template xuống',
+                title: t('teacher.importQuestions.success'),
+                text: t('teacher.importQuestions.templateDownloaded'),
                 timer: 2000,
                 showConfirmButton: false
             });
@@ -93,8 +95,8 @@ const ImportQuestions = ({ teacherId, onImportComplete, onClose }) => {
             console.error('Error downloading template:', err);
             Swal.fire({
                 icon: 'error',
-                title: 'Lỗi',
-                text: 'Không thể tải template',
+                title: t('teacher.importQuestions.error'),
+                text: t('teacher.importQuestions.cannotDownloadTemplate'),
                 confirmButtonColor: '#ef4444'
             });
         } finally {
@@ -104,7 +106,7 @@ const ImportQuestions = ({ teacherId, onImportComplete, onClose }) => {
 
     const handleImport = async () => {
         if (!file) {
-            setError('Vui lòng chọn file để import');
+            setError(t('teacher.importQuestions.errorSelectFile'));
             return;
         }
 
@@ -117,9 +119,9 @@ const ImportQuestions = ({ teacherId, onImportComplete, onClose }) => {
 
             Swal.fire({
                 icon: 'success',
-                title: 'Import thành công!',
+                title: t('teacher.importQuestions.importSuccess'),
                 html: `
-                    <p>Đã import <strong>${response.data?.length || 0}</strong> câu hỏi</p>
+                    <p>${t('teacher.importQuestions.importedCount', { count: response.data?.length || 0 })}</p>
                 `,
                 confirmButtonColor: '#22c55e'
             }).then(() => {
@@ -130,12 +132,12 @@ const ImportQuestions = ({ teacherId, onImportComplete, onClose }) => {
             });
         } catch (err) {
             console.error('Error importing questions:', err);
-            const errorMessage = err.response?.data?.message || 'Không thể import câu hỏi';
+            const errorMessage = err.response?.data?.message || t('teacher.importQuestions.cannotImport');
             setError(errorMessage);
 
             Swal.fire({
                 icon: 'error',
-                title: 'Lỗi import',
+                title: t('teacher.importQuestions.importError'),
                 text: errorMessage,
                 confirmButtonColor: '#ef4444'
             });
@@ -162,9 +164,9 @@ const ImportQuestions = ({ teacherId, onImportComplete, onClose }) => {
                             <FileSpreadsheet className="w-6 h-6 text-white" />
                         </div>
                         <div>
-                            <h3 className="text-lg font-semibold text-gray-900">Import Câu Hỏi</h3>
+                            <h3 className="text-lg font-semibold text-gray-900">{t('teacher.importQuestions.title')}</h3>
                             <p className="text-sm text-gray-600">
-                                Tải lên file Excel để import câu hỏi hàng loạt
+                                {t('teacher.importQuestions.subtitle')}
                             </p>
                         </div>
                     </div>
@@ -184,10 +186,10 @@ const ImportQuestions = ({ teacherId, onImportComplete, onClose }) => {
                     <div className="flex items-start justify-between">
                         <div>
                             <h4 className="text-sm font-semibold text-blue-900 mb-1">
-                                📥 Tải Template
+                                {t('teacher.importQuestions.downloadTemplate')}
                             </h4>
                             <p className="text-xs text-blue-700">
-                                Tải file template để biết định dạng yêu cầu
+                                {t('teacher.importQuestions.downloadTemplateDesc')}
                             </p>
                         </div>
                         <button
@@ -198,12 +200,12 @@ const ImportQuestions = ({ teacherId, onImportComplete, onClose }) => {
                             {downloading ? (
                                 <>
                                     <Loader2 className="w-4 h-4 animate-spin" />
-                                    Đang tải...
+                                    {t('teacher.importQuestions.downloading')}
                                 </>
                             ) : (
                                 <>
                                     <Download className="w-4 h-4" />
-                                    Tải Template
+                                    {t('teacher.importQuestions.downloadTemplateBtn')}
                                 </>
                             )}
                         </button>
@@ -240,14 +242,14 @@ const ImportQuestions = ({ teacherId, onImportComplete, onClose }) => {
                             </div>
                             <div>
                                 <p className="text-gray-900 font-medium">
-                                    Kéo thả file Excel vào đây
+                                    {t('teacher.importQuestions.dragDrop')}
                                 </p>
                                 <p className="text-sm text-gray-500 mt-1">
-                                    hoặc click để chọn file
+                                    {t('teacher.importQuestions.orClickToSelect')}
                                 </p>
                             </div>
                             <p className="text-xs text-gray-400">
-                                Chấp nhận file .xlsx, .xls (tối đa 10MB)
+                                {t('teacher.importQuestions.acceptedFormats')}
                             </p>
                         </div>
                     ) : (
@@ -270,7 +272,7 @@ const ImportQuestions = ({ teacherId, onImportComplete, onClose }) => {
                                 }}
                                 className="text-sm text-red-600 hover:text-red-700 font-medium"
                             >
-                                Xóa file
+                                {t('teacher.importQuestions.removeFile')}
                             </button>
                         </div>
                     )}
@@ -279,18 +281,18 @@ const ImportQuestions = ({ teacherId, onImportComplete, onClose }) => {
                 {/* Format Instructions */}
                 <div className="mt-6 p-4 bg-gray-50 rounded-lg">
                     <h4 className="text-sm font-semibold text-gray-900 mb-3">
-                        📋 Định dạng file Excel
+                        {t('teacher.importQuestions.excelFormat')}
                     </h4>
                     <div className="text-xs text-gray-600 space-y-2">
-                        <p>File Excel phải có các cột theo thứ tự sau:</p>
+                        <p>{t('teacher.importQuestions.excelFormatDesc')}</p>
                         <ol className="list-decimal list-inside space-y-1 ml-2">
-                            <li><strong>CategoryName</strong> - Tên danh mục câu hỏi</li>
-                            <li><strong>Type</strong> - Loại câu hỏi (MULTIPLE_CHOICE, SHORT_ANSWER, ESSAY, v.v.)</li>
-                            <li><strong>QuestionText</strong> - Nội dung câu hỏi</li>
-                            <li><strong>Difficulty</strong> - Độ khó (EASY, MEDIUM, HARD)</li>
-                            <li><strong>Points</strong> - Số điểm</li>
-                            <li><strong>CorrectAnswer</strong> - Đáp án đúng</li>
-                            <li><strong>Options</strong> - Các lựa chọn (ngăn cách bằng dấu | , chỉ cho MULTIPLE_CHOICE)</li>
+                            <li><strong>CategoryName</strong> - {t('teacher.importQuestions.colCategoryName')}</li>
+                            <li><strong>Type</strong> - {t('teacher.importQuestions.colType')}</li>
+                            <li><strong>QuestionText</strong> - {t('teacher.importQuestions.colQuestionText')}</li>
+                            <li><strong>Difficulty</strong> - {t('teacher.importQuestions.colDifficulty')}</li>
+                            <li><strong>Points</strong> - {t('teacher.importQuestions.colPoints')}</li>
+                            <li><strong>CorrectAnswer</strong> - {t('teacher.importQuestions.colCorrectAnswer')}</li>
+                            <li><strong>Options</strong> - {t('teacher.importQuestions.colOptions')}</li>
                         </ol>
                     </div>
                 </div>
@@ -300,7 +302,7 @@ const ImportQuestions = ({ teacherId, onImportComplete, onClose }) => {
                     <div className="mt-6 p-4 bg-red-50 rounded-lg border border-red-200 flex items-start gap-3">
                         <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
                         <div className="flex-1">
-                            <p className="text-sm font-medium text-red-900">Lỗi</p>
+                            <p className="text-sm font-medium text-red-900">{t('teacher.importQuestions.error')}</p>
                             <p className="text-sm text-red-700 mt-1">{error}</p>
                         </div>
                         <button
@@ -317,9 +319,9 @@ const ImportQuestions = ({ teacherId, onImportComplete, onClose }) => {
                     <div className="mt-6 p-4 bg-green-50 rounded-lg border border-green-200 flex items-start gap-3">
                         <CheckCircle className="w-5 h-5 text-green-600 shrink-0 mt-0.5" />
                         <div className="flex-1">
-                            <p className="text-sm font-medium text-green-900">Thành công!</p>
+                            <p className="text-sm font-medium text-green-900">{t('teacher.importQuestions.success')}</p>
                             <p className="text-sm text-green-700 mt-1">
-                                Đã import {result.length || 0} câu hỏi vào ngân hàng câu hỏi.
+                                {t('teacher.importQuestions.importedToBank', { count: result.length || 0 })}
                             </p>
                         </div>
                     </div>
@@ -332,7 +334,7 @@ const ImportQuestions = ({ teacherId, onImportComplete, onClose }) => {
                         disabled={uploading}
                         className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
                     >
-                        Hủy
+                        {t('teacher.importQuestions.cancel')}
                     </button>
                     <button
                         onClick={handleImport}
@@ -342,12 +344,12 @@ const ImportQuestions = ({ teacherId, onImportComplete, onClose }) => {
                         {uploading ? (
                             <>
                                 <Loader2 className="w-4 h-4 animate-spin" />
-                                Đang import...
+                                {t('teacher.importQuestions.importing')}
                             </>
                         ) : (
                             <>
                                 <Upload className="w-4 h-4" />
-                                Import Câu Hỏi
+                                {t('teacher.importQuestions.importBtn')}
                             </>
                         )}
                     </button>

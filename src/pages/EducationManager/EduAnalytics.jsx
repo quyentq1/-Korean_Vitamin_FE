@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
     CheckCircle, XCircle, Clock, Users,
     FileText, AlertCircle, BarChart3, Calendar, BookOpen,
@@ -9,15 +10,16 @@ import educationManagerService from '../../services/educationManagerService';
 import examService from '../../services/examService';
 
 const TABS = [
-    { key: 'overview', label: 'Tổng quan', icon: BarChart3 },
-    { key: 'schedule', label: 'Lịch học', icon: Calendar },
-    { key: 'courses', label: 'Khóa học', icon: BookOpen },
-    { key: 'attendance', label: 'Điểm danh', icon: ClipboardCheck },
-    { key: 'classes', label: 'Lớp học', icon: Users },
-    { key: 'exams', label: 'Bài thi', icon: FileText },
+    { key: 'overview', labelKey: 'eduManager.analytics.tabOverview', icon: BarChart3 },
+    { key: 'schedule', labelKey: 'eduManager.analytics.tabSchedule', icon: Calendar },
+    { key: 'courses', labelKey: 'eduManager.analytics.tabCourses', icon: BookOpen },
+    { key: 'attendance', labelKey: 'eduManager.analytics.tabAttendance', icon: ClipboardCheck },
+    { key: 'classes', labelKey: 'eduManager.analytics.tabClasses', icon: Users },
+    { key: 'exams', labelKey: 'eduManager.analytics.tabExams', icon: FileText },
 ];
 
 const EduAnalytics = () => {
+    const { t } = useTranslation();
     const [activeTab, setActiveTab] = useState('overview');
     const [loading, setLoading] = useState(true);
     const [dashboardStats, setDashboardStats] = useState(null);
@@ -75,7 +77,7 @@ const EduAnalytics = () => {
             <div className="min-h-screen bg-gradient-to-br from-gray-50 to-indigo-50/30 flex items-center justify-center">
                 <div className="text-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-                    <p className="text-gray-600">Đang tải thống kê...</p>
+                    <p className="text-gray-600">{t('eduManager.analytics.loadingStats')}</p>
                 </div>
             </div>
         );
@@ -87,14 +89,14 @@ const EduAnalytics = () => {
             <div className="mb-6">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
                     <div>
-                        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Analytics Dashboard</h1>
-                        <p className="text-sm text-gray-500 mt-1">Thống kê và phân tích toàn diện hệ thống Education</p>
+                        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{t('eduManager.analytics.title')}</h1>
+                        <p className="text-sm text-gray-500 mt-1">{t('eduManager.analytics.subtitle')}</p>
                     </div>
                     <button
                         onClick={fetchAllData}
                         className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors text-sm font-medium text-gray-700"
                     >
-                        <RefreshCw className="w-4 h-4" /> Làm mới
+                        <RefreshCw className="w-4 h-4" /> {t('eduManager.analytics.refresh')}
                     </button>
                 </div>
 
@@ -113,7 +115,7 @@ const EduAnalytics = () => {
                                 }`}
                             >
                                 <Icon className="w-4 h-4" />
-                                {tab.label}
+                                {t(tab.labelKey)}
                             </button>
                         );
                     })}
@@ -144,6 +146,7 @@ const EduAnalytics = () => {
    OVERVIEW TAB - Tổng hợp toàn bộ hệ thống
    ================================================================ */
 const OverviewTab = ({ dashboardStats, courseStats, classStats, teachers, pendingExams, classes }) => {
+    const { t } = useTranslation();
     const totalQuestions = (dashboardStats.approvedQuestions || 0) + (dashboardStats.pendingQuestions || 0) + (dashboardStats.rejectedQuestions || 0);
     const approvalRate = totalQuestions > 0
         ? Math.round(((dashboardStats.approvedQuestions || 0) / totalQuestions) * 100) : 0;
@@ -177,12 +180,12 @@ const OverviewTab = ({ dashboardStats, courseStats, classStats, teachers, pendin
         <div className="space-y-6">
             {/* KPI Row */}
             <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-                <KpiCard icon={BookOpen} label="Khóa học" value={courseStats.total} sub={`${courseStats.published} active`} color="violet" />
-                <KpiCard icon={Users} label="Lớp học" value={classStats.total} sub={`${classStats.totalStudents} học viên`} color="blue" />
-                <KpiCard icon={GraduationCap} label="Giáo viên" value={teachers.length} sub="Đang hoạt động" color="emerald" />
-                <KpiCard icon={Calendar} label="Buổi học" value={scheduleOverview.total} sub={`${scheduleOverview.completed} hoàn thành`} color="cyan" />
-                <KpiCard icon={FileText} label="Câu hỏi" value={totalQuestions} sub={`${dashboardStats.pendingQuestions || 0} chờ duyệt`} color="amber" />
-                <KpiCard icon={ClipboardCheck} label="Đề thi chờ" value={pendingExams.length} sub={pendingExams.length > 0 ? 'Cần xử lý' : 'Sẵn sàng'} color="rose" />
+                <KpiCard icon={BookOpen} label={t('eduManager.analytics.kpiCourses')} value={courseStats.total} sub={`${courseStats.published} active`} color="violet" />
+                <KpiCard icon={Users} label={t('eduManager.analytics.kpiClasses')} value={classStats.total} sub={`${classStats.totalStudents} ${t('eduManager.analytics.kpiStudents')}`} color="blue" />
+                <KpiCard icon={GraduationCap} label={t('eduManager.analytics.kpiTeachers')} value={teachers.length} sub={t('eduManager.analytics.subActive')} color="emerald" />
+                <KpiCard icon={Calendar} label={t('eduManager.analytics.kpiSessions')} value={scheduleOverview.total} sub={`${scheduleOverview.completed} ${t('eduManager.analytics.subCompleted')}`} color="cyan" />
+                <KpiCard icon={FileText} label={t('eduManager.analytics.kpiQuestions')} value={totalQuestions} sub={`${dashboardStats.pendingQuestions || 0} ${t('eduManager.analytics.subPending')}`} color="amber" />
+                <KpiCard icon={ClipboardCheck} label={t('eduManager.analytics.kpiPendingExams')} value={pendingExams.length} sub={pendingExams.length > 0 ? t('eduManager.analytics.subNeedAction') : t('eduManager.analytics.subReady')} color="rose" />
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -190,21 +193,21 @@ const OverviewTab = ({ dashboardStats, courseStats, classStats, teachers, pendin
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                     <div className="flex items-center gap-2 mb-6">
                         <Target className="w-5 h-5 text-indigo-600" />
-                        <h3 className="text-lg font-semibold text-gray-800">Tỷ lệ phê duyệt câu hỏi</h3>
+                        <h3 className="text-lg font-semibold text-gray-800">{t('eduManager.analytics.questionApprovalRate')}</h3>
                     </div>
                     <div className="flex items-center gap-8">
                         <DonutChart
                             segments={[
-                                { value: dashboardStats.approvedQuestions || 0, color: '#10b981', label: 'Đã duyệt' },
-                                { value: dashboardStats.rejectedQuestions || 0, color: '#ef4444', label: 'Từ chối' },
-                                { value: dashboardStats.pendingQuestions || 0, color: '#f59e0b', label: 'Chờ duyệt' },
+                                { value: dashboardStats.approvedQuestions || 0, color: '#10b981', label: t('eduManager.analytics.approved') },
+                                { value: dashboardStats.rejectedQuestions || 0, color: '#ef4444', label: t('eduManager.analytics.rejected') },
+                                { value: dashboardStats.pendingQuestions || 0, color: '#f59e0b', label: t('eduManager.analytics.pendingApproval') },
                             ]}
                             total={totalQuestions}
                         />
                         <div className="flex-1 space-y-3">
-                            <LegendItem color="bg-emerald-500" label="Đã duyệt" value={dashboardStats.approvedQuestions || 0} pct={approvalRate} />
-                            <LegendItem color="bg-red-500" label="Từ chối" value={dashboardStats.rejectedQuestions || 0} pct={rejectionRate} />
-                            <LegendItem color="bg-amber-500" label="Chờ duyệt" value={dashboardStats.pendingQuestions || 0} pct={pendingRate} />
+                            <LegendItem color="bg-emerald-500" label={t('eduManager.analytics.approved')} value={dashboardStats.approvedQuestions || 0} pct={approvalRate} />
+                            <LegendItem color="bg-red-500" label={t('eduManager.analytics.rejected')} value={dashboardStats.rejectedQuestions || 0} pct={rejectionRate} />
+                            <LegendItem color="bg-amber-500" label={t('eduManager.analytics.pendingApproval')} value={dashboardStats.pendingQuestions || 0} pct={pendingRate} />
                         </div>
                     </div>
                 </div>
@@ -213,7 +216,7 @@ const OverviewTab = ({ dashboardStats, courseStats, classStats, teachers, pendin
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                     <div className="flex items-center gap-2 mb-6">
                         <BarChart3 className="w-5 h-5 text-violet-600" />
-                        <h3 className="text-lg font-semibold text-gray-800">Phân bổ trạng thái khóa học</h3>
+                        <h3 className="text-lg font-semibold text-gray-800">{t('eduManager.analytics.courseStatusDistribution')}</h3>
                     </div>
                     <div className="flex items-center gap-8">
                         <DonutChart

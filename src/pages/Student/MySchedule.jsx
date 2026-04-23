@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Calendar, Clock, MapPin, Users, RefreshCw, Video } from 'lucide-react';
 import classService from '../../services/classService';
 
 const MySchedule = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [schedules, setSchedules] = useState([]);
@@ -19,7 +21,7 @@ const MySchedule = () => {
 
       const uniqueClasses = classesList.map(cls => ({
         id: cls.classId || cls.classEntity?.id || cls.id,
-        name: cls.className || cls.classEntity?.className || 'Lớp học',
+        name: cls.className || cls.classEntity?.className || t('student.mySchedule.defaultClassName'),
         code: cls.classCode || cls.classEntity?.classCode || 'N/A'
       }));
 
@@ -46,7 +48,7 @@ const MySchedule = () => {
       setSchedules(allSchedules);
     } catch (err) {
       console.error('Error:', err);
-      setError('Không thể tải lịch học');
+      setError(t('student.mySchedule.fetchError'));
     } finally {
       setLoading(false);
     }
@@ -71,8 +73,8 @@ const MySchedule = () => {
         <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 text-white rounded-2xl p-8 mb-8 shadow-xl">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold mb-2">Lịch học của tôi</h1>
-              <p className="text-indigo-100">Quản lý lịch học và tham gia lớp học đúng giờ</p>
+              <h1 className="text-3xl font-bold mb-2">{t('student.mySchedule.title')}</h1>
+              <p className="text-indigo-100">{t('student.mySchedule.subtitle')}</p>
             </div>
             <button
               onClick={fetchSchedules}
@@ -98,7 +100,7 @@ const MySchedule = () => {
               </div>
               <div>
                 <p className="text-3xl font-bold text-gray-900">{schedules.length}</p>
-                <p className="text-sm text-gray-500">Buổi học</p>
+                <p className="text-sm text-gray-500">{t('student.mySchedule.sessions')}</p>
               </div>
             </div>
           </div>
@@ -110,7 +112,7 @@ const MySchedule = () => {
               </div>
               <div>
                 <p className="text-3xl font-bold text-gray-900">{classes.length}</p>
-                <p className="text-sm text-gray-500">Lớp học</p>
+                <p className="text-sm text-gray-500">{t('student.mySchedule.classes')}</p>
               </div>
             </div>
           </div>
@@ -121,8 +123,8 @@ const MySchedule = () => {
                 <Clock className="w-7 h-7 text-white" />
               </div>
               <div>
-                <p className="text-3xl font-bold text-gray-900">{schedules.length > 0 ? 'Có lịch' : 'Sắp tới'}</p>
-                <p className="text-sm text-gray-500">Trạng thái</p>
+                <p className="text-3xl font-bold text-gray-900">{schedules.length > 0 ? t('student.mySchedule.hasSchedule') : t('student.mySchedule.upcoming')}</p>
+                <p className="text-sm text-gray-500">{t('student.mySchedule.statusLabel')}</p>
               </div>
             </div>
           </div>
@@ -132,8 +134,8 @@ const MySchedule = () => {
         {schedules.length === 0 ? (
           <div className="bg-white rounded-2xl p-12 text-center shadow-lg">
             <Calendar className="w-20 h-20 mx-auto mb-4 text-gray-300" />
-            <h3 className="text-xl font-bold text-gray-700 mb-2">Không có lịch học</h3>
-            <p className="text-gray-500">Bạn chưa có lịch học nào</p>
+            <h3 className="text-xl font-bold text-gray-700 mb-2">{t('student.mySchedule.noScheduleTitle')}</h3>
+            <p className="text-gray-500">{t('student.mySchedule.noScheduleDesc')}</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -149,7 +151,7 @@ const MySchedule = () => {
                           year: 'numeric',
                           month: 'long',
                           day: 'numeric'
-                        }) : 'Chưa có ngày'}
+                        }) : t('student.mySchedule.noDate')}
                       </h3>
                     </div>
                     {schedule.className && (
@@ -183,8 +185,8 @@ const MySchedule = () => {
                     schedule.status === 'COMPLETED' ? 'bg-green-100 text-green-700' :
                     'bg-gray-100 text-gray-700'
                   }`}>
-                    {schedule.status === 'SCHEDULED' ? 'Sắp diễn ra' :
-                     schedule.status === 'COMPLETED' ? 'Đã hoàn thành' : schedule.status}
+                    {schedule.status === 'SCHEDULED' ? t('student.mySchedule.statusScheduled') :
+                     schedule.status === 'COMPLETED' ? t('student.mySchedule.statusCompleted') : schedule.status}
                   </span>
                 </div>
               </div>

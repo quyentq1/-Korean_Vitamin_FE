@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   Users,
   Calendar,
@@ -19,6 +20,7 @@ import studentService from '../../services/studentService';
  * MyClasses - List classes student enrolled in
  */
 const MyClasses = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [classes, setClasses] = useState([]);
@@ -68,10 +70,10 @@ const MyClasses = () => {
 
   const getStatusBadge = (status) => {
     const badges = {
-      'ACTIVE': { text: 'Đang hoạt động', color: 'bg-green-100 text-green-700', icon: CheckCircle },
-      'COMPLETED': { text: 'Đã kết thúc', color: 'bg-gray-100 text-gray-700', icon: CheckCircle },
-      'CANCELLED': { text: 'Đã hủy', color: 'bg-red-100 text-red-700', icon: XCircle },
-      'PLANNED': { text: 'Sắp bắt đầu', color: 'bg-blue-100 text-blue-700', icon: Calendar },
+      'ACTIVE': { text: t('student.myClasses.statusActive'), color: 'bg-green-100 text-green-700', icon: CheckCircle },
+      'COMPLETED': { text: t('student.myClasses.statusCompleted'), color: 'bg-gray-100 text-gray-700', icon: CheckCircle },
+      'CANCELLED': { text: t('student.myClasses.statusCancelled'), color: 'bg-red-100 text-red-700', icon: XCircle },
+      'PLANNED': { text: t('student.myClasses.statusPlanned'), color: 'bg-blue-100 text-blue-700', icon: Calendar },
     };
     const badge = badges[status?.toUpperCase()] || badges['ACTIVE'];
     return (
@@ -99,8 +101,8 @@ const MyClasses = () => {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 text-white rounded-2xl p-8 mb-8 shadow-xl">
-          <h1 className="text-3xl font-bold mb-2">Lớp học của tôi</h1>
-          <p className="text-indigo-100">Xem và làm bài kiểm tra của các lớp học đã tham gia</p>
+          <h1 className="text-3xl font-bold mb-2">{t('student.myClasses.title')}</h1>
+          <p className="text-indigo-100">{t('student.myClasses.subtitle')}</p>
         </div>
 
         {/* Search */}
@@ -109,7 +111,7 @@ const MyClasses = () => {
             <Users className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
             <input
               type="text"
-              placeholder="Tìm kiếm lớp học..."
+              placeholder={t('student.myClasses.searchPlaceholder')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-12 pr-4 py-3 bg-gray-50 rounded-xl border-2 border-gray-200 focus:border-indigo-500 outline-none"
@@ -122,16 +124,16 @@ const MyClasses = () => {
           <div className="bg-white rounded-2xl p-12 text-center shadow-lg">
             <Users className="w-20 h-20 mx-auto mb-4 text-gray-300" />
             <h3 className="text-xl font-bold text-gray-700 mb-2">
-              {searchQuery ? 'Không tìm thấy lớp học nào' : 'Bạn chưa tham gia lớp học nào'}
+              {searchQuery ? t('student.myClasses.noSearchResults') : t('student.myClasses.noClasses')}
             </h3>
             <p className="text-gray-500">
-              {searchQuery ? 'Thử thay đổi từ khóa tìm kiếm' : 'Hãy đăng ký lớp học để được giao bài tập'}
+              {searchQuery ? t('student.myClasses.tryDifferentKeyword') : t('student.myClasses.enrollPrompt')}
             </p>
           </div>
         ) : (
           <>
             <div className="mb-4 text-sm text-gray-600">
-              Hiển thị <span className="font-semibold text-gray-900">{filteredClasses.length}</span> lớp học
+              {t('student.myClasses.showingCount', { count: filteredClasses.length })}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -201,7 +203,7 @@ const MyClasses = () => {
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <FileText className="w-5 h-5 text-purple-600" />
-                            <span className="text-sm font-medium text-purple-900">Bài luyện tập</span>
+                            <span className="text-sm font-medium text-purple-900">{t('student.myClasses.practiceExams')}</span>
                           </div>
                           <span className="text-2xl font-bold text-purple-600">{examCount}</span>
                         </div>
@@ -217,7 +219,7 @@ const MyClasses = () => {
                           className="flex-1 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-semibold hover:from-indigo-700 hover:to-purple-700 transition-all shadow-lg flex items-center justify-center gap-2"
                         >
                           <FileText className="w-4 h-4" />
-                          Xem bài thi
+                          {t('student.myClasses.viewExams')}
                         </button>
                       </div>
                     </div>

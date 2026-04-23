@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Bot, CheckCircle, Clock, AlertCircle, Loader2, Award } from 'lucide-react';
 import { teacherService } from '../../services/teacherService';
 import Swal from 'sweetalert2';
@@ -8,6 +9,7 @@ import Swal from 'sweetalert2';
  * Priority 3: Advanced Exam Features
  */
 const AutoGrading = ({ attemptId, onGradingComplete }) => {
+    const { t } = useTranslation();
     const [grading, setGrading] = useState(false);
     const [result, setResult] = useState(null);
     const [error, setError] = useState(null);
@@ -28,20 +30,20 @@ const AutoGrading = ({ attemptId, onGradingComplete }) => {
 
             let message = `
                 <div class="text-left">
-                    <p class="mb-2">Kết quả chấm tự động:</p>
+                    <p class="mb-2">${t('teacher.autoGrading.autoResultTitle')}</p>
                     <ul class="space-y-1">
-                        <li>✅ Đã chấm: <strong>${autoGradedCount}/${totalQuestions}</strong> câu</li>
-                        <li>📊 Điểm số: <strong>${autoScore}</strong></li>
+                        <li>✅ ${t('teacher.autoGrading.graded')}: <strong>${autoGradedCount}/${totalQuestions}</strong> ${t('teacher.autoGrading.questions')}</li>
+                        <li>📊 ${t('teacher.autoGrading.scoreLabel')}: <strong>${autoScore}</strong></li>
             `;
 
             if (needsManualGrading > 0) {
                 message += `
-                        <li>⏳ Cần chấm tay: <strong>${needsManualGrading}</strong> câu</li>
-                        <li>📝 Trạng thái: <strong>Chờ chấm tay</strong></li>
+                        <li>⏳ ${t('teacher.autoGrading.needsManual')}: <strong>${needsManualGrading}</strong> ${t('teacher.autoGrading.questions')}</li>
+                        <li>📝 ${t('teacher.autoGrading.status')}: <strong>${t('teacher.autoGrading.waitingManual')}</strong></li>
                 `;
             } else {
                 message += `
-                        <li>✅ Trạng thái: <strong>Đã hoàn thành</strong></li>
+                        <li>✅ ${t('teacher.autoGrading.status')}: <strong>${t('teacher.autoGrading.completed')}</strong></li>
                 `;
             }
 
@@ -52,7 +54,7 @@ const AutoGrading = ({ attemptId, onGradingComplete }) => {
 
             Swal.fire({
                 icon: needsManualGrading > 0 ? 'info' : 'success',
-                title: needsManualGrading > 0 ? 'Chấm xong phần tự động' : 'Chấm hoàn tất!',
+                title: needsManualGrading > 0 ? t('teacher.autoGrading.autoDone') : t('teacher.autoGrading.allDone'),
                 html: message,
                 confirmButtonColor: needsManualGrading > 0 ? '#6366f1' : '#22c55e'
             });
@@ -62,12 +64,12 @@ const AutoGrading = ({ attemptId, onGradingComplete }) => {
             }
         } catch (err) {
             console.error('Error auto-grading:', err);
-            const errorMessage = err.response?.data?.message || 'Không thể chấm bài tự động';
+            const errorMessage = err.response?.data?.message || t('teacher.autoGrading.cannotAutoGrade');
             setError(errorMessage);
 
             Swal.fire({
                 icon: 'error',
-                title: 'Lỗi',
+                title: t('teacher.autoGrading.error'),
                 text: errorMessage,
                 confirmButtonColor: '#ef4444'
             });
@@ -83,11 +85,11 @@ const AutoGrading = ({ attemptId, onGradingComplete }) => {
 
             Swal.fire({
                 icon: 'info',
-                title: 'Tỷ lệ điểm số',
+                title: t('teacher.autoGrading.scorePercentage'),
                 html: `
                     <div class="text-center">
                         <p class="text-5xl font-bold text-indigo-600 mb-2">${percentage}%</p>
-                        <p class="text-gray-600">Tổng điểm</p>
+                        <p class="text-gray-600">${t('teacher.autoGrading.totalScore')}</p>
                     </div>
                 `,
                 confirmButtonColor: '#6366f1'
@@ -96,8 +98,8 @@ const AutoGrading = ({ attemptId, onGradingComplete }) => {
             console.error('Error getting percentage:', err);
             Swal.fire({
                 icon: 'error',
-                title: 'Lỗi',
-                text: 'Không thể lấy tỷ lệ điểm số',
+                title: t('teacher.autoGrading.error'),
+                text: t('teacher.autoGrading.cannotGetPercentage'),
                 confirmButtonColor: '#ef4444'
             });
         }
@@ -112,9 +114,9 @@ const AutoGrading = ({ attemptId, onGradingComplete }) => {
                         <Bot className="w-6 h-6 text-white" />
                     </div>
                     <div>
-                        <h3 className="text-lg font-semibold text-gray-900">Chấm Tự Động</h3>
+                        <h3 className="text-lg font-semibold text-gray-900">{t('teacher.autoGrading.title')}</h3>
                         <p className="text-sm text-gray-600">
-                            Tự động chấm các câu hỏi trắc nghiệm và tự luận ngắn
+                            {t('teacher.autoGrading.subtitle')}
                         </p>
                     </div>
                 </div>
@@ -125,12 +127,12 @@ const AutoGrading = ({ attemptId, onGradingComplete }) => {
                 {/* Info */}
                 <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
                     <h4 className="text-sm font-semibold text-blue-900 mb-2">
-                        🤖 Chấm tự động做什么?
+                        {t('teacher.autoGrading.whatDoesAutoGradingDo')}
                     </h4>
                     <ul className="text-xs text-blue-800 space-y-1">
-                        <li>• <strong>Trắc nghiệm:</strong> Chấm tự động dựa trên đáp án đúng</li>
-                        <li>• <strong>Tự luận ngắn:</strong> So sánh với đáp án, cho điểm partial nếu có từ khóa đúng</li>
-                        <li>• <strong>Tự luận dài/Viết/Nghe:</strong> Yêu cầu chấm tay</li>
+                        <li>• <strong>{t('teacher.autoGrading.multipleChoice')}:</strong> {t('teacher.autoGrading.multipleChoiceDesc')}</li>
+                        <li>• <strong>{t('teacher.autoGrading.shortAnswer')}:</strong> {t('teacher.autoGrading.shortAnswerDesc')}</li>
+                        <li>• <strong>{t('teacher.autoGrading.longAnswer')}:</strong> {t('teacher.autoGrading.longAnswerDesc')}</li>
                     </ul>
                 </div>
 
@@ -140,23 +142,23 @@ const AutoGrading = ({ attemptId, onGradingComplete }) => {
                         <div className="flex items-start gap-3">
                             <CheckCircle className="w-5 h-5 text-green-600 shrink-0 mt-0.5" />
                             <div className="flex-1">
-                                <p className="text-sm font-medium text-green-900">Kết quả chấm</p>
+                                <p className="text-sm font-medium text-green-900">{t('teacher.autoGrading.gradingResult')}</p>
                                 <div className="mt-2 space-y-1 text-sm text-green-700">
                                     <div className="flex items-center gap-2">
-                                        <span>Đã chấm:</span>
+                                        <span>{t('teacher.autoGrading.graded')}:</span>
                                         <span className="font-semibold">{result.autoGradedCount}/{result.totalQuestions}</span>
-                                        <span>câu</span>
+                                        <span>{t('teacher.autoGrading.questions')}</span>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <span>Điểm số:</span>
+                                        <span>{t('teacher.autoGrading.scoreLabel')}:</span>
                                         <span className="font-semibold">{result.autoScore}</span>
                                     </div>
                                     {result.needsManualGrading > 0 && (
                                         <div className="flex items-center gap-2 text-orange-700">
                                             <Clock className="w-4 h-4" />
-                                            <span>Cần chấm tay:</span>
+                                            <span>{t('teacher.autoGrading.needsManual')}:</span>
                                             <span className="font-semibold">{result.needsManualGrading}</span>
-                                            <span>câu</span>
+                                            <span>{t('teacher.autoGrading.questions')}</span>
                                         </div>
                                     )}
                                 </div>
@@ -170,7 +172,7 @@ const AutoGrading = ({ attemptId, onGradingComplete }) => {
                     <div className="mb-6 p-4 bg-red-50 rounded-lg border border-red-200 flex items-start gap-3">
                         <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
                         <div className="flex-1">
-                            <p className="text-sm font-medium text-red-900">Lỗi</p>
+                            <p className="text-sm font-medium text-red-900">{t('teacher.autoGrading.error')}</p>
                             <p className="text-sm text-red-700 mt-1">{error}</p>
                         </div>
                     </div>
@@ -186,12 +188,12 @@ const AutoGrading = ({ attemptId, onGradingComplete }) => {
                         {grading ? (
                             <>
                                 <Loader2 className="w-5 h-5 animate-spin" />
-                                Đang chấm...
+                                {t('teacher.autoGrading.grading')}
                             </>
                         ) : (
                             <>
                                 <Bot className="w-5 h-5" />
-                                Bắt Đầu Chấm Tự Động
+                                {t('teacher.autoGrading.startAutoGrading')}
                             </>
                         )}
                     </button>
@@ -202,7 +204,7 @@ const AutoGrading = ({ attemptId, onGradingComplete }) => {
                             className="w-full px-6 py-3 bg-white border-2 border-indigo-200 text-indigo-700 rounded-xl hover:bg-indigo-50 transition-all flex items-center justify-center gap-2"
                         >
                             <Award className="w-5 h-5" />
-                            Xem Tỷ Lệ Điểm Số
+                            {t('teacher.autoGrading.viewScorePercentage')}
                         </button>
                     )}
                 </div>
@@ -216,9 +218,9 @@ const AutoGrading = ({ attemptId, onGradingComplete }) => {
                                 : 'bg-yellow-100 text-yellow-700'
                         }`}>
                             {result.status === 'GRADED' ? (
-                                <>✅ Đã hoàn thành</>
+                                <>✅ {t('teacher.autoGrading.completed')}</>
                             ) : (
-                                <>⏳ Chờ chấm tay</>
+                                <>⏳ {t('teacher.autoGrading.waitingManual')}</>
                             )}
                         </span>
                     </div>

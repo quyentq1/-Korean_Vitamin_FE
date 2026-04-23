@@ -48,7 +48,7 @@ const ExamDetail = () => {
       setError('');
     } catch (err) {
       console.error('Error fetching exam detail:', err);
-      setError(t('exam.fetchError', 'Lỗi khi tải thông tin đề thi.'));
+      setError(t('exam.fetchError'));
     } finally {
       setLoading(false);
     }
@@ -68,7 +68,7 @@ const ExamDetail = () => {
     return (
       <PageContainer>
         <Alert variant="error" icon={<AlertCircle className="w-5 h-5" />}>
-          {error || 'Không tìm thấy đề thi'}
+          {error || t('teacher.examDetail.notFound')}
         </Alert>
       </PageContainer>
     );
@@ -77,19 +77,19 @@ const ExamDetail = () => {
   // Get status badge
   const getStatusBadge = () => {
     if (exam.approvalStatus === 'PENDING') {
-      return <Badge variant="warning">Chờ duyệt</Badge>;
+      return <Badge variant="warning">{t('exam.pending')}</Badge>;
     } else if (exam.approvalStatus === 'APPROVED') {
       if (exam.published) {
-        return <Badge variant="success">Đã xuất bản</Badge>;
+        return <Badge variant="success">{t('exam.published')}</Badge>;
       }
-      return <Badge variant="info">Đã duyệt</Badge>;
+      return <Badge variant="info">{t('exam.approved')}</Badge>;
     } else if (exam.approvalStatus === 'REJECTED') {
-      return <Badge variant="error">Bị từ chối</Badge>;
+      return <Badge variant="error">{t('exam.rejected')}</Badge>;
     }
     return exam.published ? (
-      <Badge variant="success">Đã xuất bản</Badge>
+      <Badge variant="success">{t('exam.published')}</Badge>
     ) : (
-      <Badge variant="secondary">Nháp</Badge>
+      <Badge variant="secondary">{t('teacher.examDetail.draft')}</Badge>
     );
   };
 
@@ -98,20 +98,20 @@ const ExamDetail = () => {
     if (exam.examCategory === 'MOCK') {
       return <Badge variant="primary" className="bg-purple-100 text-purple-700">FreeTest</Badge>;
     }
-    return <Badge variant="info">Luyện Thi</Badge>;
+    return <Badge variant="info">{t('teacher.examDetail.practice')}</Badge>;
   };
 
   return (
     <PageContainer>
       {/* Page Header */}
       <PageHeader
-        title={exam.title || 'Không có tiêu đề'}
-        subtitle={`Chi tiết đề thi - ${exam.examCategory === 'MOCK' ? 'FreeTest' : 'Luyện Thi'}`}
+        title={exam.title || t('teacher.examDetail.noTitle')}
+        subtitle={t('teacher.examDetail.subtitle', { category: exam.examCategory === 'MOCK' ? 'FreeTest' : t('teacher.examDetail.practice') })}
         breadcrumbs={[
-          { label: 'Trang chủ', href: '/' },
-          { label: 'Giáo viên', href: '/teacher' },
-          { label: 'Quản lý đề thi', href: '/teacher/exam-management' },
-          { label: exam.title || 'Chi tiết' }
+          { label: t('nav.home'), href: '/' },
+          { label: t('roles.TEACHER'), href: '/teacher' },
+          { label: t('teacher.exams.title'), href: '/teacher/exam-management' },
+          { label: exam.title || t('common.view') }
         ]}
         actions={
           <div className="flex items-center gap-2">
@@ -120,7 +120,7 @@ const ExamDetail = () => {
               icon={<Edit className="w-4 h-4" />}
               onClick={() => navigate(`/teacher/exam-editor/${exam.id}`)}
             >
-              Chỉnh sửa
+              {t('common.edit')}
             </Button>
           </div>
         }
@@ -129,7 +129,7 @@ const ExamDetail = () => {
       {/* Show feedback if rejected */}
       {exam.approvalStatus === 'REJECTED' && exam.feedback && (
         <Alert variant="error" className="mb-6" icon={<AlertCircle className="w-4 h-4" />}>
-          <div className="font-medium mb-1">Phản hồi từ Education Manager:</div>
+          <div className="font-medium mb-1">{t('teacher.examDetail.managerFeedback')}</div>
           <div className="text-sm">{exam.feedback}</div>
         </Alert>
       )}
@@ -157,9 +157,9 @@ const ExamDetail = () => {
                 <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
                   <Users className="w-5 h-5 text-blue-600" />
                   <div>
-                    <div className="text-sm text-gray-500">Số câu hỏi</div>
+                    <div className="text-sm text-gray-500">{t('teacher.examDetail.questionCount')}</div>
                     <div className="font-semibold text-gray-900">
-                      {exam.examQuestions?.length || exam.totalQuestions || 0} câu
+                      {exam.examQuestions?.length || exam.totalQuestions || 0} {t('common.questions')}
                     </div>
                   </div>
                 </div>
@@ -167,9 +167,9 @@ const ExamDetail = () => {
                 <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
                   <Clock className="w-5 h-5 text-green-600" />
                   <div>
-                    <div className="text-sm text-gray-500">Thời gian</div>
+                    <div className="text-sm text-gray-500">{t('teacher.examDetail.duration')}</div>
                     <div className="font-semibold text-gray-900">
-                      {exam.durationMinutes || exam.duration || 0} phút
+                      {exam.durationMinutes || exam.duration || 0} {t('common.minutes')}
                     </div>
                   </div>
                 </div>
@@ -177,7 +177,7 @@ const ExamDetail = () => {
                 <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
                   <CheckCircle2 className="w-5 h-5 text-purple-600" />
                   <div>
-                    <div className="text-sm text-gray-500">Điểm đạt</div>
+                    <div className="text-sm text-gray-500">{t('teacher.examDetail.passScore')}</div>
                     <div className="font-semibold text-gray-900">
                       {exam.passingScore || 0}%
                     </div>
@@ -191,22 +191,22 @@ const ExamDetail = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-200">
             <div className="flex items-center gap-2 text-sm text-gray-600">
               <FileText className="w-4 h-4" />
-              <span>Điểm tối đa: <strong>{exam.totalPoints || 0}</strong></span>
+              <span>{t('teacher.examDetail.maxPoints')}: <strong>{exam.totalPoints || 0}</strong></span>
             </div>
             <div className="flex items-center gap-2 text-sm text-gray-600">
               <Calendar className="w-4 h-4" />
-              <span>Ngày tạo: <strong>{new Date(exam.createdAt || exam.submittedAt).toLocaleDateString('vi-VN')}</strong></span>
+              <span>{t('teacher.examDetail.createdAt')}: <strong>{new Date(exam.createdAt || exam.submittedAt).toLocaleDateString('vi-VN')}</strong></span>
             </div>
             {exam.course?.name && (
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <FileText className="w-4 h-4" />
-                <span>Khóa học: <strong>{exam.course.name}</strong></span>
+                <span>{t('teacher.examDetail.course')}: <strong>{exam.course.name}</strong></span>
               </div>
             )}
             {exam.createdBy?.fullName && (
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <Users className="w-4 h-4" />
-                <span>Người tạo: <strong>{exam.createdBy.fullName}</strong></span>
+                <span>{t('teacher.examDetail.createdBy')}: <strong>{exam.createdBy.fullName}</strong></span>
               </div>
             )}
           </div>
@@ -217,12 +217,12 @@ const ExamDetail = () => {
       <Card>
         <div className="p-6">
           <h2 className="text-xl font-semibold text-gray-900 mb-6">
-            Danh sách câu hỏi ({exam.examQuestions?.length || exam.totalQuestions || 0})
+            {t('teacher.examDetail.questionList')} ({exam.examQuestions?.length || exam.totalQuestions || 0})
           </h2>
 
           {!exam.examQuestions || exam.examQuestions.length === 0 ? (
             <div className="text-center py-12 text-gray-500">
-              Chưa có câu hỏi nào
+              {t('teacher.examDetail.noQuestions')}
             </div>
           ) : (
             <div className="space-y-4">
@@ -238,7 +238,7 @@ const ExamDetail = () => {
                           {eq.questionOrder || index + 1}
                         </span>
                         <Badge variant="secondary" size="sm">
-                          {eq.points || 1} điểm
+                          {eq.points || 1} {t('teacher.examDetail.points')}
                         </Badge>
                         {eq.question?.topikType && (
                           <Badge variant="info" size="sm">
@@ -258,7 +258,7 @@ const ExamDetail = () => {
                             <div className="mb-3">
                               <img
                                 src={eq.question.imageUrl}
-                                alt="Hình ảnh câu hỏi"
+                                alt={t('teacher.examDetail.questionImage')}
                                 className="max-w-full h-auto rounded-lg border border-gray-200 shadow-sm"
                                 onError={(e) => { e.target.style.display = 'none'; }}
                               />
@@ -294,7 +294,7 @@ const ExamDetail = () => {
 
                           {eq.question.explanation && (
                             <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                              <div className="text-sm font-medium text-blue-900 mb-1">Giải thích:</div>
+                              <div className="text-sm font-medium text-blue-900 mb-1">{t('teacher.examDetail.explanation')}:</div>
                               <div className="text-sm text-blue-800">{eq.question.explanation}</div>
                             </div>
                           )}

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Upload, Mic, Play, Pause, Trash2, X } from 'lucide-react';
 
 /**
@@ -6,6 +7,7 @@ import { Upload, Mic, Play, Pause, Trash2, X } from 'lucide-react';
  * Priority 1: Question Bank
  */
 const CreateListeningQuestion = ({ initialData, onSubmit, onCancel }) => {
+    const { t } = useTranslation();
     const [formData, setFormData] = useState({
         questionText: '',
         audioUrl: '',
@@ -40,13 +42,13 @@ const CreateListeningQuestion = ({ initialData, onSubmit, onCancel }) => {
         // Validate file type
         const validTypes = ['audio/mp3', 'audio/mpeg', 'audio/wav', 'audio/m4a', 'audio/aac'];
         if (!validTypes.includes(file.type)) {
-            setErrors({ audio: 'Chỉ chấp nhận file audio (MP3, WAV, M4A, AAC)' });
+            setErrors({ audio: t('teacher.createListening.errorAudioType') });
             return;
         }
 
         // Validate file size (max 10MB)
         if (file.size > 10 * 1024 * 1024) {
-            setErrors({ audio: 'Kích thước file không được vượt quá 10MB' });
+            setErrors({ audio: t('teacher.createListening.errorFileSize') });
             return;
         }
 
@@ -64,7 +66,7 @@ const CreateListeningQuestion = ({ initialData, onSubmit, onCancel }) => {
             setFormData({ ...formData, audioUrl: localUrl });
         } catch (error) {
             console.error('Error uploading audio:', error);
-            setErrors({ audio: 'Không thể upload file audio' });
+            setErrors({ audio: t('teacher.createListening.errorUpload') });
         } finally {
             setUploading(false);
         }
@@ -101,20 +103,20 @@ const CreateListeningQuestion = ({ initialData, onSubmit, onCancel }) => {
         const newErrors = {};
 
         if (!formData.questionText.trim()) {
-            newErrors.questionText = 'Vui lòng nhập nội dung câu hỏi';
+            newErrors.questionText = t('teacher.createListening.errorQuestionRequired');
         }
 
         if (!formData.audioUrl && !audioFile) {
-            newErrors.audio = 'Vui lòng upload file audio';
+            newErrors.audio = t('teacher.createListening.errorAudioRequired');
         }
 
         const validOptions = formData.options.filter(opt => opt.trim());
         if (validOptions.length < 2) {
-            newErrors.options = 'Cần ít nhất 2 đáp án';
+            newErrors.options = t('teacher.createListening.errorMinOptions');
         }
 
         if (!formData.correctAnswer) {
-            newErrors.correctAnswer = 'Vui lòng chọn đáp án đúng';
+            newErrors.correctAnswer = t('teacher.createListening.errorCorrectAnswer');
         }
 
         setErrors(newErrors);
@@ -142,10 +144,10 @@ const CreateListeningQuestion = ({ initialData, onSubmit, onCancel }) => {
                     </div>
                     <div>
                         <h3 className="text-lg font-semibold text-gray-900">
-                            Tạo Câu Hỏi Nghe Hiểu
+                            {t('teacher.createListening.title')}
                         </h3>
                         <p className="text-sm text-gray-600 mt-1">
-                            Upload audio và tạo câu hỏi nghe hiểu
+                            {t('teacher.createListening.subtitle')}
                         </p>
                     </div>
                 </div>
@@ -156,7 +158,7 @@ const CreateListeningQuestion = ({ initialData, onSubmit, onCancel }) => {
                 {/* Audio Upload */}
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                        File Audio <span className="text-red-500">*</span>
+                        {t('teacher.createListening.audioFile')} <span className="text-red-500">*</span>
                     </label>
 
                     {!audioFile && !formData.audioUrl ? (
@@ -177,10 +179,10 @@ const CreateListeningQuestion = ({ initialData, onSubmit, onCancel }) => {
                                     <Upload className="w-8 h-8 text-orange-600" />
                                 </div>
                                 <p className="text-sm font-medium text-gray-900">
-                                    Click để upload file audio
+                                    {t('teacher.createListening.clickToUpload')}
                                 </p>
                                 <p className="text-xs text-gray-500 mt-1">
-                                    MP3, WAV, M4A, AAC (tối đa 10MB)
+                                    {t('teacher.createListening.audioFormats')}
                                 </p>
                             </label>
                         </div>
@@ -203,7 +205,7 @@ const CreateListeningQuestion = ({ initialData, onSubmit, onCancel }) => {
                                             className="hidden"
                                         />
                                         <p className="text-sm font-medium text-gray-900">
-                                            {audioFile?.name || 'Audio đã upload'}
+                                            {audioFile?.name || t('teacher.createListening.uploadedAudio')}
                                         </p>
                                         {audioFile?.size && (
                                             <p className="text-xs text-gray-600">
@@ -231,29 +233,29 @@ const CreateListeningQuestion = ({ initialData, onSubmit, onCancel }) => {
                 {/* Transcript */}
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Transcript (Nội dung audio) - Optional
+                        {t('teacher.createListening.transcriptOptional')}
                     </label>
                     <textarea
                         value={formData.transcript}
                         onChange={(e) => setFormData({ ...formData, transcript: e.target.value })}
-                        placeholder="Nhập nội dung transcript của audio..."
+                        placeholder={t('teacher.createListening.transcriptPlaceholder')}
                         rows={4}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 resize-none text-sm"
                     />
                     <p className="text-xs text-gray-500 mt-1">
-                        Transcript giúp học viên review lại sau khi làm bài
+                        {t('teacher.createListening.transcriptHelp')}
                     </p>
                 </div>
 
                 {/* Question Text */}
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Câu hỏi <span className="text-red-500">*</span>
+                        {t('teacher.createListening.question')} <span className="text-red-500">*</span>
                     </label>
                     <textarea
                         value={formData.questionText}
                         onChange={(e) => setFormData({ ...formData, questionText: e.target.value })}
-                        placeholder="VD: Người nói đang làm gì? / Họ đang ở đâu? / Từ nào được nhắc đến?"
+                        placeholder={t('teacher.createListening.questionPlaceholder')}
                         rows={3}
                         className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 resize-none ${
                             errors.questionText ? 'border-red-500' : 'border-gray-300'
@@ -268,22 +270,22 @@ const CreateListeningQuestion = ({ initialData, onSubmit, onCancel }) => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Độ khó
+                            {t('teacher.createListening.difficulty')}
                         </label>
                         <select
                             value={formData.difficulty}
                             onChange={(e) => setFormData({ ...formData, difficulty: e.target.value })}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                         >
-                            <option value="EASY">Dễ</option>
-                            <option value="MEDIUM">Trung bình</option>
-                            <option value="HARD">Khó</option>
+                            <option value="EASY">{t('teacher.createListening.easy')}</option>
+                            <option value="MEDIUM">{t('teacher.createListening.medium')}</option>
+                            <option value="HARD">{t('teacher.createListening.hard')}</option>
                         </select>
                     </div>
 
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Số điểm
+                            {t('teacher.createListening.points')}
                         </label>
                         <input
                             type="number"
@@ -299,7 +301,7 @@ const CreateListeningQuestion = ({ initialData, onSubmit, onCancel }) => {
                 {/* Options */}
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Đáp án <span className="text-red-500">*</span>
+                        {t('teacher.createListening.answers')} <span className="text-red-500">*</span>
                     </label>
 
                     <div className="space-y-3">
@@ -320,7 +322,7 @@ const CreateListeningQuestion = ({ initialData, onSubmit, onCancel }) => {
                                     type="text"
                                     value={option}
                                     onChange={(e) => handleOptionChange(index, e.target.value)}
-                                    placeholder={`Đáp án ${index + 1}`}
+                                    placeholder={t('teacher.createListening.answerN', { n: index + 1 })}
                                     className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                                 />
                             </div>
@@ -339,12 +341,12 @@ const CreateListeningQuestion = ({ initialData, onSubmit, onCancel }) => {
                 {/* Explanation */}
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Giải thích (Optional)
+                        {t('teacher.createListening.explanationOptional')}
                     </label>
                     <textarea
                         value={formData.explanation}
                         onChange={(e) => setFormData({ ...formData, explanation: e.target.value })}
-                        placeholder="Giải thích tại sao đáp án này đúng..."
+                        placeholder={t('teacher.createListening.explanationPlaceholder')}
                         rows={3}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 resize-none"
                     />
@@ -353,7 +355,7 @@ const CreateListeningQuestion = ({ initialData, onSubmit, onCancel }) => {
                 {/* Tags */}
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Tags (Optional)
+                        {t('teacher.createListening.tagsOptional')}
                     </label>
                     <input
                         type="text"
@@ -369,13 +371,13 @@ const CreateListeningQuestion = ({ initialData, onSubmit, onCancel }) => {
 
                 {/* Tips */}
                 <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                    <h4 className="text-sm font-semibold text-blue-900 mb-2">💡 Mẹo tạo câu hỏi nghe hiểu</h4>
+                    <h4 className="text-sm font-semibold text-blue-900 mb-2">{t('teacher.createListening.tips')}</h4>
                     <ul className="text-xs text-blue-800 space-y-1">
-                        <li>• Chọn audio ngắn (30-60 giây) cho câu hỏi đơn</li>
-                        <li>• Audio nên rõ nét, không bị tạp âm</li>
-                        <li>• Transcript nên được cung cấp để học viên review</li>
-                        <li>• Câu hỏi nên tập trung vào thông tin chính</li>
-                        <li>• Có thể tạo nhiều câu hỏi cho cùng một audio</li>
+                        <li>{t('teacher.createListening.tip1')}</li>
+                        <li>{t('teacher.createListening.tip2')}</li>
+                        <li>{t('teacher.createListening.tip3')}</li>
+                        <li>{t('teacher.createListening.tip4')}</li>
+                        <li>{t('teacher.createListening.tip5')}</li>
                     </ul>
                 </div>
 
@@ -386,7 +388,7 @@ const CreateListeningQuestion = ({ initialData, onSubmit, onCancel }) => {
                         onClick={onCancel}
                         className="px-6 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
                     >
-                        Hủy
+                        {t('teacher.createListening.cancel')}
                     </button>
                     <button
                         type="submit"
@@ -396,10 +398,10 @@ const CreateListeningQuestion = ({ initialData, onSubmit, onCancel }) => {
                         {uploading ? (
                             <>
                                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                                Đang upload...
+                                {t('teacher.createListening.uploading')}
                             </>
                         ) : (
-                            'Lưu Câu Hỏi'
+                            t('teacher.createListening.saveQuestion')
                         )}
                     </button>
                 </div>

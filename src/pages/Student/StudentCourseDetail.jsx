@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   BookOpen,
   Calendar,
@@ -26,6 +27,7 @@ import lessonService from '../../services/lessonService';
 import CertificateSubmitModal from '../../components/Student/CertificateSubmitModal';
 
 const StudentCourseDetail = () => {
+  const { t } = useTranslation();
   const { courseId } = useParams();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
@@ -165,13 +167,13 @@ const StudentCourseDetail = () => {
             className="mb-6 flex items-center gap-2 text-indigo-600 hover:text-indigo-700 font-medium"
           >
             <ArrowLeft className="w-5 h-5" />
-            Quay lại khóa học của tôi
+            {t('student.courseDetail.backToMyCourses')}
           </button>
 
           <div className="bg-white rounded-2xl p-12 text-center shadow-lg">
             <BookOpen className="w-20 h-20 mx-auto mb-4 text-gray-300" />
-            <h3 className="text-xl font-bold text-gray-700 mb-2">Không tìm thấy khóa học</h3>
-            <p className="text-gray-500">Bạn chưa đăng ký khóa học này</p>
+            <h3 className="text-xl font-bold text-gray-700 mb-2">{t('student.courseDetail.courseNotFound')}</h3>
+            <p className="text-gray-500">{t('student.courseDetail.notEnrolled')}</p>
           </div>
         </div>
       </div>
@@ -197,7 +199,7 @@ const StudentCourseDetail = () => {
           className="mb-6 flex items-center gap-2 text-indigo-600 hover:text-indigo-700 font-medium transition-colors"
         >
           <ArrowLeft className="w-5 h-5" />
-          Quay lại khóa học của tôi
+          {t('student.courseDetail.backToMyCourses')}
         </button>
 
         {/* Header */}
@@ -215,8 +217,8 @@ const StudentCourseDetail = () => {
                 <div className="text-white">
                   <h1 className="text-3xl font-bold">{displayCourse?.name}</h1>
                   <p className="text-indigo-100">
-                    {displayCourse?.code && <span className="mr-4">Mã: {displayCourse.code}</span>}
-                    {classes[0]?.teacherName && <span>Giáo viên: {classes[0].teacherName}</span>}
+                    {displayCourse?.code && <span className="mr-4">{t('student.courseDetail.code', { code: displayCourse.code })}</span>}
+                    {classes[0]?.teacherName && <span>{t('student.courseDetail.teacher', { name: classes[0].teacherName })}</span>}
                   </p>
                 </div>
               </div>
@@ -236,11 +238,11 @@ const StudentCourseDetail = () => {
                       : 'border-transparent text-gray-500 hover:text-gray-700'
                   }`}
                 >
-                  {tab === 'overview' && 'Tổng quan'}
-                  {tab === 'curriculum' && 'Giáo trình'}
-                  {tab === 'requirements' && 'Yêu cầu'}
-                  {tab === 'myclasses' && 'Lớp học của tôi'}
-                  {tab === 'instructor' && 'Giáo viên'}
+                  {tab === 'overview' && t('student.courseDetail.tabOverview')}
+                  {tab === 'curriculum' && t('student.courseDetail.tabCurriculum')}
+                  {tab === 'requirements' && t('student.courseDetail.tabRequirements')}
+                  {tab === 'myclasses' && t('student.courseDetail.tabMyClasses')}
+                  {tab === 'instructor' && t('student.courseDetail.tabInstructor')}
                 </button>
               ))}
             </div>
@@ -256,7 +258,7 @@ const StudentCourseDetail = () => {
                   <div className="bg-gray-50 rounded-xl p-4">
                     <div className="flex items-center gap-2 mb-3">
                       <Globe className="w-5 h-5 text-red-500" />
-                      <span className="font-semibold text-gray-700">Video giới thiệu</span>
+                      <span className="font-semibold text-gray-700">{t('student.courseDetail.introVideo')}</span>
                     </div>
                     <div className="aspect-video rounded-lg overflow-hidden">
                       <iframe
@@ -275,7 +277,7 @@ const StudentCourseDetail = () => {
                   <div className="bg-gray-50 rounded-xl p-4">
                     <div className="flex items-center gap-2 mb-3">
                       <Globe className="w-5 h-5 text-indigo-600" />
-                      <span className="font-semibold text-gray-700">Ảnh khóa học</span>
+                      <span className="font-semibold text-gray-700">{t('student.courseDetail.courseImage')}</span>
                     </div>
                     <img
                       src={displayCourse.thumbnailUrl}
@@ -288,7 +290,7 @@ const StudentCourseDetail = () => {
                 {/* Description */}
                 {displayCourse?.description && (
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Mô tả khóa học</h3>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">{t('student.courseDetail.courseDescription')}</h3>
                     <p className="text-gray-600 whitespace-pre-wrap">{displayCourse.description}</p>
                   </div>
                 )}
@@ -298,24 +300,24 @@ const StudentCourseDetail = () => {
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div className="bg-blue-50 rounded-lg p-4">
                       <BookOpen className="w-5 h-5 text-blue-600 mb-2" />
-                      <p className="text-xs text-gray-600">Trình độ</p>
+                      <p className="text-xs text-gray-600">{t('student.courseDetail.level')}</p>
                       <p className="font-semibold text-gray-900">{levelLabels[courseData.level] || courseData.level}</p>
                     </div>
                     <div className="bg-green-50 rounded-lg p-4">
                       <Clock className="w-5 h-5 text-green-600 mb-2" />
-                      <p className="text-xs text-gray-600">Thời lượng</p>
-                      <p className="font-semibold text-gray-900">{courseData.duration || 0} giờ</p>
+                      <p className="text-xs text-gray-600">{t('student.courseDetail.duration')}</p>
+                      <p className="font-semibold text-gray-900">{courseData.duration || 0} {t('student.courseDetail.hours')}</p>
                     </div>
                     <div className="bg-amber-50 rounded-lg p-4">
                       <DollarSign className="w-5 h-5 text-amber-600 mb-2" />
-                      <p className="text-xs text-gray-600">Học phí</p>
+                      <p className="text-xs text-gray-600">{t('student.courseDetail.tuition')}</p>
                       <p className="font-semibold text-gray-900">
                         {new Intl.NumberFormat('vi-VN').format(courseData.fee || 0)}₫
                       </p>
                     </div>
                     <div className="bg-purple-50 rounded-lg p-4">
                       <Calendar className="w-5 h-5 text-purple-600 mb-2" />
-                      <p className="text-xs text-gray-600">Lớp học</p>
+                      <p className="text-xs text-gray-600">{t('student.courseDetail.classes')}</p>
                       <p className="font-semibold text-gray-900">{classes.length}</p>
                     </div>
                   </div>
@@ -326,7 +328,7 @@ const StudentCourseDetail = () => {
                   <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-5">
                     <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
                       <CheckCircle2 className="w-5 h-5 text-green-600" />
-                      Mục tiêu khóa học
+                      {t('student.courseDetail.courseObjectives')}
                     </h3>
                     <div className="text-gray-700 whitespace-pre-wrap space-y-1">
                       {courseData.objectives.split('\n').map((line, idx) => (
@@ -374,10 +376,10 @@ const StudentCourseDetail = () => {
                     <div className="flex items-center justify-between mb-2">
                       <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
                         <BookOpen className="w-5 h-5 text-indigo-600" />
-                        Bài học ({lessons.length})
+                        {t('student.courseDetail.lessonsCount', { count: lessons.length })}
                       </h3>
                       <span className="text-sm text-gray-400">
-                        Tổng: {lessons.reduce((s, l) => s + (l.durationMinutes || 0), 0)} phút
+                        {t('student.courseDetail.totalMinutes', { minutes: lessons.reduce((s, l) => s + (l.durationMinutes || 0), 0) })}
                       </span>
                     </div>
                     {lessons.map((lesson) => (
@@ -394,12 +396,12 @@ const StudentCourseDetail = () => {
                               <span className="font-medium text-gray-900 truncate">{lesson.title}</span>
                               {lesson.isPreview && (
                                 <span className="shrink-0 text-[10px] px-1.5 py-0.5 rounded-full bg-green-100 text-green-700 font-medium">
-                                  <Eye className="w-3 h-3 inline mr-0.5" />Xem trước
+                                  <Eye className="w-3 h-3 inline mr-0.5" />{t('student.courseDetail.preview')}
                                 </span>
                               )}
                             </div>
                             <div className="flex items-center gap-3 mt-0.5 text-xs text-gray-400">
-                              {lesson.durationMinutes && <span>{lesson.durationMinutes} phút</span>}
+                              {lesson.durationMinutes && <span>{lesson.durationMinutes} {t('student.courseDetail.minutes')}</span>}
                               {lesson.videoUrl && <span className="flex items-center gap-0.5"><Video className="w-3 h-3" /> Video</span>}
                               {lesson.description && <span className="truncate max-w-[200px]">{lesson.description}</span>}
                             </div>
@@ -418,7 +420,7 @@ const StudentCourseDetail = () => {
                                     return match ? (
                                       <iframe width="100%" style={{ aspectRatio: '16/9', height: 'auto' }} src={`https://www.youtube.com/embed/${match[1]}`} frameBorder="0" allowFullScreen className="rounded-lg" />
                                     ) : (
-                                      <a href={lesson.videoUrl} target="_blank" rel="noopener noreferrer" className="text-indigo-600 underline text-sm">Mở video</a>
+                                      <a href={lesson.videoUrl} target="_blank" rel="noopener noreferrer" className="text-indigo-600 underline text-sm">{t('student.courseDetail.openVideo')}</a>
                                     );
                                   })()
                                 ) : (
@@ -429,7 +431,7 @@ const StudentCourseDetail = () => {
                             {lesson.content ? (
                               <div className="prose prose-sm max-w-none text-gray-700" dangerouslySetInnerHTML={{ __html: lesson.content }} />
                             ) : (
-                              <p className="text-sm text-gray-400 italic">Chưa có nội dung chi tiết</p>
+                              <p className="text-sm text-gray-400 italic">{t('student.courseDetail.noDetailedContent')}</p>
                             )}
                           </div>
                         )}
@@ -439,7 +441,7 @@ const StudentCourseDetail = () => {
                 ) : (
                   <div className="text-center text-gray-500 py-10">
                     <BookOpen className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                    <p>Chưa có giáo trình</p>
+                    <p>{t('student.courseDetail.noCurriculum')}</p>
                   </div>
                 )}
 
@@ -447,7 +449,7 @@ const StudentCourseDetail = () => {
                   <div className="bg-gradient-to-br from-amber-50 to-yellow-50 rounded-xl p-5">
                     <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
                       <Award className="w-5 h-5 text-amber-600" />
-                      Cấu trúc bài kiểm tra
+                      {t('student.courseDetail.testStructure')}
                     </h3>
                     <div className="text-gray-700 whitespace-pre-wrap prose prose-sm max-w-none">
                       {courseData.testSummary}
@@ -462,14 +464,14 @@ const StudentCourseDetail = () => {
               <div className="space-y-6">
                 {courseData?.requirements ? (
                   <div className="bg-gradient-to-br from-orange-50 to-red-50 rounded-xl p-5">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-3">Yêu cầu / Điều kiện tiên quyết</h3>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-3">{t('student.courseDetail.requirementsTitle')}</h3>
                     <div className="text-gray-700 whitespace-pre-wrap">
                       {courseData.requirements}
                     </div>
                   </div>
                 ) : (
                   <div className="text-center text-gray-500 py-10">
-                    <p>Không có yêu cầu đặc biệt</p>
+                    <p>{t('student.courseDetail.noRequirements')}</p>
                   </div>
                 )}
 
@@ -477,7 +479,7 @@ const StudentCourseDetail = () => {
                   <div className="bg-gray-50 rounded-xl p-5">
                     <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
                       <Calendar className="w-5 h-5 text-gray-600" />
-                      Lịch học mẫu
+                      {t('student.courseDetail.sampleSchedule')}
                     </h3>
                     <p className="text-gray-700">{courseData.schedule}</p>
                   </div>
@@ -492,11 +494,11 @@ const StudentCourseDetail = () => {
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
                     <BookOpen className="w-6 h-6 text-indigo-600" />
-                    Lớp học của tôi
+                    {t('student.courseDetail.myClassesTitle')}
                   </h3>
 
                   {classes.length === 0 ? (
-                    <p className="text-gray-500 text-center py-8">Chưa có lớp học</p>
+                    <p className="text-gray-500 text-center py-8">{t('student.courseDetail.noClasses')}</p>
                   ) : (
                     <div className="space-y-4">
                       {classes.map((cls) => (
@@ -513,7 +515,7 @@ const StudentCourseDetail = () => {
                             <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
                               cls.status === 'ACTIVE' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'
                             }`}>
-                              {cls.status === 'ACTIVE' ? 'Đang học' : cls.status}
+                              {cls.status === 'ACTIVE' ? t('student.courseDetail.statusLearning') : cls.status}
                             </span>
                           </div>
 
@@ -531,7 +533,7 @@ const StudentCourseDetail = () => {
                               </div>
                             )}
                           </div>
-                          <p className="text-xs text-indigo-600 mt-2">Click để xem chi tiết →</p>
+                          <p className="text-xs text-indigo-600 mt-2">{t('student.courseDetail.clickToViewDetails')}</p>
                         </div>
                       ))}
                     </div>
@@ -543,17 +545,17 @@ const StudentCourseDetail = () => {
                   <div className="bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200 rounded-xl p-5">
                     <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
                       <Award className="w-5 h-5 text-amber-600" />
-                      Nộp chứng chỉ
+                      {t('student.courseDetail.submitCertificate')}
                     </h3>
                     <p className="text-sm text-gray-600 mb-4">
-                      Bạn có thể nộp chứng chỉ TOPIK/OPIc cho các lớp đã hoàn thành với tỷ lệ điểm danh trên 80%.
+                      {t('student.courseDetail.certificateDescription')}
                     </p>
                     <button
                       onClick={() => setShowCertModal(true)}
                       className="px-5 py-2.5 bg-amber-500 text-white rounded-xl font-semibold hover:bg-amber-600 transition flex items-center gap-2"
                     >
                       <Award className="w-4 h-4" />
-                      Nộp chứng chỉ
+                      {t('student.courseDetail.submitCertificate')}
                     </button>
                   </div>
                 )}
@@ -569,11 +571,11 @@ const StudentCourseDetail = () => {
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
                     <Calendar className="w-6 h-6 text-indigo-600" />
-                    Lịch học
+                    {t('student.courseDetail.scheduleTitle')}
                   </h3>
 
                   {schedules.length === 0 ? (
-                    <p className="text-gray-500 text-center py-8">Chưa có lịch học</p>
+                    <p className="text-gray-500 text-center py-8">{t('student.courseDetail.noSchedule')}</p>
                   ) : (
                     <div className="space-y-3">
                       {schedules.map((schedule, index) => (
@@ -585,7 +587,7 @@ const StudentCourseDetail = () => {
                             <div>
                               <div className="flex items-center gap-2 mb-1">
                                 <CheckCircle className="w-4 h-4 text-indigo-600" />
-                                <span className="font-semibold text-gray-900">Buổi {schedule.lessonNumber}</span>
+                                <span className="font-semibold text-gray-900">{t('student.courseDetail.session', { number: schedule.lessonNumber })}</span>
                               </div>
                               {schedule.className && (
                                 <p className="text-xs text-gray-500">{schedule.className}</p>
@@ -596,8 +598,8 @@ const StudentCourseDetail = () => {
                               schedule.status === 'SCHEDULED' ? 'bg-blue-100 text-blue-700' :
                               'bg-gray-100 text-gray-700'
                             }`}>
-                              {schedule.status === 'COMPLETED' ? 'Đã xong' :
-                               schedule.status === 'SCHEDULED' ? 'Sắp tới' : schedule.status}
+                              {schedule.status === 'COMPLETED' ? t('student.courseDetail.done') :
+                               schedule.status === 'SCHEDULED' ? t('student.courseDetail.upcoming') : schedule.status}
                             </span>
                           </div>
 
@@ -631,11 +633,11 @@ const StudentCourseDetail = () => {
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
                     <FileText className="w-6 h-6 text-indigo-600" />
-                    Bài kiểm tra
+                    {t('student.courseDetail.examsTitle')}
                   </h3>
 
                   {exams.length === 0 ? (
-                    <p className="text-gray-500 text-center py-8">Chưa có bài kiểm tra</p>
+                    <p className="text-gray-500 text-center py-8">{t('student.courseDetail.noExams')}</p>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {exams.map((exam) => (
@@ -650,11 +652,11 @@ const StudentCourseDetail = () => {
                           <div className="flex items-center gap-3 text-sm text-gray-600 mb-3">
                             <div className="flex items-center gap-1">
                               <Clock className="w-4 h-4" />
-                              <span>{exam.durationMinutes || exam.duration || 60} phút</span>
+                              <span>{exam.durationMinutes || exam.duration || 60} {t('student.courseDetail.minutes')}</span>
                             </div>
                             <div className="flex items-center gap-1">
                               <FileText className="w-4 h-4" />
-                              <span>{exam.totalQuestions || 0} câu</span>
+                              <span>{exam.totalQuestions || 0} {t('student.courseDetail.questions')}</span>
                             </div>
                           </div>
 
@@ -663,7 +665,7 @@ const StudentCourseDetail = () => {
                             className="w-full py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg font-semibold hover:from-indigo-700 hover:to-purple-700 transition-all text-sm flex items-center justify-center gap-2"
                           >
                             <Play className="w-4 h-4" />
-                            Bắt đầu
+                            {t('student.courseDetail.start')}
                           </button>
                         </div>
                       ))}
@@ -680,7 +682,7 @@ const StudentCourseDetail = () => {
                   <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-5">
                     <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
                       <User className="w-5 h-5 text-purple-600" />
-                      Thông tin giáo viên
+                      {t('student.courseDetail.instructorInfo')}
                     </h3>
                     <div className="text-gray-700 whitespace-pre-wrap prose prose-sm max-w-none">
                       {courseData.instructorInfo}
@@ -689,18 +691,18 @@ const StudentCourseDetail = () => {
                 ) : (
                   <div className="text-center text-gray-500 py-10">
                     <User className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                    <p>Chưa có thông tin giáo viên</p>
+                    <p>{t('student.courseDetail.noInstructorInfo')}</p>
                   </div>
                 )}
 
                 {/* Quick Stats */}
                 <div className="bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl shadow-lg p-6 text-white">
-                  <h3 className="text-lg font-bold mb-4">Tiến độ học tập</h3>
+                  <h3 className="text-lg font-bold mb-4">{t('student.courseDetail.learningProgress')}</h3>
 
                   <div className="space-y-4">
                     <div className="bg-white/10 rounded-xl p-4">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm">Số buổi đã hoàn thành</span>
+                        <span className="text-sm">{t('student.courseDetail.completedSessions')}</span>
                         <span className="text-xl font-bold">
                           {schedules.filter(s => s.status === 'COMPLETED').length}/{schedules.length}
                         </span>
@@ -717,7 +719,7 @@ const StudentCourseDetail = () => {
 
                     <div className="bg-white/10 rounded-xl p-4">
                       <div className="flex items-center justify-between">
-                        <span className="text-sm">Số bài kiểm tra</span>
+                        <span className="text-sm">{t('student.courseDetail.examCount')}</span>
                         <span className="text-xl font-bold">{exams.length}</span>
                       </div>
                     </div>

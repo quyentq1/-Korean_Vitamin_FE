@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   BookOpen,
   Clock,
@@ -24,6 +25,7 @@ import CertificateSubmitModal from '../../components/Student/CertificateSubmitMo
  * MyCourses - Modern UI
  */
 const MyCourses = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [courses, setCourses] = useState([]);
@@ -88,11 +90,11 @@ const MyCourses = () => {
           if (!coursesMap.has(courseId)) {
             const courseData = {
               id: courseId,
-              name: classInfo.courseName || 'Khóa học',
+              name: classInfo.courseName || t('student.myCourses.defaultCourseName'),
               code: classInfo.courseCode || '',
               description: classInfo.courseDescription || '',
               thumbnail: classInfo.courseThumbnail || null,
-              teacher: classInfo.teacherName || 'Giáo viên',
+              teacher: classInfo.teacherName || t('student.myCourses.defaultTeacher'),
               progress: classEnrollment?.progress || 0,
               status: (classEnrollment?.status || 'ACTIVE').toUpperCase(),
               enrolledDate: classEnrollment?.enrollmentDate,
@@ -108,7 +110,7 @@ const MyCourses = () => {
           const course = coursesMap.get(courseId);
           const classData = {
             id: classInfo.id,
-            name: classInfo.className || 'Lớp học',
+            name: classInfo.className || t('student.myCourses.defaultClassName'),
             code: classInfo.classCode || '',
             schedule: classInfo.schedule,
             room: classInfo.room
@@ -136,9 +138,9 @@ const MyCourses = () => {
 
   const getStatusBadge = (status) => {
     const badges = {
-      'ACTIVE': { text: 'Đang học', className: 'bg-green-100 text-green-700 border-green-300' },
-      'COMPLETED': { text: 'Hoàn thành', className: 'bg-blue-100 text-blue-700 border-blue-300' },
-      'DROPPED': { text: 'Đã hủy', className: 'bg-red-100 text-red-700 border-red-300' },
+      'ACTIVE': { text: t('student.myCourses.statusActive'), className: 'bg-green-100 text-green-700 border-green-300' },
+      'COMPLETED': { text: t('student.myCourses.statusCompleted'), className: 'bg-blue-100 text-blue-700 border-blue-300' },
+      'DROPPED': { text: t('student.myCourses.statusDropped'), className: 'bg-red-100 text-red-700 border-red-300' },
     };
     const badge = badges[status] || badges['ACTIVE'];
     return (
@@ -165,8 +167,8 @@ const MyCourses = () => {
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div className="animate-spin rounded-full h-16 w-16 border-4 border-indigo-600 border-t-transparent"></div>
-          <p className="text-gray-600 font-medium">Đang tải khóa học...</p>
-          <p className="text-sm text-gray-400">Đang kiểm tra dữ liệu từ server</p>
+          <p className="text-gray-600 font-medium">{t('student.myCourses.loading')}</p>
+          <p className="text-sm text-gray-400">{t('student.myCourses.loadingSubtext')}</p>
         </div>
       </div>
     );
@@ -179,8 +181,8 @@ const MyCourses = () => {
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h1 className="text-3xl sm:text-4xl font-bold mb-2">Khóa học của tôi</h1>
-              <p className="text-indigo-100 text-lg">Quản lý và theo dõi tiến độ học tập</p>
+              <h1 className="text-3xl sm:text-4xl font-bold mb-2">{t('student.myCourses.title')}</h1>
+              <p className="text-indigo-100 text-lg">{t('student.myCourses.subtitle')}</p>
             </div>
             <div className="flex gap-2">
               <button
@@ -218,7 +220,7 @@ const MyCourses = () => {
               </div>
               <div>
                 <p className="text-2xl font-bold text-gray-900">{courses.length}</p>
-                <p className="text-xs text-gray-500">Tổng khóa</p>
+                <p className="text-xs text-gray-500">{t('student.myCourses.totalCourses')}</p>
               </div>
             </div>
           </div>
@@ -230,7 +232,7 @@ const MyCourses = () => {
               </div>
               <div>
                 <p className="text-2xl font-bold text-gray-900">{courses.filter(c => c.status === 'ACTIVE').length}</p>
-                <p className="text-xs text-gray-500">Đang học</p>
+                <p className="text-xs text-gray-500">{t('student.myCourses.activeCourses')}</p>
               </div>
             </div>
           </div>
@@ -242,7 +244,7 @@ const MyCourses = () => {
               </div>
               <div>
                 <p className="text-2xl font-bold text-gray-900">{courses.filter(c => c.status === 'COMPLETED').length}</p>
-                <p className="text-xs text-gray-500">Hoàn thành</p>
+                <p className="text-xs text-gray-500">{t('student.myCourses.completedCourses')}</p>
               </div>
             </div>
           </div>
@@ -256,7 +258,7 @@ const MyCourses = () => {
                 <p className="text-2xl font-bold text-gray-900">
                   {courses.length > 0 ? Math.round(courses.reduce((sum, c) => sum + c.progress, 0) / courses.length) : 0}%
                 </p>
-                <p className="text-xs text-gray-500">TB tiến độ</p>
+                <p className="text-xs text-gray-500">{t('student.myCourses.avgProgress')}</p>
               </div>
             </div>
           </div>
@@ -268,7 +270,7 @@ const MyCourses = () => {
             <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
             <input
               type="text"
-              placeholder="Tìm kiếm khóa học..."
+              placeholder={t('student.myCourses.searchPlaceholder')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-12 pr-4 py-4 bg-white rounded-2xl border-2 border-gray-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 outline-none transition-all shadow-lg"
@@ -280,13 +282,13 @@ const MyCourses = () => {
         {filteredCourses.length === 0 ? (
           <div className="bg-white rounded-2xl p-12 text-center shadow-lg">
             <BookOpen className="w-20 h-20 mx-auto mb-4 text-gray-300" />
-            <h3 className="text-xl font-bold text-gray-700 mb-2">Chưa có khóa học</h3>
-            <p className="text-gray-500 mb-6">Bạn chưa đăng ký khóa học nào</p>
+            <h3 className="text-xl font-bold text-gray-700 mb-2">{t('student.myCourses.noCoursesTitle')}</h3>
+            <p className="text-gray-500 mb-6">{t('student.myCourses.noCoursesSubtitle')}</p>
             <button
               onClick={() => navigate('/courses')}
               className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-semibold hover:from-indigo-700 hover:to-purple-700 transition-all shadow-lg"
             >
-              Xem khóa học
+              {t('student.myCourses.viewCourses')}
             </button>
           </div>
         ) : viewMode === 'grid' ? (
@@ -340,7 +342,7 @@ const MyCourses = () => {
                   {/* Progress Bar */}
                   <div className="mb-4">
                     <div className="flex items-center justify-between text-sm mb-2">
-                      <span className="text-gray-600 font-medium">Tiến độ</span>
+                      <span className="text-gray-600 font-medium">{t('student.myCourses.progress')}</span>
                       <span className="font-bold text-gray-900">{course.progress}%</span>
                     </div>
                     <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
@@ -354,7 +356,7 @@ const MyCourses = () => {
                   {course.classes.length > 0 && (
                     <div className="flex items-center gap-2 mb-4 text-sm text-gray-600">
                       <Calendar className="w-4 h-4" />
-                      <span>{course.classes.length} lớp học</span>
+                      <span>{t('student.myCourses.classCount', { count: course.classes.length })}</span>
                     </div>
                   )}
 
@@ -363,7 +365,7 @@ const MyCourses = () => {
                     className="w-full py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-semibold hover:from-indigo-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2 group-hover:gap-3"
                   >
                     <Play className="w-4 h-4" />
-                    Tiếp tục học
+                    {t('student.myCourses.continueLearning')}
                   </button>
                   {course.status === 'ACTIVE' && eligibleCourses.some(e => e.courseId == course.id) && (
                     <button
@@ -371,7 +373,7 @@ const MyCourses = () => {
                       className="w-full py-2.5 mt-2 bg-amber-50 text-amber-700 border border-amber-200 rounded-xl font-semibold hover:bg-amber-100 transition flex items-center justify-center gap-2 text-sm"
                     >
                       <Award className="w-4 h-4" />
-                      Nộp chứng chỉ
+                      {t('student.myCourses.submitCertificate')}
                     </button>
                   )}
                 </div>
@@ -423,7 +425,7 @@ const MyCourses = () => {
                       {course.classes.length > 0 && (
                         <div className="flex items-center gap-2">
                           <Calendar className="w-4 h-4" />
-                          <span>{course.classes.length} lớp</span>
+                          <span>{t('student.myCourses.classCountShort', { count: course.classes.length })}</span>
                         </div>
                       )}
                     </div>
@@ -431,7 +433,7 @@ const MyCourses = () => {
                     <div className="flex items-center gap-4">
                       <div className="flex-1">
                         <div className="flex items-center justify-between text-sm mb-2">
-                          <span className="text-gray-600 font-medium">Tiến độ</span>
+                          <span className="text-gray-600 font-medium">{t('student.myCourses.progress')}</span>
                           <span className="font-bold text-gray-900">{course.progress}%</span>
                         </div>
                         <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
@@ -446,7 +448,7 @@ const MyCourses = () => {
                         className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-semibold hover:from-indigo-700 hover:to-purple-700 transition-all shadow-lg flex items-center gap-2"
                       >
                         <Play className="w-4 h-4" />
-                        Tiếp tục
+                        {t('student.myCourses.continue')}
                       </button>
                     </div>
                   </div>

@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { teacherService } from '../../services/teacherService';
+import { useTranslation } from 'react-i18next';
 import { ClipboardCheck, History, ChevronRight, Users, Calendar } from 'lucide-react';
 
 const TeacherAttendance = () => {
+    const { t } = useTranslation();
     const [activeTab, setActiveTab] = useState('today');
 
     // Today attendance state
@@ -36,7 +38,7 @@ const TeacherAttendance = () => {
             setTodaySchedules(Array.isArray(data) ? data : []);
         } catch (error) {
             console.error('Error fetching today schedules:', error);
-            setMessage({ type: 'error', text: 'Không thể tải lịch học hôm nay' });
+            setMessage({ type: 'error', text: t('teacher.attendance.cannotLoadSchedule') });
         } finally {
             setLoading(false);
         }
@@ -69,7 +71,7 @@ const TeacherAttendance = () => {
             }
         } catch (error) {
             console.error('Error loading attendance:', error);
-            setMessage({ type: 'error', text: 'Không thể tải danh sách học viên' });
+            setMessage({ type: 'error', text: t('teacher.attendance.cannotLoadStudents') });
         }
     };
 
@@ -94,10 +96,10 @@ const TeacherAttendance = () => {
                     status: a.status
                 }))
             });
-            setMessage({ type: 'success', text: 'Điểm danh thành công!' });
+            setMessage({ type: 'success', text: t('teacher.attendance.markSuccess') });
             fetchTodaySchedules();
         } catch (error) {
-            const msg = error?.response?.data?.message || error?.response?.data?.error || 'Lỗi khi điểm danh';
+            const msg = error?.response?.data?.message || error?.response?.data?.error || t('teacher.attendance.markError');
             setMessage({ type: 'error', text: msg });
         } finally {
             setSaving(false);
@@ -110,9 +112,9 @@ const TeacherAttendance = () => {
             setAttendanceData(prev =>
                 prev.map(a => a.studentId === studentId ? { ...a, status: newStatus } : a)
             );
-            setMessage({ type: 'success', text: 'Cập nhật thành công!' });
+            setMessage({ type: 'success', text: t('teacher.attendance.updateSuccess') });
         } catch (error) {
-            setMessage({ type: 'error', text: 'Lỗi khi cập nhật điểm danh' });
+            setMessage({ type: 'error', text: t('teacher.attendance.updateError') });
         }
     };
 
@@ -123,8 +125,8 @@ const TeacherAttendance = () => {
     };
 
     const getStatusLabel = (status) => {
-        if (status === 'PRESENT') return 'Có mặt';
-        if (status === 'ABSENT') return 'Vắng mặt';
+        if (status === 'PRESENT') return t('teacher.attendance.present');
+        if (status === 'ABSENT') return t('teacher.attendance.absent');
         return status;
     };
 
@@ -183,7 +185,7 @@ const TeacherAttendance = () => {
     return (
         <div className="p-6 max-w-7xl mx-auto space-y-6">
             <div className="flex items-center justify-between">
-                <h1 className="text-2xl font-bold text-gray-800">Điểm danh</h1>
+                <h1 className="text-2xl font-bold text-gray-800">{t('teacher.attendance.title')}</h1>
                 <span className="text-sm text-gray-500">
                     {new Date().toLocaleDateString('vi-VN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                 </span>
@@ -200,7 +202,7 @@ const TeacherAttendance = () => {
                     }`}
                 >
                     <ClipboardCheck className="w-5 h-5" />
-                    Điểm danh hôm nay
+                    {t('teacher.attendance.todayTab')}
                 </button>
                 <button
                     onClick={() => setActiveTab('history')}
@@ -211,7 +213,7 @@ const TeacherAttendance = () => {
                     }`}
                 >
                     <History className="w-5 h-5" />
-                    Xem lại điểm danh
+                    {t('teacher.attendance.historyTab')}
                 </button>
             </div>
 
@@ -225,10 +227,10 @@ const TeacherAttendance = () => {
             {activeTab === 'today' && (
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <div className="lg:col-span-1">
-                        <h2 className="text-lg font-semibold text-gray-700 mb-3">Lịch học hôm nay</h2>
+                        <h2 className="text-lg font-semibold text-gray-700 mb-3">{t('teacher.attendance.todaySchedule')}</h2>
                         {todaySchedules.length === 0 ? (
                             <div className="bg-gray-50 rounded-lg p-6 text-center text-gray-500">
-                                Không có lịch học hôm nay
+                                {t('teacher.attendance.noScheduleToday')}
                             </div>
                         ) : (
                             <div className="space-y-3">
@@ -255,7 +257,7 @@ const TeacherAttendance = () => {
                                                     ? 'bg-green-100 text-green-700'
                                                     : 'bg-yellow-100 text-yellow-700'
                                             }`}>
-                                                {schedule.attendanceCompleted ? 'Đã điểm danh' : 'Chưa điểm danh'}
+                                                {schedule.attendanceCompleted ? t('teacher.attendance.completed') : t('teacher.attendance.notCompleted')}
                                             </span>
                                             <span className="text-xs text-gray-400">
                                                 {schedule.attendanceCount || 0}/{schedule.totalStudents || 0}
@@ -282,10 +284,10 @@ const TeacherAttendance = () => {
                                     </div>
                                     <div className="flex gap-2">
                                         <span className="text-sm bg-green-100 text-green-700 px-2 py-1 rounded">
-                                            Có mặt: {attendanceData.filter(a => a.status === 'PRESENT').length}
+                                            {t('teacher.attendance.present')}: {attendanceData.filter(a => a.status === 'PRESENT').length}
                                         </span>
                                         <span className="text-sm bg-red-100 text-red-700 px-2 py-1 rounded">
-                                            Vắng: {attendanceData.filter(a => a.status === 'ABSENT').length}
+                                            {t('teacher.attendance.absent')}: {attendanceData.filter(a => a.status === 'ABSENT').length}
                                         </span>
                                     </div>
                                 </div>
@@ -294,9 +296,9 @@ const TeacherAttendance = () => {
                                     <table className="min-w-full divide-y divide-gray-200">
                                         <thead className="bg-gray-50">
                                             <tr>
-                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">STT</th>
-                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Học viên</th>
-                                                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Trạng thái</th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t('teacher.attendance.index')}</th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t('teacher.attendance.student')}</th>
+                                                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">{t('common.status')}</th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-gray-200">
@@ -323,7 +325,7 @@ const TeacherAttendance = () => {
                                                                         : 'bg-gray-200 text-gray-500'
                                                                 }`}
                                                             >
-                                                                Có mặt
+                                                                {t('teacher.attendance.present')}
                                                             </button>
                                                             <button
                                                                 onClick={() => toggleStatus(student.studentId)}
@@ -333,7 +335,7 @@ const TeacherAttendance = () => {
                                                                         : 'bg-gray-200 text-gray-500'
                                                                 }`}
                                                             >
-                                                                Vắng mặt
+                                                                {t('teacher.attendance.absent')}
                                                             </button>
                                                         </div>
                                                     </td>
@@ -349,7 +351,7 @@ const TeacherAttendance = () => {
                                         disabled={saving}
                                         className="px-6 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 font-medium"
                                     >
-                                        {saving ? 'Đang lưu...' : 'Lưu điểm danh'}
+                                        {saving ? t('common.loading') : t('teacher.attendance.save')}
                                     </button>
                                     <button
                                         onClick={() => {
@@ -357,13 +359,13 @@ const TeacherAttendance = () => {
                                         }}
                                         className="px-4 py-2.5 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 text-sm"
                                     >
-                                        Đánh dấu tất cả có mặt
+                                        {t('teacher.attendance.markAllPresent')}
                                     </button>
                                 </div>
                             </div>
                         ) : (
                             <div className="bg-gray-50 rounded-lg p-12 text-center text-gray-400">
-                                Chọn lịch học bên trái để bắt đầu điểm danh
+                                {t('teacher.attendance.selectSchedule')}
                             </div>
                         )}
                     </div>
@@ -376,13 +378,13 @@ const TeacherAttendance = () => {
                     {/* Left: Class selector + Session list */}
                     <div className="lg:col-span-1 space-y-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Chọn lớp học</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">{t('teacher.attendance.selectClass')}</label>
                             <select
                                 value={selectedClassId || ''}
                                 onChange={(e) => selectClass(e.target.value || null)}
                                 className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white"
                             >
-                                <option value="">-- Chọn lớp --</option>
+                                <option value="">{t('teacher.attendance.selectClassPlaceholder')}</option>
                                 {teacherClasses.map(cls => (
                                     <option key={cls.id} value={cls.id}>{cls.className}</option>
                                 ))}
@@ -399,12 +401,12 @@ const TeacherAttendance = () => {
                             <div>
                                 <h3 className="text-sm font-semibold text-gray-600 mb-2 flex items-center gap-2">
                                     <Calendar className="w-4 h-4" />
-                                    Lịch học ({classResults.totalSessions || 0} buổi)
+                                    {t('teacher.attendance.scheduleCount', { count: classResults.totalSessions || 0 })}
                                 </h3>
                                 <div className="space-y-2 max-h-[600px] overflow-y-auto">
                                     {(classResults.sessionStats || []).length === 0 ? (
                                         <div className="bg-gray-50 rounded-lg p-4 text-center text-sm text-gray-500">
-                                            Chưa có lịch học
+                                            {t('teacher.attendance.noSchedule')}
                                         </div>
                                     ) : (
                                         classResults.sessionStats.map(session => (
@@ -420,7 +422,7 @@ const TeacherAttendance = () => {
                                                 <div className="flex items-center justify-between">
                                                     <div>
                                                         <div className="text-sm font-medium text-gray-800">
-                                                            Buổi {session.lessonNumber}
+                                                            {t('teacher.attendance.session')} {session.lessonNumber}
                                                         </div>
                                                         <div className="text-xs text-gray-500 mt-0.5">
                                                             {session.lessonDate}
@@ -431,14 +433,14 @@ const TeacherAttendance = () => {
                                                         {session.totalMarked > 0 ? (
                                                             <>
                                                                 <span className="text-xs text-green-600 font-medium">
-                                                                    {session.present} CM
+                                                                    {session.present} {t('teacher.attendance.presentShort')}
                                                                 </span>
                                                                 <span className="text-xs text-red-500 font-medium">
-                                                                    {session.absent} V
+                                                                    {session.absent} {t('teacher.attendance.absentShort')}
                                                                 </span>
                                                             </>
                                                         ) : (
-                                                            <span className="text-xs text-gray-400">Chưa điểm danh</span>
+                                                            <span className="text-xs text-gray-400">{t('teacher.attendance.notCompleted')}</span>
                                                         )}
                                                         <ChevronRight className="w-4 h-4 text-gray-400" />
                                                     </div>
@@ -465,10 +467,10 @@ const TeacherAttendance = () => {
                                     </div>
                                     <div className="flex gap-2">
                                         <span className="text-sm bg-green-100 text-green-700 px-2 py-1 rounded">
-                                            Có mặt: {historyAttendance.students?.filter(s => s.status === 'PRESENT').length || 0}
+                                            {t('teacher.attendance.present')}: {historyAttendance.students?.filter(s => s.status === 'PRESENT').length || 0}
                                         </span>
                                         <span className="text-sm bg-red-100 text-red-700 px-2 py-1 rounded">
-                                            Vắng: {historyAttendance.students?.filter(s => s.status === 'ABSENT').length || 0}
+                                            {t('teacher.attendance.absent')}: {historyAttendance.students?.filter(s => s.status === 'ABSENT').length || 0}
                                         </span>
                                     </div>
                                 </div>
@@ -509,7 +511,7 @@ const TeacherAttendance = () => {
                                     </div>
                                 ) : (
                                     <div className="bg-gray-50 rounded-lg p-8 text-center text-gray-500">
-                                        Buổi học này chưa có dữ liệu điểm danh
+                                        {t('teacher.attendance.noSessionData')}
                                     </div>
                                 )}
 
@@ -518,7 +520,7 @@ const TeacherAttendance = () => {
                                     onClick={() => { setSelectedHistorySession(null); setHistoryAttendance(null); }}
                                     className="mt-4 text-sm text-indigo-600 hover:text-indigo-800"
                                 >
-                                    &larr; Quay lại danh sách buổi học
+                                    &larr; {t('teacher.attendance.backToSessionList')}
                                 </button>
                             </div>
                         ) : classResults && !historyLoading ? (
@@ -526,16 +528,16 @@ const TeacherAttendance = () => {
                             <div>
                                 <div className="flex items-center justify-between mb-4">
                                     <h2 className="text-lg font-semibold text-gray-700">
-                                        {classResults.className} - Tổng quan
+                                        {classResults.className} - {t('teacher.attendance.overview')}
                                     </h2>
                                     <div className="flex items-center gap-3 text-sm">
                                         <span className="text-gray-500">
                                             <Users className="w-4 h-4 inline mr-1" />
-                                            {classResults.totalStudents || 0} học viên
+                                            {classResults.totalStudents || 0} {t('teacher.attendance.students')}
                                         </span>
                                         <span className="text-gray-500">
                                             <Calendar className="w-4 h-4 inline mr-1" />
-                                            {classResults.totalSessions || 0} buổi
+                                            {classResults.totalSessions || 0} {t('teacher.attendance.sessions')}
                                         </span>
                                     </div>
                                 </div>
@@ -544,12 +546,12 @@ const TeacherAttendance = () => {
                                     <table className="min-w-full divide-y divide-gray-200">
                                         <thead className="bg-gray-50">
                                             <tr>
-                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">STT</th>
-                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Học viên</th>
-                                                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Tỷ lệ</th>
-                                                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Có mặt</th>
-                                                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Vắng</th>
-                                                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Trạng thái</th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t('teacher.attendance.index')}</th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t('teacher.attendance.student')}</th>
+                                                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">{t('teacher.attendance.rate')}</th>
+                                                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">{t('teacher.attendance.present')}</th>
+                                                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">{t('teacher.attendance.absent')}</th>
+                                                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">{t('common.status')}</th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-gray-200">
@@ -585,11 +587,11 @@ const TeacherAttendance = () => {
                                                     </td>
                                                     <td className="px-4 py-3 text-center">
                                                         {stat.isLocked ? (
-                                                            <span className="text-xs px-2 py-1 rounded-full bg-red-100 text-red-700">Khóa</span>
+                                                            <span className="text-xs px-2 py-1 rounded-full bg-red-100 text-red-700">{t('teacher.attendance.locked')}</span>
                                                         ) : stat.isWarning ? (
-                                                            <span className="text-xs px-2 py-1 rounded-full bg-yellow-100 text-yellow-700">Cảnh báo</span>
+                                                            <span className="text-xs px-2 py-1 rounded-full bg-yellow-100 text-yellow-700">{t('teacher.attendance.warning')}</span>
                                                         ) : (
-                                                            <span className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-700">Bình thường</span>
+                                                            <span className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-700">{t('teacher.attendance.normal')}</span>
                                                         )}
                                                     </td>
                                                 </tr>
@@ -601,8 +603,8 @@ const TeacherAttendance = () => {
                         ) : (
                             <div className="bg-gray-50 rounded-lg p-12 text-center text-gray-400">
                                 {selectedClassId
-                                    ? 'Đang tải dữ liệu...'
-                                    : 'Chọn một lớp học bên trái để xem điểm danh'}
+                                    ? t('common.loading')
+                                    : t('teacher.attendance.selectClassToView')}
                             </div>
                         )}
                     </div>

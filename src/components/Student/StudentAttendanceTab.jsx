@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { studentService } from '../../services/studentService';
+import { useTranslation } from 'react-i18next';
 
 const StudentAttendanceTab = ({ classId }) => {
+    const { t } = useTranslation();
     const [attendanceHistory, setAttendanceHistory] = useState([]);
     const [loading, setLoading] = useState(false);
     const [selectedSession, setSelectedSession] = useState(null);
@@ -59,19 +61,19 @@ const StudentAttendanceTab = ({ classId }) => {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="bg-blue-50 rounded-lg p-4 text-center">
                     <div className="text-2xl font-bold text-blue-600">{totalSessions}</div>
-                    <div className="text-sm text-blue-500">Tổng buổi</div>
+                    <div className="text-sm text-blue-500">{t('student.attendance.totalSessions')}</div>
                 </div>
                 <div className="bg-green-50 rounded-lg p-4 text-center">
                     <div className="text-2xl font-bold text-green-600">{presentCount}</div>
-                    <div className="text-sm text-green-500">Có mặt</div>
+                    <div className="text-sm text-green-500">{t('student.attendance.present')}</div>
                 </div>
                 <div className="bg-red-50 rounded-lg p-4 text-center">
                     <div className="text-2xl font-bold text-red-600">{absentCount}</div>
-                    <div className="text-sm text-red-500">Vắng mặt</div>
+                    <div className="text-sm text-red-500">{t('student.attendance.absent')}</div>
                 </div>
                 <div className="bg-indigo-50 rounded-lg p-4 text-center">
                     <div className="text-2xl font-bold text-indigo-600">{rate}%</div>
-                    <div className="text-sm text-indigo-500">Tỷ lệ điểm danh</div>
+                    <div className="text-sm text-indigo-500">{t('student.attendance.attendanceRate')}</div>
                 </div>
             </div>
 
@@ -79,7 +81,7 @@ const StudentAttendanceTab = ({ classId }) => {
             {overview && (
                 <div className="bg-white rounded-lg border p-4">
                     <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium text-gray-700">Tỷ lệ có mặt</span>
+                        <span className="text-sm font-medium text-gray-700">{t('student.attendance.presentRate')}</span>
                         <span className="text-sm text-gray-500">{overview.attendanceRate?.toFixed(1) || rate}%</span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-3">
@@ -92,12 +94,12 @@ const StudentAttendanceTab = ({ classId }) => {
                     </div>
                     {overview.isWarning && (
                         <p className="mt-2 text-sm text-yellow-600">
-                            Cảnh báo: Tỷ lệ vắng học của bạn đang đạt ngưỡng 20%. Vui lòng đi học đều đặn hơn.
+                            {t('student.attendance.warning20Percent')}
                         </p>
                     )}
                     {overview.isLocked && (
                         <p className="mt-2 text-sm text-red-600 font-medium">
-                            Tài khoản của bạn có thể bị khóa do vắng học quá 20% tổng số buổi.
+                            {t('student.attendance.lockedWarning')}
                         </p>
                     )}
                 </div>
@@ -106,17 +108,17 @@ const StudentAttendanceTab = ({ classId }) => {
             {/* Attendance History */}
             <div className="bg-white rounded-lg border overflow-hidden">
                 <div className="px-4 py-3 bg-gray-50 border-b">
-                    <h3 className="font-semibold text-gray-700">Lịch sử điểm danh</h3>
+                    <h3 className="font-semibold text-gray-700">{t('student.attendance.attendanceHistory')}</h3>
                 </div>
                 {attendanceHistory.length === 0 ? (
-                    <div className="p-6 text-center text-gray-400">Chưa có dữ liệu điểm danh</div>
+                    <div className="p-6 text-center text-gray-400">{t('student.attendance.noAttendanceData')}</div>
                 ) : (
                     <div className="divide-y">
                         {attendanceHistory.map((record) => (
                             <div key={record.attendanceId || record.scheduleId}>
                                 <div className="flex items-center justify-between px-4 py-3 hover:bg-gray-50">
                                     <div className="flex items-center gap-3">
-                                        <span className="text-sm font-medium text-gray-500">Buổi {record.lessonNumber}</span>
+                                        <span className="text-sm font-medium text-gray-500">{t('student.attendance.session')} {record.lessonNumber}</span>
                                         <span className="text-sm text-gray-600">
                                             {record.lessonDate && new Date(record.lessonDate).toLocaleDateString('vi-VN')}
                                         </span>
@@ -132,20 +134,20 @@ const StudentAttendanceTab = ({ classId }) => {
                                                     ? 'bg-red-100 text-red-700'
                                                     : 'bg-gray-100 text-gray-700'
                                         }`}>
-                                            {record.status === 'PRESENT' ? 'Có mặt' : record.status === 'ABSENT' ? 'Vắng mặt' : record.status}
+                                            {record.status === 'PRESENT' ? t('student.attendance.present') : record.status === 'ABSENT' ? t('student.attendance.absent') : record.status}
                                         </span>
                                         <button
                                             onClick={() => viewSessionList(record.scheduleId)}
                                             className="text-xs text-indigo-600 hover:text-indigo-800"
                                         >
-                                            Xem lớp
+                                            {t('student.attendance.viewClass')}
                                         </button>
                                     </div>
                                 </div>
                                 {selectedSession === record.scheduleId && sessionList && (
                                     <div className="px-4 py-3 bg-gray-50 border-t">
                                         <div className="text-xs font-medium text-gray-500 mb-2">
-                                            Danh sách điểm danh lớp - Buổi {sessionList.lessonNumber} ({sessionList.lessonDate && new Date(sessionList.lessonDate).toLocaleDateString('vi-VN')})
+                                            {t('student.attendance.classAttendanceList')} - {t('student.attendance.session')} {sessionList.lessonNumber} ({sessionList.lessonDate && new Date(sessionList.lessonDate).toLocaleDateString('vi-VN')})
                                         </div>
                                         <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                                             {(sessionList.students || []).map((s) => (

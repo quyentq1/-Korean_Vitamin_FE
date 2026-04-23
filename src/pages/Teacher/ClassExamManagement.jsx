@@ -50,7 +50,7 @@ const ClassExamManagement = () => {
       setScoreboardData(data);
     } catch (err) {
       console.error('Failed to fetch scoreboard:', err);
-      Swal.fire({ icon: 'error', title: 'Lỗi', text: 'Không thể tải bảng điểm.' });
+      Swal.fire({ icon: 'error', title: t('teacher.classExamMgmt.error'), text: t('teacher.classExamMgmt.cannotLoadScoreboard') });
     } finally {
       setLoadingScoreboard(false);
     }
@@ -77,7 +77,7 @@ const ClassExamManagement = () => {
       }
     } catch (err) {
       console.error('Failed to fetch classes:', err);
-      setError('Không thể tải danh sách lớp học.');
+      setError(t('teacher.classExamMgmt.cannotLoadClasses'));
       setClasses([]);
     } finally {
       setLoading(false);
@@ -98,8 +98,8 @@ const ClassExamManagement = () => {
     if (!selectedClass) {
       Swal.fire({
         icon: 'warning',
-        title: 'Chưa chọn lớp',
-        text: 'Vui lòng chọn lớp học trước khi tạo bài kiểm tra.',
+        title: t('teacher.classExamMgmt.noClassSelected'),
+        text: t('teacher.classExamMgmt.selectClassFirst'),
         confirmButtonColor: '#7c3aed'
       });
       return;
@@ -118,13 +118,13 @@ const ClassExamManagement = () => {
   const handleDeleteExam = async (exam) => {
     const result = await Swal.fire({
       icon: 'question',
-      title: 'Xóa bài kiểm tra?',
-      text: `Bạn có chắc chắn muốn xóa "${exam.title}"? Hành động này không thể hoàn tác.`,
+      title: t('teacher.classExamMgmt.confirmDeleteTitle'),
+      text: t('teacher.classExamMgmt.confirmDeleteText', { title: exam.title }),
       showCancelButton: true,
       confirmButtonColor: '#ef4444',
       cancelButtonColor: '#6b7280',
-      confirmButtonText: 'Xóa',
-      cancelButtonText: 'Hủy'
+      confirmButtonText: t('common.delete'),
+      cancelButtonText: t('common.cancel')
     });
 
     if (result.isConfirmed) {
@@ -132,8 +132,8 @@ const ClassExamManagement = () => {
         await examService.deleteExam(exam.id);
         Swal.fire({
           icon: 'success',
-          title: 'Đã xóa!',
-          text: 'Bài kiểm tra đã được xóa thành công.',
+          title: t('teacher.classExamMgmt.deleted'),
+          text: t('teacher.classExamMgmt.deletedSuccess'),
           timer: 2000,
           showConfirmButton: false
         });
@@ -141,8 +141,8 @@ const ClassExamManagement = () => {
       } catch (err) {
         Swal.fire({
           icon: 'error',
-          title: 'Lỗi',
-          text: 'Không thể xóa bài kiểm tra.',
+          title: t('teacher.classExamMgmt.error'),
+          text: t('teacher.classExamMgmt.cannotDelete'),
           confirmButtonColor: '#7c3aed'
         });
       }
@@ -153,8 +153,8 @@ const ClassExamManagement = () => {
     if (exam.approvalStatus !== 'APPROVED') {
       Swal.fire({
         icon: 'warning',
-        title: 'Không thể thực hiện',
-        text: 'Chỉ có thể ẩn/hiện bài kiểm tra đã được duyệt (APPROVED).',
+        title: t('teacher.classExamMgmt.cannotToggle'),
+        text: t('teacher.classExamMgmt.onlyApproved'),
         confirmButtonColor: '#7c3aed'
       });
       return;
@@ -163,15 +163,15 @@ const ClassExamManagement = () => {
     const isHiding = exam.published;
     const confirm = await Swal.fire({
       icon: isHiding ? 'warning' : 'question',
-      title: isHiding ? 'Ẩn bài kiểm tra?' : 'Hiện bài kiểm tra?',
+      title: isHiding ? t('teacher.classExamMgmt.hideExam') : t('teacher.classExamMgmt.showExam'),
       text: isHiding
-        ? `Học viên sẽ không thấy "${exam.title}" cho đến khi bạn bật lại.`
-        : `Học viên sẽ thấy và làm được "${exam.title}".`,
+        ? t('teacher.classExamMgmt.hideExamText', { title: exam.title })
+        : t('teacher.classExamMgmt.showExamText', { title: exam.title }),
       showCancelButton: true,
       confirmButtonColor: isHiding ? '#f59e0b' : '#10b981',
       cancelButtonColor: '#6b7280',
-      confirmButtonText: isHiding ? 'Ẩn đi' : 'Hiện lên',
-      cancelButtonText: 'Hủy'
+      confirmButtonText: isHiding ? t('teacher.classExamMgmt.hide') : t('teacher.classExamMgmt.show'),
+      cancelButtonText: t('common.cancel')
     });
 
     if (!confirm.isConfirmed) return;
@@ -180,10 +180,10 @@ const ClassExamManagement = () => {
       await classService.toggleClassExamVisibility(selectedClass.id, exam.id);
       Swal.fire({
         icon: 'success',
-        title: isHiding ? 'Đã ẩn bài kiểm tra' : 'Đã hiện bài kiểm tra',
+        title: isHiding ? t('teacher.classExamMgmt.hidden') : t('teacher.classExamMgmt.shown'),
         text: isHiding
-          ? 'Học viên không thể thấy bài kiểm tra này nữa.'
-          : 'Học viên đã có thể thấy và làm bài kiểm tra này.',
+          ? t('teacher.classExamMgmt.hiddenText')
+          : t('teacher.classExamMgmt.shownText'),
         timer: 2500,
         showConfirmButton: false
       });
@@ -191,8 +191,8 @@ const ClassExamManagement = () => {
     } catch (err) {
       Swal.fire({
         icon: 'error',
-        title: 'Lỗi',
-        text: err?.response?.data?.message || 'Không thể thay đổi trạng thái hiển thị.',
+        title: t('teacher.classExamMgmt.error'),
+        text: err?.response?.data?.message || t('teacher.classExamMgmt.cannotToggleVisibility'),
         confirmButtonColor: '#7c3aed'
       });
     }
@@ -200,18 +200,18 @@ const ClassExamManagement = () => {
 
   const getStatusBadge = (status) => {
     const config = {
-      'APPROVED': { label: '✅ Đã duyệt', color: 'bg-green-100 text-green-700', icon: CheckCircle },
-      'PENDING': { label: '⏳ Chờ duyệt', color: 'bg-yellow-100 text-yellow-700', icon: Clock },
-      'REJECTED': { label: '❌ Đã từ chối', color: 'bg-red-100 text-red-700', icon: XCircle },
+      'APPROVED': { label: `✅ ${t('exam.approved')}`, color: 'bg-green-100 text-green-700', icon: CheckCircle },
+      'PENDING': { label: `⏳ ${t('exam.pending')}`, color: 'bg-yellow-100 text-yellow-700', icon: Clock },
+      'REJECTED': { label: `❌ ${t('exam.rejected')}`, color: 'bg-red-100 text-red-700', icon: XCircle },
     };
     return config[status] || config.PENDING;
   };
 
   const getExamTypeBadge = (type) => {
     const config = {
-      'PRACTICE': { label: 'Luyện tập', color: 'bg-blue-100 text-blue-700' },
+      'PRACTICE': { label: t('teacher.classExamMgmt.practice'), color: 'bg-blue-100 text-blue-700' },
       'MOCK': { label: 'Mock Test', color: 'bg-purple-100 text-purple-700' },
-      'CERTIFICATE': { label: 'Chứng chỉ', color: 'bg-orange-100 text-orange-700' },
+      'CERTIFICATE': { label: t('teacher.classExamMgmt.certificate'), color: 'bg-orange-100 text-orange-700' },
     };
     return config[type] || config.PRACTICE;
   };
@@ -230,9 +230,9 @@ const ClassExamManagement = () => {
       <div className="mb-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Quản Lý Bài Kiểm Tra Theo Lớp</h1>
+            <h1 className="text-2xl font-bold text-gray-900">{t('teacher.classExamMgmt.title')}</h1>
             <p className="text-gray-600 mt-1">
-              Tạo và quản lý bài kiểm tra cho từng lớp học
+              {t('teacher.classExamMgmt.subtitle')}
             </p>
           </div>
           <button
@@ -240,7 +240,7 @@ const ClassExamManagement = () => {
             className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium"
           >
             <Plus className="w-5 h-5" />
-            Tạo Bài Kiểm Tra
+            {t('teacher.classExamMgmt.createExam')}
           </button>
         </div>
       </div>
@@ -254,7 +254,7 @@ const ClassExamManagement = () => {
 
       {/* Class Selector */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Chọn Lớp Học</h2>
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('teacher.classExamMgmt.selectClass')}</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {classes.map((cls) => (
             <button
@@ -296,7 +296,7 @@ const ClassExamManagement = () => {
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
-              Quản lý Bài Test
+              {t('teacher.classExamMgmt.manageTests')}
             </button>
             <button
               onClick={() => setActiveTab('scoreboard')}
@@ -306,7 +306,7 @@ const ClassExamManagement = () => {
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
-              Bảng Điểm Lớp Học
+              {t('teacher.classExamMgmt.classScoreboard')}
             </button>
           </div>
 
@@ -326,7 +326,7 @@ const ClassExamManagement = () => {
               {exams.length === 0 ? (
                 <div className="text-center py-12">
                   <FileText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-500 text-lg">Chưa có bài kiểm tra nào</p>
+                  <p className="text-gray-500 text-lg">{t('teacher.classExamMgmt.noExams')}</p>
                   <p className="text-gray-400 text-sm mt-2">
                     Tạo bài kiểm tra đầu tiên cho lớp học này
                   </p>
@@ -334,7 +334,7 @@ const ClassExamManagement = () => {
                     onClick={handleCreateExam}
                     className="mt-4 px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
                   >
-                    Tạo Bài Kiểm Tra
+                    {t('teacher.classExamMgmt.createExam')}
                   </button>
                 </div>
               ) : (
@@ -365,13 +365,13 @@ const ClassExamManagement = () => {
                                     : 'bg-gray-100 text-gray-600'
                                 }`}>
                                   {exam.published
-                                    ? <><Eye className="w-3 h-3" /> Đang hiện</>  
-                                    : <><EyeOff className="w-3 h-3" /> Đang ẩn</>}
+                                    ? <><Eye className="w-3 h-3" /> {t('teacher.classExamMgmt.visible')}</>
+                                    : <><EyeOff className="w-3 h-3" /> {t('teacher.classExamMgmt.hiddenLabel')}</>}
                                 </span>
                               )}
                               {!exam.published && exam.approvalStatus !== 'APPROVED' && (
                                 <span className="px-3 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-700">
-                                  📝 Nháp
+                                  📝 {t('teacher.classExamMgmt.draft')}
                                 </span>
                               )}
                             </div>
@@ -388,15 +388,15 @@ const ClassExamManagement = () => {
                             <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
                               <div className="flex items-center gap-1">
                                 <Clock className="w-4 h-4" />
-                                <span>{exam.durationMinutes} phút</span>
+                                <span>{exam.durationMinutes} {t('common.minutes')}</span>
                               </div>
                               <div className="flex items-center gap-1">
                                 <FileText className="w-4 h-4" />
-                                <span>{exam.totalQuestions || exam.examQuestions?.length || 0} câu hỏi</span>
+                                <span>{exam.totalQuestions || exam.examQuestions?.length || 0} {t('common.questions')}</span>
                               </div>
                               <div className="flex items-center gap-1">
                                 <AlertCircle className="w-4 h-4" />
-                                <span>Đạt: {exam.passingScore}%</span>
+                                <span>{t('teacher.classExamMgmt.pass')}: {exam.passingScore}%</span>
                               </div>
                             </div>
                           </div>
@@ -412,7 +412,7 @@ const ClassExamManagement = () => {
                                     ? 'text-emerald-600 hover:text-amber-600 hover:bg-amber-50'
                                     : 'text-gray-400 hover:text-emerald-600 hover:bg-emerald-50'
                                 }`}
-                                title={exam.published ? 'Đang hiện – Nhấn để ẩn' : 'Đang ẩn – Nhấn để hiện'}
+                                title={exam.published ? t('teacher.classExamMgmt.clickToHide') : t('teacher.classExamMgmt.clickToShow')}
                               >
                                 {exam.published
                                   ? <Eye className="w-5 h-5" />
@@ -422,7 +422,7 @@ const ClassExamManagement = () => {
                             <button
                               onClick={() => handleViewExam(exam.id)}
                               className="p-2 text-gray-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
-                              title="Xem chi tiết"
+                              title={t('common.view')}
                             >
                               <Eye className="w-5 h-5" />
                             </button>
@@ -434,7 +434,7 @@ const ClassExamManagement = () => {
                                   ? 'text-gray-300 cursor-not-allowed'
                                   : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50'
                               }`}
-                              title={exam.approvalStatus === 'APPROVED' ? 'Đã duyệt, không thể sửa' : 'Chỉnh sửa'}
+                              title={exam.approvalStatus === 'APPROVED' ? t('teacher.classExamMgmt.approvedCannotEdit') : t('common.edit')}
                             >
                               <Edit className="w-5 h-5" />
                             </button>
@@ -446,7 +446,7 @@ const ClassExamManagement = () => {
                                   ? 'text-gray-300 cursor-not-allowed'
                                   : 'text-gray-600 hover:text-red-600 hover:bg-red-50'
                               }`}
-                              title={exam.approvalStatus === 'APPROVED' ? 'Đã duyệt, không thể xóa' : 'Xóa'}
+                              title={exam.approvalStatus === 'APPROVED' ? t('teacher.classExamMgmt.approvedCannotDelete') : t('common.delete')}
                             >
                               <Trash2 className="w-5 h-5" />
                             </button>
@@ -464,16 +464,16 @@ const ClassExamManagement = () => {
               <div className="p-6 border-b border-gray-200 flex justify-between items-center bg-gray-50">
                 <div>
                   <h2 className="text-lg font-semibold text-gray-900">
-                    Bảng Điểm Chuyên Quát - {selectedClass.className}
+                    {t('teacher.classExamMgmt.scoreboardTitle')} - {selectedClass.className}
                   </h2>
-                  <p className="text-sm text-gray-500 mt-1">Điểm cao nhất của học viên trong các bài kiểm tra</p>
+                  <p className="text-sm text-gray-500 mt-1">{t('teacher.classExamMgmt.scoreboardDesc')}</p>
                 </div>
                 <button 
                    onClick={() => fetchScoreboard(selectedClass.id)}
                    className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition"
                 >
                    <RefreshCw className={`w-4 h-4 ${loadingScoreboard ? 'animate-spin text-indigo-600' : ''}`} />
-                   Làm mới
+                   {t('common.refresh')}
                 </button>
               </div>
               
@@ -487,18 +487,18 @@ const ClassExamManagement = () => {
                     <thead className="bg-indigo-50 border-b border-indigo-100">
                       <tr>
                         <th className="px-6 py-4 font-semibold text-indigo-900 sticky left-0 bg-indigo-50 z-10 w-64 shadow-[1px_0_0_0_#e0e7ff] whitespace-nowrap">
-                           Học viên
+                           {t('teacher.classExamMgmt.studentCol')}
                         </th>
                         {scoreboardData.exams.map(exam => (
                            <th key={exam.id} className="px-4 py-4 min-w-[150px] text-center border-l border-indigo-100">
                               <div className="font-bold text-gray-900 tracking-wide text-sm whitespace-normal leading-snug">{exam.title}</div>
                               <div className="inline-block px-2 py-0.5 text-[11px] uppercase tracking-wider font-semibold bg-indigo-200 text-indigo-800 rounded-full mt-2 shadow-sm">
-                                 ĐIỂM: {exam.totalPoints}
+                                 {t('teacher.classExamMgmt.scoreCol')}: {exam.totalPoints}
                               </div>
                            </th>
                         ))}
                         <th className="px-6 py-4 font-bold text-indigo-900 text-center border-l border-indigo-100 bg-indigo-100 sticky right-0 shadow-[-1px_0_0_0_#c7d2fe]">
-                           Tổng TB
+                           {t('teacher.classExamMgmt.avgScore')}
                         </th>
                       </tr>
                     </thead>
@@ -506,7 +506,7 @@ const ClassExamManagement = () => {
                       {scoreboardData.students.length === 0 ? (
                          <tr>
                            <td colSpan={scoreboardData.exams.length + 2} className="px-6 py-12 text-center text-gray-500">
-                              Không có học viên nào trong lớp này.
+                              {t('teacher.classExamMgmt.noStudentsInClass')}
                            </td>
                          </tr>
                       ) : (
@@ -545,7 +545,7 @@ const ClassExamManagement = () => {
                 </div>
               ) : (
                 <div className="py-20 text-center text-gray-500">
-                   Không thể tải dữ liệu bảng điểm.
+                   {t('teacher.classExamMgmt.cannotLoadScoreboard')}
                 </div>
               )}
             </div>
@@ -554,7 +554,7 @@ const ClassExamManagement = () => {
       ) : (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
           <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <p className="text-gray-500 text-lg">Chọn một lớp học để xem bài kiểm tra</p>
+          <p className="text-gray-500 text-lg">{t('teacher.classExamMgmt.selectClassToView')}</p>
         </div>
       )}
     </div>

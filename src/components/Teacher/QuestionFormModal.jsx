@@ -283,7 +283,7 @@ const QuestionFormModal = ({ isOpen, onClose, questionId, defaultTarget = 'COURS
         }
       } catch (err) {
         console.error('Error loading question:', err);
-        setError('Không thể tải dữ liệu câu hỏi. Vui lòng thử lại.');
+        setError(t('teacher.questionForm.errorLoadQuestion'));
       } finally {
         setLoadingQuestion(false);
       }
@@ -315,31 +315,31 @@ const QuestionFormModal = ({ isOpen, onClose, questionId, defaultTarget = 'COURS
   const validateForm = () => {
     const errors = {};
 
-    if (!question.questionTarget) errors.questionTarget = 'Vui lòng chọn đối tượng câu hỏi';
+    if (!question.questionTarget) errors.questionTarget = t('teacher.questionForm.errorTargetRequired');
     // questionType is auto-set from topikType, no need to validate
 
     // Validate level for COURSE, classLevel+unit for CLASS
     if (question.questionTarget === 'COURSE') {
-      if (!question.level) errors.level = 'Vui lòng chọn cấp độ';
+      if (!question.level) errors.level = t('teacher.questionForm.errorLevelRequired');
     } else if (question.questionTarget === 'CLASS') {
-      if (!question.classLevel) errors.classLevel = 'Vui lòng chọn cấp độ khóa học';
-      if (!question.unit) errors.unit = 'Vui lòng chọn Unit';
+      if (!question.classLevel) errors.classLevel = t('teacher.questionForm.errorClassLevelRequired');
+      if (!question.unit) errors.unit = t('teacher.questionForm.errorUnitRequired');
     }
 
     // Only validate topikType for NEW questions (not edit mode)
     // Old questions might not have topikType
     if (!isEditMode && !question.topikType) {
-      errors.topikType = 'Vui lòng chọn Topik Type';
+      errors.topikType = t('teacher.questionForm.errorTopikTypeRequired');
     }
 
-    if (!question.content.trim()) errors.content = 'Vui lòng nhập nội dung câu hỏi';
+    if (!question.content.trim()) errors.content = t('teacher.questionForm.errorContentRequired');
 
     // For TEXT_INPUT types (L9, W55), validate textAnswer instead of answers
     if (question.questionTarget === 'CLASS' && question.topikType) {
       const answerType = getClassQuestionAnswerType(question.topikType);
       if (answerType === 'TEXT_INPUT') {
         if (!question.textAnswer.trim()) {
-          errors.textAnswer = 'Vui lòng nhập đáp án đúng';
+          errors.textAnswer = t('teacher.questionForm.errorTextAnswerRequired');
         }
       }
     }
@@ -355,8 +355,8 @@ const QuestionFormModal = ({ isOpen, onClose, questionId, defaultTarget = 'COURS
           const hasAnswer = question.answers.some(a => a.content.trim());
           const hasCorrect = question.answers.some(a => a.isCorrect);
 
-          if (!hasAnswer) errors.answers = 'Vui lòng nhập ít nhất một đáp án';
-          if (!hasCorrect) errors.correct = 'Vui lòng chọn ít nhất một đáp án đúng';
+          if (!hasAnswer) errors.answers = t('teacher.questionForm.errorAnswerRequired');
+          if (!hasCorrect) errors.correct = t('teacher.questionForm.errorCorrectRequired');
         }
       } else {
         const hasAnswer = question.answers.some(a => a.content.trim());
@@ -369,7 +369,7 @@ const QuestionFormModal = ({ isOpen, onClose, questionId, defaultTarget = 'COURS
 
     // Validate audio for LISTENING questions
     if (question.questionType === 'LISTENING' && !audioUrl) {
-      errors.audio = 'Vui lòng upload file audio cho câu hỏi nghe hiểu';
+      errors.audio = t('teacher.questionForm.errorAudioRequired');
     }
 
     setValidationErrors(errors);
@@ -449,7 +449,7 @@ const QuestionFormModal = ({ isOpen, onClose, questionId, defaultTarget = 'COURS
       if (isEditMode) {
         const response = await teacherService.updateQuestion(questionId, requestData);
         console.log('Update response:', response);
-        setSuccessMessage('Cập nhật câu hỏi thành công!');
+        setSuccessMessage(t('teacher.questionForm.updateSuccess'));
 
         // Reload question data after update to show latest values
         try {
@@ -484,17 +484,17 @@ const QuestionFormModal = ({ isOpen, onClose, questionId, defaultTarget = 'COURS
       } else {
         const response = await teacherService.createQuestion(requestData);
         console.log('Create response:', response);
-        setSuccessMessage('Tạo câu hỏi mới thành công!');
+        setSuccessMessage(t('teacher.questionForm.createSuccess'));
         console.log('Create response:', response);
-        setSuccessMessage('Tạo câu hỏi mới thành công!');
+        setSuccessMessage(t('teacher.questionForm.createSuccess'));
       }
 
       setShowSuccessModal(true);
     } catch (err) {
       console.error('Error saving question:', err);
       setError(isEditMode
-        ? 'Không thể cập nhật câu hỏi. Vui lòng thử lại.'
-        : 'Không thể tạo câu hỏi. Vui lòng thử lại sau.'
+        ? t('teacher.questionForm.errorUpdate')
+        : t('teacher.questionForm.errorCreate')
       );
     } finally {
       setSubmitting(false);
@@ -555,13 +555,13 @@ const QuestionFormModal = ({ isOpen, onClose, questionId, defaultTarget = 'COURS
       // Validate file type
       const validTypes = ['audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/m4a', 'audio/ogg', 'audio/aac'];
       if (!validTypes.includes(file.type) && !file.name.match(/\.(mp3|wav|m4a|ogg|aac)$/i)) {
-        setError('Chỉ chấp nhận file audio (mp3, wav, m4a, ogg, aac)');
+        setError(t('teacher.questionForm.errorAudioType'));
         return;
       }
 
       // Validate file size (max 10MB)
       if (file.size > 10 * 1024 * 1024) {
-        setError('File audio không vượt quá 10MB');
+        setError(t('teacher.questionForm.errorAudioSize'));
         return;
       }
 
@@ -594,11 +594,11 @@ const QuestionFormModal = ({ isOpen, onClose, questionId, defaultTarget = 'COURS
         setError(''); // Clear any previous errors
       } else {
         console.error('❌ No URL in response:', response);
-        setError('Không thể upload audio. Server không trả về URL.');
+        setError(t('teacher.questionForm.errorAudioUpload'));
       }
     } catch (err) {
       console.error('❌ Error uploading audio:', err);
-      setError('Không thể upload audio. Vui lòng thử lại.');
+      setError(t('teacher.questionForm.errorAudioRetry'));
     } finally {
       setUploadingAudio(false);
     }
@@ -622,13 +622,13 @@ const QuestionFormModal = ({ isOpen, onClose, questionId, defaultTarget = 'COURS
     // Validate file type
     const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
     if (!validTypes.includes(file.type) && !file.name.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
-      setError('Chỉ chấp nhận file ảnh (jpg, jpeg, png, gif, webp)');
+        setError(t('teacher.questionForm.errorImageType'));
       return;
     }
 
     // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      setError('File ảnh không vượt quá 5MB');
+      setError(t('teacher.questionForm.errorImageSize'));
       return;
     }
 
@@ -653,11 +653,11 @@ const QuestionFormModal = ({ isOpen, onClose, questionId, defaultTarget = 'COURS
         setError('');
       } else {
         console.error('❌ No URL in response:', response);
-        setError('Không thể upload ảnh. Server không trả về URL.');
+        setError(t('teacher.questionForm.errorImageUpload'));
       }
     } catch (err) {
       console.error('❌ Error uploading image:', err);
-      setError('Không thể upload ảnh. Vui lòng thử lại.');
+      setError(t('teacher.questionForm.errorImageRetry'));
     } finally {
       setUploadingImage(false);
     }
@@ -677,7 +677,7 @@ const QuestionFormModal = ({ isOpen, onClose, questionId, defaultTarget = 'COURS
       <Modal
         isOpen={isOpen}
         onClose={handleClose}
-        title={isEditMode ? 'Chỉnh sửa câu hỏi' : 'Tạo câu hỏi mới'}
+        title={isEditMode ? t('teacher.questionForm.editQuestion') : t('teacher.questionForm.createQuestion')}
         size="2xl"
       >
         <div className="flex flex-col items-center justify-center py-12 sm:py-16">
@@ -685,7 +685,7 @@ const QuestionFormModal = ({ isOpen, onClose, questionId, defaultTarget = 'COURS
             <div className="animate-spin rounded-full h-12 w-12 sm:h-16 sm:w-16 border-4 border-blue-200"></div>
             <div className="animate-spin rounded-full h-12 w-12 sm:h-16 sm:w-16 border-4 border-blue-600 border-t-transparent absolute top-0 left-0"></div>
           </div>
-          <p className="mt-3 sm:mt-4 text-gray-600 font-medium text-sm sm:text-base">Đang tải dữ liệu...</p>
+          <p className="mt-3 sm:mt-4 text-gray-600 font-medium text-sm sm:text-base">{t('teacher.questionForm.loadingData')}</p>
         </div>
       </Modal>
     );
@@ -696,7 +696,7 @@ const QuestionFormModal = ({ isOpen, onClose, questionId, defaultTarget = 'COURS
       <Modal
         isOpen={isOpen}
         onClose={handleClose}
-        title={isEditMode ? 'Chỉnh sửa câu hỏi' : 'Tạo câu hỏi mới'}
+        title={isEditMode ? t('teacher.questionForm.editQuestion') : t('teacher.questionForm.createQuestion')}
         size="full"
         footer={
           <div className="flex flex-col sm:flex-row justify-end gap-3 pt-2">
@@ -706,7 +706,7 @@ const QuestionFormModal = ({ isOpen, onClose, questionId, defaultTarget = 'COURS
               disabled={submitting}
               className="px-4 sm:px-6 py-3 w-full sm:w-auto"
             >
-              Hủy
+              {t('teacher.questionForm.cancel')}
             </Button>
             <Button
               variant="primary"
@@ -717,12 +717,12 @@ const QuestionFormModal = ({ isOpen, onClose, questionId, defaultTarget = 'COURS
               {submitting ? (
                 <span className="flex items-center gap-2 justify-center">
                   <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                  Đang lưu...
+                  {t('teacher.questionForm.saving')}
                 </span>
               ) : isEditMode ? (
-                'Cập nhật'
+                t('teacher.questionForm.update')
               ) : (
-                'Tạo câu hỏi'
+                t('teacher.questionForm.createQuestionBtn')
               )}
             </Button>
           </div>
@@ -741,7 +741,7 @@ const QuestionFormModal = ({ isOpen, onClose, questionId, defaultTarget = 'COURS
           <div className="bg-gradient-to-br from-gray-50 to-blue-50 rounded-2xl p-4 sm:p-6 border border-gray-200">
             <div className="flex items-center gap-2 mb-3 sm:mb-4">
               <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
-              <h3 className="font-semibold text-gray-800 text-sm sm:text-base">Thông tin cơ bản</h3>
+              <h3 className="font-semibold text-gray-800 text-sm sm:text-base">{t('teacher.questionForm.basicInfo')}</h3>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
@@ -749,7 +749,7 @@ const QuestionFormModal = ({ isOpen, onClose, questionId, defaultTarget = 'COURS
               <div>
                 <label className="block font-medium text-gray-700 mb-2 flex items-center gap-2 text-sm sm:text-base">
                   <Type className="w-4 h-4 text-gray-500" />
-                  Đối tượng câu hỏi <span className="text-red-500">*</span>
+                  {t('teacher.questionForm.questionTarget')} <span className="text-red-500">*</span>
                 </label>
                 <select
                   className="w-full px-3 sm:px-4 py-2 sm:py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition-all bg-white shadow-sm text-sm"
@@ -764,8 +764,8 @@ const QuestionFormModal = ({ isOpen, onClose, questionId, defaultTarget = 'COURS
                     }
                   }}
                 >
-                  <option value="COURSE">Khóa học (Course)</option>
-                  <option value="CLASS">Lớp học (Class)</option>
+                  <option value="COURSE">{t('teacher.questionForm.course')}</option>
+                  <option value="CLASS">{t('teacher.questionForm.class')}</option>
                 </select>
                 {validationErrors.questionTarget && (
                   <p className="text-red-500 text-xs sm:text-sm mt-1 flex items-center gap-1">
@@ -779,19 +779,19 @@ const QuestionFormModal = ({ isOpen, onClose, questionId, defaultTarget = 'COURS
                 <div>
                   <label className="block font-medium text-gray-700 mb-2 flex items-center gap-2 text-sm sm:text-base">
                     <BarChart3 className="w-4 h-4 text-gray-500" />
-                    Cấp độ <span className="text-red-500">*</span>
+                    {t('teacher.questionForm.level')} <span className="text-red-500">*</span>
                   </label>
                   <select
                     className="w-full px-3 sm:px-4 py-2 sm:py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition-all bg-white shadow-sm text-sm"
                     value={question.level}
                     onChange={e => setQuestion({ ...question, level: e.target.value })}
                   >
-                    <option value="LEVEL_1">Level 1 - Dễ nhất</option>
-                    <option value="LEVEL_2">Level 2 - Dễ</option>
-                    <option value="LEVEL_3">Level 3 - Trung bình</option>
-                    <option value="LEVEL_4">Level 4 - Khá</option>
-                    <option value="LEVEL_5">Level 5 - Khó</option>
-                    <option value="LEVEL_6">Level 6 - Khó nhất</option>
+                    <option value="LEVEL_1">{t('teacher.questionForm.level1')}</option>
+                    <option value="LEVEL_2">{t('teacher.questionForm.level2')}</option>
+                    <option value="LEVEL_3">{t('teacher.questionForm.level3')}</option>
+                    <option value="LEVEL_4">{t('teacher.questionForm.level4')}</option>
+                    <option value="LEVEL_5">{t('teacher.questionForm.level5')}</option>
+                    <option value="LEVEL_6">{t('teacher.questionForm.level6')}</option>
                   </select>
                   {validationErrors.level && (
                     <p className="text-red-500 text-xs sm:text-sm mt-1 flex items-center gap-1">
@@ -805,14 +805,14 @@ const QuestionFormModal = ({ isOpen, onClose, questionId, defaultTarget = 'COURS
                   <div>
                     <label className="block font-medium text-gray-700 mb-2 flex items-center gap-2 text-sm sm:text-base">
                       <BarChart3 className="w-4 h-4 text-gray-500" />
-                      Cấp độ khóa học <span className="text-red-500">*</span>
+                      {t('teacher.questionForm.classLevel')} <span className="text-red-500">*</span>
                     </label>
                     <select
                       className="w-full px-3 sm:px-4 py-2 sm:py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition-all bg-white shadow-sm text-sm"
                       value={question.classLevel}
                       onChange={e => setQuestion({ ...question, classLevel: e.target.value })}
                     >
-                      <option value="">-- Chọn cấp độ --</option>
+                      <option value="">{t('teacher.questionForm.selectLevel')}</option>
                       {availableLevels.length > 0 ? (
                         availableLevels.map(lvl => {
                           const labels = {
@@ -825,7 +825,7 @@ const QuestionFormModal = ({ isOpen, onClose, questionId, defaultTarget = 'COURS
                           );
                         })
                       ) : (
-                        <option disabled>Đang tải cấp độ...</option>
+                        <option disabled>{t('teacher.questionForm.loadingLevels')}</option>
                       )}
                     </select>
                     {validationErrors.classLevel && (
@@ -876,7 +876,7 @@ const QuestionFormModal = ({ isOpen, onClose, questionId, defaultTarget = 'COURS
                     setQuestion({ ...question, topikType: newTopikType });
                   }}
                 >
-                  <option value="">-- Chọn Topik Type --</option>
+                  <option value="">{t('teacher.questionForm.selectTopikType')}</option>
                   {question.questionTarget === 'CLASS' ? (
                     // Class options từ topikClassStructure.js
                     getAllClassQuestionTypes().map(type => (
@@ -917,13 +917,13 @@ const QuestionFormModal = ({ isOpen, onClose, questionId, defaultTarget = 'COURS
                 <div>
                   <label className="block font-medium text-gray-700 mb-2 flex items-center gap-2 text-sm sm:text-base">
                     <Lightbulb className="w-4 h-4 text-gray-500" />
-                    Điểm (tự động theo cấu trúc)
+                    {t('teacher.questionForm.pointsAuto')}
                   </label>
                   <div className="w-full px-3 sm:px-4 py-2 sm:py-3 border-2 border-gray-200 rounded-xl bg-gray-50 text-sm font-medium">
-                    {getClassQuestionPoints(question.topikType)} điểm
+                    {getClassQuestionPoints(question.topikType)} {t('teacher.questionForm.points')}
                   </div>
                   <p className="text-xs text-gray-500 mt-1">
-                    Điểm sẽ được tự động set khi thêm vào đề thi
+                    {t('teacher.questionForm.pointsAutoDesc')}
                   </p>
                 </div>
               )}
@@ -934,13 +934,13 @@ const QuestionFormModal = ({ isOpen, onClose, questionId, defaultTarget = 'COURS
           <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-4 sm:p-6 border border-blue-200">
             <div className="flex items-center gap-2 mb-3 sm:mb-4">
               <AlignLeft className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
-              <h3 className="font-semibold text-gray-800 text-sm sm:text-base">Nội dung câu hỏi</h3>
+              <h3 className="font-semibold text-gray-800 text-sm sm:text-base">{t('teacher.questionForm.questionContent')}</h3>
             </div>
 
             <textarea
               rows={4}
               className="w-full px-3 sm:px-4 py-2 sm:py-3 border-2 border-blue-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none resize-none transition-all bg-white shadow-sm text-sm"
-              placeholder="Nhập nội dung câu hỏi..."
+              placeholder={t('teacher.questionForm.questionPlaceholder')}
               value={question.content}
               onChange={e => setQuestion({ ...question, content: e.target.value })}
             />
@@ -954,7 +954,7 @@ const QuestionFormModal = ({ isOpen, onClose, questionId, defaultTarget = 'COURS
             <div className="mt-4">
               <div className="flex items-center gap-2 mb-2">
                 <Upload className="w-4 h-4 text-blue-600" />
-                <label className="block font-medium text-gray-700 text-sm sm:text-base">Hình ảnh (tùy chọn)</label>
+                <label className="block font-medium text-gray-700 text-sm sm:text-base">{t('teacher.questionForm.imageOptional')}</label>
               </div>
 
               {imageUrl ? (
@@ -970,7 +970,7 @@ const QuestionFormModal = ({ isOpen, onClose, questionId, defaultTarget = 'COURS
                       type="button"
                       onClick={handleRemoveImage}
                       className="absolute top-5 right-5 p-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-all shadow-md"
-                      title="Xóa ảnh"
+                      title={t('teacher.questionForm.removeImage')}
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -982,7 +982,7 @@ const QuestionFormModal = ({ isOpen, onClose, questionId, defaultTarget = 'COURS
                   {uploadingImage ? (
                     <div className="flex items-center justify-center gap-3 p-4 bg-blue-50 rounded-xl border-2 border-blue-200">
                       <div className="animate-spin rounded-full h-5 w-5 border-2 border-blue-600 border-t-transparent"></div>
-                      <span className="text-sm text-blue-700 font-medium">Đang tải ảnh lên...</span>
+                      <span className="text-sm text-blue-700 font-medium">{t('teacher.questionForm.uploadingImage')}</span>
                     </div>
                   ) : (
                     <input
@@ -995,7 +995,7 @@ const QuestionFormModal = ({ isOpen, onClose, questionId, defaultTarget = 'COURS
                   )}
                   <p className="text-xs text-gray-500 flex items-center gap-1">
                     <Info className="w-3 h-3" />
-                    Hỗ trợ: jpg, jpeg, png, gif, webp (Tối đa: 5MB) - Ảnh sẽ tự động tải lên khi chọn
+                    {t('teacher.questionForm.imageFormats')}
                   </p>
                 </div>
               )}
@@ -1020,8 +1020,8 @@ const QuestionFormModal = ({ isOpen, onClose, questionId, defaultTarget = 'COURS
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
                 <div className="flex items-center gap-2 flex-wrap">
                   <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
-                  <h3 className="font-semibold text-gray-800 text-sm sm:text-base">Đáp án</h3>
-                  <span className="text-xs text-gray-500">(Chọn 1 đáp án đúng)</span>
+                  <h3 className="font-semibold text-gray-800 text-sm sm:text-base">{t('teacher.questionForm.answers')}</h3>
+                  <span className="text-xs text-gray-500">({t('teacher.questionForm.selectOneCorrect')})</span>
                 </div>
                 {question.answers.length < 6 && (
                   <button
@@ -1030,7 +1030,7 @@ const QuestionFormModal = ({ isOpen, onClose, questionId, defaultTarget = 'COURS
                     onClick={handleAddAnswer}
                   >
                     <Plus className="w-4 h-4" />
-                    Thêm đáp án
+                    {t('teacher.questionForm.addAnswer')}
                   </button>
                 )}
               </div>
@@ -1065,7 +1065,7 @@ const QuestionFormModal = ({ isOpen, onClose, questionId, defaultTarget = 'COURS
                     <input
                       type="text"
                       className="flex-1 min-w-0 px-3 sm:px-4 py-2 sm:py-3 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:ring-2 focus:ring-green-200 focus:outline-none transition-all bg-white text-sm"
-                      placeholder={`Đáp án ${index + 1}`}
+                      placeholder={t('teacher.questionForm.answerN', { n: index + 1 })}
                       value={answer.content}
                       onChange={e => handleAnswerChange(index, 'content', e.target.value)}
                     />
@@ -1116,7 +1116,7 @@ const QuestionFormModal = ({ isOpen, onClose, questionId, defaultTarget = 'COURS
                   {(() => {
                     const allTypes = getAllClassQuestionTypes();
                     const typeInfo = allTypes.find(t => t.type === question.topikType);
-                    return typeInfo?.name || 'Đáp án dạng văn bản';
+                    return typeInfo?.name || t('teacher.questionForm.textAnswerType');
                   })()}
                 </h3>
                 <span className="text-xs text-gray-500">
@@ -1129,10 +1129,10 @@ const QuestionFormModal = ({ isOpen, onClose, questionId, defaultTarget = 'COURS
                 className="w-full px-3 sm:px-4 py-2 sm:py-3 border-2 border-orange-200 rounded-xl focus:border-orange-500 focus:ring-2 focus:ring-orange-200 focus:outline-none resize-none transition-all bg-white shadow-sm text-sm"
                 placeholder={
                   question.topikType === 'L9'
-                    ? 'Nhập đáp án đúng cho câu hỏi điền vào chỗ trống...'
+                    ? t('teacher.questionForm.textAnswerPlaceholderL9')
                     : question.topikType === 'W55'
-                    ? 'Nhập câu mẫu/ví dụ cho câu viết ngắn...'
-                    : 'Nhập đáp án...'
+                    ? t('teacher.questionForm.textAnswerPlaceholderW55')
+                    : t('teacher.questionForm.textAnswerPlaceholder')
                 }
                 value={question.textAnswer}
                 onChange={e => setQuestion({ ...question, textAnswer: e.target.value })}
@@ -1144,10 +1144,10 @@ const QuestionFormModal = ({ isOpen, onClose, questionId, defaultTarget = 'COURS
               )}
               <p className="text-xs text-gray-500 mt-2">
                 {question.topikType === 'L9'
-                  ? 'Lưu ý: L9 là loại câu hỏi điền từ vào chỗ trống, học sinh sẽ nhập văn bản thay vì chọn đáp án'
+                  ? t('teacher.questionForm.noteL9')
                   : question.topikType === 'W55'
-                  ? 'Lưu ý: W55 là loại câu hỏi viết câu ngắn (1-2 câu), học sinh sẽ nhập câu của mình'
-                  : 'Lưu ý: Đây là loại câu hỏi dạng văn bản, học sinh sẽ nhập câu trả lời'}
+                  ? t('teacher.questionForm.noteW55')
+                  : t('teacher.questionForm.noteTextInput')}
               </p>
             </div>
           )}
@@ -1156,13 +1156,13 @@ const QuestionFormModal = ({ isOpen, onClose, questionId, defaultTarget = 'COURS
           <div className="bg-gradient-to-br from-amber-50 to-yellow-50 rounded-2xl p-4 sm:p-6 border border-amber-200">
             <div className="flex items-center gap-2 mb-3 sm:mb-4">
               <Lightbulb className="w-4 h-4 sm:w-5 sm:h-5 text-amber-600" />
-              <h3 className="font-semibold text-gray-800 text-sm sm:text-base">Giải thích</h3>
+              <h3 className="font-semibold text-gray-800 text-sm sm:text-base">{t('teacher.questionForm.explanation')}</h3>
             </div>
 
             <textarea
               rows={3}
               className="w-full px-3 sm:px-4 py-2 sm:py-3 border-2 border-amber-200 rounded-xl focus:border-amber-500 focus:ring-2 focus:ring-amber-200 focus:outline-none resize-none transition-all bg-white shadow-sm text-sm"
-              placeholder="Nhập giải thích cho câu hỏi để giúp học viên hiểu rõ hơn..."
+              placeholder={t('teacher.questionForm.explanationPlaceholder')}
               value={question.explanation}
               onChange={e => setQuestion({ ...question, explanation: e.target.value })}
             />
@@ -1173,7 +1173,7 @@ const QuestionFormModal = ({ isOpen, onClose, questionId, defaultTarget = 'COURS
             <div className="bg-gradient-to-br from-purple-50 to-violet-50 rounded-2xl p-4 sm:p-6 border border-purple-200">
               <div className="flex items-center gap-2 mb-3 sm:mb-4">
                 <Mic className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" />
-                <h3 className="font-semibold text-gray-800 text-sm sm:text-base">File Audio (Nghe hiểu)</h3>
+                <h3 className="font-semibold text-gray-800 text-sm sm:text-base">{t('teacher.questionForm.audioFileListening')}</h3>
               </div>
 
               {audioUrl ? (
@@ -1192,7 +1192,7 @@ const QuestionFormModal = ({ isOpen, onClose, questionId, defaultTarget = 'COURS
                       type="button"
                       onClick={handleRemoveAudio}
                       className="p-2 text-red-500 hover:text-red-700 hover:bg-red-100 rounded-lg transition-all flex-shrink-0"
-                      title="Xóa audio"
+                      title={t('teacher.questionForm.removeAudio')}
                     >
                       <Trash2 className="w-5 h-5" />
                     </button>
@@ -1218,12 +1218,12 @@ const QuestionFormModal = ({ isOpen, onClose, questionId, defaultTarget = 'COURS
                       {uploadingAudio ? (
                         <>
                           <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                          Đang upload...
+                          {t('teacher.questionForm.uploading')}
                         </>
                       ) : (
                         <>
                           <Upload className="w-4 h-4" />
-                          Upload
+                          {t('teacher.questionForm.upload')}
                         </>
                       )}
                     </button>
@@ -1263,7 +1263,7 @@ const QuestionFormModal = ({ isOpen, onClose, questionId, defaultTarget = 'COURS
             <Check className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
           </div>
           <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2 sm:mb-3">
-            Hoàn thành!
+            {t('teacher.questionForm.done')}
           </h3>
           <p className="text-gray-600 text-base sm:text-lg mb-4 sm:mb-6">
             {successMessage}
@@ -1273,7 +1273,7 @@ const QuestionFormModal = ({ isOpen, onClose, questionId, defaultTarget = 'COURS
             onClick={handleSuccessConfirm}
             className="px-6 sm:px-8 py-3 text-base sm:text-lg shadow-lg hover:shadow-xl transition-all w-full sm:w-auto"
           >
-            Đóng
+            {t('teacher.questionForm.close')}
           </Button>
         </div>
       </Modal>

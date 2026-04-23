@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Plus, Trash2, CheckCircle, XCircle } from 'lucide-react';
 
 /**
@@ -6,6 +7,7 @@ import { Plus, Trash2, CheckCircle, XCircle } from 'lucide-react';
  * Priority 1: Question Bank
  */
 const CreateMCQQuestion = ({ initialData, onSubmit, onCancel }) => {
+    const { t } = useTranslation();
     const [formData, setFormData] = useState({
         questionText: '',
         category: '',
@@ -52,20 +54,20 @@ const CreateMCQQuestion = ({ initialData, onSubmit, onCancel }) => {
         const newErrors = {};
 
         if (!formData.questionText.trim()) {
-            newErrors.questionText = 'Vui lòng nhập nội dung câu hỏi';
+            newErrors.questionText = t('teacher.createMCQ.errorQuestionRequired');
         }
 
         const validOptions = formData.options.filter(opt => opt.trim());
         if (validOptions.length < 2) {
-            newErrors.options = 'Cần ít nhất 2 đáp án';
+            newErrors.options = t('teacher.createMCQ.errorMinOptions');
         }
 
         if (!formData.correctAnswer) {
-            newErrors.correctAnswer = 'Vui lòng chọn đáp án đúng';
+            newErrors.correctAnswer = t('teacher.createMCQ.errorCorrectAnswer');
         }
 
         if (!formData.category) {
-            newErrors.category = 'Vui lòng chọn danh mục';
+            newErrors.category = t('teacher.createMCQ.errorCategoryRequired');
         }
 
         setErrors(newErrors);
@@ -94,10 +96,10 @@ const CreateMCQQuestion = ({ initialData, onSubmit, onCancel }) => {
             {/* Header */}
             <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4 border-b border-blue-100">
                 <h3 className="text-lg font-semibold text-gray-900">
-                    Tạo Câu Hỏi Trắc Nghiệm
+                    {t('teacher.createMCQ.title')}
                 </h3>
                 <p className="text-sm text-gray-600 mt-1">
-                    Tạo câu hỏi với nhiều lựa chọn và một đáp án đúng
+                    {t('teacher.createMCQ.subtitle')}
                 </p>
             </div>
 
@@ -106,12 +108,12 @@ const CreateMCQQuestion = ({ initialData, onSubmit, onCancel }) => {
                 {/* Question Text */}
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Nội dung câu hỏi <span className="text-red-500">*</span>
+                        {t('teacher.createMCQ.questionContent')} <span className="text-red-500">*</span>
                     </label>
                     <textarea
                         value={formData.questionText}
                         onChange={(e) => setFormData({ ...formData, questionText: e.target.value })}
-                        placeholder="Nhập nội dung câu hỏi..."
+                        placeholder={t('teacher.createMCQ.questionPlaceholder')}
                         rows={4}
                         className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none ${
                             errors.questionText ? 'border-red-500' : 'border-gray-300'
@@ -126,7 +128,7 @@ const CreateMCQQuestion = ({ initialData, onSubmit, onCancel }) => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Danh mục <span className="text-red-500">*</span>
+                            {t('teacher.createMCQ.category')} <span className="text-red-500">*</span>
                         </label>
                         <select
                             value={formData.category}
@@ -135,14 +137,14 @@ const CreateMCQQuestion = ({ initialData, onSubmit, onCancel }) => {
                                 errors.category ? 'border-red-500' : 'border-gray-300'
                             }`}
                         >
-                            <option value="">Chọn danh mục</option>
-                            <option value="Grammar">Ngữ pháp</option>
-                            <option value="Vocabulary">Từ vựng</option>
-                            <option value="Reading">Đọc hiểu</option>
-                            <option value="Listening">Nghe hiểu</option>
-                            <option value="Writing">Viết</option>
-                            <option value="Speaking">Nói</option>
-                            <option value="Culture">Văn hóa</option>
+                            <option value="">{t('teacher.createMCQ.selectCategory')}</option>
+                            <option value="Grammar">{t('teacher.createMCQ.catGrammar')}</option>
+                            <option value="Vocabulary">{t('teacher.createMCQ.catVocabulary')}</option>
+                            <option value="Reading">{t('teacher.createMCQ.catReading')}</option>
+                            <option value="Listening">{t('teacher.createMCQ.catListening')}</option>
+                            <option value="Writing">{t('teacher.createMCQ.catWriting')}</option>
+                            <option value="Speaking">{t('teacher.createMCQ.catSpeaking')}</option>
+                            <option value="Culture">{t('teacher.createMCQ.catCulture')}</option>
                         </select>
                         {errors.category && (
                             <p className="text-sm text-red-600 mt-1">{errors.category}</p>
@@ -151,16 +153,16 @@ const CreateMCQQuestion = ({ initialData, onSubmit, onCancel }) => {
 
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Độ khó
+                            {t('teacher.createMCQ.difficulty')}
                         </label>
                         <select
                             value={formData.difficulty}
                             onChange={(e) => setFormData({ ...formData, difficulty: e.target.value })}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                         >
-                            <option value="EASY">Dễ</option>
-                            <option value="MEDIUM">Trung bình</option>
-                            <option value="HARD">Khó</option>
+                            <option value="EASY">{t('teacher.createMCQ.easy')}</option>
+                            <option value="MEDIUM">{t('teacher.createMCQ.medium')}</option>
+                            <option value="HARD">{t('teacher.createMCQ.hard')}</option>
                         </select>
                     </div>
                 </div>
@@ -168,7 +170,7 @@ const CreateMCQQuestion = ({ initialData, onSubmit, onCancel }) => {
                 {/* Points */}
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Số điểm
+                        {t('teacher.createMCQ.points')}
                     </label>
                     <input
                         type="number"
@@ -184,7 +186,7 @@ const CreateMCQQuestion = ({ initialData, onSubmit, onCancel }) => {
                 <div>
                     <div className="flex items-center justify-between mb-3">
                         <label className="block text-sm font-medium text-gray-700">
-                            Đáp án <span className="text-red-500">*</span>
+                            {t('teacher.createMCQ.answers')} <span className="text-red-500">*</span>
                         </label>
                         <button
                             type="button"
@@ -193,7 +195,7 @@ const CreateMCQQuestion = ({ initialData, onSubmit, onCancel }) => {
                             className="text-sm text-indigo-600 hover:text-indigo-700 disabled:text-gray-400 flex items-center gap-1"
                         >
                             <Plus className="w-4 h-4" />
-                            Thêm đáp án
+                            {t('teacher.createMCQ.addAnswer')}
                         </button>
                     </div>
 
@@ -219,7 +221,7 @@ const CreateMCQQuestion = ({ initialData, onSubmit, onCancel }) => {
                                     type="text"
                                     value={option}
                                     onChange={(e) => handleOptionChange(index, e.target.value)}
-                                    placeholder={`Đáp án ${index + 1}`}
+                                    placeholder={t('teacher.createMCQ.answerN', { n: index + 1 })}
                                     className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                                 />
                                 {formData.options.length > 2 && (
@@ -247,12 +249,12 @@ const CreateMCQQuestion = ({ initialData, onSubmit, onCancel }) => {
                 {/* Explanation */}
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Giải thích (Optional)
+                        {t('teacher.createMCQ.explanationOptional')}
                     </label>
                     <textarea
                         value={formData.explanation}
                         onChange={(e) => setFormData({ ...formData, explanation: e.target.value })}
-                        placeholder="Giải thích tại sao đáp án này đúng..."
+                        placeholder={t('teacher.createMCQ.explanationPlaceholder')}
                         rows={3}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none"
                     />
@@ -261,7 +263,7 @@ const CreateMCQQuestion = ({ initialData, onSubmit, onCancel }) => {
                 {/* Tags */}
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Tags (Optional)
+                        {t('teacher.createMCQ.tagsOptional')}
                     </label>
                     <input
                         type="text"
@@ -277,10 +279,10 @@ const CreateMCQQuestion = ({ initialData, onSubmit, onCancel }) => {
 
                 {/* Preview */}
                 <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                    <h4 className="text-sm font-semibold text-gray-700 mb-3">Xem trước</h4>
+                    <h4 className="text-sm font-semibold text-gray-700 mb-3">{t('teacher.createMCQ.preview')}</h4>
                     <div className="bg-white p-4 rounded-lg">
                         <p className="font-medium text-gray-900 mb-3">
-                            {formData.questionText || 'Nội dung câu hỏi...'}
+                            {formData.questionText || t('teacher.createMCQ.questionContentPlaceholder')}
                         </p>
                         <div className="space-y-2">
                             {formData.options.filter(opt => opt.trim()).map((option, index) => (
@@ -316,13 +318,13 @@ const CreateMCQQuestion = ({ initialData, onSubmit, onCancel }) => {
                         onClick={onCancel}
                         className="px-6 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
                     >
-                        Hủy
+                        {t('teacher.createMCQ.cancel')}
                     </button>
                     <button
                         type="submit"
                         className="px-6 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all shadow-md"
                     >
-                        Lưu Câu Hỏi
+                        {t('teacher.createMCQ.saveQuestion')}
                     </button>
                 </div>
             </form>

@@ -644,11 +644,11 @@ const QuestionBank = () => {
   const getVerificationStatusBadge = (status) => {
     switch (status) {
       case 'PENDING':
-        return { variant: 'warning', icon: '⏳', label: 'Chờ duyệt' };
+        return { variant: 'warning', icon: '⏳', label: t('qb.verificationStatus.pending', 'Chờ duyệt') };
       case 'APPROVED':
-        return { variant: 'success', icon: '✅', label: 'Đã duyệt' };
+        return { variant: 'success', icon: '✅', label: t('qb.verificationStatus.approved', 'Đã duyệt') };
       case 'REJECTED':
-        return { variant: 'error', icon: '❌', label: 'Bị từ chối' };
+        return { variant: 'error', icon: '❌', label: t('qb.verificationStatus.rejected', 'Bị từ chối') };
       default:
         return { variant: 'info', icon: '📝', label: status || 'N/A' };
     }
@@ -966,7 +966,7 @@ const QuestionBank = () => {
             <button
               onClick={() => setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc')}
               className="p-1 hover:bg-gray-200 rounded transition-colors"
-              title={sortDirection === 'asc' ? 'Tăng dần' : 'Giảm dần'}
+              title={sortDirection === 'asc' ? t('qb.sortAscending', 'Tăng dần') : t('qb.sortDescending', 'Giảm dần')}
             >
               {sortDirection === 'asc' ? (
                 <ChevronUp className="w-4 h-4 text-gray-600" />
@@ -990,7 +990,7 @@ const QuestionBank = () => {
       level: t('qb.difficulty', 'Độ khó'),
       unit: 'Unit',
       status: t('qb.status', 'Trạng thái'),
-      verificationStatus: 'Trạng thái duyệt',
+      verificationStatus: t('qb.verificationStatus', 'Trạng thái duyệt'),
       createdAt: t('qb.createdAt', 'Ngày tạo')
     };
     return labels[column] || column;
@@ -1137,7 +1137,7 @@ const QuestionBank = () => {
                   className="px-4 py-3.5 font-bold text-gray-700 text-xs uppercase tracking-wider min-w-[140px] cursor-pointer hover:bg-gray-200 transition-colors"
                 >
                   <div className="flex items-center gap-1">
-                    Trạng thái duyệt
+                    {t('qb.verificationStatus', 'Trạng thái duyệt')}
                     {sortColumn === 'verificationStatus' && (
                       sortDirection === 'asc' ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />
                     )}
@@ -1511,7 +1511,7 @@ const QuestionBank = () => {
             }`}
           >
             <FileQuestion className="w-5 h-5" />
-            <span>Câu hỏi khóa học</span>
+            <span>{t('qb.courseQuestions', 'Câu hỏi khóa học')}</span>
             <span className="text-xs opacity-75">(Course)</span>
           </button>
           <button
@@ -1523,7 +1523,7 @@ const QuestionBank = () => {
             }`}
           >
             <FileQuestion className="w-5 h-5" />
-            <span>Câu hỏi lớp học</span>
+            <span>{t('qb.classQuestions', 'Câu hỏi lớp học')}</span>
             <span className="text-xs opacity-75">(Class)</span>
           </button>
         </div>
@@ -1540,7 +1540,7 @@ const QuestionBank = () => {
                 : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
             }`}
           >
-            📚 Tất cả
+            📚 {t('qb.all', 'Tất cả')}
           </button>
           <button
             onClick={() => handleFilterChange('verificationStatus', 'PENDING')}
@@ -1550,7 +1550,7 @@ const QuestionBank = () => {
                 : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
             }`}
           >
-            ⏳ Chờ duyệt
+            ⏳ {t('qb.verificationStatus.pending', 'Chờ duyệt')}
           </button>
           <button
             onClick={() => handleFilterChange('verificationStatus', 'APPROVED')}
@@ -1560,7 +1560,7 @@ const QuestionBank = () => {
                 : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
             }`}
           >
-            ✅ Đã duyệt
+            ✅ {t('qb.verificationStatus.approved', 'Đã duyệt')}
           </button>
           <button
             onClick={() => handleFilterChange('verificationStatus', 'REJECTED')}
@@ -1570,7 +1570,7 @@ const QuestionBank = () => {
                 : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
             }`}
           >
-            ❌ Bị từ chối
+            ❌ {t('qb.verificationStatus.rejected', 'Bị từ chối')}
           </button>
         </div>
       </Card>
@@ -1633,7 +1633,7 @@ const QuestionBank = () => {
                     <Eye className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold text-white">Chi Tiết Câu Hỏi</h3>
+                    <h3 className="text-xl font-bold text-white">{t('qb.questionDetail', 'Chi Tiết Câu Hỏi')}</h3>
                     <p className="text-sm text-blue-100 mt-0.5">ID: {previewQuestion.id}</p>
                   </div>
                 </div>
@@ -1652,14 +1652,14 @@ const QuestionBank = () => {
                           previewQuestion.verificationStatus === 'REJECTED' ? 'error' : 'warning'}
                   size="sm"
                 >
-                  {previewQuestion.verificationStatus === 'APPROVED' ? '✅ Đã duyệt' :
-                   previewQuestion.verificationStatus === 'REJECTED' ? '❌ Đã từ chối' : '⏳ Chờ duyệt'}
+                  {previewQuestion.verificationStatus === 'APPROVED' ? `✅ ${t('qb.verificationStatus.approved', 'Đã duyệt')}` :
+                   previewQuestion.verificationStatus === 'REJECTED' ? `❌ ${t('qb.verificationStatus.rejected', 'Bị từ chối')}` : `⏳ ${t('qb.verificationStatus.pending', 'Chờ duyệt')}`}
                 </Badge>
                 <Badge variant={previewQuestion.status === 'Active' ? 'success' : 'error'} size="sm">
-                  {previewQuestion.status === 'Active' ? 'Hoạt động' : 'Không hoạt động'}
+                  {previewQuestion.status === 'Active' ? t('qb.statusActive', 'Hoạt động') : t('qb.statusInactive', 'Không hoạt động')}
                 </Badge>
                 <Badge variant="info" size="sm">
-                  {previewQuestion.points || 1} điểm
+                  {previewQuestion.points || 1} {t('qb.points', 'điểm')}
                 </Badge>
               </div>
             </div>
@@ -1688,7 +1688,7 @@ const QuestionBank = () => {
                   <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
                     <FileText className="w-5 h-5 text-white" />
                   </div>
-                  <h4 className="text-lg font-bold text-gray-900">Nội dung câu hỏi</h4>
+                  <h4 className="text-lg font-bold text-gray-900">{t('qb.questionContent', 'Nội dung câu hỏi')}</h4>
                 </div>
                 <p className="text-gray-900 text-base leading-relaxed pl-11">{previewQuestion.content}</p>
               </div>
@@ -1699,7 +1699,7 @@ const QuestionBank = () => {
                   <div className="bg-gray-50 px-4 py-2 border-b border-gray-200">
                     <p className="text-sm font-semibold text-gray-700 flex items-center gap-2">
                       <img src="/icons/image.svg" alt="" className="w-4 h-4" />
-                      Hình ảnh
+                      {t('qb.image', 'Hình ảnh')}
                     </p>
                   </div>
                   <div className="p-4 bg-white">
@@ -1734,7 +1734,7 @@ const QuestionBank = () => {
               {previewQuestion.options && previewQuestion.options.length > 0 && (
                 <div className="rounded-xl overflow-hidden border border-gray-200">
                   <div className="bg-gray-50 px-4 py-2 border-b border-gray-200">
-                    <p className="text-sm font-semibold text-gray-700">Các lựa chọn</p>
+                    <p className="text-sm font-semibold text-gray-700">{t('qb.options', 'Các lựa chọn')}</p>
                   </div>
                   <div className="p-4 bg-white space-y-3">
                     {previewQuestion.options.map((opt, index) => {
@@ -1757,7 +1757,7 @@ const QuestionBank = () => {
                             <p className="text-gray-900 font-medium">{opt.optionText || opt}</p>
                             {isCorrect && (
                               <span className="inline-block mt-1.5 px-2.5 py-0.5 text-xs font-semibold bg-green-600 text-white rounded-md">
-                                ✓ Đáp án đúng
+                                ✓ {t('qb.correctAnswer', 'Đáp án đúng')}
                               </span>
                             )}
                           </div>
@@ -1773,7 +1773,7 @@ const QuestionBank = () => {
                 <div className="rounded-xl overflow-hidden border border-gray-200">
                   <div className="bg-gray-50 px-4 py-2 border-b border-gray-200">
                     <p className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                      💡 Giải thích
+                      💡 {t('qb.explanation', 'Giải thích')}
                     </p>
                   </div>
                   <div className="p-4 bg-white">
@@ -1787,7 +1787,7 @@ const QuestionBank = () => {
                 <div className="rounded-xl overflow-hidden border-2 border-red-200">
                   <div className="bg-red-50 px-4 py-2 border-b border-red-200">
                     <p className="text-sm font-semibold text-red-900 flex items-center gap-2">
-                      ❌ Thông tin từ chối
+                      ❌ {t('qb.rejectionInfo', 'Thông tin từ chối')}
                     </p>
                   </div>
                   <div className="p-4 bg-white space-y-3">
@@ -1799,7 +1799,7 @@ const QuestionBank = () => {
                               {history.action === 'REJECTED' ? '❌ Đã từ chối' : 'ℹ️ ' + history.action}
                             </p>
                             <p className="text-sm text-gray-600">
-                              <span className="font-medium">Lý do:</span> {history.feedback || 'Không có lý do cụ thể'}
+                              <span className="font-medium">{t('qb.reason', 'Lý do')}:</span> {history.feedback || t('qb.noReason', 'Không có lý do cụ thể')}
                             </p>
                           </div>
                           <p className="text-xs text-gray-500 whitespace-nowrap">
@@ -1808,7 +1808,7 @@ const QuestionBank = () => {
                         </div>
                         {history.performedByUser && (
                           <p className="text-xs text-gray-500">
-                            <span className="font-medium">Người duyệt:</span> {history.performedByUser?.fullName || history.performedByUser?.username || 'N/A'}
+                            <span className="font-medium">{t('qb.reviewer', 'Người duyệt')}:</span> {history.performedByUser?.fullName || history.performedByUser?.username || 'N/A'}
                           </p>
                         )}
                       </div>
@@ -1820,12 +1820,12 @@ const QuestionBank = () => {
               {/* Metadata */}
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                  <p className="text-gray-500 text-xs font-medium mb-1">Ngày tạo</p>
+                  <p className="text-gray-500 text-xs font-medium mb-1">{t('qb.createdAt', 'Ngày tạo')}</p>
                   <p className="text-gray-900 font-medium">{new Date(previewQuestion.createdAt).toLocaleString('vi-VN')}</p>
                 </div>
                 {previewQuestion.updatedAt && (
                   <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                    <p className="text-gray-500 text-xs font-medium mb-1">Cập nhật</p>
+                    <p className="text-gray-500 text-xs font-medium mb-1">{t('qb.updatedAt', 'Cập nhật')}</p>
                     <p className="text-gray-900 font-medium">{new Date(previewQuestion.updatedAt).toLocaleString('vi-VN')}</p>
                   </div>
                 )}
@@ -1839,7 +1839,7 @@ const QuestionBank = () => {
                   variant="secondary"
                   onClick={handleCloseModal}
                 >
-                  Đóng
+                  {t('common.close', 'Đóng')}
                 </Button>
                 {previewQuestion.verificationStatus === 'APPROVED' ? (
                   <Button
@@ -1848,7 +1848,7 @@ const QuestionBank = () => {
                     className="bg-gray-400 cursor-not-allowed"
                   >
                     <Lock className="w-4 h-4 mr-2" />
-                    Đã duyệt - Không thể sửa
+                    {t('qb.approvedCannotEdit', 'Đã duyệt - Không thể sửa')}
                   </Button>
                 ) : (
                   <Button
@@ -1859,7 +1859,7 @@ const QuestionBank = () => {
                     }}
                   >
                     <Edit className="w-4 h-4 mr-2" />
-                    Chỉnh sửa
+                    {t('qb.editQuestion', 'Chỉnh sửa')}
                   </Button>
                 )}
               </div>

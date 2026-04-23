@@ -160,7 +160,7 @@ const GradingDetail = () => {
       const count = ungradedQuestions.length;
       Swal.fire({
         title: t('grading.incompleteTitle', 'Chưa chấm xong tất cả câu hỏi'),
-        html: `Bạn cần chấm thêm <strong>${count}</strong> câu hỏi nữa.<br/>Vui lòng chấm điểm tất cả các câu hỏi trước khi lưu!`,
+        html: t('grading.incompleteMessage', 'Bạn cần chấm thêm <strong>{{count}}</strong> câu hỏi nữa.<br/>Vui lòng chấm điểm tất cả các câu hỏi trước khi lưu!', { count }),
         icon: 'warning',
         confirmButtonText: t('grading.understood', 'Đã hiểu'),
         confirmButtonColor: '#f59e0b',
@@ -218,7 +218,7 @@ const GradingDetail = () => {
       Swal.fire({
         icon: 'success',
         title: t('grading.savedTitle', 'Chấm điểm thành công!'),
-        text: `Đã chấm xong ${gradesToSubmit.length} câu hỏi và lưu điểm thành công!`,
+        text: t('grading.savedMessage', 'Đã chấm xong {{count}} câu hỏi và lưu điểm thành công!', { count: gradesToSubmit.length }),
         timer: 2000,
         showConfirmButton: false,
         toast: true,
@@ -264,10 +264,10 @@ const GradingDetail = () => {
 
   const getQuestionTypeBadge = (type) => {
     const badges = {
-      'WRITING': { label: 'Viết', variant: 'blue' },
-      'SPEAKING': { label: 'Nói', variant: 'purple' },
-      'READING': { label: 'Đọc', variant: 'green' },
-      'LISTENING': { label: 'Nghe', variant: 'orange' }
+      'WRITING': { label: t('grading.type.writing', 'Viết'), variant: 'blue' },
+      'SPEAKING': { label: t('grading.type.speaking', 'Nói'), variant: 'purple' },
+      'READING': { label: t('grading.type.reading', 'Đọc'), variant: 'green' },
+      'LISTENING': { label: t('grading.type.listening', 'Nghe'), variant: 'orange' }
     };
     return badges[type]?.label || type;
   };
@@ -341,8 +341,8 @@ const GradingDetail = () => {
       // Show success message
       Swal.fire({
         icon: 'success',
-        title: 'Đã áp dụng điểm AI',
-        text: `Điểm ${score} và nhận xét đã được điền tự động. Nhớ bấm "Lưu điểm" sau khi hoàn tất.`,
+        title: t('grading.aiAppliedTitle', 'Đã áp dụng điểm AI'),
+        text: t('grading.aiAppliedMessage', 'Điểm {{score}} và nhận xét đã được điền tự động. Nhớ bấm "Lưu điểm" sau khi hoàn tất.', { score }),
         timer: 3000,
         showConfirmButton: false
       });
@@ -350,8 +350,8 @@ const GradingDetail = () => {
       console.error('Error applying AI score:', error);
       Swal.fire({
         icon: 'error',
-        title: 'Lỗi',
-        text: 'Không thể áp dụng điểm AI. Vui lòng thử lại.',
+        title: t('grading.error', 'Lỗi'),
+        text: t('grading.aiApplyError', 'Không thể áp dụng điểm AI. Vui lòng thử lại.'),
         confirmButtonText: 'OK'
       });
     }
@@ -399,7 +399,7 @@ const GradingDetail = () => {
                   size="sm"
                   onClick={handlePreviousExam}
                   disabled={currentQueueIndex === 0}
-                  title="Bài trước"
+                  title={t('grading.previousExam', 'Bài trước')}
                 >
                   <ChevronLeft className="w-4 h-4" />
                 </Button>
@@ -413,7 +413,7 @@ const GradingDetail = () => {
                   >
                     {gradingQueue.map((exam, index) => (
                       <option key={exam.id} value={exam.id}>
-                        {exam.exam?.title || `Bài thi ${index + 1}`} - {exam.student?.fullName || 'Không tên'} ({index + 1}/{gradingQueue.length})
+                        {exam.exam?.title || t('grading.examNumber', 'Bài thi {{number}}', { number: index + 1 })} - {exam.student?.fullName || t('grading.noName', 'Không tên')} ({index + 1}/{gradingQueue.length})
                       </option>
                     ))}
                   </select>
@@ -433,7 +433,7 @@ const GradingDetail = () => {
                   size="sm"
                   onClick={handleNextExam}
                   disabled={currentQueueIndex === gradingQueue.length - 1}
-                  title="Bài tiếp theo"
+                  title={t('grading.nextExam', 'Bài tiếp theo')}
                 >
                   <ChevronRight className="w-4 h-4" />
                 </Button>
@@ -480,7 +480,7 @@ const GradingDetail = () => {
                 </div>
                 <div className="flex items-center gap-2 text-gray-600">
                   <Clock className="w-4 h-4" />
-                  <span>{getTimeSpent()} phút</span>
+                  <span>{getTimeSpent()} {t('grading.minutes', 'phút')}</span>
                 </div>
               </div>
             </div>
@@ -528,7 +528,7 @@ const GradingDetail = () => {
               <thead>
                 <tr className="bg-gradient-to-r from-gray-100 to-gray-50 border-b-2 border-gray-300">
                   <th className="px-4 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider w-16 border-r border-gray-200">
-                    STT
+                    {t('grading.index', 'STT')}
                   </th>
                   <th className="px-4 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider border-r border-gray-200">
                     {t('grading.examName', 'Tên Bài Thi')}
@@ -568,14 +568,14 @@ const GradingDetail = () => {
                       </td>
                       <td className="px-4 py-3">
                         <div className="text-sm font-medium text-gray-900">
-                          {item.exam?.title || `Bài thi ${index + 1}`}
+                          {item.exam?.title || t('grading.examNumber', 'Bài thi {{number}}', { number: index + 1 })}
                         </div>
                         {item.class?.name && (
                           <div className="text-xs text-gray-500 mt-1">{item.class.name}</div>
                         )}
                       </td>
                       <td className="px-4 py-3">
-                        <div className="text-sm text-gray-900">{item.student?.fullName || 'Không tên'}</div>
+                        <div className="text-sm text-gray-900">{item.student?.fullName || t('grading.noName', 'Không tên')}</div>
                         <div className="text-xs text-gray-500">{item.student?.studentCode || 'N/A'}</div>
                       </td>
                       <td className="px-4 py-3">

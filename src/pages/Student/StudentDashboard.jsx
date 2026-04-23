@@ -22,6 +22,7 @@ import studentService from '../../services/studentService';
  */
 const StudentDashboard = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     totalCourses: 0,
@@ -61,15 +62,15 @@ const StudentDashboard = () => {
 
       const mappedUpcomingExams = (upcomingExams?.data || []).slice(0, 3).map(exam => ({
         id: exam.id,
-        title: exam.title || 'Bài kiểm tra',
+        title: exam.title || t('student.dashboard.defaultExamTitle'),
         date: exam.availableFrom || new Date().toISOString(),
-        course: exam.courseName || 'Khóa học'
+        course: exam.courseName || t('student.dashboard.defaultCourseName')
       }));
 
       const mappedRecentActivities = (examResults?.results || []).slice(0, 4).map(result => ({
         id: result.id,
         type: 'exam_completed',
-        title: `Hoàn thành: ${result.examTitle || 'bài kiểm tra'}`,
+        title: t('student.dashboard.activityCompleted', { title: result.examTitle || t('student.dashboard.defaultExamTitle') }),
         score: Math.round(result.totalScore || 0),
         date: result.submitTime ? new Date(result.submitTime).toLocaleDateString('vi-VN') : new Date().toLocaleDateString('vi-VN')
       }));
@@ -102,7 +103,7 @@ const StudentDashboard = () => {
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div className="animate-spin rounded-full h-16 w-16 border-4 border-indigo-600 border-t-transparent"></div>
-          <p className="text-gray-600 font-medium">Đang tải...</p>
+          <p className="text-gray-600 font-medium">{t('common.loading')}</p>
         </div>
       </div>
     );
@@ -116,10 +117,10 @@ const StudentDashboard = () => {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl sm:text-4xl font-bold mb-2">
-                Xin chào! 👋
+                {t('student.dashboard.welcomeGreeting')}
               </h1>
               <p className="text-indigo-100 text-lg">
-                Sẵn sàng cho bài học hôm nay
+                {t('student.dashboard.welcomeSubtitle')}
               </p>
             </div>
             <div className="hidden md:block">
@@ -141,7 +142,7 @@ const StudentDashboard = () => {
               </div>
               <div className="text-right">
                 <p className="text-3xl font-bold text-gray-900">{stats.totalCourses}</p>
-                <p className="text-sm text-gray-500">Khóa học</p>
+                <p className="text-sm text-gray-500">{t('student.dashboard.courses')}</p>
               </div>
             </div>
             <div className="h-2 bg-blue-50 rounded-full overflow-hidden">
@@ -156,7 +157,7 @@ const StudentDashboard = () => {
               </div>
               <div className="text-right">
                 <p className="text-3xl font-bold text-gray-900">{stats.activeCourses}</p>
-                <p className="text-sm text-gray-500">Đang học</p>
+                <p className="text-sm text-gray-500">{t('student.dashboard.activeCourses')}</p>
               </div>
             </div>
             <div className="h-2 bg-green-50 rounded-full overflow-hidden">
@@ -171,7 +172,7 @@ const StudentDashboard = () => {
               </div>
               <div className="text-right">
                 <p className="text-3xl font-bold text-gray-900">{stats.completedExams}</p>
-                <p className="text-sm text-gray-500">Bài kiểm tra</p>
+                <p className="text-sm text-gray-500">{t('student.dashboard.exams')}</p>
               </div>
             </div>
             <div className="h-2 bg-purple-50 rounded-full overflow-hidden">
@@ -186,7 +187,7 @@ const StudentDashboard = () => {
               </div>
               <div className="text-right">
                 <p className="text-3xl font-bold text-gray-900">{stats.averageScore}%</p>
-                <p className="text-sm text-gray-500">Điểm TB</p>
+                <p className="text-sm text-gray-500">{t('student.dashboard.avgScore')}</p>
               </div>
             </div>
             <div className="h-2 bg-amber-50 rounded-full overflow-hidden">
@@ -203,7 +204,7 @@ const StudentDashboard = () => {
             <div className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300">
               <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
                 <Target className="w-6 h-6 text-indigo-600" />
-                Hành động nhanh
+                {t('student.dashboard.quickActions')}
               </h2>
               <div className="grid grid-cols-2 gap-3">
                 <button
@@ -211,14 +212,14 @@ const StudentDashboard = () => {
                   className="group bg-gradient-to-br from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200 rounded-xl p-4 transition-all duration-300 border-2 border-transparent hover:border-blue-300"
                 >
                   <BookOpen className="w-8 h-8 text-blue-600 mx-auto mb-2 group-hover:scale-110 transition-transform" />
-                  <p className="text-sm font-semibold text-gray-800 text-center">Khóa học</p>
+                  <p className="text-sm font-semibold text-gray-800 text-center">{t('student.dashboard.courses')}</p>
                 </button>
                 <button
                   onClick={() => navigate('/student/exams')}
                   className="group bg-gradient-to-br from-purple-50 to-purple-100 hover:from-purple-100 hover:to-purple-200 rounded-xl p-4 transition-all duration-300 border-2 border-transparent hover:border-purple-300"
                 >
                   <FileText className="w-8 h-8 text-purple-600 mx-auto mb-2 group-hover:scale-110 transition-transform" />
-                  <p className="text-sm font-semibold text-gray-800 text-center">Bài kiểm tra</p>
+                  <p className="text-sm font-semibold text-gray-800 text-center">{t('student.dashboard.exams')}</p>
                 </button>
               </div>
             </div>
@@ -228,13 +229,13 @@ const StudentDashboard = () => {
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
                   <Clock className="w-6 h-6 text-red-600" />
-                  Sắp tới
+                  {t('student.dashboard.upcoming')}
                 </h2>
                 <button
                   onClick={() => navigate('/student/exams')}
                   className="text-indigo-600 hover:text-indigo-700 text-sm font-medium flex items-center gap-1 hover:underline"
                 >
-                  Xem tất cả <ArrowRight className="w-4 h-4" />
+                  {t('student.dashboard.viewAll')} <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
 
@@ -268,7 +269,7 @@ const StudentDashboard = () => {
               ) : (
                 <div className="text-center py-8">
                   <FileText className="w-16 h-16 text-gray-300 mx-auto mb-3" />
-                  <p className="text-gray-500">Không có bài kiểm tra sắp tới</p>
+                  <p className="text-gray-500">{t('student.dashboard.noUpcomingExams')}</p>
                 </div>
               )}
             </div>
@@ -277,7 +278,7 @@ const StudentDashboard = () => {
             <div className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300">
               <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
                 <TrendingUp className="w-6 h-6 text-green-600" />
-                Hoạt động gần đây
+                {t('student.dashboard.recentActivity')}
               </h2>
 
               {stats.recentActivities.length > 0 ? (
@@ -297,7 +298,7 @@ const StudentDashboard = () => {
                       {activity.score && (
                         <div className="text-right shrink-0">
                           <span className="text-lg font-bold text-green-600">{activity.score}</span>
-                          <span className="text-xs text-gray-500 ml-1">điểm</span>
+                          <span className="text-xs text-gray-500 ml-1">{t('student.dashboard.pointsLabel')}</span>
                         </div>
                       )}
                     </div>
@@ -306,7 +307,7 @@ const StudentDashboard = () => {
               ) : (
                 <div className="text-center py-8">
                   <Clock className="w-16 h-16 text-gray-300 mx-auto mb-3" />
-                  <p className="text-gray-500">Chưa có hoạt động nào</p>
+                  <p className="text-gray-500">{t('student.dashboard.noRecentActivity')}</p>
                 </div>
               )}
             </div>
@@ -318,16 +319,16 @@ const StudentDashboard = () => {
             <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl p-6 shadow-lg border-2 border-amber-200">
               <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
                 <Star className="w-6 h-6 text-amber-600" />
-                Thành tự
+                {t('student.dashboard.achievements')}
               </h2>
               <div className="grid grid-cols-3 gap-3">
                 {[
-                  { icon: '🔥', name: 'Chăm chỉ', unlocked: true },
-                  { icon: '⭐', name: 'Xuất sắc', unlocked: true },
-                  { icon: '📚', name: 'Học tập', unlocked: true },
-                  { icon: '🎯', name: 'Chính xác', unlocked: false },
-                  { icon: '💪', name: 'Kiên trì', unlocked: false },
-                  { icon: '🏅', name: 'Hoàn thành', unlocked: false },
+                  { icon: '🔥', name: t('student.dashboard.achieveDiligent'), unlocked: true },
+                  { icon: '⭐', name: t('student.dashboard.achieveExcellent'), unlocked: true },
+                  { icon: '📚', name: t('student.dashboard.achieveLearning'), unlocked: true },
+                  { icon: '🎯', name: t('student.dashboard.achieveAccurate'), unlocked: false },
+                  { icon: '💪', name: t('student.dashboard.achievePersistent'), unlocked: false },
+                  { icon: '🏅', name: t('student.dashboard.achieveComplete'), unlocked: false },
                 ].map((achievement, index) => (
                   <div
                     key={index}
@@ -352,16 +353,16 @@ const StudentDashboard = () => {
               <div className="flex items-center gap-3 mb-4">
                 <Clock className="w-8 h-8" />
                 <div>
-                  <p className="text-indigo-100 text-sm">Thời gian học</p>
-                  <p className="text-xl font-bold">Hôm nay</p>
+                  <p className="text-indigo-100 text-sm">{t('student.dashboard.studyTime')}</p>
+                  <p className="text-xl font-bold">{t('student.dashboard.today')}</p>
                 </div>
               </div>
               <div className="text-center py-6 bg-white/10 rounded-xl backdrop-blur-sm mb-4">
                 <p className="text-5xl font-bold">2.5</p>
-                <p className="text-indigo-200">giờ</p>
+                <p className="text-indigo-200">{t('student.dashboard.hours')}</p>
               </div>
               <div className="grid grid-cols-7 gap-2 text-center text-xs">
-                {['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'].map((day, i) => (
+                {[t('student.dashboard.mon'), t('student.dashboard.tue'), t('student.dashboard.wed'), t('student.dashboard.thu'), t('student.dashboard.fri'), t('student.dashboard.sat'), t('student.dashboard.sun')].map((day, i) => (
                   <div key={i} className="space-y-1">
                     <p className="text-indigo-200">{day}</p>
                     <div className={`h-2 rounded-full mx-auto ${i < 5 ? 'bg-white' : 'bg-white/30'}`} style={{ width: '80%' }}></div>
@@ -374,13 +375,13 @@ const StudentDashboard = () => {
             <div className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300">
               <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
                 <BarChart3 className="w-6 h-6 text-indigo-600" />
-                Tiến độ
+                {t('student.dashboard.progress')}
               </h2>
               <div className="space-y-4">
                 {[
-                  { name: 'Hàn Quốc Cơ Bản', progress: 75, color: 'from-blue-500 to-blue-600' },
-                  { name: 'Ngữ Pháp', progress: 60, color: 'from-purple-500 to-purple-600' },
-                  { name: 'Chữ Hán', progress: 40, color: 'from-pink-500 to-pink-600' },
+                  { name: t('student.dashboard.progressKoreanBasic'), progress: 75, color: 'from-blue-500 to-blue-600' },
+                  { name: t('student.dashboard.progressGrammar'), progress: 60, color: 'from-purple-500 to-purple-600' },
+                  { name: t('student.dashboard.progressHanja'), progress: 40, color: 'from-pink-500 to-pink-600' },
                 ].map((course, index) => (
                   <div key={index} className="space-y-2">
                     <div className="flex items-center justify-between text-sm">

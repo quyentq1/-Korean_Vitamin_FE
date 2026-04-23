@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { teacherService } from '../../services/teacherService';
+import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import RescheduleSessionModal from '../../components/RescheduleSessionModal';
@@ -10,6 +11,7 @@ import {
 } from 'lucide-react';
 
 const TeacherClassManagement = () => {
+    const { t } = useTranslation();
     const [classes, setClasses] = useState([]);
     const [selectedClassId, setSelectedClassId] = useState(null);
     const [activeTab, setActiveTab] = useState('overview');
@@ -75,7 +77,7 @@ const TeacherClassManagement = () => {
             setEditSession(session);
         } catch (error) {
             console.error('Error loading attendance:', error);
-            setMessage({ type: 'error', text: 'Không thể tải danh sách học viên' });
+            setMessage({ type: 'error', text: t('teacher.classMgmt.cannotLoadStudents') });
         }
     };
 
@@ -96,11 +98,11 @@ const TeacherClassManagement = () => {
                 scheduleId: editSession.scheduleId,
                 attendanceRecords: editData.map(a => ({ studentId: a.studentId, status: a.status }))
             });
-            setMessage({ type: 'success', text: 'Lưu điểm danh thành công!' });
+            setMessage({ type: 'success', text: t('teacher.classMgmt.saveSuccess') });
             setEditSession(null);
             selectClass(selectedClassId);
         } catch (error) {
-            const msg = error?.response?.data?.message || error?.response?.data?.error || 'Lỗi khi lưu điểm danh';
+            const msg = error?.response?.data?.message || error?.response?.data?.error || t('teacher.classMgmt.saveError');
             setMessage({ type: 'error', text: msg });
         } finally {
             setSaving(false);
@@ -137,7 +139,7 @@ const TeacherClassManagement = () => {
                                 <BookOpen className="w-6 h-6 text-white" />
                             </div>
                             <div>
-                                <h1 className="text-2xl lg:text-3xl font-bold">Quản lý lớp học</h1>
+                                <h1 className="text-2xl lg:text-3xl font-bold">{t('teacher.classMgmt.title')}</h1>
                                 <p className="text-purple-100 text-sm mt-0.5">
                                     {new Date().toLocaleDateString('vi-VN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                                 </p>
@@ -153,28 +155,28 @@ const TeacherClassManagement = () => {
                             <BookOpen className="w-5 h-5" />
                         </div>
                         <div className="text-2xl font-bold bg-gradient-to-r from-indigo-500 to-indigo-600 bg-clip-text text-transparent">{classes.length}</div>
-                        <div className="text-xs text-gray-500 mt-1">Tổng số lớp</div>
+                        <div className="text-xs text-gray-500 mt-1">{t('teacher.classMgmt.totalClasses')}</div>
                     </div>
                     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 hover:shadow-lg transition-all duration-300 group">
                         <div className="w-11 h-11 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600 mb-3 group-hover:scale-110 transition-transform">
                             <Users className="w-5 h-5" />
                         </div>
                         <div className="text-2xl font-bold bg-gradient-to-r from-emerald-500 to-green-600 bg-clip-text text-transparent">{classResults?.totalStudents || 0}</div>
-                        <div className="text-xs text-gray-500 mt-1">Học viên</div>
+                        <div className="text-xs text-gray-500 mt-1">{t('teacher.classMgmt.students')}</div>
                     </div>
                     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 hover:shadow-lg transition-all duration-300 group">
                         <div className="w-11 h-11 bg-purple-50 rounded-xl flex items-center justify-center text-purple-600 mb-3 group-hover:scale-110 transition-transform">
                             <Calendar className="w-5 h-5" />
                         </div>
                         <div className="text-2xl font-bold bg-gradient-to-r from-purple-500 to-violet-600 bg-clip-text text-transparent">{classResults?.totalSessions || 0}</div>
-                        <div className="text-xs text-gray-500 mt-1">Tổng buổi học</div>
+                        <div className="text-xs text-gray-500 mt-1">{t('teacher.classMgmt.totalSessions')}</div>
                     </div>
                     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 hover:shadow-lg transition-all duration-300 group">
                         <div className="w-11 h-11 bg-cyan-50 rounded-xl flex items-center justify-center text-cyan-600 mb-3 group-hover:scale-110 transition-transform">
                             <ClipboardCheck className="w-5 h-5" />
                         </div>
                         <div className="text-2xl font-bold bg-gradient-to-r from-cyan-500 to-blue-600 bg-clip-text text-transparent">{avgRate}%</div>
-                        <div className="text-xs text-gray-500 mt-1">Tỷ lệ điểm danh</div>
+                        <div className="text-xs text-gray-500 mt-1">{t('teacher.classMgmt.attendanceRate')}</div>
                     </div>
                 </div>
 
@@ -185,13 +187,13 @@ const TeacherClassManagement = () => {
                     <div className="lg:col-span-1">
                         <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
                             <BookOpen className="w-3.5 h-3.5" />
-                            Lớp học ({classes.length})
+                            {t('teacher.classMgmt.classes')} ({classes.length})
                         </h2>
                         <div className="space-y-2 max-h-[calc(100vh-400px)] overflow-y-auto pr-1">
                             {classes.length === 0 ? (
                                 <div className="bg-white rounded-2xl p-6 text-center text-sm text-gray-400 border border-gray-100">
                                     <Users className="w-10 h-10 mx-auto mb-2 text-gray-200" />
-                                    Chưa có lớp được phân công
+                                    {t('teacher.classMgmt.noClassesAssigned')}
                                 </div>
                             ) : classes.map(cls => (
                                 <div key={cls.id} onClick={() => selectClass(cls.id)}
@@ -223,14 +225,14 @@ const TeacherClassManagement = () => {
                             <div className="flex items-center justify-center py-20">
                                 <div className="text-center">
                                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-                                    <p className="text-gray-400 text-sm">Đang tải...</p>
+                                    <p className="text-gray-400 text-sm">{t('common.loading')}</p>
                                 </div>
                             </div>
                         ) : !selectedClassId ? (
                             <div className="bg-white rounded-2xl border-2 border-dashed border-gray-200 p-16 text-center">
                                 <BookOpen className="w-16 h-16 mx-auto mb-4 text-gray-200" />
-                                <h3 className="text-lg font-semibold text-gray-400 mb-1">Chọn một lớp học</h3>
-                                <p className="text-sm text-gray-300">Chọn lớp từ danh sách bên trái để bắt đầu</p>
+                                <h3 className="text-lg font-semibold text-gray-400 mb-1">{t('teacher.classMgmt.selectClass')}</h3>
+                                <p className="text-sm text-gray-300">{t('teacher.classMgmt.selectClassHint')}</p>
                             </div>
                         ) : editSession ? (
                             /* ==================== ATTENDANCE EDIT VIEW ==================== */
@@ -238,7 +240,7 @@ const TeacherClassManagement = () => {
                                 <div className="flex items-center gap-2 mb-4">
                                     <button onClick={handleBack}
                                         className="inline-flex items-center gap-1.5 text-sm text-indigo-600 hover:text-indigo-800 bg-indigo-50 px-3 py-1.5 rounded-lg hover:bg-indigo-100 transition-all">
-                                        <ChevronLeft className="w-4 h-4" /> Quay lại
+                                        <ChevronLeft className="w-4 h-4" /> {t('common.back')}
                                     </button>
                                     <span className="text-gray-300">|</span>
                                     <span className="text-sm text-gray-600 font-medium">{selectedClass?.className}</span>
@@ -261,16 +263,16 @@ const TeacherClassManagement = () => {
                                         <div className="flex items-center justify-between">
                                             <div>
                                                 <h2 className="text-lg font-bold">
-                                                    {editSession.lessonNumber ? `Buổi ${editSession.lessonNumber}` : ''} Điểm danh
+                                                    {editSession.lessonNumber ? `${t('teacher.classMgmt.session')} ${editSession.lessonNumber}` : ''} {t('teacher.classMgmt.attendance')}
                                                 </h2>
                                                 <p className="text-indigo-100 text-sm mt-0.5">{formatDate(editSession.lessonDate)}</p>
                                             </div>
                                             <div className="flex gap-2">
                                                 <span className="text-sm bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-xl font-medium">
-                                                    Có mặt: {editData.filter(a => a.status === 'PRESENT').length}
+                                                    {t('teacher.classMgmt.present')}: {editData.filter(a => a.status === 'PRESENT').length}
                                                 </span>
                                                 <span className="text-sm bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-xl font-medium">
-                                                    Vắng: {editData.filter(a => a.status === 'ABSENT').length}
+                                                    {t('teacher.classMgmt.absent')}: {editData.filter(a => a.status === 'ABSENT').length}
                                                 </span>
                                             </div>
                                         </div>
@@ -281,9 +283,9 @@ const TeacherClassManagement = () => {
                                         <table className="min-w-full divide-y divide-gray-100">
                                             <thead>
                                                 <tr className="bg-gradient-to-r from-indigo-50 to-purple-50">
-                                                    <th className="px-5 py-3.5 text-left text-xs font-semibold text-indigo-600 uppercase tracking-wider w-16">STT</th>
-                                                    <th className="px-5 py-3.5 text-left text-xs font-semibold text-indigo-600 uppercase tracking-wider">Học viên</th>
-                                                    <th className="px-5 py-3.5 text-center text-xs font-semibold text-indigo-600 uppercase tracking-wider">Trạng thái</th>
+                                                    <th className="px-5 py-3.5 text-left text-xs font-semibold text-indigo-600 uppercase tracking-wider w-16">{t('teacher.classMgmt.index')}</th>
+                                                    <th className="px-5 py-3.5 text-left text-xs font-semibold text-indigo-600 uppercase tracking-wider">{t('teacher.classMgmt.students')}</th>
+                                                    <th className="px-5 py-3.5 text-center text-xs font-semibold text-indigo-600 uppercase tracking-wider">{t('common.status')}</th>
                                                 </tr>
                                             </thead>
                                             <tbody className="divide-y divide-gray-50">
@@ -309,13 +311,13 @@ const TeacherClassManagement = () => {
                                                                         student.status === 'PRESENT'
                                                                             ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-md shadow-green-200'
                                                                             : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
-                                                                    }`}>Có mặt</button>
+                                                                    }`}>{t('teacher.classMgmt.present')}</button>
                                                                 <button onClick={() => toggleStatus(student.studentId)}
                                                                     className={`px-5 py-2 rounded-xl text-sm font-medium transition-all duration-300 ${
                                                                         student.status === 'ABSENT'
                                                                             ? 'bg-gradient-to-r from-red-500 to-red-600 text-white shadow-md shadow-red-200'
                                                                             : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
-                                                                    }`}>Vắng mặt</button>
+                                                                    }`}>{t('teacher.classMgmt.absent')}</button>
                                                             </div>
                                                         </td>
                                                     </tr>
@@ -330,18 +332,18 @@ const TeacherClassManagement = () => {
                                             <button onClick={markAllPresent}
                                                 className="px-4 py-2.5 bg-emerald-50 text-emerald-700 rounded-xl hover:bg-emerald-100 text-sm font-medium transition-all border border-emerald-200">
                                                 <CheckSquare className="w-4 h-4 inline mr-1.5" />
-                                                Đánh dấu tất cả có mặt
+                                                {t('teacher.classMgmt.markAllPresent')}
                                             </button>
                                             <div className="flex-1"></div>
                                             <button onClick={handleCancel} disabled={saving || !hasChanges}
                                                 className="px-5 py-2.5 bg-white text-gray-700 rounded-xl hover:bg-gray-100 text-sm font-medium disabled:opacity-40 border border-gray-200 transition-all">
                                                 <XCircle className="w-4 h-4 inline mr-1.5" />
-                                                Huỷ
+                                                {t('common.cancel')}
                                             </button>
                                             <button onClick={handleSave} disabled={saving}
                                                 className="px-6 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-xl hover:shadow-lg disabled:opacity-50 font-medium transition-all duration-300 shadow-md shadow-indigo-200">
                                                 <Save className="w-4 h-4 inline mr-1.5" />
-                                                {saving ? 'Đang lưu...' : 'Lưu'}
+                                                {saving ? t('common.loading') : t('common.save')}
                                             </button>
                                         </div>
                                     </div>
@@ -366,10 +368,10 @@ const TeacherClassManagement = () => {
                                             </div>
                                             <div className="flex gap-3 text-sm">
                                                 <span className="flex items-center gap-1.5 text-gray-600 bg-white px-3 py-1.5 rounded-lg shadow-sm border border-gray-100">
-                                                    <Users className="w-4 h-4 text-indigo-500" /> {classResults?.totalStudents || 0} học viên
+                                                    <Users className="w-4 h-4 text-indigo-500" /> {classResults?.totalStudents || 0} {t('teacher.classMgmt.studentsCount')}
                                                 </span>
                                                 <span className="flex items-center gap-1.5 text-gray-600 bg-white px-3 py-1.5 rounded-lg shadow-sm border border-gray-100">
-                                                    <Calendar className="w-4 h-4 text-purple-500" /> {classResults?.totalSessions || 0} buổi
+                                                    <Calendar className="w-4 h-4 text-purple-500" /> {classResults?.totalSessions || 0} {t('teacher.classMgmt.sessionsCount')}
                                                 </span>
                                             </div>
                                         </div>
@@ -378,15 +380,15 @@ const TeacherClassManagement = () => {
                                         <button onClick={() => setActiveTab('overview')}
                                             className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 ${
                                                 activeTab === 'overview' ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-md' : 'text-gray-600 hover:bg-white'
-                                            }`}>Tổng quan</button>
+                                            }`}>{t('teacher.classMgmt.overview')}</button>
                                         <button onClick={() => setActiveTab('schedule')}
                                             className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 ${
                                                 activeTab === 'schedule' ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-md' : 'text-gray-600 hover:bg-white'
-                                            }`}>Lịch học</button>
+                                            }`}>{t('teacher.classMgmt.schedule')}</button>
                                         <button onClick={() => setActiveTab('attendance')}
                                             className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 ${
                                                 activeTab === 'attendance' ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-md' : 'text-gray-600 hover:bg-white'
-                                            }`}>Điểm danh</button>
+                                            }`}>{t('teacher.classMgmt.attendance')}</button>
                                     </div>
                                 </div>
 
@@ -401,7 +403,7 @@ const TeacherClassManagement = () => {
                                                     </div>
                                                     <div>
                                                         <div className="text-2xl font-bold text-green-600">{studentStats.filter(s => !s.isLocked && !s.isWarning).length}</div>
-                                                        <div className="text-xs font-medium text-gray-400 uppercase tracking-wide">Bình thường</div>
+                                                        <div className="text-xs font-medium text-gray-400 uppercase tracking-wide">{t('teacher.classMgmt.normal')}</div>
                                                     </div>
                                                 </div>
                                                 <div className="bg-white rounded-2xl shadow-sm border border-gray-100 border-l-4 border-l-amber-500 p-5 flex items-center gap-4 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 group">
@@ -410,7 +412,7 @@ const TeacherClassManagement = () => {
                                                     </div>
                                                     <div>
                                                         <div className="text-2xl font-bold text-amber-600">{studentStats.filter(s => s.isWarning).length}</div>
-                                                        <div className="text-xs font-medium text-gray-400 uppercase tracking-wide">Cảnh báo</div>
+                                                        <div className="text-xs font-medium text-gray-400 uppercase tracking-wide">{t('teacher.classMgmt.warning')}</div>
                                                     </div>
                                                 </div>
                                                 <div className="bg-white rounded-2xl shadow-sm border border-gray-100 border-l-4 border-l-red-500 p-5 flex items-center gap-4 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 group">
@@ -419,7 +421,7 @@ const TeacherClassManagement = () => {
                                                     </div>
                                                     <div>
                                                         <div className="text-2xl font-bold text-red-600">{studentStats.filter(s => s.isLocked).length}</div>
-                                                        <div className="text-xs font-medium text-gray-400 uppercase tracking-wide">Đã khóa</div>
+                                                        <div className="text-xs font-medium text-gray-400 uppercase tracking-wide">{t('teacher.classMgmt.locked')}</div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -429,16 +431,16 @@ const TeacherClassManagement = () => {
                                             <table className="min-w-full divide-y divide-gray-100">
                                                 <thead>
                                                     <tr className="bg-gradient-to-r from-indigo-50 to-purple-50">
-                                                        <th className="px-5 py-3.5 text-left text-xs font-semibold text-indigo-600 uppercase tracking-wider w-16">STT</th>
-                                                        <th className="px-5 py-3.5 text-left text-xs font-semibold text-indigo-600 uppercase tracking-wider">Học viên</th>
-                                                        <th className="px-5 py-3.5 text-center text-xs font-semibold text-indigo-600 uppercase tracking-wider">Tỷ lệ</th>
-                                                        <th className="px-5 py-3.5 text-center text-xs font-semibold text-indigo-600 uppercase tracking-wider">Có mặt / Vắng</th>
-                                                        <th className="px-5 py-3.5 text-center text-xs font-semibold text-indigo-600 uppercase tracking-wider">Trạng thái</th>
+                                                        <th className="px-5 py-3.5 text-left text-xs font-semibold text-indigo-600 uppercase tracking-wider w-16">{t('teacher.classMgmt.index')}</th>
+                                                        <th className="px-5 py-3.5 text-left text-xs font-semibold text-indigo-600 uppercase tracking-wider">{t('teacher.classMgmt.students')}</th>
+                                                        <th className="px-5 py-3.5 text-center text-xs font-semibold text-indigo-600 uppercase tracking-wider">{t('teacher.classMgmt.rate')}</th>
+                                                        <th className="px-5 py-3.5 text-center text-xs font-semibold text-indigo-600 uppercase tracking-wider">{t('teacher.classMgmt.presentAbsent')}</th>
+                                                        <th className="px-5 py-3.5 text-center text-xs font-semibold text-indigo-600 uppercase tracking-wider">{t('common.status')}</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody className="divide-y divide-gray-50">
                                                     {studentStats.length === 0 ? (
-                                                        <tr><td colSpan="5" className="px-5 py-10 text-center text-gray-400">Chưa có học viên</td></tr>
+                                                        <tr><td colSpan="5" className="px-5 py-10 text-center text-gray-400">{t('teacher.classMgmt.noStudents')}</td></tr>
                                                     ) : studentStats.map((stat, index) => (
                                                         <tr key={stat.studentId} className="hover:bg-indigo-50/30 transition-colors">
                                                             <td className="px-5 py-4 text-sm text-gray-400 font-medium">{index + 1}</td>
@@ -471,14 +473,14 @@ const TeacherClassManagement = () => {
                                                             <td className="px-5 py-4 text-center">
                                                                 {stat.isLocked ? (
                                                                     <span className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-red-100 text-red-700 font-medium">
-                                                                        <Lock className="w-3 h-3" /> Khóa
+                                                                        <Lock className="w-3 h-3" /> {t('teacher.classMgmt.lockedShort')}
                                                                     </span>
                                                                 ) : stat.isWarning ? (
                                                                     <span className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-amber-100 text-amber-700 font-medium">
-                                                                        <AlertTriangle className="w-3 h-3" /> Cảnh báo
+                                                                        <AlertTriangle className="w-3 h-3" /> {t('teacher.classMgmt.warning')}
                                                                     </span>
                                                                 ) : (
-                                                                    <span className="text-xs px-2.5 py-1 rounded-full bg-green-100 text-green-700 font-medium">Bình thường</span>
+                                                                    <span className="text-xs px-2.5 py-1 rounded-full bg-green-100 text-green-700 font-medium">{t('teacher.classMgmt.normal')}</span>
                                                                 )}
                                                             </td>
                                                         </tr>
@@ -495,7 +497,7 @@ const TeacherClassManagement = () => {
                                         {sessions.length === 0 ? (
                                             <div className="bg-white rounded-2xl border-2 border-dashed border-gray-200 p-10 text-center">
                                                 <Calendar className="w-12 h-12 mx-auto mb-3 text-gray-200" />
-                                                <p className="text-gray-400">Chưa có lịch học</p>
+                                                <p className="text-gray-400">{t('teacher.classMgmt.noSchedule')}</p>
                                             </div>
                                         ) : sessions.map(session => {
                                             const marked = session.totalMarked > 0;
@@ -517,7 +519,7 @@ const TeacherClassManagement = () => {
                                                                         ? 'bg-gradient-to-br from-indigo-500 to-purple-600'
                                                                         : 'bg-gradient-to-br from-gray-400 to-gray-500'
                                                             }`}>
-                                                                <span className="uppercase tracking-wider">Buổi</span>
+                                                                <span className="uppercase tracking-wider">{t('teacher.classMgmt.session')}</span>
                                                                 <span className="text-xl leading-none">{session.lessonNumber}</span>
                                                             </div>
                                                             <div>
@@ -527,7 +529,7 @@ const TeacherClassManagement = () => {
                                                                     <span>{session.startTime?.substring(0, 5)} - {session.endTime?.substring(0, 5)}</span>
                                                                     {session.room && (
                                                                         <span className="inline-flex items-center gap-1 text-xs bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-full font-medium">
-                                                                            <MapPin className="w-3 h-3" /> Phòng {session.room}
+                                                                            <MapPin className="w-3 h-3" /> {t('teacher.classMgmt.room')} {session.room}
                                                                         </span>
                                                                     )}
                                                                 </div>
@@ -538,28 +540,28 @@ const TeacherClassManagement = () => {
                                                             {canReschedule && (
                                                                 <button onClick={() => setRescheduleSession(session)}
                                                                     className="px-3 py-2.5 bg-amber-50 text-amber-700 rounded-xl hover:bg-amber-100 text-sm font-medium transition-all border border-amber-200">
-                                                                    <CalendarClock className="w-4 h-4 inline mr-1" /> Dời lịch
+                                                                    <CalendarClock className="w-4 h-4 inline mr-1" /> {t('teacher.classMgmt.reschedule')}
                                                                 </button>
                                                             )}
                                                             {marked ? (
                                                                 <>
                                                                     <button onClick={() => startEdit(session)}
                                                                         className="px-4 py-2.5 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl hover:shadow-lg text-sm font-medium transition-all duration-300">
-                                                                        Sửa
+                                                                        {t('common.edit')}
                                                                     </button>
                                                                     <div className="bg-gray-50 rounded-xl p-2 text-right min-w-[90px]">
-                                                                        <div className="text-xs text-green-600 font-semibold">{session.present} Có mặt</div>
-                                                                        <div className="text-xs text-red-500 font-semibold">{session.absent} Vắng</div>
+                                                                        <div className="text-xs text-green-600 font-semibold">{session.present} {t('teacher.classMgmt.present')}</div>
+                                                                        <div className="text-xs text-red-500 font-semibold">{session.absent} {t('teacher.classMgmt.absent')}</div>
                                                                     </div>
                                                                 </>
                                                             ) : canMark ? (
                                                                 <button onClick={() => startEdit(session)}
                                                                     className="px-4 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-xl hover:shadow-lg text-sm font-medium transition-all duration-300">
-                                                                    Điểm danh
+                                                                    {t('teacher.classMgmt.takeAttendance')}
                                                                 </button>
                                                             ) : (
                                                                 <span className="px-4 py-2.5 bg-gray-50 text-gray-400 rounded-xl text-sm border border-gray-100">
-                                                                    Chưa đến giờ ({session.startTime?.substring(0, 5)})
+                                                                    {t('teacher.classMgmt.notTimeYet')} ({session.startTime?.substring(0, 5)})
                                                                 </span>
                                                             )}
                                                         </div>
@@ -577,12 +579,12 @@ const TeacherClassManagement = () => {
                                         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                                             <div className="bg-gradient-to-r from-indigo-50 to-purple-50 px-5 py-4 border-b border-gray-100">
                                                 <h3 className="text-sm font-semibold text-indigo-700 flex items-center gap-2">
-                                                    <Users className="w-4 h-4" /> Tổng hợp ({studentStats.length} học viên)
+                                                    <Users className="w-4 h-4" /> {t('teacher.classMgmt.summary')} ({studentStats.length} {t('teacher.classMgmt.students')})
                                                 </h3>
                                             </div>
                                             <div className="divide-y divide-gray-50 max-h-[500px] overflow-y-auto">
                                                 {studentStats.length === 0 ? (
-                                                    <div className="p-6 text-center text-gray-400 text-sm">Chưa có dữ liệu</div>
+                                                    <div className="p-6 text-center text-gray-400 text-sm">{t('teacher.classMgmt.noData')}</div>
                                                 ) : studentStats.map(stat => (
                                                     <div key={stat.studentId} className="px-5 py-3 flex items-center justify-between hover:bg-indigo-50/30 transition-colors">
                                                         <div className="flex items-center gap-2.5">
@@ -596,9 +598,9 @@ const TeacherClassManagement = () => {
                                                             <div>
                                                                 <span className="text-sm font-medium text-gray-800">{stat.studentName}</span>
                                                                 <div className="text-xs text-gray-400">
-                                                                    <span className="text-green-600">{stat.presentCount} CM</span>
+                                                                    <span className="text-green-600">{stat.presentCount} {t('teacher.classMgmt.presentShort')}</span>
                                                                     <span className="mx-0.5">/</span>
-                                                                    <span className="text-red-500">{stat.absentCount} V</span>
+                                                                    <span className="text-red-500">{stat.absentCount} {t('teacher.classMgmt.absentShort')}</span>
                                                                     <span className="ml-1 font-semibold" style={{ color: stat.attendanceRate >= 80 ? '#059669' : stat.attendanceRate >= 60 ? '#d97706' : '#dc2626' }}>
                                                                         {stat.attendanceRate}%
                                                                     </span>
@@ -606,11 +608,11 @@ const TeacherClassManagement = () => {
                                                             </div>
                                                         </div>
                                                         {stat.isLocked ? (
-                                                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-red-100 text-red-700 font-medium">Khóa</span>
+                                                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-red-100 text-red-700 font-medium">{t('teacher.classMgmt.lockedShort')}</span>
                                                         ) : stat.isWarning ? (
-                                                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-medium">CB</span>
+                                                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-medium">{t('teacher.classMgmt.warningShort')}</span>
                                                         ) : (
-                                                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-green-100 text-green-700 font-medium">OK</span>
+                                                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-green-100 text-green-700 font-medium">{t('teacher.classMgmt.ok')}</span>
                                                         )}
                                                     </div>
                                                 ))}
@@ -621,12 +623,12 @@ const TeacherClassManagement = () => {
                                         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                                             <div className="bg-gradient-to-r from-indigo-50 to-purple-50 px-5 py-4 border-b border-gray-100">
                                                 <h3 className="text-sm font-semibold text-indigo-700 flex items-center gap-2">
-                                                    <Calendar className="w-4 h-4" /> Chi tiết theo buổi ({sessions.length})
+                                                    <Calendar className="w-4 h-4" /> {t('teacher.classMgmt.sessionDetails')} ({sessions.length})
                                                 </h3>
                                             </div>
                                             <div className="divide-y divide-gray-50 max-h-[500px] overflow-y-auto">
                                                 {sessions.length === 0 ? (
-                                                    <div className="p-6 text-center text-gray-400 text-sm">Chưa có buổi học</div>
+                                                    <div className="p-6 text-center text-gray-400 text-sm">{t('teacher.classMgmt.noSessions')}</div>
                                                 ) : sessions.map(session => {
                                                     const marked = session.totalMarked > 0;
                                                     const canMark = new Date() >= new Date(`${session.lessonDate}T${session.startTime || '00:00'}`);
@@ -642,22 +644,22 @@ const TeacherClassManagement = () => {
                                                             }`} />
                                                             <div>
                                                                 <div className="text-sm font-medium text-gray-800 group-hover:text-indigo-600 transition-colors">
-                                                                    Buổi {session.lessonNumber} - {formatDate(session.lessonDate)}
+                                                                    {t('teacher.classMgmt.session')} {session.lessonNumber} - {formatDate(session.lessonDate)}
                                                                 </div>
                                                                 <div className="text-xs text-gray-400 mt-0.5">
                                                                     {session.startTime?.substring(0, 5)} - {session.endTime?.substring(0, 5)}
-                                                                    {session.room && <span className="ml-1.5">• Phòng {session.room}</span>}
+                                                                    {session.room && <span className="ml-1.5">• {t('teacher.classMgmt.room')} {session.room}</span>}
                                                                 </div>
                                                             </div>
                                                         </div>
                                                         <div className="flex items-center gap-2">
                                                             {session.totalMarked > 0 ? (
                                                                 <>
-                                                                    <span className="text-xs font-semibold text-green-600 bg-green-50 px-2 py-0.5 rounded-full">{session.present} Có mặt</span>
-                                                                    <span className="text-xs font-semibold text-red-500 bg-red-50 px-2 py-0.5 rounded-full">{session.absent} Vắng</span>
+                                                                    <span className="text-xs font-semibold text-green-600 bg-green-50 px-2 py-0.5 rounded-full">{session.present} {t('teacher.classMgmt.present')}</span>
+                                                                    <span className="text-xs font-semibold text-red-500 bg-red-50 px-2 py-0.5 rounded-full">{session.absent} {t('teacher.classMgmt.absent')}</span>
                                                                 </>
                                                             ) : (
-                                                                <span className="text-xs text-gray-400 bg-gray-50 px-2 py-0.5 rounded-full">Chưa điểm danh</span>
+                                                                <span className="text-xs text-gray-400 bg-gray-50 px-2 py-0.5 rounded-full">{t('teacher.classMgmt.notAttendedYet')}</span>
                                                             )}
                                                             <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-indigo-400 transition-colors" />
                                                         </div>
@@ -682,7 +684,7 @@ const TeacherClassManagement = () => {
                     onClose={() => setRescheduleSession(null)}
                     onSuccess={() => {
                         setRescheduleSession(null);
-                        setMessage({ type: 'success', text: 'Dời lịch học thành công! Đã gửi email thông báo.' });
+                        setMessage({ type: 'success', text: t('teacher.classMgmt.rescheduleSuccess') });
                         selectClass(selectedClassId);
                     }}
                 />

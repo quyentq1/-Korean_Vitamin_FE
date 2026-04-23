@@ -2,8 +2,10 @@ import React, { useState, useRef } from 'react';
 import { X, Upload, Award, Loader2 } from 'lucide-react';
 import Swal from 'sweetalert2';
 import { studentService } from '../../services/studentService';
+import { useTranslation } from 'react-i18next';
 
 const CertificateSubmitModal = ({ isOpen, onClose, eligibleCourses, onSubmitted }) => {
+    const { t } = useTranslation();
     const [selectedCourse, setSelectedCourse] = useState('');
     const [certType, setCertType] = useState('TOPIK');
     const [notes, setNotes] = useState('');
@@ -18,11 +20,11 @@ const CertificateSubmitModal = ({ isOpen, onClose, eligibleCourses, onSubmitted 
         if (!f) return;
         const ext = '.' + f.name.split('.').pop().toLowerCase();
         if (!['.jpg', '.jpeg', '.png', '.pdf'].includes(ext)) {
-            Swal.fire({ icon: 'error', title: 'Sai định dạng', text: 'Chỉ chấp nhận file JPG, PNG hoặc PDF', confirmButtonColor: '#ef4444' });
+            Swal.fire({ icon: 'error', title: t('student.certificate.invalidFormat'), text: t('student.certificate.invalidFormatMsg'), confirmButtonColor: '#ef4444' });
             return;
         }
         if (f.size > 10 * 1024 * 1024) {
-            Swal.fire({ icon: 'error', title: 'File quá lớn', text: 'Tối đa 10MB', confirmButtonColor: '#ef4444' });
+            Swal.fire({ icon: 'error', title: t('student.certificate.fileTooLarge'), text: t('student.certificate.maxSize10MB'), confirmButtonColor: '#ef4444' });
             return;
         }
         setFile(f);
@@ -30,7 +32,7 @@ const CertificateSubmitModal = ({ isOpen, onClose, eligibleCourses, onSubmitted 
 
     const handleSubmit = async () => {
         if (!selectedCourse || !file) {
-            Swal.fire({ icon: 'warning', title: 'Thiếu thông tin', text: 'Vui lòng chọn khóa học và tải file chứng chỉ.', confirmButtonColor: '#3b82f6' });
+            Swal.fire({ icon: 'warning', title: t('student.certificate.missingInfo'), text: t('student.certificate.selectCourseAndFile'), confirmButtonColor: '#3b82f6' });
             return;
         }
 
@@ -45,8 +47,8 @@ const CertificateSubmitModal = ({ isOpen, onClose, eligibleCourses, onSubmitted 
 
             await Swal.fire({
                 icon: 'success',
-                title: 'Nộp thành công!',
-                text: 'Chứng chỉ đã được gửi. Vui lòng chờ Education Manager duyệt.',
+                title: t('student.certificate.submitSuccess'),
+                text: t('student.certificate.submitSuccessMsg'),
                 confirmButtonColor: '#22c55e',
             });
 
@@ -57,8 +59,8 @@ const CertificateSubmitModal = ({ isOpen, onClose, eligibleCourses, onSubmitted 
             setNotes('');
             setFile(null);
         } catch (err) {
-            const msg = err.response?.data?.message || 'Lỗi khi nộp chứng chỉ. Vui lòng thử lại.';
-            Swal.fire({ icon: 'error', title: 'Lỗi', text: msg, confirmButtonColor: '#ef4444' });
+            const msg = err.response?.data?.message || t('student.certificate.submitErrorMsg');
+            Swal.fire({ icon: 'error', title: t('student.certificate.error'), text: msg, confirmButtonColor: '#ef4444' });
         } finally {
             setSubmitting(false);
         }
@@ -81,7 +83,7 @@ const CertificateSubmitModal = ({ isOpen, onClose, eligibleCourses, onSubmitted 
                 <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-5 text-white flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <Award className="w-6 h-6" />
-                        <h2 className="text-lg font-bold">Nộp chứng chỉ</h2>
+                        <h2 className="text-lg font-bold">{t('student.certificate.title')}</h2>
                     </div>
                     <button onClick={handleClose} className="p-1 hover:bg-white/20 rounded-lg transition">
                         <X className="w-5 h-5" />
@@ -91,13 +93,13 @@ const CertificateSubmitModal = ({ isOpen, onClose, eligibleCourses, onSubmitted 
                 <div className="p-6 space-y-5">
                     {/* Select course */}
                     <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">Khóa học *</label>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">{t('student.certificate.course')} *</label>
                         <select
                             value={selectedCourse}
                             onChange={e => setSelectedCourse(e.target.value)}
                             className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
                         >
-                            <option value="">— Chọn khóa học —</option>
+                            <option value="">{t('student.certificate.selectCourse')}</option>
                             {eligibleCourses?.map(c => (
                                 <option key={c.classStudentId} value={c.classStudentId}>
                                     {c.courseName} — {c.className}
@@ -108,7 +110,7 @@ const CertificateSubmitModal = ({ isOpen, onClose, eligibleCourses, onSubmitted 
 
                     {/* Certificate type */}
                     <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">Loại chứng chỉ</label>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">{t('student.certificate.certificateType')}</label>
                         <select
                             value={certType}
                             onChange={e => setCertType(e.target.value)}
@@ -117,13 +119,13 @@ const CertificateSubmitModal = ({ isOpen, onClose, eligibleCourses, onSubmitted 
                             <option value="TOPIK">TOPIK</option>
                             <option value="OPIc">OPIc</option>
                             <option value="EPS_TOPIK">EPS-TOPIK</option>
-                            <option value="OTHER">Khác</option>
+                            <option value="OTHER">{t('student.certificate.other')}</option>
                         </select>
                     </div>
 
                     {/* File upload */}
                     <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">File chứng chỉ (JPG, PNG, PDF) *</label>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">{t('student.certificate.certificateFile')} *</label>
                         <input ref={inputRef} type="file" accept=".jpg,.jpeg,.png,.pdf" onChange={e => handleFileSelect(e.target.files?.[0])} className="hidden" />
                         {file ? (
                             <div className="flex items-center justify-between p-3 bg-green-50 rounded-xl border border-green-200">
@@ -143,35 +145,35 @@ const CertificateSubmitModal = ({ isOpen, onClose, eligibleCourses, onSubmitted 
                                 className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition ${dragActive ? 'border-indigo-400 bg-indigo-50' : 'border-gray-300 hover:border-indigo-400'}`}
                             >
                                 <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                                <p className="text-sm text-gray-600">Click hoặc kéo thả file vào đây</p>
+                                <p className="text-sm text-gray-600">{t('student.certificate.dragDropFile')}</p>
                             </div>
                         )}
                     </div>
 
                     {/* Notes */}
                     <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">Ghi chú <span className="text-gray-400 font-normal">(không bắt buộc)</span></label>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">{t('student.certificate.notes')} <span className="text-gray-400 font-normal">({t('student.certificate.optional')})</span></label>
                         <textarea
                             value={notes}
                             onChange={e => setNotes(e.target.value)}
                             rows={2}
                             maxLength={500}
                             className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none resize-none"
-                            placeholder="VD: Đã thi TOPIK II cấp 4 tại Hàn Quốc..."
+                            placeholder={t('student.certificate.notesPlaceholder')}
                         />
                     </div>
 
                     {/* Actions */}
                     <div className="flex gap-3 pt-2">
                         <button onClick={handleClose} disabled={submitting} className="flex-1 py-3 bg-gray-100 text-gray-700 rounded-xl font-bold hover:bg-gray-200 transition">
-                            Hủy
+                            {t('common.cancel')}
                         </button>
                         <button
                             onClick={handleSubmit}
                             disabled={submitting || !selectedCourse || !file}
                             className="flex-1 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-bold hover:from-indigo-700 hover:to-purple-700 transition disabled:opacity-50 flex items-center justify-center gap-2"
                         >
-                            {submitting ? <><Loader2 className="w-4 h-4 animate-spin" /> Đang gửi...</> : 'Gửi chứng chỉ'}
+                            {submitting ? <><Loader2 className="w-4 h-4 animate-spin" /> {t('student.certificate.submitting')}</> : t('student.certificate.submitCertificate')}
                         </button>
                     </div>
                 </div>

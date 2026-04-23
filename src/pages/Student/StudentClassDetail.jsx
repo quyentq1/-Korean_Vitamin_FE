@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   ArrowLeft,
   Users,
@@ -19,6 +20,7 @@ import StudentAttendanceTab from '../../components/Student/StudentAttendanceTab'
 import Swal from 'sweetalert2';
 
 const StudentClassDetail = () => {
+  const { t } = useTranslation();
   const { classId } = useParams();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
@@ -75,24 +77,24 @@ const StudentClassDetail = () => {
       navigate(`/exam/${examId}/taking/${attempt.id}`);
     } catch (error) {
       console.error('Failed to start exam:', error);
-      const errorMessage = error.response?.data?.message || error.message || 'Không thể bắt đầu làm bài.';
+      const errorMessage = error.response?.data?.message || error.message || t('student.classDetail.cannotStartExam');
 
       // Check if it's class exam limit error
       if (errorMessage.includes('CLASS_EXAM_ATTEMPT_LIMIT')) {
         Swal.fire({
           icon: 'warning',
-          title: 'Đã hết lượt thi',
-          text: 'Bạn đã hoàn thành bài thi này. Bài luyện tập trong lớp học chỉ được thi 1 lần.',
+          title: t('student.classDetail.attemptsExhausted'),
+          text: t('student.classDetail.attemptsExhaustedMsg'),
           confirmButtonColor: '#667eea',
-          confirmButtonText: 'Đã hiểu'
+          confirmButtonText: t('student.classDetail.understood')
         });
       } else {
         Swal.fire({
           icon: 'error',
-          title: 'Không thể bắt đầu làm bài',
+          title: t('student.classDetail.cannotStartExam'),
           text: errorMessage,
           confirmButtonColor: '#667eea',
-          confirmButtonText: 'Đóng'
+          confirmButtonText: t('student.classDetail.close')
         });
       }
     }
@@ -100,10 +102,10 @@ const StudentClassDetail = () => {
 
   const getStatusBadge = (status) => {
     const badges = {
-      'PLANNED': { text: 'Đ lên kế hoạch', className: 'bg-gray-100 text-gray-700' },
-      'ONGOING': { text: 'Đang diễn ra', className: 'bg-blue-100 text-blue-700' },
-      'COMPLETED': { text: 'Đã kết thúc', className: 'bg-green-100 text-green-700' },
-      'CANCELLED': { text: 'Đã hủy', className: 'bg-red-100 text-red-700' }
+      'PLANNED': { text: t('student.classDetail.statusPlanned'), className: 'bg-gray-100 text-gray-700' },
+      'ONGOING': { text: t('student.classDetail.statusOngoing'), className: 'bg-blue-100 text-blue-700' },
+      'COMPLETED': { text: t('student.classDetail.statusCompleted'), className: 'bg-green-100 text-green-700' },
+      'CANCELLED': { text: t('student.classDetail.statusCancelled'), className: 'bg-red-100 text-red-700' }
     };
     const badge = badges[status] || badges['PLANNED'];
     return <span className={`px-3 py-1 rounded-full text-xs font-semibold ${badge.className}`}>{badge.text}</span>;
@@ -111,17 +113,17 @@ const StudentClassDetail = () => {
 
   const getScheduleStatusBadge = (schedule) => {
     if (schedule.status === 'CANCELLED') {
-      return <span className="px-2 py-1 rounded text-xs font-semibold bg-red-100 text-red-700">Đã hủy</span>;
+      return <span className="px-2 py-1 rounded text-xs font-semibold bg-red-100 text-red-700">{t('student.classDetail.cancelled')}</span>;
     }
     if (schedule.status === 'COMPLETED') {
-      return <span className="px-2 py-1 rounded text-xs font-semibold bg-green-100 text-green-700">Đã xong</span>;
+      return <span className="px-2 py-1 rounded text-xs font-semibold bg-green-100 text-green-700">{t('student.classDetail.done')}</span>;
     }
     const now = new Date();
     const scheduleEnd = new Date(`${schedule.lessonDate}T${schedule.endTime || '23:59'}`);
     if (scheduleEnd < now) {
-      return <span className="px-2 py-1 rounded text-xs font-semibold bg-gray-100 text-gray-600">Đã qua</span>;
+      return <span className="px-2 py-1 rounded text-xs font-semibold bg-gray-100 text-gray-600">{t('student.classDetail.past')}</span>;
     }
-    return <span className="px-2 py-1 rounded text-xs font-semibold bg-blue-100 text-blue-700">Sắp tới</span>;
+    return <span className="px-2 py-1 rounded text-xs font-semibold bg-blue-100 text-blue-700">{t('student.classDetail.upcoming')}</span>;
   };
 
   if (loading) {
@@ -141,12 +143,12 @@ const StudentClassDetail = () => {
             className="mb-6 flex items-center gap-2 text-indigo-600 hover:text-indigo-700 font-medium"
           >
             <ArrowLeft className="w-5 h-5" />
-            Quay lại
+            {t('student.classDetail.goBack')}
           </button>
           <div className="bg-white rounded-2xl p-12 text-center shadow-lg">
             <AlertCircle className="w-20 h-20 mx-auto mb-4 text-gray-300" />
-            <h3 className="text-xl font-bold text-gray-700 mb-2">Không tìm thấy lớp học</h3>
-            <p className="text-gray-500">Bạn chưa tham gia lớp học này</p>
+            <h3 className="text-xl font-bold text-gray-700 mb-2">{t('student.classDetail.classNotFound')}</h3>
+            <p className="text-gray-500">{t('student.classDetail.notJoinedClass')}</p>
           </div>
         </div>
       </div>
@@ -162,7 +164,7 @@ const StudentClassDetail = () => {
           className="mb-6 flex items-center gap-2 text-indigo-600 hover:text-indigo-700 font-medium transition-colors"
         >
           <ArrowLeft className="w-5 h-5" />
-          Quay lại khóa học của tôi
+          {t('student.classDetail.backToMyCourses')}
         </button>
 
         {/* Header */}
@@ -172,10 +174,10 @@ const StudentClassDetail = () => {
               <div className="text-white">
                 <h1 className="text-3xl font-bold">{classData.className}</h1>
                 <p className="text-indigo-100">
-                  <span className="mr-4">Mã lớp: {classData.classCode}</span>
+                  <span className="mr-4">{t('student.classDetail.classCode', { code: classData.classCode })}</span>
                   {classData.enrollmentStatus && (
                     <span>
-                      Trạng thái: {classData.enrollmentStatus === 'ACTIVE' ? 'Đang học' : classData.enrollmentStatus}
+                      {t('student.classDetail.status', { status: classData.enrollmentStatus === 'ACTIVE' ? t('student.classDetail.learning') : classData.enrollmentStatus })}
                     </span>
                   )}
                 </p>
@@ -196,10 +198,10 @@ const StudentClassDetail = () => {
                       : 'border-transparent text-gray-500 hover:text-gray-700'
                   }`}
                 >
-                  {tab === 'overview' && 'Tổng quan'}
-                  {tab === 'schedule' && 'Lịch học'}
-                  {tab === 'exams' && 'Bài luyện tập'}
-                  {tab === 'attendance' && 'Điểm danh'}
+                  {tab === 'overview' && t('student.classDetail.tabOverview')}
+                  {tab === 'schedule' && t('student.classDetail.tabSchedule')}
+                  {tab === 'exams' && t('student.classDetail.tabExams')}
+                  {tab === 'attendance' && t('student.classDetail.tabAttendance')}
                 </button>
               ))}
             </div>
@@ -214,14 +216,14 @@ const StudentClassDetail = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   <div className="bg-blue-50 rounded-xl p-5">
                     <BookOpen className="w-6 h-6 text-blue-600 mb-3" />
-                    <p className="text-sm text-gray-600 mb-1">Khóa học</p>
+                    <p className="text-sm text-gray-600 mb-1">{t('student.classDetail.course')}</p>
                     <p className="font-bold text-gray-900">{classData.courseName || 'N/A'}</p>
                     <p className="text-xs text-gray-500 mt-1 font-mono">{classData.courseCode || ''}</p>
                   </div>
 
                   <div className="bg-green-50 rounded-xl p-5">
                     <Users className="w-6 h-6 text-green-600 mb-3" />
-                    <p className="text-sm text-gray-600 mb-1">Sĩ số</p>
+                    <p className="text-sm text-gray-600 mb-1">{t('student.classDetail.classSize')}</p>
                     <p className="font-bold text-gray-900">
                       {classData.currentEnrollment || 0} / {classData.capacity || 0}
                     </p>
@@ -229,7 +231,7 @@ const StudentClassDetail = () => {
 
                   <div className="bg-purple-50 rounded-xl p-5">
                     <Calendar className="w-6 h-6 text-purple-600 mb-3" />
-                    <p className="text-sm text-gray-600 mb-1">Thời gian</p>
+                    <p className="text-sm text-gray-600 mb-1">{t('student.classDetail.time')}</p>
                     <p className="font-bold text-gray-900">
                       {classData.startDate ? new Date(classData.startDate).toLocaleDateString('vi-VN') : 'N/A'} - {classData.endDate ? new Date(classData.endDate).toLocaleDateString('vi-VN') : 'N/A'}
                     </p>
@@ -240,12 +242,12 @@ const StudentClassDetail = () => {
                 <div className="bg-gray-50 rounded-xl p-5">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-gray-600 mb-1">Trạng thái lớp</p>
+                      <p className="text-sm text-gray-600 mb-1">{t('student.classDetail.classStatus')}</p>
                       {getStatusBadge(classData.status)}
                     </div>
                     {classData.enrollmentDate && (
                       <div className="text-right">
-                        <p className="text-sm text-gray-600 mb-1">Ngày tham gia</p>
+                        <p className="text-sm text-gray-600 mb-1">{t('student.classDetail.joinDate')}</p>
                         <p className="font-semibold text-gray-900">
                           {new Date(classData.enrollmentDate).toLocaleDateString('vi-VN')}
                         </p>
@@ -258,22 +260,22 @@ const StudentClassDetail = () => {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div className="bg-indigo-50 rounded-lg p-4">
                     <Calendar className="w-5 h-5 text-indigo-600 mb-2" />
-                    <p className="text-xs text-gray-600">Tổng số buổi</p>
+                    <p className="text-xs text-gray-600">{t('student.classDetail.totalSessions')}</p>
                     <p className="font-bold text-gray-900">{schedules.length}</p>
                   </div>
                   <div className="bg-green-50 rounded-lg p-4">
                     <CheckCircle className="w-5 h-5 text-green-600 mb-2" />
-                    <p className="text-xs text-gray-600">Đã hoàn thành</p>
+                    <p className="text-xs text-gray-600">{t('student.classDetail.completedSessions')}</p>
                     <p className="font-bold text-gray-900">{schedules.filter(s => s.status === 'COMPLETED').length}</p>
                   </div>
                   <div className="bg-blue-50 rounded-lg p-4">
                     <FileText className="w-5 h-5 text-blue-600 mb-2" />
-                    <p className="text-xs text-gray-600">Bài luyện tập</p>
+                    <p className="text-xs text-gray-600">{t('student.classDetail.practiceExams')}</p>
                     <p className="font-bold text-gray-900">{exams.length}</p>
                   </div>
                   <div className="bg-amber-50 rounded-lg p-4">
                     <Clock className="w-5 h-5 text-amber-600 mb-2" />
-                    <p className="text-xs text-gray-600">Sắp tới</p>
+                    <p className="text-xs text-gray-600">{t('student.classDetail.upcomingSessions')}</p>
                     <p className="font-bold text-gray-900">{schedules.filter(s => s.status === 'SCHEDULED' && new Date(`${s.lessonDate}T${s.endTime || '23:59'}`) >= new Date()).length}</p>
                   </div>
                 </div>
@@ -283,12 +285,12 @@ const StudentClassDetail = () => {
             {/* Schedule Tab */}
             {activeTab === 'schedule' && (
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Lịch học</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('student.classDetail.scheduleTitle')}</h3>
 
                 {schedules.length === 0 ? (
                   <div className="text-center text-gray-500 py-10">
                     <Calendar className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                    <p>Chưa có lịch học</p>
+                    <p>{t('student.classDetail.noSchedule')}</p>
                   </div>
                 ) : (
                   <div className="space-y-4">
@@ -300,7 +302,7 @@ const StudentClassDetail = () => {
                         <div className="flex items-start justify-between mb-3">
                           <div className="flex-1">
                             <div className="flex items-center gap-3 mb-2">
-                              <span className="font-bold text-gray-900">Buổi {schedule.lessonNumber}</span>
+                              <span className="font-bold text-gray-900">{t('student.classDetail.session', { number: schedule.lessonNumber })}</span>
                               {getScheduleStatusBadge(schedule)}
                             </div>
                             {schedule.topic && (
@@ -335,12 +337,12 @@ const StudentClassDetail = () => {
             {/* Exams Tab */}
             {activeTab === 'exams' && (
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Bài luyện tập của lớp</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('student.classDetail.classExamsTitle')}</h3>
 
                 {exams.length === 0 ? (
                   <div className="text-center text-gray-500 py-10">
                     <FileText className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                    <p>Chưa có bài luyện tập nào</p>
+                    <p>{t('student.classDetail.noPracticeExams')}</p>
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -358,7 +360,7 @@ const StudentClassDetail = () => {
                           </div>
                           {exam.examType && (
                             <span className="px-2 py-1 bg-indigo-100 text-indigo-700 rounded text-xs font-semibold">
-                              {exam.examType === 'MIXED' ? 'Hỗn hợp' : exam.examType}
+                              {exam.examType === 'MIXED' ? t('student.classDetail.mixed') : exam.examType}
                             </span>
                           )}
                         </div>
@@ -366,21 +368,21 @@ const StudentClassDetail = () => {
                         <div className="flex items-center gap-4 text-sm text-gray-600 mb-4">
                           <div className="flex items-center gap-2">
                             <Clock className="w-4 h-4" />
-                            <span>{exam.durationMinutes || exam.duration || 60} phút</span>
+                            <span>{exam.durationMinutes || exam.duration || 60} {t('student.classDetail.minutes')}</span>
                           </div>
                           <div className="flex items-center gap-2">
                             <FileText className="w-4 h-4" />
-                            <span>{exam.totalQuestions || 0} câu</span>
+                            <span>{exam.totalQuestions || 0} {t('student.classDetail.questions')}</span>
                           </div>
                           <div className="flex items-center gap-2">
                             <CheckCircle className="w-4 h-4" />
-                            <span>{exam.passingScore || 70}% đạt</span>
+                            <span>{exam.passingScore || 70}% {t('student.classDetail.pass')}</span>
                           </div>
                         </div>
 
                         {exam.attemptsCount > 0 && exam.bestScore && (
                           <div className="mb-4 p-3 bg-green-50 rounded-xl">
-                            <p className="text-sm text-gray-600">Điểm cao nhất</p>
+                            <p className="text-sm text-gray-600">{t('student.classDetail.bestScore')}</p>
                             <p className="text-xl font-bold text-green-600">{exam.bestScore}</p>
                           </div>
                         )}
@@ -390,7 +392,7 @@ const StudentClassDetail = () => {
                           className="w-full py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-semibold hover:from-indigo-700 hover:to-purple-700 transition-all shadow-lg flex items-center justify-center gap-2"
                         >
                           <Play className="w-4 h-4" />
-                          {exam.attemptsCount > 0 ? 'Làm lại' : 'Bắt đầu'}
+                          {exam.attemptsCount > 0 ? t('student.classDetail.redo') : t('student.classDetail.start')}
                         </button>
                       </div>
                     ))}

@@ -115,9 +115,9 @@ const StudentExamList = () => {
       console.error('Exam ID is missing!', exam);
       Swal.fire({
         icon: 'error',
-        title: 'Lỗi bài thi',
-        text: 'Thiếu ID bài thi. Vui lòng tải lại trang.',
-        confirmButtonText: 'Đồng ý',
+        title: t('student.examList.errorExamTitle'),
+        text: t('student.examList.errorExamMissingId'),
+        confirmButtonText: t('common.confirm'),
         confirmButtonColor: '#ef4444'
       });
       return;
@@ -134,12 +134,12 @@ const StudentExamList = () => {
 
   const getExamTypeBadge = (type) => {
     const config = {
-      'MULTIPLE_CHOICE': { label: 'Trắc nghiệm', color: 'bg-blue-100 text-blue-700' },
-      'WRITING': { label: 'Viết', color: 'bg-green-100 text-green-700' },
-      'LISTENING': { label: 'Nghe', color: 'bg-purple-100 text-purple-700' },
-      'READING': { label: 'Đọc hiểu', color: 'bg-orange-100 text-orange-700' },
-      'SPEAKING': { label: 'Nói', color: 'bg-pink-100 text-pink-700' },
-      'MIXED': { label: 'Hỗn hợp', color: 'bg-indigo-100 text-indigo-700' }
+      'MULTIPLE_CHOICE': { label: t('student.examList.typeMultipleChoice'), color: 'bg-blue-100 text-blue-700' },
+      'WRITING': { label: t('student.examList.typeWriting'), color: 'bg-green-100 text-green-700' },
+      'LISTENING': { label: t('student.examList.typeListening'), color: 'bg-purple-100 text-purple-700' },
+      'READING': { label: t('student.examList.typeReading'), color: 'bg-orange-100 text-orange-700' },
+      'SPEAKING': { label: t('student.examList.typeSpeaking'), color: 'bg-pink-100 text-pink-700' },
+      'MIXED': { label: t('student.examList.typeMixed'), color: 'bg-indigo-100 text-indigo-700' }
     };
     return config[type] || config.MIXED;
   };
@@ -182,10 +182,10 @@ const StudentExamList = () => {
 
   const getStatusBadge = (status) => {
     const config = {
-      'available': { label: 'Có thể làm', color: 'bg-green-100 text-green-700', icon: <Play className="w-3 h-3" /> },
-      'in_progress': { label: 'Đang làm', color: 'bg-yellow-100 text-yellow-700', icon: <Clock className="w-3 h-3" /> },
-      'completed': { label: 'Hoàn thành', color: 'bg-gray-100 text-gray-700', icon: <CheckCircle2 className="w-3 h-3" /> },
-      'locked': { label: 'Đã khóa', color: 'bg-red-100 text-red-700', icon: <Lock className="w-3 h-3" /> }
+      'available': { label: t('student.examList.statusAvailable'), color: 'bg-green-100 text-green-700', icon: <Play className="w-3 h-3" /> },
+      'in_progress': { label: t('student.examList.statusInProgress'), color: 'bg-yellow-100 text-yellow-700', icon: <Clock className="w-3 h-3" /> },
+      'completed': { label: t('student.examList.statusCompleted'), color: 'bg-gray-100 text-gray-700', icon: <CheckCircle2 className="w-3 h-3" /> },
+      'locked': { label: t('student.examList.statusLocked'), color: 'bg-red-100 text-red-700', icon: <Lock className="w-3 h-3" /> }
     };
     return config[status] || config.available;
   };
@@ -205,13 +205,13 @@ const StudentExamList = () => {
         <div className="mb-8">
           <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
             <BookOpen className="w-4 h-4" />
-            <span>Khóa học</span>
+            <span>{t('student.examList.courseLabel')}</span>
             <span>/</span>
-            <span className="font-medium">{courseInfo?.name || 'Bài luyện tập'}</span>
+            <span className="font-medium">{courseInfo?.name || t('student.examList.practiceExams')}</span>
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Bài Luyện Tập</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">{t('student.examList.title')}</h1>
           <p className="text-gray-600">
-            Làm các bài luyện tập để cải thiện kỹ năng của bạn. Bài kiểm tra chỉ hiển thị khi bạn đã đăng ký khóa học.
+            {t('student.examList.subtitle')}
           </p>
         </div>
 
@@ -231,7 +231,7 @@ const StudentExamList = () => {
               </div>
               <div>
                 <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
-                <p className="text-xs text-gray-500">Tổng bài</p>
+                <p className="text-xs text-gray-500">{t('student.examList.totalExams')}</p>
               </div>
             </div>
           </div>
@@ -242,7 +242,7 @@ const StudentExamList = () => {
               </div>
               <div>
                 <p className="text-2xl font-bold text-gray-900">{stats.completed}</p>
-                <p className="text-xs text-gray-500">Hoàn thành</p>
+                <p className="text-xs text-gray-500">{t('student.examList.completed')}</p>
               </div>
             </div>
           </div>
@@ -253,7 +253,7 @@ const StudentExamList = () => {
               </div>
               <div>
                 <p className="text-2xl font-bold text-gray-900">{stats.inProgress}</p>
-                <p className="text-xs text-gray-500">Đang làm</p>
+                <p className="text-xs text-gray-500">{t('student.examList.inProgress')}</p>
               </div>
             </div>
           </div>
@@ -266,7 +266,7 @@ const StudentExamList = () => {
                 <p className="text-2xl font-bold text-gray-900">
                   {stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0}%
                 </p>
-                <p className="text-xs text-gray-500">Tiến độ</p>
+                <p className="text-xs text-gray-500">{t('student.examList.progress')}</p>
               </div>
             </div>
           </div>
@@ -276,7 +276,7 @@ const StudentExamList = () => {
         <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 mb-6">
           <div className="flex items-center gap-3 flex-wrap">
             <Filter className="w-4 h-4 text-gray-400" />
-            <span className="text-sm font-medium text-gray-700">Lọc:</span>
+            <span className="text-sm font-medium text-gray-700">{t('student.examList.filterLabel')}</span>
             <button
               onClick={() => setFilterStatus('all')}
               className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
@@ -285,7 +285,7 @@ const StudentExamList = () => {
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
-              Tất cả ({stats.total})
+              {t('student.examList.filterAll', { count: stats.total })}
             </button>
             <button
               onClick={() => setFilterStatus('available')}
@@ -295,7 +295,7 @@ const StudentExamList = () => {
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
-              Có thể làm
+              {t('student.examList.statusAvailable')}
             </button>
             <button
               onClick={() => setFilterStatus('in_progress')}
@@ -305,7 +305,7 @@ const StudentExamList = () => {
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
-              Đang làm ({stats.inProgress})
+              {t('student.examList.filterInProgress', { count: stats.inProgress })}
             </button>
             <button
               onClick={() => setFilterStatus('completed')}
@@ -315,7 +315,7 @@ const StudentExamList = () => {
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
-              Hoàn thành ({stats.completed})
+              {t('student.examList.filterCompleted', { count: stats.completed })}
             </button>
           </div>
         </div>
@@ -329,10 +329,10 @@ const StudentExamList = () => {
               </div>
               <div>
                 <h2 className="text-xl font-bold text-gray-900">
-                  📚 Bài Luyện Tập Khóa Học
+                  {t('student.examList.courseExamTitle')}
                 </h2>
                 <p className="text-sm text-gray-600">
-                  Dành cho tất cả học viên trong khóa học
+                  {t('student.examList.courseExamDesc')}
                 </p>
               </div>
             </div>
@@ -341,7 +341,7 @@ const StudentExamList = () => {
           {courseExams.length === 0 ? (
             <div className="bg-white rounded-xl p-8 text-center shadow-sm border border-gray-100 mb-6">
               <FileText className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-              <p className="text-gray-500">Không có bài luyện tập khóa học nào</p>
+              <p className="text-gray-500">{t('student.examList.noCourseExams')}</p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -364,7 +364,7 @@ const StudentExamList = () => {
                         <div className="flex items-start gap-3 mb-3">
                           <h3 className="text-lg font-bold text-gray-900">{exam.title}</h3>
                           <span className="px-3 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-700">
-                            Khóa học
+                            {t('student.examList.courseBadge')}
                           </span>
                           <span className={`px-2.5 py-0.5 text-xs font-semibold rounded-full ${typeBadge.color}`}>
                             {typeBadge.label}
@@ -384,24 +384,24 @@ const StudentExamList = () => {
                         <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
                           <div className="flex items-center gap-1.5">
                             <Clock className="w-4 h-4" />
-                            <span>{exam.durationMinutes} phút</span>
+                            <span>{exam.durationMinutes} {t('common.minutes')}</span>
                           </div>
                           <div className="flex items-center gap-1.5">
                             <FileText className="w-4 h-4" />
-                            <span>{exam.examQuestions?.length || exam.totalQuestions || 0} câu hỏi</span>
+                            <span>{exam.examQuestions?.length || exam.totalQuestions || 0} {t('common.questions')}</span>
                           </div>
                           <div className="flex items-center gap-1.5">
                             <TrendingUp className="w-4 h-4" />
-                            <span>Đạt: {exam.passingScore || 60}%</span>
+                            <span>{t('student.examList.passScore', { score: exam.passingScore || 60 })}</span>
                           </div>
                           <div className="flex items-center gap-1.5">
                             <Award className="w-4 h-4" />
-                            <span>Lần làm: {exam.completedAttempts || 0}</span>
+                            <span>{t('student.examList.attemptCount', { count: exam.completedAttempts || 0 })}</span>
                           </div>
                           {exam.bestScore !== null && (
                             <div className="flex items-center gap-1.5 text-green-600 font-medium">
                               <CheckCircle2 className="w-4 h-4" />
-                              <span>Điểm cao nhất: {exam.bestScore}</span>
+                              <span>{t('student.examList.bestScore', { score: exam.bestScore })}</span>
                             </div>
                           )}
                         </div>
@@ -420,17 +420,17 @@ const StudentExamList = () => {
                         {exam.status === 'completed' ? (
                           <>
                             <CheckCircle2 className="w-4 h-4" />
-                            Đã hoàn thành
+                            {t('student.examList.btnCompleted')}
                           </>
                         ) : exam.status === 'in_progress' ? (
                           <>
                             <Play className="w-4 h-4" />
-                            Tiếp tục
+                            {t('student.examList.btnContinue')}
                           </>
                         ) : (
                           <>
                             <Play className="w-4 h-4" />
-                            Bắt đầu
+                            {t('student.examList.btnStart')}
                           </>
                         )}
                       </button>
@@ -451,10 +451,10 @@ const StudentExamList = () => {
               </div>
               <div>
                 <h2 className="text-xl font-bold text-gray-900">
-                  🎯 Bài Luyện Tập Theo Lớp
+                  {t('student.examList.classExamTitle')}
                 </h2>
                 <p className="text-sm text-gray-600">
-                  Dành riêng cho lớp học của bạn
+                  {t('student.examList.classExamDesc')}
                 </p>
               </div>
             </div>
@@ -463,14 +463,14 @@ const StudentExamList = () => {
           {classExams.length === 0 ? (
             <div className="bg-white rounded-xl p-8 text-center shadow-sm border border-gray-100">
               <Users className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-              <p className="text-gray-500">Không có bài luyện tập theo lớp nào</p>
+              <p className="text-gray-500">{t('student.examList.noClassExams')}</p>
             </div>
           ) : (
             <div className="space-y-4">
               {classExams.map((exam) => {
                 const typeBadge = getExamTypeBadge(exam.skillType || exam.examType);
                 const statusBadge = getStatusBadge(exam.status);
-                const className = exam.classEntity?.className || 'Lớp học';
+                const className = exam.classEntity?.className || t('student.examList.defaultClassName');
 
                 return (
                   <div
@@ -507,24 +507,24 @@ const StudentExamList = () => {
                         <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
                           <div className="flex items-center gap-1.5">
                             <Clock className="w-4 h-4" />
-                            <span>{exam.durationMinutes} phút</span>
+                            <span>{exam.durationMinutes} {t('common.minutes')}</span>
                           </div>
                           <div className="flex items-center gap-1.5">
                             <FileText className="w-4 h-4" />
-                            <span>{exam.examQuestions?.length || exam.totalQuestions || 0} câu hỏi</span>
+                            <span>{exam.examQuestions?.length || exam.totalQuestions || 0} {t('common.questions')}</span>
                           </div>
                           <div className="flex items-center gap-1.5">
                             <TrendingUp className="w-4 h-4" />
-                            <span>Đạt: {exam.passingScore || 60}%</span>
+                            <span>{t('student.examList.passScore', { score: exam.passingScore || 60 })}</span>
                           </div>
                           <div className="flex items-center gap-1.5">
                             <Award className="w-4 h-4" />
-                            <span>Lần làm: {exam.completedAttempts || 0}</span>
+                            <span>{t('student.examList.attemptCount', { count: exam.completedAttempts || 0 })}</span>
                           </div>
                           {exam.bestScore !== null && (
                             <div className="flex items-center gap-1.5 text-green-600 font-medium">
                               <CheckCircle2 className="w-4 h-4" />
-                              <span>Điểm cao nhất: {exam.bestScore}</span>
+                              <span>{t('student.examList.bestScore', { score: exam.bestScore })}</span>
                             </div>
                           )}
                         </div>
@@ -543,17 +543,17 @@ const StudentExamList = () => {
                         {exam.status === 'completed' ? (
                           <>
                             <CheckCircle2 className="w-4 h-4" />
-                            Đã hoàn thành
+                            {t('student.examList.btnCompleted')}
                           </>
                         ) : exam.status === 'in_progress' ? (
                           <>
                             <Play className="w-4 h-4" />
-                            Tiếp tục
+                            {t('student.examList.btnContinue')}
                           </>
                         ) : (
                           <>
                             <Play className="w-4 h-4" />
-                            Bắt đầu
+                            {t('student.examList.btnStart')}
                           </>
                         )}
                       </button>
