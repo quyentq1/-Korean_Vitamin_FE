@@ -245,7 +245,7 @@ const TeacherDashboard = () => {
                 </div>
                 {cls.isPrimary && (
                   <div className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-1 rounded-md">
-                    <CheckCircle className="w-3.5 h-3.5" /> Giáo viên chính
+                    <CheckCircle className="w-3.5 h-3.5" /> {t('teacher.dashboard.primaryTeacher')}
                   </div>
                 )}
               </div>

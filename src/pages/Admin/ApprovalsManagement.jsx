@@ -25,8 +25,7 @@ import {
 import Swal from 'sweetalert2';
 
 /**
- * ApprovalsManagement - Quản lý Duyệt cho Admin
- * Xử lý duyệt đăng ký giáo viên, đăng ký khóa học, etc.
+ * ApprovalsManagement - Admin Approvals Management
  */
 const ApprovalsManagement = () => {
   const { t } = useTranslation();
@@ -45,7 +44,7 @@ const ApprovalsManagement = () => {
   const fetchApprovals = async () => {
     try {
       setLoading(true);
-      // TODO: Gọi API thực tế
+      // TODO: Call actual API
       // const data = await adminService.getApprovals(filterType, filterStatus);
 
       // Mock data
@@ -53,7 +52,7 @@ const ApprovalsManagement = () => {
         {
           id: 1,
           type: 'TEACHER_REGISTRATION',
-          typeLabel: 'Đăng ký giáo viên',
+          typeLabel: t('admin.approvals.teacherRegistration', 'Teacher Registration'),
           applicant: {
             id: 101,
             fullName: 'Choi Soo Young',
@@ -62,10 +61,10 @@ const ApprovalsManagement = () => {
             avatar: 'C'
           },
           data: {
-            specialization: 'Đọc hiểu, Viết',
+            specialization: t('admin.approvals.specialization', 'Reading, Writing'),
             experience: 2,
-            qualifications: ['Chứng chỉ TOPIK Level 5'],
-            bio: 'Giảng viên trẻ đầy nhiệt huyết.',
+            qualifications: [t('admin.approvals.topikLevel5', 'TOPIK Level 5 Certificate')],
+            bio: t('admin.approvals.bio1', 'Enthusiastic young lecturer.'),
             cvFile: 'cv_choi_sooyoung.pdf'
           },
           status: 'PENDING',
@@ -75,7 +74,7 @@ const ApprovalsManagement = () => {
         {
           id: 2,
           type: 'TEACHER_REGISTRATION',
-          typeLabel: 'Đăng ký giáo viên',
+          typeLabel: t('admin.approvals.teacherRegistration', 'Teacher Registration'),
           applicant: {
             id: 102,
             fullName: 'Jung Hae In',
@@ -84,10 +83,10 @@ const ApprovalsManagement = () => {
             avatar: 'J'
           },
           data: {
-            specialization: 'Nghe hiểu, Nói',
+            specialization: t('admin.approvals.specialization2', 'Listening, Speaking'),
             experience: 4,
-            qualifications: ['Thạc sĩ Tiếng Hàn', 'Chứng chỉ TOPIK Level 6'],
-            bio: 'Giảng viên chuyên về kỹ năng giao tiếp.',
+            qualifications: [t('admin.approvals.masterKorean', 'Master of Korean Language'), t('admin.approvals.topikLevel6', 'TOPIK Level 6 Certificate')],
+            bio: t('admin.approvals.bio2', 'Lecturer specializing in communication skills.'),
             cvFile: 'cv_jung_haein.pdf'
           },
           status: 'PENDING',
@@ -97,7 +96,7 @@ const ApprovalsManagement = () => {
         {
           id: 3,
           type: 'COURSE_CREATION',
-          typeLabel: 'Tạo khóa học',
+          typeLabel: t('admin.approvals.courseCreation', 'Course Creation'),
           applicant: {
             id: 2,
             fullName: 'Lee Su Jin',
@@ -106,11 +105,11 @@ const ApprovalsManagement = () => {
             avatar: 'L'
           },
           data: {
-            courseName: 'Hàn Quốc Giao Th tiếp 3',
+            courseName: t('admin.approvals.koreanConversation3', 'Korean Conversation 3'),
             level: 'INTERMEDIATE',
             duration: 12,
             price: 2500000,
-            description: 'Khóa học nâng cao kỹ năng giao tiếp trong môi trường làm việc.',
+            description: t('admin.approvals.courseDesc', 'Advanced course for workplace communication skills.'),
             syllabusFile: 'syllabus_giaothiep3.pdf'
           },
           status: 'PENDING',
@@ -120,32 +119,32 @@ const ApprovalsManagement = () => {
         {
           id: 4,
           type: 'STUDENT_REFUND',
-          typeLabel: 'Hoàn tiền học viên',
+          typeLabel: t('admin.approvals.studentRefund', 'Student Refund'),
           applicant: {
             id: 201,
-            fullName: 'Nguyễn Văn A',
+            fullName: 'Nguyen Van A',
             email: 'student.a@email.com',
             phone: '0912345678',
             avatar: 'N'
           },
           data: {
             courseId: 5,
-            courseName: 'Hàn Quốc Cơ Bản',
+            courseName: t('admin.approvals.basicKorean', 'Basic Korean'),
             enrollmentDate: '2026-03-01',
-            reason: 'Lý do cá nhân, không thể tiếp tục học.',
+            reason: t('admin.approvals.refundReason', 'Personal reasons, unable to continue.'),
             refundAmount: 1500000,
-            paymentMethod: 'Chuyển khoản'
+            paymentMethod: t('admin.approvals.bankTransfer', 'Bank Transfer')
           },
           status: 'REJECTED',
           submittedAt: '2026-03-19T14:00:00',
-          notes: 'Đã học quá 50% khóa học, không được hoàn tiền theo quy định.',
+          notes: t('admin.approvals.rejectionNote', 'Over 50% of course completed, not eligible for refund per policy.'),
           reviewedBy: 'Admin',
           reviewedAt: '2026-03-20T10:00:00'
         },
         {
           id: 5,
           type: 'TEACHER_REGISTRATION',
-          typeLabel: 'Đăng ký giáo viên',
+          typeLabel: t('admin.approvals.teacherRegistration', 'Teacher Registration'),
           applicant: {
             id: 103,
             fullName: 'Kim Go Eun',
@@ -156,13 +155,13 @@ const ApprovalsManagement = () => {
           data: {
             specialization: 'TOPIK I, TOPIK II',
             experience: 6,
-            qualifications: ['Tiến sĩ Ngôn ngữ Hàn', 'Chứng chỉ TOPIK Level 6'],
-            bio: 'Giảng viên cao cấp với nhiều năm kinh nghiệm.',
+            qualifications: [t('admin.approvals.phdKorean', 'PhD in Korean Language'), t('admin.approvals.topikLevel6', 'TOPIK Level 6 Certificate')],
+            bio: t('admin.approvals.bio3', 'Senior lecturer with many years of experience.'),
             cvFile: 'cv_kim_goeun.pdf'
           },
           status: 'APPROVED',
           submittedAt: '2026-03-18T11:00:00',
-          notes: 'Đủ điều kiện, duyệt đăng ký.',
+          notes: t('admin.approvals.approvalNote', 'Meets requirements, registration approved.'),
           reviewedBy: 'Admin',
           reviewedAt: '2026-03-19T09:00:00'
         }
@@ -189,24 +188,24 @@ const ApprovalsManagement = () => {
   const handleApprove = async (approvalId) => {
     const result = await Swal.fire({
       icon: 'question',
-      title: 'Xác nhận duyệt',
-      text: 'Bạn có chắc chắn muốn duyệt yêu cầu này?',
+      title: t('admin.approvals.confirmApproveTitle', 'Confirm Approval'),
+      text: t('admin.approvals.confirmApproveText', 'Are you sure you want to approve this request?'),
       showCancelButton: true,
-      confirmButtonText: 'Duyệt',
-      cancelButtonText: 'Hủy',
+      confirmButtonText: t('admin.approvals.approve', 'Approve'),
+      cancelButtonText: t('common.cancel', 'Cancel'),
       confirmButtonColor: '#22c55e',
       cancelButtonColor: '#667eea',
     });
 
     if (result.isConfirmed) {
       try {
-        // TODO: Gọi API thực tế
+        // TODO: Call actual API
         // await adminService.approveRequest(approvalId);
 
         Swal.fire({
           icon: 'success',
-          title: 'Đã duyệt',
-          text: 'Yêu cầu đã được duyệt thành công',
+          title: t('admin.approvals.approved', 'Approved'),
+          text: t('admin.approvals.approvedText', 'Request has been approved successfully'),
           confirmButtonColor: '#22c55e',
         });
 
@@ -214,8 +213,8 @@ const ApprovalsManagement = () => {
       } catch (error) {
         Swal.fire({
           icon: 'error',
-          title: 'Lỗi',
-          text: 'Không thể duyệt yêu cầu',
+          title: t('common.error', 'Error'),
+          text: t('admin.approvals.approveError', 'Unable to approve request'),
           confirmButtonColor: '#d33',
         });
       }
@@ -225,31 +224,31 @@ const ApprovalsManagement = () => {
   const handleReject = async (approvalId) => {
     const { value: reason } = await Swal.fire({
       icon: 'warning',
-      title: 'Từ chối yêu cầu',
-      text: 'Vui lòng nhập lý do từ chối:',
+      title: t('admin.approvals.rejectTitle', 'Reject Request'),
+      text: t('admin.approvals.rejectReasonPrompt', 'Please enter the reason for rejection:'),
       input: 'textarea',
-      inputPlaceholder: 'Nhập lý do...',
+      inputPlaceholder: t('admin.approvals.enterReason', 'Enter reason...'),
       showCancelButton: true,
-      confirmButtonText: 'Từ chối',
-      cancelButtonText: 'Hủy',
+      confirmButtonText: t('admin.approvals.reject', 'Reject'),
+      cancelButtonText: t('common.cancel', 'Cancel'),
       confirmButtonColor: '#d33',
       cancelButtonColor: '#667eea',
       inputValidator: (value) => {
         if (!value) {
-          return 'Vui lòng nhập lý do từ chối!';
+          return t('admin.approvals.rejectReasonRequired', 'Please enter a reason for rejection!');
         }
       }
     });
 
     if (reason) {
       try {
-        // TODO: Gọi API thực tế
+        // TODO: Call actual API
         // await adminService.rejectRequest(approvalId, reason);
 
         Swal.fire({
           icon: 'success',
-          title: 'Đã từ chối',
-          text: 'Yêu cầu đã bị từ chối',
+          title: t('admin.approvals.rejected', 'Rejected'),
+          text: t('admin.approvals.rejectedText', 'Request has been rejected'),
           confirmButtonColor: '#667eea',
         });
 
@@ -257,8 +256,8 @@ const ApprovalsManagement = () => {
       } catch (error) {
         Swal.fire({
           icon: 'error',
-          title: 'Lỗi',
-          text: 'Không thể từ chối yêu cầu',
+          title: t('common.error', 'Error'),
+          text: t('admin.approvals.rejectError', 'Unable to reject request'),
           confirmButtonColor: '#d33',
         });
       }
@@ -268,11 +267,11 @@ const ApprovalsManagement = () => {
   const getStatusBadge = (status) => {
     switch (status) {
       case 'PENDING':
-        return <Badge variant="warning" size="sm">⏳ Chờ duyệt</Badge>;
+        return <Badge variant="warning" size="sm">⏳ {t('admin.approvals.pending', 'Pending')}</Badge>;
       case 'APPROVED':
-        return <Badge variant="success" size="sm">✅ Đã duyệt</Badge>;
+        return <Badge variant="success" size="sm">✅ {t('admin.approvals.approved', 'Approved')}</Badge>;
       case 'REJECTED':
-        return <Badge variant="error" size="sm">❌ Đã từ chối</Badge>;
+        return <Badge variant="error" size="sm">❌ {t('admin.approvals.rejected', 'Rejected')}</Badge>;
       default:
         return <Badge variant="secondary" size="sm">{status}</Badge>;
     }
@@ -313,8 +312,8 @@ const ApprovalsManagement = () => {
   return (
     <PageContainer variant="wide">
       <PageHeader
-        title={t('admin.approvals.title', 'Quản lý Duyệt')}
-        subtitle={t('admin.approvals.subtitle', 'Xử lý các yêu cầu cần duyệt')}
+        title={t('admin.approvals.title', 'Approval Management')}
+        subtitle={t('admin.approvals.subtitle', 'Process pending approval requests')}
       />
 
       {/* Stats Cards */}
@@ -322,7 +321,7 @@ const ApprovalsManagement = () => {
         <Card className="bg-gradient-to-br from-amber-500 to-amber-600 text-white border-0">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-amber-100 text-sm font-medium">Chờ duyệt</p>
+              <p className="text-amber-100 text-sm font-medium">{t('admin.approvals.pending', 'Pending')}</p>
               <p className="text-3xl font-bold mt-1">{approvals.filter(a => a.status === 'PENDING').length}</p>
             </div>
             <Clock className="w-12 h-12 text-amber-200" />
@@ -332,7 +331,7 @@ const ApprovalsManagement = () => {
         <Card className="bg-gradient-to-br from-green-500 to-green-600 text-white border-0">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-green-100 text-sm font-medium">Đã duyệt</p>
+              <p className="text-green-100 text-sm font-medium">{t('admin.approvals.approved', 'Approved')}</p>
               <p className="text-3xl font-bold mt-1">{approvals.filter(a => a.status === 'APPROVED').length}</p>
             </div>
             <CheckCircle className="w-12 h-12 text-green-200" />
@@ -342,7 +341,7 @@ const ApprovalsManagement = () => {
         <Card className="bg-gradient-to-br from-red-500 to-red-600 text-white border-0">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-red-100 text-sm font-medium">Đã từ chối</p>
+              <p className="text-red-100 text-sm font-medium">{t('admin.approvals.rejected', 'Rejected')}</p>
               <p className="text-3xl font-bold mt-1">{approvals.filter(a => a.status === 'REJECTED').length}</p>
             </div>
             <XCircle className="w-12 h-12 text-red-200" />
@@ -352,7 +351,7 @@ const ApprovalsManagement = () => {
         <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white border-0">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-blue-100 text-sm font-medium">Tổng requests</p>
+              <p className="text-blue-100 text-sm font-medium">{t('admin.approvals.totalRequests', 'Total Requests')}</p>
               <p className="text-3xl font-bold mt-1">{approvals.length}</p>
             </div>
             <FileText className="w-12 h-12 text-blue-200" />
@@ -368,7 +367,7 @@ const ApprovalsManagement = () => {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
               <input
                 type="text"
-                placeholder="Tìm kiếm yêu cầu..."
+                placeholder={t('admin.approvals.searchPlaceholder', 'Search requests...')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
@@ -383,10 +382,10 @@ const ApprovalsManagement = () => {
               onChange={(e) => setFilterType(e.target.value)}
               className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
             >
-              <option value="ALL">Tất cả loại</option>
-              <option value="TEACHER_REGISTRATION">Đăng ký giáo viên</option>
-              <option value="COURSE_CREATION">Tạo khóa học</option>
-              <option value="STUDENT_REFUND">Hoàn tiền</option>
+              <option value="ALL">{t('admin.approvals.allTypes', 'All Types')}</option>
+              <option value="TEACHER_REGISTRATION">{t('admin.approvals.teacherRegistration', 'Teacher Registration')}</option>
+              <option value="COURSE_CREATION">{t('admin.approvals.courseCreation', 'Course Creation')}</option>
+              <option value="STUDENT_REFUND">{t('admin.approvals.studentRefund', 'Refund')}</option>
             </select>
 
             <select
@@ -394,10 +393,10 @@ const ApprovalsManagement = () => {
               onChange={(e) => setFilterStatus(e.target.value)}
               className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
             >
-              <option value="ALL">Tất cả trạng thái</option>
-              <option value="PENDING">Chờ duyệt</option>
-              <option value="APPROVED">Đã duyệt</option>
-              <option value="REJECTED">Đã từ chối</option>
+              <option value="ALL">{t('admin.approvals.allStatuses', 'All Statuses')}</option>
+              <option value="PENDING">{t('admin.approvals.pending', 'Pending')}</option>
+              <option value="APPROVED">{t('admin.approvals.approved', 'Approved')}</option>
+              <option value="REJECTED">{t('admin.approvals.rejected', 'Rejected')}</option>
             </select>
           </div>
         </div>
@@ -433,7 +432,7 @@ const ApprovalsManagement = () => {
                         {getStatusBadge(approval.status)}
                       </div>
                       <p className="text-sm text-gray-600">
-                        Mã yêu cầu: #{approval.id}
+                        {t('admin.approvals.requestCode', 'Request ID')}: #{approval.id}
                       </p>
                     </div>
                     <p className="text-xs text-gray-500">
@@ -460,31 +459,31 @@ const ApprovalsManagement = () => {
                     {approval.type === 'TEACHER_REGISTRATION' && (
                       <>
                         <div>
-                          <span className="text-gray-500">Chuyên môn:</span>
+                          <span className="text-gray-500">{t('admin.approvals.specialization', 'Specialization')}:</span>
                           <span className="ml-2 font-medium text-gray-900">{approval.data.specialization}</span>
                         </div>
                         <div>
-                          <span className="text-gray-500">Kinh nghiệm:</span>
-                          <span className="ml-2 font-medium text-gray-900">{approval.data.experience} năm</span>
+                          <span className="text-gray-500">{t('admin.approvals.experience', 'Experience')}:</span>
+                          <span className="ml-2 font-medium text-gray-900">{approval.data.experience} {t('admin.approvals.years', 'years')}</span>
                         </div>
                       </>
                     )}
                     {approval.type === 'COURSE_CREATION' && (
                       <>
                         <div>
-                          <span className="text-gray-500">Tên khóa học:</span>
+                          <span className="text-gray-500">{t('admin.approvals.courseName', 'Course Name')}:</span>
                           <span className="ml-2 font-medium text-gray-900">{approval.data.courseName}</span>
                         </div>
                         <div>
-                          <span className="text-gray-500">Thời lượng:</span>
-                          <span className="ml-2 font-medium text-gray-900">{approval.data.duration} tuần</span>
+                          <span className="text-gray-500">{t('admin.approvals.duration', 'Duration')}:</span>
+                          <span className="ml-2 font-medium text-gray-900">{approval.data.duration} {t('admin.approvals.weeks', 'weeks')}</span>
                         </div>
                         <div>
-                          <span className="text-gray-500">Level:</span>
+                          <span className="text-gray-500">{t('admin.approvals.level', 'Level')}:</span>
                           <span className="ml-2 font-medium text-gray-900">{approval.data.level}</span>
                         </div>
                         <div>
-                          <span className="text-gray-500">Học phí:</span>
+                          <span className="text-gray-500">{t('admin.approvals.tuitionFee', 'Tuition Fee')}:</span>
                           <span className="ml-2 font-medium text-gray-900">
                             {approval.data.price.toLocaleString('vi-VN')}đ
                           </span>
@@ -494,11 +493,11 @@ const ApprovalsManagement = () => {
                     {approval.type === 'STUDENT_REFUND' && (
                       <>
                         <div>
-                          <span className="text-gray-500">Khóa học:</span>
+                          <span className="text-gray-500">{t('admin.approvals.course', 'Course')}:</span>
                           <span className="ml-2 font-medium text-gray-900">{approval.data.courseName}</span>
                         </div>
                         <div>
-                          <span className="text-gray-500">Số tiền hoàn:</span>
+                          <span className="text-gray-500">{t('admin.approvals.refundAmount', 'Refund Amount')}:</span>
                           <span className="ml-2 font-medium text-red-600">
                             {approval.data.refundAmount.toLocaleString('vi-VN')}đ
                           </span>
@@ -513,7 +512,7 @@ const ApprovalsManagement = () => {
                       <div className="flex items-start gap-2">
                         <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
                         <div>
-                          <p className="text-xs text-amber-800 font-medium">Ghi chú:</p>
+                          <p className="text-xs text-amber-800 font-medium">{t('admin.approvals.notes', 'Notes')}:</p>
                           <p className="text-sm text-amber-700">{approval.notes}</p>
                         </div>
                       </div>
@@ -524,10 +523,10 @@ const ApprovalsManagement = () => {
                   <div className="flex items-center justify-between pt-4 border-t border-gray-200">
                     <div className="text-xs text-gray-500">
                       {approval.status === 'PENDING' ? (
-                        <span>⏳ Chờ xử lý</span>
+                        <span>⏳ {t('admin.approvals.awaitingProcess', 'Awaiting Process')}</span>
                       ) : (
                         <span>
-                          Đã xử lý bởi {approval.reviewedBy} vào {new Date(approval.reviewedAt).toLocaleDateString('vi-VN')}
+                          {t('admin.approvals.processedBy', 'Processed by')} {approval.reviewedBy} {t('common.on', 'on')} {new Date(approval.reviewedAt).toLocaleDateString('vi-VN')}
                         </span>
                       )}
                     </div>
@@ -542,7 +541,7 @@ const ApprovalsManagement = () => {
                         }}
                       >
                         <Eye className="w-4 h-4 mr-1" />
-                        Chi tiết
+                        {t('admin.approvals.details', 'Details')}
                       </Button>
 
                       {approval.status === 'PENDING' && (
@@ -553,7 +552,7 @@ const ApprovalsManagement = () => {
                             onClick={() => handleApprove(approval.id)}
                           >
                             <CheckCircle className="w-4 h-4 mr-1" />
-                            Duyệt
+                            {t('admin.approvals.approve', 'Approve')}
                           </Button>
                           <Button
                             variant="error"
@@ -561,7 +560,7 @@ const ApprovalsManagement = () => {
                             onClick={() => handleReject(approval.id)}
                           >
                             <XCircle className="w-4 h-4 mr-1" />
-                            Từ chối
+                            {t('admin.approvals.reject', 'Reject')}
                           </Button>
                         </>
                       )}
@@ -577,8 +576,8 @@ const ApprovalsManagement = () => {
       {filteredApprovals.length === 0 && (
         <Card className="text-center py-12">
           <FileText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <p className="text-gray-500 text-lg">Không có yêu cầu nào</p>
-          <p className="text-gray-400 text-sm mt-2">Thử thay đổi bộ lọc để xem các yêu cầu khác</p>
+          <p className="text-gray-500 text-lg">{t('admin.approvals.noRequests', 'No requests found')}</p>
+          <p className="text-gray-400 text-sm mt-2">{t('admin.approvals.tryChangeFilters', 'Try changing filters to see other requests')}</p>
         </Card>
       )}
 
@@ -588,7 +587,7 @@ const ApprovalsManagement = () => {
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-gray-200">
               <div className="flex items-center justify-between">
-                <h3 className="text-xl font-bold text-gray-900">Chi tiết yêu cầu</h3>
+                <h3 className="text-xl font-bold text-gray-900">{t('admin.approvals.requestDetails', 'Request Details')}</h3>
                 <button
                   onClick={() => setShowDetailModal(false)}
                   className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg"
@@ -605,7 +604,7 @@ const ApprovalsManagement = () => {
                   {getTypeIcon(selectedApproval.type)}
                   <div>
                     <h4 className="font-bold text-gray-900">{selectedApproval.typeLabel}</h4>
-                    <p className="text-sm text-gray-600">Mã: #{selectedApproval.id}</p>
+                    <p className="text-sm text-gray-600">{t('admin.approvals.code', 'Code')}: #{selectedApproval.id}</p>
                   </div>
                 </div>
                 {getStatusBadge(selectedApproval.status)}
@@ -613,7 +612,7 @@ const ApprovalsManagement = () => {
 
               {/* Applicant */}
               <div className="p-4 bg-gray-50 rounded-lg">
-                <h5 className="font-semibold text-gray-900 mb-3">Người đăng ký</h5>
+                <h5 className="font-semibold text-gray-900 mb-3">{t('admin.approvals.applicant', 'Applicant')}</h5>
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
                     {selectedApproval.applicant.avatar}
@@ -628,20 +627,20 @@ const ApprovalsManagement = () => {
 
               {/* Details */}
               <div>
-                <h5 className="font-semibold text-gray-900 mb-3">Thông tin chi tiết</h5>
+                <h5 className="font-semibold text-gray-900 mb-3">{t('admin.approvals.detailedInfo', 'Detailed Information')}</h5>
                 <div className="space-y-2 text-sm">
                   {Object.entries(selectedApproval.data).map(([key, value]) => {
                     if (key === 'cvFile' || key === 'syllabusFile') return null;
                     return (
                       <div key={key} className="flex justify-between py-2 border-b border-gray-100">
                         <span className="text-gray-500 capitalize">
-                          {key === 'courseName' ? 'Tên khóa học' :
-                           key === 'specialization' ? 'Chuyên môn' :
-                           key === 'experience' ? 'Kinh nghiệm' :
-                           key === 'duration' ? 'Thời lượng' :
-                           key === 'price' ? 'Học phí' :
-                           key === 'refundAmount' ? 'Số tiền hoàn' :
-                           key === 'reason' ? 'Lý do' :
+                          {key === 'courseName' ? t('admin.approvals.courseName', 'Course Name') :
+                           key === 'specialization' ? t('admin.approvals.specialization', 'Specialization') :
+                           key === 'experience' ? t('admin.approvals.experience', 'Experience') :
+                           key === 'duration' ? t('admin.approvals.duration', 'Duration') :
+                           key === 'price' ? t('admin.approvals.tuitionFee', 'Tuition Fee') :
+                           key === 'refundAmount' ? t('admin.approvals.refundAmount', 'Refund Amount') :
+                           key === 'reason' ? t('admin.approvals.reason', 'Reason') :
                            key}
                         </span>
                         <span className="font-medium text-gray-900 text-right">
@@ -660,7 +659,7 @@ const ApprovalsManagement = () => {
               {/* Attachments */}
               {(selectedApproval.data.cvFile || selectedApproval.data.syllabusFile) && (
                 <div>
-                  <h5 className="font-semibold text-gray-900 mb-3">Tài liệu đính kèm</h5>
+                  <h5 className="font-semibold text-gray-900 mb-3">{t('admin.approvals.attachments', 'Attachments')}</h5>
                   <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
                     <FileText className="w-5 h-5 text-gray-500" />
                     <span className="text-sm text-gray-700">
@@ -673,24 +672,24 @@ const ApprovalsManagement = () => {
               {/* Notes */}
               {selectedApproval.notes && (
                 <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
-                  <h5 className="font-semibold text-amber-900 mb-2">Ghi chú</h5>
+                  <h5 className="font-semibold text-amber-900 mb-2">{t('admin.approvals.notes', 'Notes')}</h5>
                   <p className="text-sm text-amber-800">{selectedApproval.notes}</p>
                 </div>
               )}
 
               {/* Timeline */}
               <div>
-                <h5 className="font-semibold text-gray-900 mb-3">Timeline</h5>
+                <h5 className="font-semibold text-gray-900 mb-3">{t('admin.approvals.timeline', 'Timeline')}</h5>
                 <div className="space-y-2 text-sm">
                   <div className="flex items-center gap-2 text-gray-600">
                     <Calendar className="w-4 h-4" />
-                    <span>Ngày đăng ký: {new Date(selectedApproval.submittedAt).toLocaleString('vi-VN')}</span>
+                    <span>{t('admin.approvals.submittedDate', 'Submitted')}: {new Date(selectedApproval.submittedAt).toLocaleString('vi-VN')}</span>
                   </div>
                   {selectedApproval.reviewedAt && (
                     <div className="flex items-center gap-2 text-gray-600">
                       <CheckCircle className="w-4 h-4 text-green-500" />
                       <span>
-                        Ngày xử lý: {new Date(selectedApproval.reviewedAt).toLocaleString('vi-VN')} bởi {selectedApproval.reviewedBy}
+                        {t('admin.approvals.processedDate', 'Processed')}: {new Date(selectedApproval.reviewedAt).toLocaleString('vi-VN')} {t('common.by', 'by')} {selectedApproval.reviewedBy}
                       </span>
                     </div>
                   )}
@@ -700,7 +699,7 @@ const ApprovalsManagement = () => {
 
             <div className="p-6 border-t border-gray-200 flex justify-between">
               <Button variant="ghost" onClick={() => setShowDetailModal(false)}>
-                Đóng
+                {t('common.close', 'Close')}
               </Button>
               {selectedApproval.status === 'PENDING' && (
                 <div className="flex gap-2">
@@ -712,7 +711,7 @@ const ApprovalsManagement = () => {
                     }}
                   >
                     <XCircle className="w-4 h-4 mr-2" />
-                    Từ chối
+                    {t('admin.approvals.reject', 'Reject')}
                   </Button>
                   <Button
                     variant="success"
@@ -722,7 +721,7 @@ const ApprovalsManagement = () => {
                     }}
                   >
                     <CheckCircle className="w-4 h-4 mr-2" />
-                    Duyệt
+                    {t('admin.approvals.approve', 'Approve')}
                   </Button>
                 </div>
               )}

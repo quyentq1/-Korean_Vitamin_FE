@@ -1,8 +1,10 @@
 import { useEffect, useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Search, GraduationCap, RefreshCw, Filter, X, Clock, Calendar } from 'lucide-react';
 import educationManagerService from '../../services/educationManagerService';
 
 const EduTeacherManagement = () => {
+    const { t } = useTranslation();
     const [teachers, setTeachers] = useState([]);
     const [classes, setClasses] = useState([]);
     const [teachingStats, setTeachingStats] = useState([]);
@@ -83,7 +85,7 @@ const EduTeacherManagement = () => {
         for (let i = 0; i < 12; i++) {
             const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
             const val = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-            const label = `Tháng ${d.getMonth() + 1}/${d.getFullYear()}`;
+            const label = t('eduManager.teacherManagement.monthLabel', 'Tháng {{month}}/{{year}}', { month: d.getMonth() + 1, year: d.getFullYear() });
             opts.push({ value: val, label });
         }
         return opts;
@@ -92,21 +94,21 @@ const EduTeacherManagement = () => {
     // Get current month label
     const currentMonthLabel = useMemo(() => {
         const opt = monthOptions.find(m => m.value === monthFilter);
-        return opt?.label || 'Tất cả';
+        return opt?.label || t('eduManager.teacherManagement.allMonths');
     }, [monthFilter, monthOptions]);
 
     return (
         <div className="space-y-5">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Quản lý Giáo viên</h1>
-                    <p className="text-gray-500 text-sm">{filteredTeachers.length} giáo viên • {totalSessions} buổi dạy {monthFilter ? `(${currentMonthLabel})` : ''}</p>
+                    <h1 className="text-2xl font-bold text-gray-900">{t('eduManager.teacherManagement.title')}</h1>
+                    <p className="text-gray-500 text-sm">{filteredTeachers.length} {t('eduManager.teacherManagement.teacherCount')} • {totalSessions} {t('eduManager.teacherManagement.sessions')} {monthFilter ? `(${currentMonthLabel})` : ''}</p>
                 </div>
                 <button
                     onClick={fetchData}
                     className="flex items-center gap-1.5 px-4 py-2 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 text-sm font-medium text-gray-700 transition-colors"
                 >
-                    <RefreshCw className="w-4 h-4" /> Làm mới
+                    <RefreshCw className="w-4 h-4" /> {t('eduManager.teacherManagement.refresh')}
                 </button>
             </div>
 
@@ -116,7 +118,7 @@ const EduTeacherManagement = () => {
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                     <input
                         type="text"
-                        placeholder="Tìm giáo viên..."
+                        placeholder={t('eduManager.teacherManagement.searchPlaceholder')}
                         value={searchTerm}
                         onChange={e => setSearchTerm(e.target.value)}
                         className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
@@ -127,7 +129,7 @@ const EduTeacherManagement = () => {
                     onChange={e => setClassFilter(e.target.value)}
                     className="px-3 py-2 border border-gray-200 rounded-xl text-sm bg-white focus:ring-2 focus:ring-indigo-500 outline-none"
                 >
-                    <option value="">Tất cả lớp</option>
+                    <option value="">{t('eduManager.teacherManagement.allClasses')}</option>
                     {classes.map(cls => (
                         <option key={cls.id} value={cls.id}>{cls.className}</option>
                     ))}
@@ -137,7 +139,7 @@ const EduTeacherManagement = () => {
                     onChange={e => setMonthFilter(e.target.value)}
                     className="px-3 py-2 border border-gray-200 rounded-xl text-sm bg-white focus:ring-2 focus:ring-indigo-500 outline-none"
                 >
-                    <option value="">Tất cả tháng</option>
+                    <option value="">{t('eduManager.teacherManagement.allMonths')}</option>
                     {monthOptions.map(m => (
                         <option key={m.value} value={m.value}>{m.label}</option>
                     ))}

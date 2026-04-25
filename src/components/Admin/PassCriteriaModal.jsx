@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Award, Users, CheckCircle, Info } from 'lucide-react';
 
 /**
@@ -8,6 +9,7 @@ import { Award, Users, CheckCircle, Info } from 'lucide-react';
  * @param {Function} onSave - Save callback
  */
 const PassCriteriaModal = ({ course, onClose, onSave }) => {
+    const { t } = useTranslation();
     const [criteria, setCriteria] = useState({
         passingScore: 70,
         requiredAttendance: 80,
@@ -50,7 +52,7 @@ const PassCriteriaModal = ({ course, onClose, onSave }) => {
                             <Award className="w-5 h-5 text-purple-600" />
                         </div>
                         <div>
-                            <h3 className="text-lg font-semibold text-gray-900">Tiêu Chí Qua Môn</h3>
+                            <h3 className="text-lg font-semibold text-gray-900">{t('admin.passCriteria.title')}</h3>
                             <p className="text-sm text-gray-600">{course?.name || course?.className}</p>
                         </div>
                     </div>
@@ -62,7 +64,7 @@ const PassCriteriaModal = ({ course, onClose, onSave }) => {
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
                             <CheckCircle className="w-4 h-4 text-green-600" />
-                            Điểm qua môn (%)
+                            {t('admin.passCriteria.passingScore')} (%)
                         </label>
                         <div className="flex items-center gap-4">
                             <input
@@ -84,7 +86,7 @@ const PassCriteriaModal = ({ course, onClose, onSave }) => {
                             <span className="text-sm text-gray-500">%</span>
                         </div>
                         <p className="text-xs text-gray-500 mt-1">
-                            Học viên cần đạt ít nhất {criteria.passingScore}% điểm tổng kết để qua môn
+                            {t('admin.passCriteria.passingScoreDesc', { score: criteria.passingScore })}
                         </p>
                     </div>
 
@@ -92,7 +94,7 @@ const PassCriteriaModal = ({ course, onClose, onSave }) => {
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
                             <Users className="w-4 h-4 text-blue-600" />
-                            Số buổi điểm danh bắt buộc (%)
+                            {t('admin.passCriteria.requiredAttendance')} (%)
                         </label>
                         <div className="flex items-center gap-4">
                             <input
@@ -114,7 +116,7 @@ const PassCriteriaModal = ({ course, onClose, onSave }) => {
                             <span className="text-sm text-gray-500">%</span>
                         </div>
                         <p className="text-xs text-gray-500 mt-1">
-                            Học viên phải điểm danh ít nhất {criteria.requiredAttendance}% số buổi học
+                            {t('admin.passCriteria.requiredAttendanceDesc', { percent: criteria.requiredAttendance })}
                         </p>
                     </div>
 
@@ -124,14 +126,14 @@ const PassCriteriaModal = ({ course, onClose, onSave }) => {
                             <Info className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
                             <div className="flex-1">
                                 <label className="block text-sm font-medium text-gray-900 mb-2">
-                                    Điều kiện cấp chứng chỉ
+                                    {t('admin.passCriteria.certificateCondition')}
                                 </label>
                                 <textarea
                                     value={criteria.certificateCriteria}
                                     onChange={(e) => setCriteria({ ...criteria, certificateCriteria: e.target.value })}
                                     rows={3}
                                     className="w-full px-3 py-2 border border-blue-200 rounded-lg text-sm bg-white"
-                                    placeholder="VD: Hoàn thành tất cả bài kiểm tra với điểm trung bình ≥ 70%, điểm danh ≥ 80%..."
+                                    placeholder={t('admin.passCriteria.certificatePlaceholder')}
                                 />
                             </div>
                         </div>
@@ -139,20 +141,20 @@ const PassCriteriaModal = ({ course, onClose, onSave }) => {
 
                     {/* Preview */}
                     <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                        <h4 className="text-sm font-semibold text-gray-900 mb-3">Xem trước điều kiện qua môn:</h4>
+                        <h4 className="text-sm font-semibold text-gray-900 mb-3">{t('admin.passCriteria.preview')}:</h4>
                         <div className="space-y-2 text-sm">
                             <div className="flex items-center justify-between">
-                                <span className="text-gray-600">Điểm qua môn:</span>
+                                <span className="text-gray-600">{t('admin.passCriteria.passingScoreLabel')}:</span>
                                 <span className="font-semibold text-green-600">{criteria.passingScore}%</span>
                             </div>
                             <div className="flex items-center justify-between">
-                                <span className="text-gray-600">Điểm danh tối thiểu:</span>
+                                <span className="text-gray-600">{t('admin.passCriteria.minAttendanceLabel')}:</span>
                                 <span className="font-semibold text-blue-600">{criteria.requiredAttendance}%</span>
                             </div>
                             <div className="flex items-center justify-between">
-                                <span className="text-gray-600">Cấp chứng chỉ:</span>
+                                <span className="text-gray-600">{t('admin.passCriteria.certificateLabel')}:</span>
                                 <span className={`font-semibold ${criteria.certificateCriteria ? 'text-purple-600' : 'text-gray-400'}`}>
-                                    {criteria.certificateCriteria ? 'Có' : 'Không'}
+                                    {criteria.certificateCriteria ? t('common.yes') : t('common.no')}
                                 </span>
                             </div>
                         </div>
@@ -166,7 +168,7 @@ const PassCriteriaModal = ({ course, onClose, onSave }) => {
                             disabled={saving}
                             className="px-6 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 disabled:opacity-50"
                         >
-                            Hủy
+                            {t('common.cancel')}
                         </button>
                         <button
                             type="submit"
@@ -174,7 +176,7 @@ const PassCriteriaModal = ({ course, onClose, onSave }) => {
                             className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 flex items-center gap-2"
                         >
                             <Award className="w-4 h-4" />
-                            {saving ? 'Đang lưu...' : 'Lưu tiêu chí'}
+                            {saving ? t('common.saving') : t('admin.passCriteria.save')}
                         </button>
                     </div>
                 </form>

@@ -162,8 +162,8 @@ const QBApproval = () => {
             });
             Swal.fire({
                 icon: 'success',
-                title: 'Đã duyệt!',
-                text: 'Câu hỏi đã được duyệt thành công.',
+                title: t('manager.qbApproval.approved'),
+                text: t('manager.qbApproval.approvedSuccess'),
                 timer: 1500,
                 showConfirmButton: false
             });
@@ -171,28 +171,28 @@ const QBApproval = () => {
             console.error("Failed to approve", error);
             Swal.fire({
                 icon: 'error',
-                title: 'Lỗi',
-                text: 'Không thể duyệt câu hỏi. Vui lòng thử lại.',
+                title: t('common.error'),
+                text: t('manager.qbApproval.approveFailed'),
             });
         }
     };
 
     const handleReject = async (id) => {
         const { value: feedback } = await Swal.fire({
-            title: 'Từ chối câu hỏi',
+            title: t('manager.qbApproval.rejectTitle'),
             input: 'textarea',
-            inputLabel: 'Lý do từ chối',
-            inputPlaceholder: 'Nhập lý do từ chối câu hỏi này...',
+            inputLabel: t('manager.qbApproval.rejectReasonLabel'),
+            inputPlaceholder: t('manager.qbApproval.rejectPlaceholder'),
             inputAttributes: {
                 'aria-label': 'Type your comment here'
             },
             showCancelButton: true,
-            confirmButtonText: 'Từ chối',
-            cancelButtonText: 'Hủy',
+            confirmButtonText: t('common.reject'),
+            cancelButtonText: t('common.cancel'),
             confirmButtonColor: '#d33',
             inputValidator: (value) => {
                 if (!value) {
-                    return 'Vui lòng nhập lý do từ chối!';
+                    return t('manager.qbApproval.rejectReasonRequired');
                 }
             }
         });
@@ -209,8 +209,8 @@ const QBApproval = () => {
                 });
                 Swal.fire({
                     icon: 'success',
-                    title: 'Đã từ chối!',
-                    text: 'Câu hỏi đã bị từ chối.',
+                    title: t('manager.qbApproval.rejected'),
+                    text: t('manager.qbApproval.rejectedSuccess'),
                     timer: 1500,
                     showConfirmButton: false
                 });
@@ -218,8 +218,8 @@ const QBApproval = () => {
                 console.error("Failed to reject", error);
                 Swal.fire({
                     icon: 'error',
-                    title: 'Lỗi',
-                    text: 'Không thể từ chối câu hỏi. Vui lòng thử lại.',
+                    title: t('common.error'),
+                    text: t('manager.qbApproval.rejectFailed'),
                 });
             }
         }
@@ -269,14 +269,14 @@ const QBApproval = () => {
         if (selectedIds.size === 0) return;
 
         const { value: confirm } = await Swal.fire({
-            title: 'Duyệt hàng loạt?',
-            text: `Bạn có chắc muốn duyệt ${selectedIds.size} câu hỏi này?`,
+            title: t('manager.qbApproval.bulkApproveTitle'),
+            text: t('manager.qbApproval.bulkApproveText', { count: selectedIds.size }),
             icon: 'question',
             showCancelButton: true,
             confirmButtonColor: '#16a34a',
             cancelButtonColor: '#6b7280',
-            confirmButtonText: 'Duyệt tất cả',
-            cancelButtonText: 'Hủy'
+            confirmButtonText: t('manager.qbApproval.approveAll'),
+            cancelButtonText: t('common.cancel')
         });
 
         if (confirm) {
@@ -290,8 +290,8 @@ const QBApproval = () => {
                 setSelectedIds(new Set());
                 Swal.fire({
                     icon: 'success',
-                    title: 'Đã duyệt!',
-                    text: `${selectedIds.size} câu hỏi đã được duyệt thành công.`,
+                    title: t('manager.qbApproval.approved'),
+                    text: t('manager.qbApproval.bulkApprovedSuccess', { count: selectedIds.size }),
                     timer: 2000,
                     showConfirmButton: false
                 });
@@ -299,8 +299,8 @@ const QBApproval = () => {
                 console.error("Bulk approve failed", error);
                 Swal.fire({
                     icon: 'error',
-                    title: 'Lỗi',
-                    text: 'Một số câu hỏi không thể duyệt. Vui lòng thử lại.',
+                    title: t('common.error'),
+                    text: t('manager.qbApproval.bulkApproveFailed'),
                 });
             } finally {
                 setBulkActionLoading(false);
@@ -312,18 +312,18 @@ const QBApproval = () => {
         if (selectedIds.size === 0) return;
 
         const { value: feedback } = await Swal.fire({
-            title: `Từ chối ${selectedIds.size} câu hỏi?`,
+            title: t('manager.qbApproval.bulkRejectTitle', { count: selectedIds.size }),
             input: 'textarea',
-            inputLabel: 'Lý do từ chối chung',
-            inputPlaceholder: 'Nhập lý do từ chối cho tất cả các câu hỏi...',
+            inputLabel: t('manager.qbApproval.bulkRejectReasonLabel'),
+            inputPlaceholder: t('manager.qbApproval.bulkRejectPlaceholder'),
             showCancelButton: true,
             confirmButtonColor: '#d33',
             cancelButtonColor: '#6b7280',
-            confirmButtonText: 'Từ chối tất cả',
-            cancelButtonText: 'Hủy',
+            confirmButtonText: t('manager.qbApproval.rejectAll'),
+            cancelButtonText: t('common.cancel'),
             inputValidator: (value) => {
                 if (!value) {
-                    return 'Vui lòng nhập lý do từ chối!';
+                    return t('manager.qbApproval.rejectReasonRequired');
                 }
             }
         });
@@ -339,8 +339,8 @@ const QBApproval = () => {
                 setSelectedIds(new Set());
                 Swal.fire({
                     icon: 'success',
-                    title: 'Đã từ chối!',
-                    text: `${selectedIds.size} câu hỏi đã bị từ chối.`,
+                    title: t('manager.qbApproval.rejected'),
+                    text: t('manager.qbApproval.bulkRejectedSuccess', { count: selectedIds.size }),
                     timer: 2000,
                     showConfirmButton: false
                 });
@@ -348,8 +348,8 @@ const QBApproval = () => {
                 console.error("Bulk reject failed", error);
                 Swal.fire({
                     icon: 'error',
-                    title: 'Lỗi',
-                    text: 'Một số câu hỏi không thể từ chối. Vui lòng thử lại.',
+                    title: t('common.error'),
+                    text: t('manager.qbApproval.bulkRejectFailed'),
                 });
             } finally {
                 setBulkActionLoading(false);
@@ -492,7 +492,7 @@ const QBApproval = () => {
             <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 flex items-center justify-center">
                 <div className="text-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-                    <p className="text-gray-600">Đang tải câu hỏi...</p>
+                    <p className="text-gray-600">{t('manager.qbApproval.loadingQuestions')}</p>
                 </div>
             </div>
         );
@@ -507,18 +507,18 @@ const QBApproval = () => {
                 <div className="mb-6 sm:mb-8">
                     <div className="flex items-center gap-3 mb-2">
                         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
-                            {statusFilter === 'PENDING' && 'Phê Duyệt Câu Hỏi'}
-                            {statusFilter === 'REJECTED' && 'Câu Hỏi Đã Từ Chối'}
-                            {statusFilter === 'APPROVED' && 'Câu Hỏi Đã Duyệt'}
+                            {statusFilter === 'PENDING' && t('manager.qbApproval.titlePending')}
+                            {statusFilter === 'REJECTED' && t('manager.qbApproval.titleRejected')}
+                            {statusFilter === 'APPROVED' && t('manager.qbApproval.titleApproved')}
                         </h1>
                         <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
                             activeTab === 'COURSE' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'
                         }`}>
-                            {activeTab === 'COURSE' ? '📚 Khóa học' : '🏫 Lớp học'}
+                            {activeTab === 'COURSE' ? t('manager.qbApproval.tabCourse') : t('manager.qbApproval.tabClass')}
                         </span>
                     </div>
                     <p className="text-sm sm:text-base text-gray-600">
-                        {questions.length} câu hỏi {activeTab === 'COURSE' ? '(Khóa học)' : '(Lớp học)'} • {filteredQuestions.length} sau khi lọc
+                        {t('manager.qbApproval.questionSummary', { total: questions.length, tabLabel: activeTab === 'COURSE' ? t('manager.qbApproval.courseLabel') : t('manager.qbApproval.classLabel'), filtered: filteredQuestions.length })}
                     </p>
                 </div>
 
@@ -533,39 +533,39 @@ const QBApproval = () => {
                             <div className="flex items-center gap-2">
                                 <CheckSquare className="w-5 h-5 text-indigo-600" aria-hidden="true" />
                                 <span className="font-semibold text-indigo-900">
-                                    Đã chọn {selectedIds.size} câu hỏi
+                                    {t('manager.qbApproval.selectedCount', { count: selectedIds.size })}
                                 </span>
                             </div>
                             <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Bulk action buttons">
                                 <button
                                     onClick={handleClearSelection}
                                     className="px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-200 rounded-lg transition-colors"
-                                    aria-label="Bỏ chọn tất cả câu hỏi"
+                                    aria-label={t('manager.qbApproval.clearSelection')}
                                     type="button"
                                 >
-                                    Bỏ chọn
+                                    {t('manager.qbApproval.clearSelection')}
                                 </button>
                                 <button
                                     onClick={handleBulkApprove}
                                     disabled={bulkActionLoading}
                                     className="flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors text-sm font-medium"
-                                    aria-label={`Duyệt ${selectedIds.size} câu hỏi đã chọn`}
+                                    aria-label={t('manager.qbApproval.approveSelected', { count: selectedIds.size })}
                                     aria-busy={bulkActionLoading}
                                     type="button"
                                 >
                                     <CheckCircle className="w-4 h-4" aria-hidden="true" />
-                                    Duyệt tất cả
+                                    {t('manager.qbApproval.approveAll')}
                                 </button>
                                 <button
                                     onClick={handleBulkReject}
                                     disabled={bulkActionLoading}
                                     className="flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors text-sm font-medium"
-                                    aria-label={`Từ chối ${selectedIds.size} câu hỏi đã chọn`}
+                                    aria-label={t('manager.qbApproval.rejectSelected', { count: selectedIds.size })}
                                     aria-busy={bulkActionLoading}
                                     type="button"
                                 >
                                     <XCircle className="w-4 h-4" aria-hidden="true" />
-                                    Từ chối tất cả
+                                    {t('manager.qbApproval.rejectAll')}
                                 </button>
                             </div>
                         </div>
@@ -588,7 +588,7 @@ const QBApproval = () => {
                             }`}
                             type="button"
                         >
-                            📚 Câu hỏi Khóa học
+                            {t('manager.qbApproval.courseQuestions')}
                         </button>
                         <button
                             onClick={() => {
@@ -602,7 +602,7 @@ const QBApproval = () => {
                             }`}
                             type="button"
                         >
-                            🏫 Câu hỏi Lớp học
+                            {t('manager.qbApproval.classQuestions')}
                         </button>
                     </div>
 
@@ -617,7 +617,7 @@ const QBApproval = () => {
                             }`}
                             type="button"
                         >
-                            ⏳ Chờ duyệt
+                            {t('manager.qbApproval.statusPending')}
                         </button>
                         <button
                             onClick={() => setStatusFilter('REJECTED')}
@@ -628,7 +628,7 @@ const QBApproval = () => {
                             }`}
                             type="button"
                         >
-                            ❌ Đã từ chối
+                            {t('manager.qbApproval.statusRejected')}
                         </button>
                         <button
                             onClick={() => setStatusFilter('APPROVED')}
@@ -639,28 +639,28 @@ const QBApproval = () => {
                             }`}
                             type="button"
                         >
-                            ✅ Đã duyệt
+                            {t('manager.qbApproval.statusApproved')}
                         </button>
                     </div>
 
                     <div className="flex items-center justify-between mb-3 sm:mb-4">
                         <div className="flex items-center gap-2 sm:gap-3">
                             <Filter className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-600" aria-hidden="true" />
-                            <h3 className="font-semibold text-gray-800 text-sm sm:text-base">Bộ lọc chi tiết</h3>
+                            <h3 className="font-semibold text-gray-800 text-sm sm:text-base">{t('manager.qbApproval.detailedFilters')}</h3>
                         </div>
                         <div className="flex items-center gap-2">
                             <button
                                 onClick={handleSelectPage}
                                 className="text-xs sm:text-sm text-indigo-600 hover:text-indigo-800 font-medium"
-                                aria-label="Chọn tất cả câu hỏi trong trang hiện tại"
+                                aria-label={t('manager.qbApproval.selectCurrentPage')}
                                 type="button"
                             >
-                                Chọn trang này
+                                {t('manager.qbApproval.selectCurrentPage')}
                             </button>
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4" role="group" aria-label="Bộ lọc câu hỏi">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4" role="group" aria-label={t('manager.qbApproval.questionFilters')}>
                         {/* Level Filter - Only for COURSE */}
                         {activeTab === 'COURSE' && (
                             <div>
@@ -672,11 +672,11 @@ const QBApproval = () => {
                                     value={selectedLevel}
                                     onChange={(e) => setSelectedLevel(e.target.value)}
                                     className="w-full px-3 sm:px-4 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                                    aria-label="Lọc theo cấp độ câu hỏi"
+                                    aria-label={t('manager.qbApproval.filterByLevel')}
                                 >
                                     {levels.map(level => (
                                         <option key={level} value={level}>
-                                            {level === 'ALL' ? 'Tất cả' : level}
+                                            {level === 'ALL' ? t('common.all') : level}
                                         </option>
                                     ))}
                                 </select>
@@ -694,11 +694,11 @@ const QBApproval = () => {
                                     value={selectedLevel}
                                     onChange={(e) => setSelectedLevel(e.target.value)}
                                     className="w-full px-3 sm:px-4 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                                    aria-label="Lọc theo unit câu hỏi lớp học"
+                                    aria-label={t('manager.qbApproval.filterByUnit')}
                                 >
                                     {[...Array.from({length: 12}, (_, i) => i + 1), 'ALL'].map(unit => (
                                         <option key={unit === 'ALL' ? 'ALL' : unit} value={unit === 'ALL' ? 'ALL' : `LEVEL_${unit}`}>
-                                            {unit === 'ALL' ? 'Tất cả' : `Unit ${unit}`}
+                                            {unit === 'ALL' ? t('common.all') : `Unit ${unit}`}
                                         </option>
                                     ))}
                                 </select>
@@ -708,18 +708,18 @@ const QBApproval = () => {
                         {/* Category Filter */}
                         <div>
                             <label htmlFor="category-filter" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
-                                Danh mục
+                                {t('manager.qbApproval.category')}
                             </label>
                             <select
                                 id="category-filter"
                                 value={selectedCategory}
                                 onChange={(e) => setSelectedCategory(e.target.value)}
                                 className="w-full px-3 sm:px-4 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                                aria-label="Lọc theo danh mục câu hỏi"
+                                aria-label={t('manager.qbApproval.filterByCategory')}
                             >
                                 {categories.map(cat => (
                                     <option key={cat} value={cat}>
-                                        {cat === 'ALL' ? 'Tất cả' : cat}
+                                        {cat === 'ALL' ? t('common.all') : cat}
                                     </option>
                                 ))}
                             </select>
@@ -728,18 +728,18 @@ const QBApproval = () => {
                         {/* Type Filter */}
                         <div>
                             <label htmlFor="type-filter" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
-                                Loại câu hỏi
+                                {t('manager.qbApproval.questionType')}
                             </label>
                             <select
                                 id="type-filter"
                                 value={selectedType}
                                 onChange={(e) => setSelectedType(e.target.value)}
                                 className="w-full px-3 sm:px-4 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                                aria-label="Lọc theo loại câu hỏi"
+                                aria-label={t('manager.qbApproval.filterByType')}
                             >
                                 {types.map(type => (
                                     <option key={type} value={type}>
-                                        {type === 'ALL' ? 'Tất cả' : type.replace(/_/g, ' ')}
+                                        {type === 'ALL' ? t('common.all') : type.replace(/_/g, ' ')}
                                     </option>
                                 ))}
                             </select>
@@ -752,30 +752,30 @@ const QBApproval = () => {
                             <div className="flex items-center gap-2">
                                 <ArrowUpDown className="w-4 h-4 text-gray-500" aria-hidden="true" />
                                 <label htmlFor="sort-select" className="text-xs sm:text-sm font-medium text-gray-700">
-                                    Sắp xếp:
+                                    {t('manager.qbApproval.sortBy')}:
                                 </label>
                             </div>
-                            <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Tùy chọn sắp xếp">
+                            <div className="flex flex-wrap items-center gap-2" role="group" aria-label={t('manager.qbApproval.sortOptions')}>
                                 <select
                                     id="sort-select"
                                     value={sortBy}
                                     onChange={(e) => setSortBy(e.target.value)}
                                     className="px-2 sm:px-3 py-1.5 text-xs sm:text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-                                    aria-label="Chọn tiêu chí sắp xếp"
+                                    aria-label={t('manager.qbApproval.selectSortCriteria')}
                                 >
-                                    <option value="createdAt">Ngày tạo</option>
+                                    <option value="createdAt">{t('manager.qbApproval.sortCreatedDate')}</option>
                                     <option value="level">Level</option>
-                                    <option value="points">Điểm</option>
-                                    <option value="duplicateScore">Độ trùng lặp</option>
+                                    <option value="points">{t('manager.qbApproval.sortPoints')}</option>
+                                    <option value="duplicateScore">{t('manager.qbApproval.sortDuplicateScore')}</option>
                                 </select>
                                 <button
                                     onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
                                     className="px-2 sm:px-3 py-1.5 text-xs sm:text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                                    aria-label={sortOrder === 'asc' ? 'Sắp xếp tăng dần' : 'Sắp xếp giảm dần'}
+                                    aria-label={sortOrder === 'asc' ? t('manager.qbApproval.sortAscending') : t('manager.qbApproval.sortDescending')}
                                     aria-pressed={sortOrder === 'asc'}
                                     type="button"
                                 >
-                                    {sortOrder === 'asc' ? 'Tăng ↑' : 'Giảm ↓'}
+                                    {sortOrder === 'asc' ? t('manager.qbApproval.ascending') : t('manager.qbApproval.descending')}
                                 </button>
                             </div>
                         </div>
@@ -788,8 +788,8 @@ const QBApproval = () => {
                         <AlertCircle className="w-12 h-12 sm:w-16 sm:h-16 text-gray-400 mx-auto mb-3 sm:mb-4" />
                         <p className="text-sm sm:text-base text-gray-600">
                             {filteredQuestions.length === 0
-                                ? 'Không có câu hỏi nào phù hợp với bộ lọc.'
-                                : 'Không có câu hỏi nào chờ duyệt.'}
+                                ? t('manager.qbApproval.noMatchingQuestions')
+                                : t('manager.qbApproval.noPendingQuestions')}
                         </p>
                     </div>
                 ) : (
@@ -805,7 +805,7 @@ const QBApproval = () => {
                                         className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-600 rounded focus:ring-2 focus:ring-indigo-500"
                                     />
                                     <span className="text-xs sm:text-sm font-medium text-gray-700">
-                                        Chọn tất cả ({paginatedQuestions.length} trên trang này)
+                                        {t('manager.qbApproval.selectAllOnPage', { count: paginatedQuestions.length })}
                                     </span>
                                 </label>
                             </div>
@@ -860,7 +860,7 @@ const QBApproval = () => {
                                                             ? 'bg-red-100 text-red-800'
                                                             : 'bg-emerald-100 text-emerald-800'
                                                     }`}>
-                                                        Trùng: {q.duplicateScore}%
+                                                        {t('manager.qbApproval.duplicate')}: {q.duplicateScore}%
                                                     </span>
                                                     {q.createdBy && (
                                                         <span className="px-1.5 sm:px-2 py-0.5 sm:py-1 bg-gray-100 text-gray-700 text-[10px] sm:text-xs font-semibold rounded">
@@ -875,7 +875,7 @@ const QBApproval = () => {
                                                 {/* Options Preview */}
                                                 {q.options && q.options.length > 0 && (
                                                     <div className="text-xs sm:text-sm text-gray-600 mb-2">
-                                                        <span className="font-semibold">Đáp án:</span>{' '}
+                                                        <span className="font-semibold">{t('manager.qbApproval.answer')}:</span>{' '}
                                                         {q.options.filter(o => o.isCorrect).map(o => `${o.optionOrder}. ${o.optionText}`).join(', ')}
                                                     </div>
                                                 )}
@@ -883,7 +883,7 @@ const QBApproval = () => {
                                                 {/* Explanation Preview */}
                                                 {q.explanation && q.explanation !== 'null' && !q.explanation.includes('[APPROVAL FEEDBACK]') && !q.explanation.includes('[REJECTION REASON]') && (
                                                     <div className="text-xs sm:text-sm text-gray-600 italic truncate">
-                                                        Giải thích: {q.explanation}
+                                                        {t('manager.qbApproval.explanation')}: {q.explanation}
                                                     </div>
                                                 )}
 
@@ -892,7 +892,7 @@ const QBApproval = () => {
                                                     <div className="mt-2 inline-flex items-center gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 bg-red-50 border border-red-200 rounded-lg">
                                                         <XCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-red-600 flex-shrink-0" />
                                                         <span className="text-xs sm:text-sm font-medium text-red-700">
-                                                            Đã từ chối - Xem chi tiết để biết lý do
+                                                            {t('manager.qbApproval.rejectedViewDetails')}
                                                         </span>
                                                     </div>
                                                 )}
@@ -906,7 +906,7 @@ const QBApproval = () => {
                                                 className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
                                             >
                                                 <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                                                Xem
+                                                {t('common.view')}
                                             </button>
                                             {statusFilter === 'PENDING' && (
                                                 <>
@@ -915,14 +915,14 @@ const QBApproval = () => {
                                                         className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium text-xs sm:text-sm"
                                                     >
                                                         <CheckCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                                                        Duyệt
+                                                        {t('common.approve')}
                                                     </button>
                                                     <button
                                                         onClick={() => handleReject(q.id)}
                                                         className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium text-xs sm:text-sm"
                                                     >
                                                         <XCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                                                        Từ chối
+                                                        {t('common.reject')}
                                                     </button>
                                                 </>
                                             )}
@@ -936,19 +936,19 @@ const QBApproval = () => {
                         {totalPages > 1 && (
                             <nav
                                 className="mt-4 sm:mt-6 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 bg-white rounded-xl shadow-sm p-3 sm:p-4 rounded-t-xl border-t-2"
-                                aria-label="Phân trang câu hỏi"
+                                aria-label={t('manager.qbApproval.pagination')}
                                 role="navigation"
                             >
                                 <div className="text-xs sm:text-sm text-gray-600 text-center sm:text-left">
-                                    <span className="hidden sm:inline">Hiển thị {(currentPage - 1) * itemsPerPage + 1} - {Math.min(currentPage * itemsPerPage, sortedQuestions.length)} / {sortedQuestions.length}</span>
+                                    <span className="hidden sm:inline">{t('manager.qbApproval.showing', { from: (currentPage - 1) * itemsPerPage + 1, to: Math.min(currentPage * itemsPerPage, sortedQuestions.length), total: sortedQuestions.length })}</span>
                                     <span className="sm:hidden">{(currentPage - 1) * itemsPerPage + 1}-{Math.min(currentPage * itemsPerPage, sortedQuestions.length)} / {sortedQuestions.length}</span>
                                 </div>
-                                <div className="flex items-center gap-1.5 sm:gap-2" role="group" aria-label="Chọn trang">
+                                <div className="flex items-center gap-1.5 sm:gap-2" role="group" aria-label={t('manager.qbApproval.selectPage')}>
                                     <button
                                         onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                                         disabled={currentPage === 1}
                                         className="p-1.5 sm:p-2 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                                        aria-label="Trang trước"
+                                        aria-label={t('manager.qbApproval.prevPage')}
                                         type="button"
                                     >
                                         <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" aria-hidden="true" />
@@ -977,7 +977,7 @@ const QBApproval = () => {
                                                         ? 'bg-indigo-600 text-white'
                                                         : 'border border-gray-300 hover:bg-gray-50'
                                                 }`}
-                                                aria-label={`Trang ${pageNum}`}
+                                                aria-label={`${t('manager.qbApproval.page')} ${pageNum}`}
                                                 aria-current={isActivePage ? 'page' : undefined}
                                                 type="button"
                                             >
@@ -990,7 +990,7 @@ const QBApproval = () => {
                                         onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                                         disabled={currentPage === totalPages}
                                         className="p-1.5 sm:p-2 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                                        aria-label="Trang sau"
+                                        aria-label={t('manager.qbApproval.nextPage')}
                                         type="button"
                                     >
                                         <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" aria-hidden="true" />
@@ -1014,7 +1014,7 @@ const QBApproval = () => {
                                         <Eye className="w-6 h-6 text-white" />
                                     </div>
                                     <div>
-                                        <h3 className="text-xl font-bold text-white">Chi Tiết Câu Hỏi</h3>
+                                        <h3 className="text-xl font-bold text-white">{t('manager.qbApproval.questionDetail')}</h3>
                                         <p className="text-sm text-blue-100 mt-0.5">ID: #{previewQuestion.id}</p>
                                     </div>
                                 </div>
@@ -1033,8 +1033,8 @@ const QBApproval = () => {
                                     previewQuestion.verificationStatus === 'REJECTED' ? 'bg-red-500 text-white' :
                                     'bg-amber-500 text-white'
                                 }`}>
-                                    {previewQuestion.verificationStatus === 'APPROVED' ? '✅ Đã duyệt' :
-                                     previewQuestion.verificationStatus === 'REJECTED' ? '❌ Đã từ chối' : '⏳ Chờ duyệt'}
+                                    {previewQuestion.verificationStatus === 'APPROVED' ? t('manager.qbApproval.badgeApproved') :
+                                     previewQuestion.verificationStatus === 'REJECTED' ? t('manager.qbApproval.badgeRejected') : t('manager.qbApproval.badgePending')}
                                 </span>
                                 <span className="px-3 py-1.5 bg-white/20 text-white rounded-lg font-semibold text-sm">
                                     {previewQuestion.questionType?.replace(/_/g, ' ')}
@@ -1043,7 +1043,7 @@ const QBApproval = () => {
                                     {previewQuestion.level}
                                 </span>
                                 <span className="px-3 py-1.5 bg-white/20 text-white rounded-lg font-semibold text-sm">
-                                    {previewQuestion.points} điểm
+                                    {previewQuestion.points} {t('manager.qbApproval.points')}
                                 </span>
                                 {previewQuestion.duplicateScore !== undefined && (
                                     <span className={`px-3 py-1.5 rounded-lg font-semibold text-sm ${
@@ -1051,7 +1051,7 @@ const QBApproval = () => {
                                             ? 'bg-red-500 text-white'
                                             : 'bg-green-500 text-white'
                                     }`}>
-                                        Trùng: {previewQuestion.duplicateScore}%
+                                        {t('manager.qbApproval.duplicate')}: {previewQuestion.duplicateScore}%
                                     </span>
                                 )}
                             </div>
@@ -1072,7 +1072,7 @@ const QBApproval = () => {
                                     <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
                                         <FileText className="w-5 h-5 text-white" />
                                     </div>
-                                    <h4 className="text-lg font-bold text-gray-900">Nội dung câu hỏi</h4>
+                                    <h4 className="text-lg font-bold text-gray-900">{t('manager.qbApproval.questionContent')}</h4>
                                 </div>
                                 <p className="text-gray-900 text-base leading-relaxed pl-11">{previewQuestion.questionText}</p>
                             </div>
@@ -1081,7 +1081,7 @@ const QBApproval = () => {
                             {previewQuestion.imageUrl && (
                                 <div className="rounded-xl overflow-hidden border border-gray-200">
                                     <div className="bg-gray-50 px-4 py-2 border-b border-gray-200">
-                                        <p className="text-sm font-semibold text-gray-700">🖼️ Hình ảnh</p>
+                                        <p className="text-sm font-semibold text-gray-700">{t('manager.qbApproval.image')}</p>
                                     </div>
                                     <div className="p-4 bg-white">
                                         <img
@@ -1101,7 +1101,7 @@ const QBApproval = () => {
                             {previewQuestion.questionMediaUrl && (
                                 <div className="rounded-xl overflow-hidden border border-gray-200">
                                     <div className="bg-gray-50 px-4 py-2 border-b border-gray-200">
-                                        <p className="text-sm font-semibold text-gray-700">🎵 Audio</p>
+                                        <p className="text-sm font-semibold text-gray-700">{t('manager.qbApproval.audio')}</p>
                                     </div>
                                     <div className="p-4 bg-white">
                                         <audio controls src={previewQuestion.questionMediaUrl} className="w-full" />
@@ -1113,7 +1113,7 @@ const QBApproval = () => {
                             {previewQuestion.options && previewQuestion.options.length > 0 && (
                                 <div className="rounded-xl overflow-hidden border border-gray-200">
                                     <div className="bg-gray-50 px-4 py-2 border-b border-gray-200">
-                                        <p className="text-sm font-semibold text-gray-700">Các lựa chọn</p>
+                                        <p className="text-sm font-semibold text-gray-700">{t('manager.qbApproval.options')}</p>
                                     </div>
                                     <div className="p-4 bg-white space-y-3">
                                         {previewQuestion.options.map((opt) => (
@@ -1136,7 +1136,7 @@ const QBApproval = () => {
                                                     </p>
                                                     {opt.isCorrect && (
                                                         <span className="inline-block mt-1.5 px-2.5 py-0.5 text-xs font-semibold bg-green-600 text-white rounded-md">
-                                                            ✓ Đáp án đúng
+                                                            {t('manager.qbApproval.correctAnswer')}
                                                         </span>
                                                     )}
                                                 </div>
@@ -1150,7 +1150,7 @@ const QBApproval = () => {
                             {previewQuestion.correctAnswer && (
                                 <div className="rounded-xl overflow-hidden border border-green-200">
                                     <div className="bg-green-50 px-4 py-2 border-b border-green-200">
-                                        <p className="text-sm font-semibold text-green-800">Đáp án đúng</p>
+                                        <p className="text-sm font-semibold text-green-800">{t('manager.qbApproval.correctAnswer')}</p>
                                     </div>
                                     <div className="p-4 bg-white">
                                         <p className="text-green-900 font-medium">{previewQuestion.correctAnswer}</p>
@@ -1166,7 +1166,7 @@ const QBApproval = () => {
                                 <div className="rounded-xl overflow-hidden border border-blue-200">
                                     <div className="bg-blue-50 px-4 py-2 border-b border-blue-200">
                                         <p className="text-sm font-semibold text-blue-800 flex items-center gap-2">
-                                            💡 Giải thích
+                                            {t('manager.qbApproval.explanation')}
                                         </p>
                                     </div>
                                     <div className="p-4 bg-white">
@@ -1178,11 +1178,11 @@ const QBApproval = () => {
                             {/* Metadata */}
                             <div className="grid grid-cols-2 gap-4 text-sm">
                                 <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                                    <p className="text-gray-500 text-xs font-medium mb-1">Ngày tạo</p>
+                                    <p className="text-gray-500 text-xs font-medium mb-1">{t('manager.qbApproval.createdDate')}</p>
                                     <p className="text-gray-900 font-medium">{new Date(previewQuestion.createdAt).toLocaleString('vi-VN')}</p>
                                 </div>
                                 <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                                    <p className="text-gray-500 text-xs font-medium mb-1">Cập nhật</p>
+                                    <p className="text-gray-500 text-xs font-medium mb-1">{t('manager.qbApproval.updatedDate')}</p>
                                     <p className="text-gray-900 font-medium">{new Date(previewQuestion.updatedAt).toLocaleString('vi-VN')}</p>
                                 </div>
                             </div>
@@ -1191,7 +1191,7 @@ const QBApproval = () => {
                             {approvalHistory.length > 0 && (
                                 <div className="rounded-xl overflow-hidden border-2 border-gray-200">
                                     <div className="bg-gray-50 px-4 py-2 border-b border-gray-200">
-                                        <p className="text-sm font-semibold text-gray-700">📜 Lịch sử duyệt</p>
+                                        <p className="text-sm font-semibold text-gray-700">{t('manager.qbApproval.approvalHistory')}</p>
                                     </div>
                                     <div className="p-4 bg-white space-y-3">
                                         {approvalHistory.map((history) => (
@@ -1218,7 +1218,7 @@ const QBApproval = () => {
                                                                     ? 'text-red-800'
                                                                     : 'text-green-800'
                                                             }`}>
-                                                                {history.action === 'APPROVED' ? '✅ Đã duyệt' : '❌ Đã từ chối'}
+                                                                {history.action === 'APPROVED' ? t('manager.qbApproval.badgeApproved') : t('manager.qbApproval.badgeRejected')}
                                                             </span>
                                                             <span className="text-xs text-gray-500">
                                                                 {new Date(history.createdAt).toLocaleString('vi-VN')}
@@ -1226,12 +1226,12 @@ const QBApproval = () => {
                                                         </div>
                                                         {history.feedback && (
                                                             <p className="text-xs text-gray-700 mt-1">
-                                                                <span className="font-medium">Lý do:</span> {history.feedback}
+                                                                <span className="font-medium">{t('manager.qbApproval.reason')}:</span> {history.feedback}
                                                             </p>
                                                         )}
                                                         {history.performedByUser && (
                                                             <p className="text-xs text-gray-500 mt-1">
-                                                                bởi {history.performedByUser.fullName || history.performedByUser.username}
+                                                                {t('manager.qbApproval.by')} {history.performedByUser.fullName || history.performedByUser.username}
                                                             </p>
                                                         )}
                                                     </div>
@@ -1250,7 +1250,7 @@ const QBApproval = () => {
                                     onClick={() => setShowPreviewModal(false)}
                                     className="px-6 py-2.5 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors font-medium"
                                 >
-                                    Đóng
+                                    {t('common.close')}
                                 </button>
                                 {statusFilter === 'PENDING' && previewQuestion.verificationStatus === 'PENDING' && (
                                     <>
@@ -1262,7 +1262,7 @@ const QBApproval = () => {
                                             className="px-6 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium flex items-center gap-2"
                                         >
                                             <XCircle className="w-4 h-4" />
-                                            Từ chối
+                                            {t('common.reject')}
                                         </button>
                                         <button
                                             onClick={() => {
@@ -1272,7 +1272,7 @@ const QBApproval = () => {
                                             className="px-6 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium flex items-center gap-2"
                                         >
                                             <CheckCircle className="w-4 h-4" />
-                                            Duyệt câu hỏi này
+                                            {t('manager.qbApproval.approveThisQuestion')}
                                         </button>
                                     </>
                                 )}

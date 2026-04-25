@@ -3,16 +3,24 @@ import { useNavigate } from 'react-router-dom';
 import { Plus, Search, Edit2, Eye, CheckCircle, XCircle, Archive, RefreshCw } from 'lucide-react';
 import educationManagerService from '../../services/educationManagerService';
 import Swal from 'sweetalert2';
+import { useTranslation } from 'react-i18next';
 import CourseDetailModal from '../../components/EducationManager/CourseDetailModal';
 
-const statusConfig = {
-    PUBLISHED: { label: 'Đã publish', color: 'bg-green-100 text-green-700' },
-    DRAFT: { label: 'Bản nháp', color: 'bg-gray-100 text-gray-600' },
-    ARCHIVED: { label: 'Lưu trữ', color: 'bg-amber-100 text-amber-700' },
+const statusColorMap = {
+    PUBLISHED: 'bg-green-100 text-green-700',
+    DRAFT: 'bg-gray-100 text-gray-600',
+    ARCHIVED: 'bg-amber-100 text-amber-700',
 };
 
 const EduCourseManagement = () => {
+    const { t } = useTranslation();
     const navigate = useNavigate();
+
+    const statusConfig = {
+        PUBLISHED: { label: t('eduManager.courseManagement.statusPublished'), color: statusColorMap.PUBLISHED },
+        DRAFT: { label: t('eduManager.courseManagement.statusDraft'), color: statusColorMap.DRAFT },
+        ARCHIVED: { label: t('eduManager.courseManagement.statusArchived'), color: statusColorMap.ARCHIVED },
+    };
     const [courses, setCourses] = useState([]);
     const [filtered, setFiltered] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -52,7 +60,7 @@ const EduCourseManagement = () => {
             }
             fetchCourses();
         } catch (e) {
-            Swal.fire('Lỗi', 'Không thể thay đổi trạng thái', 'error');
+            Swal.fire(t('eduManager.courseManagement.errorTitle'), t('eduManager.courseManagement.errorStatusChange'), 'error');
         }
     };
 
@@ -60,14 +68,14 @@ const EduCourseManagement = () => {
         <div className="space-y-5">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Quản lý Khóa học</h1>
-                    <p className="text-gray-500 text-sm">{filtered.length} khóa học</p>
+                    <h1 className="text-2xl font-bold text-gray-900">{t('eduManager.courseManagement.title')}</h1>
+                    <p className="text-gray-500 text-sm">{filtered.length} {t('eduManager.courseManagement.courseCount')}</p>
                 </div>
                 <button
                     onClick={() => navigate('/edu-manager/courses/create')}
                     className="flex items-center gap-2 bg-violet-600 text-white px-4 py-2.5 rounded-xl hover:bg-violet-700 transition-colors font-medium"
                 >
-                    <Plus className="w-4 h-4" /> Tạo khóa học
+                    <Plus className="w-4 h-4" /> {t('eduManager.courseManagement.createCourse')}
                 </button>
             </div>
 
@@ -77,7 +85,7 @@ const EduCourseManagement = () => {
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
                     <input
                         type="text"
-                        placeholder="Tìm kiếm khóa học..."
+                        placeholder={t('eduManager.courseManagement.searchPlaceholder')}
                         value={search}
                         onChange={e => setSearch(e.target.value)}
                         className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-violet-400 outline-none"
@@ -88,31 +96,31 @@ const EduCourseManagement = () => {
                     onChange={e => setStatusFilter(e.target.value)}
                     className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-violet-400 outline-none"
                 >
-                    <option value="all">Tất cả trạng thái</option>
-                    <option value="DRAFT">Bản nháp</option>
-                    <option value="PUBLISHED">Đã publish</option>
-                    <option value="ARCHIVED">Lưu trữ</option>
+                    <option value="all">{t('eduManager.courseManagement.allStatuses')}</option>
+                    <option value="DRAFT">{t('eduManager.courseManagement.statusDraft')}</option>
+                    <option value="PUBLISHED">{t('eduManager.courseManagement.statusPublished')}</option>
+                    <option value="ARCHIVED">{t('eduManager.courseManagement.statusArchived')}</option>
                 </select>
                 <button onClick={fetchCourses} className="flex items-center gap-1 px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50">
-                    <RefreshCw className="w-4 h-4" /> Làm mới
+                    <RefreshCw className="w-4 h-4" /> {t('eduManager.courseManagement.refresh')}
                 </button>
             </div>
 
             {/* Table */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                 {loading ? (
-                    <div className="p-8 text-center text-gray-400">Đang tải...</div>
+                    <div className="p-8 text-center text-gray-400">{t('eduManager.courseManagement.loading')}</div>
                 ) : filtered.length === 0 ? (
                     <div className="p-12 text-center">
-                        <p className="text-gray-400">Không có khóa học nào</p>
-                        <button onClick={() => navigate('/edu-manager/courses/create')} className="mt-4 text-violet-600 hover:underline text-sm">+ Tạo khóa học đầu tiên</button>
+                        <p className="text-gray-400">{t('eduManager.courseManagement.noCourses')}</p>
+                        <button onClick={() => navigate('/edu-manager/courses/create')} className="mt-4 text-violet-600 hover:underline text-sm">+ {t('eduManager.courseManagement.createFirstCourse')}</button>
                     </div>
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full">
                             <thead className="bg-gray-50 border-b border-gray-100">
                                 <tr>
-                                    {['Tên khóa học', 'Mã', 'Giá', 'Trạng thái', 'Thao tác'].map(h => (
+                                    {[t('eduManager.courseManagement.colName'), t('eduManager.courseManagement.colCode'), t('eduManager.courseManagement.colPrice'), t('eduManager.courseManagement.colStatus'), t('eduManager.courseManagement.colActions')].map(h => (
                                         <th key={h} className="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">{h}</th>
                                     ))}
                                 </tr>
@@ -133,7 +141,7 @@ const EduCourseManagement = () => {
                                         </td>
                                         <td className="px-5 py-4">
                                             <div className="flex items-center gap-1">
-                                                <button onClick={() => setSelectedCourse(course)} className="p-1.5 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50" title="Xem chi tiết"><Eye className="w-4 h-4" /></button>
+                                                <button onClick={() => setSelectedCourse(course)} className="p-1.5 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50" title={t('eduManager.courseManagement.viewDetail')}><Eye className="w-4 h-4" /></button>
                                                 <button onClick={() => navigate(`/edu-manager/courses/edit/${course.id}`)} className="p-1.5 rounded-lg text-gray-400 hover:text-violet-600 hover:bg-violet-50"><Edit2 className="w-4 h-4" /></button>
                                                 <button onClick={() => handlePublish(course)} className={`p-1.5 rounded-lg ${course.status === 'PUBLISHED' ? 'text-amber-400 hover:bg-amber-50' : 'text-green-500 hover:bg-green-50'}`} title={course.status === 'PUBLISHED' ? 'Unpublish' : 'Publish'}>
                                                     {course.status === 'PUBLISHED' ? <XCircle className="w-4 h-4" /> : <CheckCircle className="w-4 h-4" />}

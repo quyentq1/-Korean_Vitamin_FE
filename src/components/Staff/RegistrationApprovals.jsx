@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Users, CheckCircle, XCircle, Clock, Eye, Search, Filter, FileText, Phone, Mail, Calendar, AlertCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import axiosClient from '../../api/axiosClient';
 import Swal from 'sweetalert2';
 
@@ -16,6 +17,7 @@ import Swal from 'sweetalert2';
  * - Export registrations
  */
 const RegistrationApprovals = () => {
+    const { t } = useTranslation();
     const [registrations, setRegistrations] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedRegistration, setSelectedRegistration] = useState(null);
@@ -43,8 +45,8 @@ const RegistrationApprovals = () => {
             console.error('Error fetching registrations:', error);
             Swal.fire({
                 icon: 'error',
-                title: 'Lỗi',
-                text: 'Không thể tải danh sách đăng ký',
+                title: t('common.error'),
+                text: t('staff.registrationApprovals.loadError'),
                 confirmButtonColor: '#6366f1'
             });
         } finally {
@@ -55,11 +57,11 @@ const RegistrationApprovals = () => {
     const handleApprove = async (registrationId) => {
         const result = await Swal.fire({
             icon: 'question',
-            title: 'Duyệt đăng ký?',
-            text: 'Xác nhận duyệt học viên này vào khóa học',
+            title: t('staff.registrationApprovals.approveTitle'),
+            text: t('staff.registrationApprovals.approveText'),
             showCancelButton: true,
-            confirmButtonText: 'Duyệt',
-            cancelButtonText: 'Hủy',
+            confirmButtonText: t('staff.registrationApprovals.approve'),
+            cancelButtonText: t('common.cancel'),
             confirmButtonColor: '#22c55e',
             cancelButtonColor: '#6b7280'
         });
@@ -70,8 +72,8 @@ const RegistrationApprovals = () => {
             await axiosClient.put(`/api/staff/registrations/${registrationId}/approve`);
             await Swal.fire({
                 icon: 'success',
-                title: 'Đã duyệt',
-                text: 'Đã duyệt đăng ký học viên thành công',
+                title: t('staff.registrationApprovals.approvedTitle'),
+                text: t('staff.registrationApprovals.approvedText'),
                 timer: 2000,
                 showConfirmButton: false
             });
@@ -79,8 +81,8 @@ const RegistrationApprovals = () => {
         } catch (error) {
             Swal.fire({
                 icon: 'error',
-                title: 'Lỗi',
-                text: error.response?.data?.message || 'Không thể duyệt đăng ký',
+                title: t('common.error'),
+                text: error.response?.data?.message || t('staff.registrationApprovals.approveError'),
                 confirmButtonColor: '#6366f1'
             });
         }
@@ -89,17 +91,17 @@ const RegistrationApprovals = () => {
     const handleReject = async (registrationId) => {
         const { value: reason } = await Swal.fire({
             icon: 'question',
-            title: 'Từ chối đăng ký?',
-            text: 'Vui lòng nhập lý do từ chối',
+            title: t('staff.registrationApprovals.rejectTitle'),
+            text: t('staff.registrationApprovals.rejectText'),
             input: 'textarea',
-            inputPlaceholder: 'Nhập lý do từ chối...',
+            inputPlaceholder: t('staff.registrationApprovals.rejectPlaceholder'),
             showCancelButton: true,
-            confirmButtonText: 'Từ chối',
-            cancelButtonText: 'Hủy',
+            confirmButtonText: t('staff.registrationApprovals.reject'),
+            cancelButtonText: t('common.cancel'),
             confirmButtonColor: '#ef4444',
             cancelButtonColor: '#6b7280',
             inputValidator: (value) => {
-                if (!value) return 'Vui lòng nhập lý do từ chối';
+                if (!value) return t('staff.registrationApprovals.rejectReasonRequired');
                 return true;
             }
         });
@@ -110,8 +112,8 @@ const RegistrationApprovals = () => {
             await axiosClient.put(`/api/staff/registrations/${registrationId}/reject`, { reason });
             await Swal.fire({
                 icon: 'success',
-                title: 'Đã từ chối',
-                text: 'Đã từ chối đăng ký học viên',
+                title: t('staff.registrationApprovals.rejectedTitle'),
+                text: t('staff.registrationApprovals.rejectedText'),
                 timer: 2000,
                 showConfirmButton: false
             });
@@ -119,8 +121,8 @@ const RegistrationApprovals = () => {
         } catch (error) {
             Swal.fire({
                 icon: 'error',
-                title: 'Lỗi',
-                text: 'Không thể từ chối đăng ký',
+                title: t('common.error'),
+                text: t('staff.registrationApprovals.rejectError'),
                 confirmButtonColor: '#6366f1'
             });
         }
@@ -133,9 +135,9 @@ const RegistrationApprovals = () => {
 
     const getStatusBadge = (status) => {
         const statusConfig = {
-            pending: { color: 'bg-yellow-100 text-yellow-700', label: 'Chờ xử lý', icon: Clock },
-            approved: { color: 'bg-green-100 text-green-700', label: 'Đã duyệt', icon: CheckCircle },
-            rejected: { color: 'bg-red-100 text-red-700', label: 'Đã từ chối', icon: XCircle }
+            pending: { color: 'bg-yellow-100 text-yellow-700', label: t('staff.registrationApprovals.statusPending'), icon: Clock },
+            approved: { color: 'bg-green-100 text-green-700', label: t('staff.registrationApprovals.statusApproved'), icon: CheckCircle },
+            rejected: { color: 'bg-red-100 text-red-700', label: t('staff.registrationApprovals.statusRejected'), icon: XCircle }
         };
         const config = statusConfig[status] || statusConfig.pending;
         const Icon = config.icon;
@@ -165,8 +167,8 @@ const RegistrationApprovals = () => {
                 <div className="flex items-center gap-3">
                     <Users className="w-6 h-6 text-white" />
                     <div>
-                        <h2 className="text-xl font-bold text-white">Duyệt Đăng Ký</h2>
-                        <p className="text-purple-100 text-sm">Quản lý và duyệt đăng ký học viên</p>
+                        <h2 className="text-xl font-bold text-white">{t('staff.registrationApprovals.title')}</h2>
+                        <p className="text-purple-100 text-sm">{t('staff.registrationApprovals.subtitle')}</p>
                     </div>
                 </div>
             </div>
@@ -180,10 +182,10 @@ const RegistrationApprovals = () => {
                             onChange={(e) => setFilter({ ...filter, status: e.target.value })}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
                         >
-                            <option value="all">Tất cả trạng thái</option>
-                            <option value="pending">Chờ xử lý</option>
-                            <option value="approved">Đã duyệt</option>
-                            <option value="rejected">Đã từ chối</option>
+                            <option value="all">{t('staff.registrationApprovals.allStatus')}</option>
+                            <option value="pending">{t('staff.registrationApprovals.statusPending')}</option>
+                            <option value="approved">{t('staff.registrationApprovals.statusApproved')}</option>
+                            <option value="rejected">{t('staff.registrationApprovals.statusRejected')}</option>
                         </select>
                     </div>
                     <div>
@@ -192,7 +194,7 @@ const RegistrationApprovals = () => {
                             onChange={(e) => setFilter({ ...filter, course: e.target.value })}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
                         >
-                            <option value="all">Tất cả khóa học</option>
+                            <option value="all">{t('staff.registrationApprovals.allCourses')}</option>
                             {/* Options will be loaded from API */}
                         </select>
                     </div>
@@ -200,7 +202,7 @@ const RegistrationApprovals = () => {
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                         <input
                             type="text"
-                            placeholder="Tìm kiếm theo tên, email, SĐT..."
+                            placeholder={t('staff.registrationApprovals.searchPlaceholder')}
                             value={filter.search}
                             onChange={(e) => setFilter({ ...filter, search: e.target.value })}
                             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
@@ -214,12 +216,12 @@ const RegistrationApprovals = () => {
                 <table className="w-full">
                     <thead className="bg-gray-50">
                         <tr>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Học viên</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Khóa học</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ngày đăng ký</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Trạng thái</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nguồn</th>
-                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Thao tác</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t('staff.registrationApprovals.colStudent')}</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t('staff.registrationApprovals.colCourse')}</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t('staff.registrationApprovals.colDate')}</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t('staff.registrationApprovals.colStatus')}</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t('staff.registrationApprovals.colSource')}</th>
+                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">{t('staff.registrationApprovals.colActions')}</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200">
@@ -232,7 +234,7 @@ const RegistrationApprovals = () => {
                         ) : filteredRegistrations.length === 0 ? (
                             <tr>
                                 <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
-                                    Không có đăng ký nào
+                                    {t('staff.registrationApprovals.noRegistrations')}
                                 </td>
                             </tr>
                         ) : (
@@ -279,7 +281,7 @@ const RegistrationApprovals = () => {
                                             <button
                                                 onClick={() => handleViewDetail(reg)}
                                                 className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
-                                                title="Xem chi tiết"
+                                                title={t('staff.registrationApprovals.viewDetail')}
                                             >
                                                 <Eye className="w-4 h-4" />
                                             </button>
@@ -288,14 +290,14 @@ const RegistrationApprovals = () => {
                                                     <button
                                                         onClick={() => handleApprove(reg.id)}
                                                         className="p-2 text-green-600 hover:bg-green-50 rounded-lg"
-                                                        title="Duyệt"
+                                                        title={t('staff.registrationApprovals.approve')}
                                                     >
                                                         <CheckCircle className="w-4 h-4" />
                                                     </button>
                                                     <button
                                                         onClick={() => handleReject(reg.id)}
                                                         className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
-                                                        title="Từ chối"
+                                                        title={t('staff.registrationApprovals.reject')}
                                                     >
                                                         <XCircle className="w-4 h-4" />
                                                     </button>
@@ -316,7 +318,7 @@ const RegistrationApprovals = () => {
                     <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
                         <div className="p-6 border-b border-gray-200">
                             <div className="flex items-center justify-between">
-                                <h3 className="text-xl font-semibold text-gray-900">Chi tiết đăng ký</h3>
+                                <h3 className="text-xl font-semibold text-gray-900">{t('staff.registrationApprovals.detailTitle')}</h3>
                                 <button
                                     onClick={() => setShowDetailModal(false)}
                                     className="p-2 hover:bg-gray-100 rounded-lg"
@@ -331,28 +333,28 @@ const RegistrationApprovals = () => {
                             <div>
                                 <h4 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
                                     <FileText className="w-5 h-5 text-blue-600" />
-                                    Thông tin cá nhân
+                                    {t('staff.registrationApprovals.personalInfo')}
                                 </h4>
                                 <div className="grid grid-cols-2 gap-4 text-sm">
                                     <div>
-                                        <span className="text-gray-600">Họ tên:</span>
+                                        <span className="text-gray-600">{t('staff.registrationApprovals.fullName')}:</span>
                                         <span className="ml-2 font-medium">{selectedRegistration.fullName}</span>
                                     </div>
                                     <div>
-                                        <span className="text-gray-600">Ngày sinh:</span>
-                                        <span className="ml-2 font-medium">{selectedRegistration.dateOfBirth || 'Chưa cung cấp'}</span>
+                                        <span className="text-gray-600">{t('staff.registrationApprovals.dob')}:</span>
+                                        <span className="ml-2 font-medium">{selectedRegistration.dateOfBirth || t('staff.registrationApprovals.notProvided')}</span>
                                     </div>
                                     <div>
-                                        <span className="text-gray-600">Email:</span>
+                                        <span className="text-gray-600">{t('staff.registrationApprovals.email')}:</span>
                                         <span className="ml-2 font-medium">{selectedRegistration.email}</span>
                                     </div>
                                     <div>
-                                        <span className="text-gray-600">SĐT:</span>
+                                        <span className="text-gray-600">{t('staff.registrationApprovals.phone')}:</span>
                                         <span className="ml-2 font-medium">{selectedRegistration.phone}</span>
                                     </div>
                                     <div className="col-span-2">
-                                        <span className="text-gray-600">Địa chỉ:</span>
-                                        <span className="ml-2 font-medium">{selectedRegistration.address || 'Chưa cung cấp'}</span>
+                                        <span className="text-gray-600">{t('staff.registrationApprovals.address')}:</span>
+                                        <span className="ml-2 font-medium">{selectedRegistration.address || t('staff.registrationApprovals.notProvided')}</span>
                                     </div>
                                 </div>
                             </div>
@@ -361,15 +363,15 @@ const RegistrationApprovals = () => {
                             <div>
                                 <h4 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
                                     <FileText className="w-5 h-5 text-purple-600" />
-                                    Thông tin khóa học
+                                    {t('staff.registrationApprovals.courseInfo')}
                                 </h4>
                                 <div className="grid grid-cols-2 gap-4 text-sm">
                                     <div>
-                                        <span className="text-gray-600">Khóa học:</span>
+                                        <span className="text-gray-600">{t('staff.registrationApprovals.course')}:</span>
                                         <span className="ml-2 font-medium">{selectedRegistration.courseName}</span>
                                     </div>
                                     <div>
-                                        <span className="text-gray-600">Ngày đăng ký:</span>
+                                        <span className="text-gray-600">{t('staff.registrationApprovals.registrationDate')}:</span>
                                         <span className="ml-2 font-medium">
                                             {new Date(selectedRegistration.registrationDate).toLocaleString('vi-VN')}
                                         </span>
@@ -380,7 +382,7 @@ const RegistrationApprovals = () => {
                             {/* Additional Info */}
                             {selectedRegistration.note && (
                                 <div>
-                                    <h4 className="font-medium text-gray-900 mb-2">Ghi chú</h4>
+                                    <h4 className="font-medium text-gray-900 mb-2">{t('staff.registrationApprovals.note')}</h4>
                                     <p className="text-sm text-gray-700 bg-gray-50 p-3 rounded-lg">
                                         {selectedRegistration.note}
                                     </p>
@@ -392,10 +394,10 @@ const RegistrationApprovals = () => {
                                 <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
                                     <h4 className="font-medium text-purple-900 mb-2 flex items-center gap-2">
                                         <FileText className="w-4 h-4" />
-                                        Kết quả OCR
+                                        {t('staff.registrationApprovals.ocrResult')}
                                     </h4>
                                     <p className="text-sm text-purple-800">
-                                        Độ chính xác: {selectedRegistration.ocrConfidence}%
+                                        {t('staff.registrationApprovals.accuracy')}: {selectedRegistration.ocrConfidence}%
                                     </p>
                                 </div>
                             )}
@@ -406,9 +408,9 @@ const RegistrationApprovals = () => {
                                     <div className="flex items-start gap-2">
                                         <AlertCircle className="w-5 h-5 text-yellow-600 mt-0.5" />
                                         <div>
-                                            <p className="font-medium text-yellow-900">Chờ xử lý</p>
+                                            <p className="font-medium text-yellow-900">{t('staff.registrationApprovals.pendingStatus')}</p>
                                             <p className="text-sm text-yellow-800 mt-1">
-                                                Hãy kiểm tra thông tin và duyệt hoặc từ chối đăng ký này
+                                                {t('staff.registrationApprovals.pendingHint')}
                                             </p>
                                         </div>
                                     </div>
@@ -421,7 +423,7 @@ const RegistrationApprovals = () => {
                                 onClick={() => setShowDetailModal(false)}
                                 className="px-6 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
                             >
-                                Đóng
+                                {t('staff.registrationApprovals.close')}
                             </button>
                             {selectedRegistration.status === 'pending' && (
                                 <>
@@ -432,7 +434,7 @@ const RegistrationApprovals = () => {
                                         }}
                                         className="px-6 py-2 text-white bg-red-600 rounded-lg hover:bg-red-700"
                                     >
-                                        Từ chối
+                                        {t('staff.registrationApprovals.reject')}
                                     </button>
                                     <button
                                         onClick={() => {
@@ -441,7 +443,7 @@ const RegistrationApprovals = () => {
                                         }}
                                         className="px-6 py-2 text-white bg-green-600 rounded-lg hover:bg-green-700"
                                     >
-                                        Duyệt
+                                        {t('staff.registrationApprovals.approve')}
                                     </button>
                                 </>
                             )}

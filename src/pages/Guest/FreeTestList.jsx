@@ -591,25 +591,25 @@ const FreeTestList = () => {
           <div className="ftl-hero">
             <div className="ftl-eyebrow">
               <IconBadge />
-              Thi thử miễn phí
+              {t('freeTest.freeTestBadge')}
             </div>
 
             <h1>
               {courseName
-                ? <><span className="ftl-accent">{courseName}</span> — Bài Thi Thử</>
+                ? <><span className="ftl-accent">{courseName}</span> — {t('freeTest.mockExam')}</>
                 : t('freeTest.title', 'Đánh Giá Năng Lực')}
             </h1>
 
             <p>
               {courseName
-                ? `Thi thử các bài kiểm tra đánh giá năng lực cho khóa học ${courseName}`
+                ? t('freeTest.courseTestDesc', 'Thi thử các bài kiểm tra đánh giá năng lực cho khóa học {{name}}', { name: courseName })
                 : t('freeTest.subtitle', 'Làm thử 2 bài test miễn phí để xác định trình độ hiện tại của bạn')}
             </p>
 
             {courseName && (
               <button className="ftl-back-btn" onClick={() => navigate('/courses')}>
                 <IconBack />
-                Xem tất cả khóa học
+                {t('freeTest.viewAllCourses')}
               </button>
             )}
 
@@ -628,7 +628,7 @@ const FreeTestList = () => {
                 ))}
               </div>
               <span className="ftl-quota-label">
-                Còn lại <strong>{remainingFreeTests}/2</strong> lượt thi thử
+                {t('freeTest.remaining', 'Còn lại <strong>{{count}}/2</strong> lượt thi thử', { count: remainingFreeTests }, { interpolation: { escapeValue: false } })}
               </span>
             </div>
           </div>
@@ -659,10 +659,10 @@ const FreeTestList = () => {
                   {/* ── Card top ── */}
                   <div className={topCls}>
                     {completed && !isLocked && (
-                      <div className="ftl-card-badge"><IconCheck />Đã hoàn thành</div>
+                      <div className="ftl-card-badge"><IconCheck />{t('freeTest.completed')}</div>
                     )}
                     {isLocked && (
-                      <div className="ftl-card-badge"><IconLock />Đã khóa</div>
+                      <div className="ftl-card-badge"><IconLock />{t('freeTest.lockedBadge')}</div>
                     )}
 
                     <div className="ftl-card-num">
@@ -694,11 +694,11 @@ const FreeTestList = () => {
                     <div className="ftl-sections">
                       <div className={`ftl-section-tag${isLocked ? ' ftl-section-tag--gray' : ''}`}>
                         <span className="ftl-section-name">{test.sections[0].name}</span>
-                        <span className="ftl-section-count">{test.sections[0].questions} câu</span>
+                        <span className="ftl-section-count">{test.sections[0].questions} {t('freeTest.questionsUnit')}</span>
                       </div>
                       <div className={secBCls}>
                         <span className="ftl-section-name">{test.sections[1].name}</span>
-                        <span className="ftl-section-count">{test.sections[1].questions} câu</span>
+                        <span className="ftl-section-count">{test.sections[1].questions} {t('freeTest.questionsUnit')}</span>
                       </div>
                     </div>
 
@@ -757,10 +757,10 @@ const FreeTestList = () => {
                             className="ftl-btn ftl-btn--primary flex-1"
                             style={{ background: '#F59E0B', borderColor: '#D97706' }}
                             onClick={() => handleStartTest(test.id)}
-                            title="Làm lại sẽ tính 1 lượt thi"
+                            title={t('freeTest.retestWarning')}
                           >
                             <IconPlay />
-                            Thi lại
+                            {t('freeTest.retest')}
                           </button>
                         )}
                       </div>

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { TrendingUp, TrendingDown, Award, BookOpen, Target, Calendar, BarChart3, LineChart } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import axiosClient from '../../api/axiosClient';
 
 /**
@@ -16,6 +17,7 @@ import axiosClient from '../../api/axiosClient';
  * - Learning path visualization
  */
 const LearnerProgressDashboard = ({ userId, timeRange = '30d' }) => {
+    const { t } = useTranslation();
     const [loading, setLoading] = useState(true);
     const [progressData, setProgressData] = useState(null);
     const [selectedTab, setSelectedTab] = useState('overview');
@@ -42,7 +44,7 @@ const LearnerProgressDashboard = ({ userId, timeRange = '30d' }) => {
         return (
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
-                <p className="text-gray-600 mt-4">Đang tải dữ liệu tiến độ...</p>
+                <p className="text-gray-600 mt-4">{t('component.learnerProgress.loading')}</p>
             </div>
         );
     }
@@ -51,7 +53,7 @@ const LearnerProgressDashboard = ({ userId, timeRange = '30d' }) => {
         return (
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
                 <BarChart3 className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                <p className="text-gray-500">Không có dữ liệu tiến độ</p>
+                <p className="text-gray-500">{t('component.learnerProgress.noData')}</p>
             </div>
         );
     }
@@ -61,8 +63,8 @@ const LearnerProgressDashboard = ({ userId, timeRange = '30d' }) => {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h2 className="text-2xl font-bold text-gray-900">Tiến độ học tập</h2>
-                    <p className="text-gray-600">Theo dõi và phân tích kết quả học tập</p>
+                    <h2 className="text-2xl font-bold text-gray-900">{t('component.learnerProgress.title')}</h2>
+                    <p className="text-gray-600">{t('component.learnerProgress.subtitle')}</p>
                 </div>
                 <div className="flex items-center gap-2">
                     <select
@@ -70,10 +72,10 @@ const LearnerProgressDashboard = ({ userId, timeRange = '30d' }) => {
                         onChange={(e) => window.location.reload()} // In real app, update state
                         className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
                     >
-                        <option value="7d">7 ngày</option>
-                        <option value="30d">30 ngày</option>
-                        <option value="90d">90 ngày</option>
-                        <option value="all">Tất cả</option>
+                        <option value="7d">{t('component.learnerProgress.7days')}</option>
+                        <option value="30d">{t('component.learnerProgress.30days')}</option>
+                        <option value="90d">{t('component.learnerProgress.90days')}</option>
+                        <option value="all">{t('component.learnerProgress.allTime')}</option>
                     </select>
                 </div>
             </div>
@@ -81,7 +83,7 @@ const LearnerProgressDashboard = ({ userId, timeRange = '30d' }) => {
             {/* Overview Stats */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <StatCard
-                    title="Điểm trung bình"
+                    title={t('component.learnerProgress.avgScore')}
                     value={progressData.averageScore}
                     unit="/100"
                     icon={<Award className="w-5 h-5" />}
@@ -89,21 +91,21 @@ const LearnerProgressDashboard = ({ userId, timeRange = '30d' }) => {
                     trend={progressData.scoreTrend}
                 />
                 <StatCard
-                    title="Khóa học đã hoàn thành"
+                    title={t('component.learnerProgress.completedCourses')}
                     value={progressData.completedCourses}
                     icon={<BookOpen className="w-5 h-5" />}
                     color="blue"
                     trend={progressData.courseTrend}
                 />
                 <StatCard
-                    title="Bài tập đã nộp"
+                    title={t('component.learnerProgress.assignmentsSubmitted')}
                     value={progressData.assignmentsCompleted}
                     icon={<Target className="w-5 h-5" />}
                     color="purple"
                     trend={progressData.assignmentTrend}
                 />
                 <StatCard
-                    title="Điểm danh"
+                    title={t('component.learnerProgress.attendance')}
                     value={progressData.attendanceRate}
                     unit="%"
                     icon={<Calendar className="w-5 h-5" />}
@@ -125,9 +127,9 @@ const LearnerProgressDashboard = ({ userId, timeRange = '30d' }) => {
                                     : 'border-transparent text-gray-500 hover:text-gray-700'
                             }`}
                         >
-                            {tab === 'overview' ? 'Tổng quan' :
-                             tab === 'courses' ? 'Khóa học' :
-                             tab === 'assignments' ? 'Bài tập' : 'Bài kiểm tra'}
+                            {tab === 'overview' ? t('component.learnerProgress.tabOverview') :
+                             tab === 'courses' ? t('component.learnerProgress.tabCourses') :
+                             tab === 'assignments' ? t('component.learnerProgress.tabAssignments') : t('component.learnerProgress.tabTests')}
                         </button>
                     ))}
                 </div>
@@ -140,7 +142,7 @@ const LearnerProgressDashboard = ({ userId, timeRange = '30d' }) => {
                     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                         <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
                             <LineChart className="w-5 h-5 text-green-600" />
-                            Xu hướng điểm số
+                            {t('component.learnerProgress.scoreTrend')}
                         </h3>
                         <ScoreChart data={progressData.scoreHistory} />
                     </div>
@@ -149,7 +151,7 @@ const LearnerProgressDashboard = ({ userId, timeRange = '30d' }) => {
                     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                         <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
                             <BookOpen className="w-5 h-5 text-blue-600" />
-                            Tiến độ khóa học
+                            {t('component.learnerProgress.courseProgress')}
                         </h3>
                         <div className="space-y-4">
                             {progressData.courses?.map((course, idx) => (
@@ -239,7 +241,9 @@ const ScoreChart = ({ data }) => {
     );
 };
 
-const CourseProgressList = ({ courses }) => (
+const CourseProgressList = ({ courses }) => {
+    const { t } = useTranslation();
+    return (
     <div className="space-y-4">
         {courses?.map((course, idx) => (
             <div key={idx} className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
@@ -253,30 +257,33 @@ const CourseProgressList = ({ courses }) => (
                         course.status === 'in_progress' ? 'bg-blue-100 text-blue-700' :
                         'bg-gray-100 text-gray-700'
                     }`}>
-                        {course.status === 'completed' ? 'Đã hoàn thành' :
-                         course.status === 'in_progress' ? 'Đang học' : 'Chưa bắt đầu'}
+                        {course.status === 'completed' ? t('component.learnerProgress.statusCompleted') :
+                         course.status === 'in_progress' ? t('component.learnerProgress.statusInProgress') : t('component.learnerProgress.statusNotStarted')}
                     </span>
                 </div>
                 <div className="grid grid-cols-3 gap-4 text-sm">
                     <div>
-                        <span className="text-gray-600">Tiến độ:</span>
+                        <span className="text-gray-600">{t('component.learnerProgress.progress')}:</span>
                         <span className="ml-2 font-medium">{course.progress}%</span>
                     </div>
                     <div>
-                        <span className="text-gray-600">Điểm trung bình:</span>
+                        <span className="text-gray-600">{t('component.learnerProgress.avgScore')}:</span>
                         <span className="ml-2 font-medium">{course.avgScore}/100</span>
                     </div>
                     <div>
-                        <span className="text-gray-600">Số buổi học:</span>
+                        <span className="text-gray-600">{t('component.learnerProgress.sessionsAttended')}:</span>
                         <span className="ml-2 font-medium">{course.attended}/{course.total}</span>
                     </div>
                 </div>
             </div>
         ))}
     </div>
-);
+    );
+};
 
-const AssignmentProgressList = ({ assignments }) => (
+const AssignmentProgressList = ({ assignments }) => {
+    const { t } = useTranslation();
+    return (
     <div className="space-y-4">
         {assignments?.map((assignment, idx) => (
             <div key={idx} className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
@@ -289,7 +296,7 @@ const AssignmentProgressList = ({ assignments }) => (
                         {assignment.score ? (
                             <p className="text-lg font-bold text-green-600">{assignment.score}/100</p>
                         ) : (
-                            <p className="text-sm text-gray-500">Chưa chấm</p>
+                            <p className="text-sm text-gray-500">{t('component.learnerProgress.notGraded')}</p>
                         )}
                         <p className="text-xs text-gray-500">{assignment.submittedAt}</p>
                     </div>
@@ -297,7 +304,8 @@ const AssignmentProgressList = ({ assignments }) => (
             </div>
         ))}
     </div>
-);
+    );
+};
 
 const TestProgressList = ({ tests }) => (
     <div className="space-y-4">

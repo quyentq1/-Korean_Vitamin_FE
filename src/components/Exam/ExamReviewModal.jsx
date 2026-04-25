@@ -1,8 +1,10 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { X } from 'lucide-react';
 import AIAnswerExplanation from '../AI/AIAnswerExplanation';
 
 const ExamReviewModal = ({ isOpen, onClose, attempt, exam }) => {
+    const { t } = useTranslation();
     if (!isOpen || !attempt || !exam) return null;
 
     const questions = exam.examQuestions || [];
@@ -27,7 +29,7 @@ const ExamReviewModal = ({ isOpen, onClose, attempt, exam }) => {
                 {/* Header */}
                 <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 shrink-0">
                     <div>
-                        <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Xem lại bài thi</h2>
+                        <h2 className="text-xl sm:text-2xl font-bold text-gray-900">{t('component.examReview.title')}</h2>
                         <p className="text-xs sm:text-sm text-gray-500 mt-1">{exam.title}</p>
                     </div>
                     <button
@@ -108,7 +110,7 @@ const ExamReviewModal = ({ isOpen, onClose, attempt, exam }) => {
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center gap-2 mb-1 sm:mb-2 flex-wrap">
                                                 <span className="text-xs sm:text-sm font-semibold text-gray-500">
-                                                    Câu {index + 1}
+                                                    {t('component.examReview.question')} {index + 1}
                                                 </span>
                                                 <span className={`px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-xs font-medium ${
                                                     question.questionType === 'LISTENING'
@@ -126,7 +128,7 @@ const ExamReviewModal = ({ isOpen, onClose, attempt, exam }) => {
                                                      question.questionType || 'MULTIPLE_CHOICE'}
                                                 </span>
                                                 <span className="text-xs sm:text-sm text-gray-500">
-                                                    {eq.points || 1} điểm
+                                                    {eq.points || 1} {t('component.examReview.points')}
                                                 </span>
                                             </div>
                                             <p className="text-sm sm:text-base text-gray-900 font-medium whitespace-pre-wrap">
@@ -138,7 +140,7 @@ const ExamReviewModal = ({ isOpen, onClose, attempt, exam }) => {
                                                 <div className="mt-3">
                                                     <img
                                                         src={question.imageUrl}
-                                                        alt="Hình ảnh câu hỏi"
+                                                        alt={t('component.examReview.questionImage')}
                                                         className="max-w-full max-h-80 rounded-xl border border-gray-200 shadow-sm"
                                                         onError={(e) => { e.target.style.display = 'none'; }}
                                                     />
@@ -151,7 +153,7 @@ const ExamReviewModal = ({ isOpen, onClose, attempt, exam }) => {
                                     {question.questionType === 'LISTENING' && question.questionMediaUrl && (
                                         <div className="mb-3 ml-14">
                                             <div className="p-3 bg-blue-50 rounded-lg border border-blue-100">
-                                                <p className="text-xs font-semibold text-blue-800 mb-2">🔊 File nghe:</p>
+                                                <p className="text-xs font-semibold text-blue-800 mb-2">{t('component.examReview.audioFile', '🔊 File nghe:')}</p>
                                                 <audio controls className="w-full h-10">
                                                     <source src={question.questionMediaUrl} type="audio/mpeg" />
                                                 </audio>
@@ -191,12 +193,12 @@ const ExamReviewModal = ({ isOpen, onClose, attempt, exam }) => {
                                                             <div className="flex gap-2 mt-1">
                                                                 {isUserSelected && (
                                                                     <span className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded">
-                                                                        Bạn chọn
+                                                                        {t('component.examReview.yourAnswer')}
                                                                     </span>
                                                                 )}
                                                                 {isCorrectAnswer && (
                                                                     <span className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded">
-                                                                        Đáp án đúng
+                                                                        {t('component.examReview.correctAnswer')}
                                                                     </span>
                                                                 )}
                                                             </div>
@@ -212,10 +214,10 @@ const ExamReviewModal = ({ isOpen, onClose, attempt, exam }) => {
                                         <div className="ml-14 space-y-3">
                                             <div className="p-4 bg-white rounded-lg border border-gray-200">
                                                 <p className="text-xs font-semibold text-gray-500 mb-2">
-                                                    📝 Câu trả lời của bạn:
+                                                    📝 {t('component.examReview.yourResponse')}:
                                                 </p>
                                                 <p className="text-sm text-gray-900 whitespace-pre-wrap">
-                                                    {userAnswer.answerText || 'Không có câu trả lời'}
+                                                    {userAnswer.answerText || t('component.examReview.noAnswer')}
                                                 </p>
                                             </div>
 
@@ -223,7 +225,7 @@ const ExamReviewModal = ({ isOpen, onClose, attempt, exam }) => {
                                             {userAnswer.feedback && userAnswer.feedback.trim() && (
                                                 <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
                                                     <p className="text-xs font-semibold text-blue-900 mb-1">
-                                                        💬 Nhận xét của giáo viên:
+                                                        💬 {t('component.examReview.teacherFeedback')}:
                                                     </p>
                                                     <p className="text-sm text-blue-800 whitespace-pre-wrap">
                                                         {userAnswer.feedback}
@@ -235,7 +237,7 @@ const ExamReviewModal = ({ isOpen, onClose, attempt, exam }) => {
                                             {userAnswer.gradedBy && (
                                                 <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
                                                     <p className="text-xs text-gray-600">
-                                                        ✍️ Chấm bởi: <span className="font-semibold text-gray-900">{userAnswer.gradedBy}</span>
+                                                        ✍️ {t('component.examReview.gradedBy')}: <span className="font-semibold text-gray-900">{userAnswer.gradedBy}</span>
                                                         {userAnswer.gradedAt && (
                                                             <span className="ml-2">
                                                                 • {new Date(userAnswer.gradedAt).toLocaleString('vi-VN')}
@@ -251,7 +253,7 @@ const ExamReviewModal = ({ isOpen, onClose, attempt, exam }) => {
                                     {isMultipleChoice && question.explanation && (
                                         <div className="mt-4 ml-14 p-4 bg-blue-50 rounded-lg border border-blue-200">
                                             <p className="text-sm font-semibold text-blue-900 mb-1">
-                                                💡 Giải thích:
+                                                💡 {t('component.examReview.explanation')}:
                                             </p>
                                             <p className="text-sm text-blue-800 whitespace-pre-wrap">
                                                 {question.explanation}
@@ -280,7 +282,7 @@ const ExamReviewModal = ({ isOpen, onClose, attempt, exam }) => {
                                     {userAnswer && (
                                         <div className="mt-4 ml-4 p-3 bg-white rounded-lg border border-gray-200">
                                             <p className="text-xs text-gray-500 mb-1">
-                                                Chi tiết câu trả lời:
+                                                {t('component.examReview.answerDetails')}:
                                             </p>
                                             <div className="flex items-center gap-4 text-sm">
                                                 {isWritingOrSpeaking ? (
@@ -291,11 +293,11 @@ const ExamReviewModal = ({ isOpen, onClose, attempt, exam }) => {
                                                                 : 'text-orange-600'
                                                         }`}>
                                                             {userAnswer.score !== null && userAnswer.score !== undefined
-                                                                ? 'Đã chấm'
-                                                                : 'Chờ chấm'}
+                                                                ? t('component.examReview.graded')
+                                                                : t('component.examReview.pendingGrade')}
                                                         </span>
                                                         <span className="text-gray-500">
-                                                            Điểm: {userAnswer.score !== null && userAnswer.score !== undefined ? userAnswer.score : '-'}/{eq.points || 1}
+                                                            {t('component.examReview.score')}: {userAnswer.score !== null && userAnswer.score !== undefined ? userAnswer.score : '-'}/{eq.points || 1}
                                                         </span>
                                                     </>
                                                 ) : (
@@ -303,10 +305,10 @@ const ExamReviewModal = ({ isOpen, onClose, attempt, exam }) => {
                                                         <span className={`font-semibold ${
                                                             isCorrect ? 'text-green-600' : 'text-red-600'
                                                         }`}>
-                                                            {isCorrect ? 'Chính xác' : 'Sai'}
+                                                            {isCorrect ? t('component.examReview.correct') : t('component.examReview.incorrect')}
                                                         </span>
                                                         <span className="text-gray-500">
-                                                            Điểm: {userAnswer.score || 0}/{eq.points || 1}
+                                                            {t('component.examReview.score')}: {userAnswer.score || 0}/{eq.points || 1}
                                                         </span>
                                                     </>
                                                 )}
@@ -328,14 +330,14 @@ const ExamReviewModal = ({ isOpen, onClose, attempt, exam }) => {
                                 ? 'bg-green-100 text-green-700 border-2 border-green-300'
                                 : 'bg-red-100 text-red-700 border-2 border-red-300'
                         }`}>
-                            {passed ? '✓ ĐẠT' : '✗ KHÔNG ĐẠT'}
+                            {passed ? `✓ ${t('component.examReview.passed')}` : `✗ ${t('component.examReview.failed')}`}
                         </div>
                         <div className="text-xs sm:text-sm text-gray-600">
-                            <span className="font-semibold">{actualScore || 0}/{calculatedTotalPoints} điểm</span>
+                            <span className="font-semibold">{actualScore || 0}/{calculatedTotalPoints} {t('component.examReview.points')}</span>
                             <span className="mx-1">•</span>
                             <span>{scorePercentage}%</span>
                             <span className="mx-1">•</span>
-                            <span>Đạt: {exam.passingScore || 60}%</span>
+                            <span>{t('component.examReview.passRequirement')}: {exam.passingScore || 60}%</span>
                         </div>
                     </div>
                     <div className="flex gap-2 sm:gap-3">
@@ -343,7 +345,7 @@ const ExamReviewModal = ({ isOpen, onClose, attempt, exam }) => {
                             onClick={onClose}
                             className="px-4 sm:px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition font-medium text-sm"
                                                         >
-                                                            Đóng
+                                                            {t('common.close')}
                                                         </button>
                     </div>
                 </div>

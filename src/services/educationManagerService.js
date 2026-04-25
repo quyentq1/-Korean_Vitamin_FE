@@ -313,18 +313,16 @@ const educationManagerService = {
 
     getCertificates: async (status) => {
         const params = status && status !== 'all' ? { status } : {};
-        const response = await axiosClient.get('/education-manager/certificates', { params });
-        return response.data;
+        // axiosClient interceptor already returns response.data — no extra .data needed
+        return await axiosClient.get('/education-manager/certificates', { params });
     },
 
     approveCertificate: async (id) => {
-        const response = await axiosClient.post(`/education-manager/certificates/${id}/approve`);
-        return response.data;
+        return await axiosClient.post(`/education-manager/certificates/${id}/approve`);
     },
 
     rejectCertificate: async (id, reason) => {
-        const response = await axiosClient.post(`/education-manager/certificates/${id}/reject`, { reason });
-        return response.data;
+        return await axiosClient.post(`/education-manager/certificates/${id}/reject`, { reason });
     },
 };
 

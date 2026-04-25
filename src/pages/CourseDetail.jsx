@@ -32,60 +32,60 @@ const CourseDetail = () => {
     // Legacy static data for fallback
     const staticCourseData = {
         'topik': {
-            title: 'TOPIK - Kiểm Tra Chứng Chỉ Tiếng Hàn',
+            title: t('page.courseDetail.topik.title'),
             icon: '📝',
             color: 'from-blue-500 to-blue-700',
             bgColor: 'bg-blue-500',
-            desc: 'Đánh giá năng lực tiếng Hàn 4 kỹ năng',
-            fullDesc: 'TOPIK (Test of Proficiency in Korean) là kỳ thi năng lực tiếng Hàn được công nhận rộng rãi trên toàn thế giới, là điều kiện bắt buộc cho du học, định cư và làm việc tại Hàn Quốc.',
+            desc: t('page.courseDetail.topik.desc'),
+            fullDesc: t('page.courseDetail.topik.fullDesc'),
             whyLearn: [
-                'Cơ hội học bổng du học Hàn Quốc',
-                'Điều kiện làm việc tại các công ty Hàn',
-                'Chứng chỉ năng lực quốc tế'
+                t('page.courseDetail.topik.why1'),
+                t('page.courseDetail.topik.why2'),
+                t('page.courseDetail.topik.why3')
             ],
             curriculum: [
-                { module: 'Ngữ pháp & Từ vựng', lessons: 20 },
-                { module: 'Đọc hiểu', lessons: 15 },
-                { module: 'Nghe hiểu', lessons: 20 },
-                { module: 'Viết', lessons: 15 }
+                { module: t('page.courseDetail.topik.mod1'), lessons: 20 },
+                { module: t('page.courseDetail.topik.mod2'), lessons: 15 },
+                { module: t('page.courseDetail.topik.mod3'), lessons: 20 },
+                { module: t('page.courseDetail.topik.mod4'), lessons: 15 }
             ]
         },
         'opic': {
-            title: 'OPIc - Kiểm Tra Nói Tiếng Hàn',
+            title: t('page.courseDetail.opic.title'),
             icon: '🎤',
             color: 'from-purple-500 to-purple-700',
             bgColor: 'bg-purple-500',
-            desc: 'Đánh giá khả năng giao tiếp thực tế',
-            fullDesc: 'OPIc (Oral Proficiency Interview - computer) đánh giá khả năng giao tiếp tiếng Hàn thực tế trong môi trường làm việc và cuộc sống hàng ngày.',
+            desc: t('page.courseDetail.opic.desc'),
+            fullDesc: t('page.courseDetail.opic.fullDesc'),
             whyLearn: [
-                'Đánh giá kỹ năng nói thực tế',
-                'Được doanh nghiệp đánh giá cao',
-                'Thi qua máy tính linh hoạt'
+                t('page.courseDetail.opic.why1'),
+                t('page.courseDetail.opic.why2'),
+                t('page.courseDetail.opic.why3')
             ],
             curriculum: [
-                { module: 'Phát âm chuẩn', lessons: 10 },
-                { module: 'Hội thoại chủ đề', lessons: 15 },
-                { module: 'Mô tả & Tường thuật', lessons: 20 },
-                { module: 'Luyện thi OPIc', lessons: 10 }
+                { module: t('page.courseDetail.opic.mod1'), lessons: 10 },
+                { module: t('page.courseDetail.opic.mod2'), lessons: 15 },
+                { module: t('page.courseDetail.opic.mod3'), lessons: 20 },
+                { module: t('page.courseDetail.opic.mod4'), lessons: 10 }
             ]
         },
         'eps': {
-            title: 'EPS-TOPIK - Lao Động Hàn Quốc',
+            title: t('page.courseDetail.eps.title'),
             icon: '✈️',
             color: 'from-emerald-500 to-emerald-700',
             bgColor: 'bg-emerald-500',
-            desc: 'Kỳ thi bắt buộc cho lao động Việt Nam',
-            fullDesc: 'EPS-TOPIK là kỳ thi bắt buộc cho lao động Việt Nam muốn đi làm việc tại Hàn Quốc theo chương trình EPS (Employment Permit System).',
+            desc: t('page.courseDetail.eps.desc'),
+            fullDesc: t('page.courseDetail.eps.fullDesc'),
             whyLearn: [
-                'Xuất khẩu lao động Hàn Quốc',
-                'Thu nhập hấp dẫn 30-50 triệu/tháng',
-                'Học phí được hỗ trợ'
+                t('page.courseDetail.eps.why1'),
+                t('page.courseDetail.eps.why2'),
+                t('page.courseDetail.eps.why3')
             ],
             curriculum: [
-                { module: 'Đọc hiểu', lessons: 20 },
-                { module: 'Nghe hiểu', lessons: 25 },
-                { module: 'Ngữ pháp', lessons: 15 },
-                { module: 'Situational Korean', lessons: 20 }
+                { module: t('page.courseDetail.eps.mod1'), lessons: 20 },
+                { module: t('page.courseDetail.eps.mod2'), lessons: 25 },
+                { module: t('page.courseDetail.eps.mod3'), lessons: 15 },
+                { module: t('page.courseDetail.eps.mod4'), lessons: 20 }
             ]
         }
     };
@@ -111,7 +111,7 @@ const CourseDetail = () => {
                             color: 'from-blue-500 to-blue-700',
                             bgColor: 'bg-blue-500',
                             desc: `${data.code || ''} - ${data.schedule || ''}`,
-                            fullDesc: data.description || 'Không có mô tả',
+                            fullDesc: data.description || t('courseDetail.noDescription', 'Không có mô tả'),
                             whyLearn: data.objectives ? data.objectives.split('\n').filter(Boolean) : ['Chương trình chuẩn quốc tế', 'Giảng viên giàu kinh nghiệm'],
                             curriculum: data.modules || [],
                             fee: data.fee ? `${data.fee.toLocaleString()}đ` : null,
@@ -143,7 +143,7 @@ const CourseDetail = () => {
                         }
                     } catch (err) {
                         console.error('Error fetching course:', err);
-                        setError('Không thể tải thông tin khóa học.');
+                        setError(t('courseDetail.errorLoading', 'Không thể tải thông tin khóa học.'));
                     }
                 } else {
                     // Handle static IDs (topik, opic, eps, etc.)
@@ -156,12 +156,12 @@ const CourseDetail = () => {
                             recordCourseInterest(id);
                         }
                     } else {
-                        setError('Không tìm thấy khóa học.');
+                        setError(t('courseDetail.notFound', 'Không tìm thấy khóa học.'));
                     }
                 }
             } catch (err) {
                 console.error('Error in fetchCourse:', err);
-                setError('Không thể tải thông tin khóa học.');
+                setError(t('courseDetail.errorLoading', 'Không thể tải thông tin khóa học.'));
             } finally {
                 setLoading(false);
             }
@@ -209,8 +209,8 @@ const CourseDetail = () => {
         return (
             <div className="min-h-screen flex items-center justify-center">
                 <div className="text-center text-red-500">
-                    <p className="text-xl font-semibold mb-2">Lỗi</p>
-                    <p>{error || 'Không tìm thấy khóa học.'}</p>
+                    <p className="text-xl font-semibold mb-2">{t('courseDetail.error', 'Lỗi')}</p>
+                    <p>{error || t('courseDetail.notFound', 'Không tìm thấy khóa học.')}</p>
                 </div>
             </div>
         );
@@ -247,10 +247,10 @@ const CourseDetail = () => {
                         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                             <div className="text-center sm:text-left">
                                 <h3 className="text-xl sm:text-2xl font-bold text-white mb-1">
-                                    🎯 Khám phá năng lực tiếng Hàn của bạn ngay!
+                                    🎯 {t('courseDetail.discoverSkills', 'Khám phá năng lực tiếng Hàn của bạn ngay!')}
                                 </h3>
                                 <p className="text-white/90 text-sm sm:text-base">
-                                    Thi thử miễn phí - Không cần đăng ký - Nhận kết quả ngay lập tức
+                                    {t('courseDetail.freeTestBanner', 'Thi thử miễn phí - Không cần đăng ký - Nhận kết quả ngay lập tức')}
                                 </p>
                             </div>
                             <button
@@ -259,7 +259,7 @@ const CourseDetail = () => {
                             >
                                 <span className="flex items-center gap-2">
                                     <span className="text-2xl group-hover:rotate-12 transition-transform">🚀</span>
-                                    <span>Bắt Đầu Thi Thử</span>
+                                    <span>{t('courseDetail.startFreeTest', 'Bắt Đầu Thi Thử')}</span>
                                 </span>
                             </button>
                         </div>
@@ -277,7 +277,7 @@ const CourseDetail = () => {
                                     {course.level === 'BEGINNER' ? '🌱' : course.level === 'INTERMEDIATE' ? '📚' : '🎯'}
                                 </div>
                                 <div>
-                                    <p className="text-xs text-gray-500">Độ khó</p>
+                                    <p className="text-xs text-gray-500">{t('courseDetail.level', 'Độ khó')}</p>
                                     <p className="font-semibold text-gray-900">
                                         {course.level === 'BEGINNER' ? 'TOPIK I' : course.level === 'INTERMEDIATE' ? 'TOPIK II' : 'ESP'}
                                     </p>
@@ -292,7 +292,7 @@ const CourseDetail = () => {
                                     ⏱️
                                 </div>
                                 <div>
-                                    <p className="text-xs text-gray-500">Thời lượng</p>
+                                    <p className="text-xs text-gray-500">{t('courseDetail.duration', 'Thời lượng')}</p>
                                     <p className="font-semibold text-gray-900">{course.duration} giờ</p>
                                 </div>
                             </div>
@@ -305,7 +305,7 @@ const CourseDetail = () => {
                                     📅
                                 </div>
                                 <div>
-                                    <p className="text-xs text-gray-500">Lịch học</p>
+                                    <p className="text-xs text-gray-500">{t('courseDetail.schedule', 'Lịch học')}</p>
                                     <p className="font-semibold text-gray-900 text-sm">{course.schedule}</p>
                                 </div>
                             </div>
@@ -315,7 +315,7 @@ const CourseDetail = () => {
                     {/* Requirements */}
                     {course.requirements && (
                         <div className="bg-white rounded-2xl shadow-sm p-6 sm:p-8 mb-6">
-                            <h2 className="text-2xl font-bold text-gray-900 mb-4">Yêu cầu khóa học</h2>
+                            <h2 className="text-2xl font-bold text-gray-900 mb-4">{t('courseDetail.requirements', 'Yêu cầu khóa học')}</h2>
                             <div className="text-gray-700 leading-relaxed whitespace-pre-line">
                                 {course.requirements}
                             </div>
@@ -325,7 +325,7 @@ const CourseDetail = () => {
                     {/* Pass Criteria - NEW */}
                     {(course.passCriteria || (course.level && course.duration)) && (
                         <div className="bg-white rounded-2xl shadow-sm p-6 sm:p-8 mb-6">
-                            <h2 className="text-2xl font-bold text-gray-900 mb-4">Điều kiện qua môn</h2>
+                            <h2 className="text-2xl font-bold text-gray-900 mb-4">{t('courseDetail.passCriteria', 'Điều kiện qua môn')}</h2>
 
                             {course.passCriteria ? (
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -334,7 +334,7 @@ const CourseDetail = () => {
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center gap-2">
                                                 <span className="text-2xl">🎯</span>
-                                                <span className="font-medium text-gray-900">Điểm qua môn</span>
+                                                <span className="font-medium text-gray-900">{t('courseDetail.passingScore', 'Điểm qua môn')}</span>
                                             </div>
                                             <span className="text-2xl font-bold text-green-600">
                                                 {course.passCriteria.passingScore || 70}%
@@ -347,7 +347,7 @@ const CourseDetail = () => {
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center gap-2">
                                                 <span className="text-2xl">📋</span>
-                                                <span className="font-medium text-gray-900">Điểm danh</span>
+                                                <span className="font-medium text-gray-900">{t('courseDetail.attendance', 'Điểm danh')}</span>
                                             </div>
                                             <span className="text-2xl font-bold text-blue-600">
                                                 {course.passCriteria.requiredAttendance || 80}%
@@ -361,7 +361,7 @@ const CourseDetail = () => {
                                             <div className="flex items-start gap-2">
                                                 <span className="text-2xl">🏆</span>
                                                 <div>
-                                                    <p className="font-medium text-gray-900 mb-1">Cấp chứng chỉ</p>
+                                                    <p className="font-medium text-gray-900 mb-1">{t('courseDetail.certificate', 'Cấp chứng chỉ')}</p>
                                                     <p className="text-sm text-gray-700">{course.passCriteria.certificateCriteria}</p>
                                                 </div>
                                             </div>
@@ -375,7 +375,7 @@ const CourseDetail = () => {
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center gap-2">
                                                 <span className="text-2xl">🎯</span>
-                                                <span className="font-medium text-gray-900">Điểm qua môn</span>
+                                                <span className="font-medium text-gray-900">{t('courseDetail.passingScore', 'Điểm qua môn')}</span>
                                             </div>
                                             <span className="text-2xl font-bold text-green-600">70%</span>
                                         </div>
@@ -385,7 +385,7 @@ const CourseDetail = () => {
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center gap-2">
                                                 <span className="text-2xl">📋</span>
-                                                <span className="font-medium text-gray-900">Điểm danh</span>
+                                                <span className="font-medium text-gray-900">{t('courseDetail.attendance', 'Điểm danh')}</span>
                                             </div>
                                             <span className="text-2xl font-bold text-blue-600">80%</span>
                                         </div>
@@ -395,7 +395,7 @@ const CourseDetail = () => {
 
                             <div className="mt-4 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
                                 <p className="text-sm text-yellow-800">
-                                    <strong>💡 Lưu ý:</strong> Đạt điểm cao hơn yêu cầu sẽ giúp hồ sơ của bạn đẹp hơn khi xin việc hoặc du học!
+                                    <strong>💡 {t('courseDetail.note', 'Lưu ý')}:</strong> {t('courseDetail.noteText', 'Đạt điểm cao hơn yêu cầu sẽ giúp hồ sơ của bạn đẹp hơn khi xin việc hoặc du học!')}
                                 </p>
                             </div>
                         </div>
@@ -425,7 +425,7 @@ const CourseDetail = () => {
                     {/* Requirements */}
                     {course.requirements && (
                         <div className="bg-white rounded-2xl shadow-sm p-6 sm:p-8 mb-6">
-                            <h2 className="text-2xl font-bold text-gray-900 mb-4">Yêu cầu khóa học</h2>
+                            <h2 className="text-2xl font-bold text-gray-900 mb-4">{t('courseDetail.requirements', 'Yêu cầu khóa học')}</h2>
                             <div className="text-gray-700 leading-relaxed whitespace-pre-line">
                                 {course.requirements}
                             </div>
@@ -437,7 +437,7 @@ const CourseDetail = () => {
                         /* DB course with lessons from API */
                         <div className="bg-white rounded-2xl shadow-sm p-6 sm:p-8 mb-6">
                             <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('courseDetail.curriculum', 'Nội dung khóa học')}</h2>
-                            <p className="text-sm text-gray-400 mb-4">{lessons.length} bài học &middot; {lessons.reduce((s, l) => s + (l.durationMinutes || 0), 0)} phút</p>
+                            <p className="text-sm text-gray-400 mb-4">{lessons.length} {t('courseDetail.lessonsUnit', 'bài học')} &middot; {lessons.reduce((s, l) => s + (l.durationMinutes || 0), 0)} {t('common.minutes', 'phút')}</p>
                             <div className="space-y-3">
                                 {lessons.map((lesson) => (
                                     <div key={lesson.id} className="border border-gray-200 rounded-xl overflow-hidden">
@@ -453,13 +453,13 @@ const CourseDetail = () => {
                                                     <span className="font-medium text-gray-900 truncate">{lesson.title}</span>
                                                     {lesson.isPreview && (
                                                         <span className="shrink-0 text-[10px] px-1.5 py-0.5 rounded-full bg-green-100 text-green-700 font-medium">
-                                                            <Eye className="w-3 h-3 inline mr-0.5" />Miễn phí
+                                                            <Eye className="w-3 h-3 inline mr-0.5" />{t('courseDetail.free', 'Miễn phí')}
                                                         </span>
                                                     )}
                                                 </div>
                                                 <div className="flex items-center gap-3 mt-0.5 text-xs text-gray-400">
-                                                    {lesson.durationMinutes && <span>{lesson.durationMinutes} phút</span>}
-                                                    {lesson.videoUrl && <span className="flex items-center gap-0.5"><Video className="w-3 h-3" /> Video</span>}
+                                                    {lesson.durationMinutes && <span>{lesson.durationMinutes} {t('common.minutes', 'phút')}</span>}
+                                                    {lesson.videoUrl && <span className="flex items-center gap-0.5"><Video className="w-3 h-3" /> {t('courseDetail.video', 'Video')}</span>}
                                                 </div>
                                             </div>
                                             <svg className={`w-5 h-5 text-gray-400 transition-transform shrink-0 ${expandedLesson === lesson.id ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -476,7 +476,7 @@ const CourseDetail = () => {
                                                                 return match ? (
                                                                     <iframe width="100%" style={{ aspectRatio: '16/9', height: 'auto' }} src={`https://www.youtube.com/embed/${match[1]}`} frameBorder="0" allowFullScreen className="rounded-lg" />
                                                                 ) : (
-                                                                    <a href={lesson.videoUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline text-sm">Mở video</a>
+                                                                    <a href={lesson.videoUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline text-sm">{t('courseDetail.openVideo', 'Mở video')}</a>
                                                                 );
                                                             })()
                                                         ) : (
@@ -487,7 +487,7 @@ const CourseDetail = () => {
                                                 {lesson.content ? (
                                                     <div className="prose prose-sm max-w-none text-gray-700" dangerouslySetInnerHTML={{ __html: lesson.content }} />
                                                 ) : (
-                                                    <p className="text-sm text-gray-400 italic">Chưa có nội dung chi tiết</p>
+                                                    <p className="text-sm text-gray-400 italic">{t('courseDetail.noContent', 'Chưa có nội dung chi tiết')}</p>
                                                 )}
                                             </div>
                                         )}
@@ -506,7 +506,7 @@ const CourseDetail = () => {
                                             {item.module || item.name}
                                         </h3>
                                         <p className="text-sm text-gray-500">
-                                            {item.lessons ? `${item.lessons} bài học` : `${item.hours || item.lessonCount || 0} giờ`}
+                                            {item.lessons ? `${item.lessons} ${t('courseDetail.lessonsUnit', 'bài học')}` : `${item.hours || item.lessonCount || 0} ${t('courseDetail.hoursUnit', 'giờ')}`}
                                         </p>
                                     </div>
                                 ))}
@@ -524,17 +524,17 @@ const CourseDetail = () => {
                             <div className="flex items-center justify-between mb-6">
                                 <div>
                                     <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                                        📚 Bài Luyện Tập
+                                        📚 {t('courseDetail.practiceExams', 'Bài Luyện Tập')}
                                     </h2>
                                     <p className="text-gray-600">
-                                        Làm các bài luyện tập để cải thiện kỹ năng của bạn
+                                        {t('courseDetail.practiceExamsDesc', 'Làm các bài luyện tập để cải thiện kỹ năng của bạn')}
                                     </p>
                                 </div>
                                 <button
                                     onClick={() => navigate(`/courses/${course.id}/exams`)}
                                     className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-semibold hover:shadow-lg transition-all"
                                 >
-                                    Xem tất cả
+                                    {t('courseDetail.viewAll', 'Xem tất cả')}
                                     <ArrowRight className="w-4 h-4" />
                                 </button>
                             </div>
@@ -559,15 +559,15 @@ const CourseDetail = () => {
                                         <div className="space-y-2 text-sm text-gray-600">
                                             <div className="flex items-center gap-2">
                                                 <Clock className="w-4 h-4" />
-                                                <span>{exam.durationMinutes} phút</span>
+                                                <span>{exam.durationMinutes} {t('common.minutes', 'phút')}</span>
                                             </div>
                                             <div className="flex items-center gap-2">
                                                 <FileText className="w-4 h-4" />
-                                                <span>{exam.examQuestions?.length || exam.totalQuestions || 0} câu hỏi</span>
+                                                <span>{exam.examQuestions?.length || exam.totalQuestions || 0} {t('common.questions', 'câu hỏi')}</span>
                                             </div>
                                             <div className="flex items-center gap-2">
                                                 <BookOpen className="w-4 h-4" />
-                                                <span>Đạt: {exam.passingScore || 60}%</span>
+                                                <span>{t('courseDetail.passScore', 'Đạt')}: {exam.passingScore || 60}%</span>
                                             </div>
                                         </div>
                                     </div>
@@ -577,7 +577,7 @@ const CourseDetail = () => {
                             {practiceExams.length > 3 && (
                                 <div className="text-center mt-4">
                                     <p className="text-gray-500 text-sm">
-                                        Và {practiceExams.length - 3} bài luyện tập khác...
+                                        {t('courseDetail.moreExams', 'Và')} {practiceExams.length - 3} {t('courseDetail.moreExamsSuffix', 'bài luyện tập khác...')}
                                     </p>
                                 </div>
                             )}
@@ -594,7 +594,7 @@ const CourseDetail = () => {
                             <span className="absolute inset-0 bg-white/20 rounded-xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
                             <span className="relative flex items-center gap-2">
                                 <span className="text-2xl group-hover:rotate-12 transition-transform">🎯</span>
-                                <span>Thi Thử Miễn Phí</span>
+                                <span>{t('courseDetail.freeTest', 'Thi Thử Miễn Phí')}</span>
                                 <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                                 </svg>

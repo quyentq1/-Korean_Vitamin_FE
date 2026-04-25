@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { DollarSign, TrendingUp, Users, Receipt, Calendar, Download, Filter } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import axiosClient from '../../api/axiosClient';
 
 /**
@@ -15,6 +16,7 @@ import axiosClient from '../../api/axiosClient';
  * - Outstanding payments
  */
 const RevenueDashboard = ({ timeRange = 'month' }) => {
+    const { t } = useTranslation();
     const [loading, setLoading] = useState(true);
     const [revenueData, setRevenueData] = useState(null);
     const [selectedPeriod, setSelectedPeriod] = useState(timeRange);
@@ -50,8 +52,8 @@ const RevenueDashboard = ({ timeRange = 'month' }) => {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h2 className="text-2xl font-bold text-gray-900">Doanh thu</h2>
-                    <p className="text-gray-600">Theo dõi và phân tích doanh thu</p>
+                    <h2 className="text-2xl font-bold text-gray-900">{t('analytics.revenue.heading')}</h2>
+                    <p className="text-gray-600">{t('analytics.revenue.description')}</p>
                 </div>
                 <div className="flex items-center gap-2">
                     <select
@@ -59,14 +61,14 @@ const RevenueDashboard = ({ timeRange = 'month' }) => {
                         onChange={(e) => setSelectedPeriod(e.target.value)}
                         className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
                     >
-                        <option value="week">Tuần này</option>
-                        <option value="month">Tháng này</option>
-                        <option value="quarter">Quý này</option>
-                        <option value="year">Năm nay</option>
+                        <option value="week">{t('analytics.revenue.period.week')}</option>
+                        <option value="month">{t('analytics.revenue.period.month')}</option>
+                        <option value="quarter">{t('analytics.revenue.period.quarter')}</option>
+                        <option value="year">{t('analytics.revenue.period.year')}</option>
                     </select>
                     <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2">
                         <Download className="w-4 h-4" />
-                        Xuất báo cáo
+                        {t('analytics.revenue.exportReport')}
                     </button>
                 </div>
             </div>
@@ -74,7 +76,7 @@ const RevenueDashboard = ({ timeRange = 'month' }) => {
             {/* Key Metrics */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <MetricCard
-                    title="Tổng doanh thu"
+                    title={t('analytics.revenue.cards.totalRevenue')}
                     value={revenueData.totalRevenue}
                     format="currency"
                     icon={<DollarSign className="w-5 h-5" />}
@@ -82,21 +84,21 @@ const RevenueDashboard = ({ timeRange = 'month' }) => {
                     trend={revenueData.revenueTrend}
                 />
                 <MetricCard
-                    title="Đã thanh toán"
+                    title={t('analytics.revenue.cards.paid')}
                     value={revenueData.paidAmount}
                     format="currency"
                     icon={<Receipt className="w-5 h-5" />}
                     color="blue"
                 />
                 <MetricCard
-                    title="Chưa thanh toán"
+                    title={t('analytics.revenue.cards.pending')}
                     value={revenueData.pendingAmount}
                     format="currency"
                     icon={<Calendar className="w-5 h-5" />}
                     color="orange"
                 />
                 <MetricCard
-                    title="Số học viên"
+                    title={t('analytics.revenue.cards.studentCount')}
                     value={revenueData.studentCount}
                     icon={<Users className="w-5 h-5" />}
                     color="purple"
@@ -108,13 +110,13 @@ const RevenueDashboard = ({ timeRange = 'month' }) => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Revenue Trend */}
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                    <h3 className="font-semibold text-gray-900 mb-4">Xu hướng doanh thu</h3>
+                    <h3 className="font-semibold text-gray-900 mb-4">{t('analytics.revenue.sections.revenueTrend')}</h3>
                     <RevenueTrendChart data={revenueData.trendData} />
                 </div>
 
                 {/* Revenue by Course */}
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                    <h3 className="font-semibold text-gray-900 mb-4">Doanh thu theo khóa học</h3>
+                    <h3 className="font-semibold text-gray-900 mb-4">{t('analytics.revenue.sections.revenueByCourse')}</h3>
                     <div className="space-y-3">
                         {revenueData.byCourse?.map((course, idx) => (
                             <div key={idx} className="flex items-center justify-between">
@@ -130,22 +132,22 @@ const RevenueDashboard = ({ timeRange = 'month' }) => {
 
             {/* Payment Status */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <h3 className="font-semibold text-gray-900 mb-4">Trạng thái thanh toán</h3>
+                <h3 className="font-semibold text-gray-900 mb-4">{t('analytics.revenue.sections.paymentStatus')}</h3>
                 <div className="grid grid-cols-3 gap-4">
                     <PaymentStatusCard
-                        title="Đã thanh toán"
+                        title={t('analytics.revenue.status.paid')}
                         count={revenueData.paymentStatus.paid}
                         amount={revenueData.paymentStatus.paidAmount}
                         color="green"
                     />
                     <PaymentStatusCard
-                        title="Đang chờ"
+                        title={t('analytics.revenue.status.waiting')}
                         count={revenueData.paymentStatus.pending}
                         amount={revenueData.paymentStatus.pendingAmount}
                         color="yellow"
                     />
                     <PaymentStatusCard
-                        title="Quá hạn"
+                        title={t('analytics.revenue.status.overdue')}
                         count={revenueData.paymentStatus.overdue}
                         amount={revenueData.paymentStatus.overdueAmount}
                         color="red"
@@ -231,11 +233,14 @@ const LoadingSkeleton = () => (
     </div>
 );
 
-const EmptyState = () => (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
-        <DollarSign className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-        <p className="text-gray-500">Không có dữ liệu doanh thu</p>
-    </div>
-);
+const EmptyState = () => {
+    const { t } = useTranslation();
+    return (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
+            <DollarSign className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+            <p className="text-gray-500">{t('analytics.revenue.emptyState')}</p>
+        </div>
+    );
+};
 
 export default RevenueDashboard;

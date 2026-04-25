@@ -118,11 +118,11 @@ const CourseManagement = () => {
     const handleDelete = async (course) => {
         const result = await Swal.fire({
             icon: 'question',
-            title: 'Xác nhận xóa',
-            text: t('courseMgmt.confirmDelete', `Bạn có chắc chắn muốn xóa khóa học ${course.name}?`),
+            title: t('courseMgmt.confirmDeleteTitle', 'Confirm Delete'),
+            text: t('courseMgmt.confirmDelete', `Are you sure you want to delete course ${course.name}?`),
             showCancelButton: true,
-            confirmButtonText: 'Xóa',
-            cancelButtonText: 'Hủy',
+            confirmButtonText: t('common.delete', 'Delete'),
+            cancelButtonText: t('common.cancel', 'Cancel'),
             confirmButtonColor: '#ef4444',
             cancelButtonColor: '#6b7280',
             reverseButtons: true
@@ -145,11 +145,11 @@ const CourseManagement = () => {
     const handleBulkDelete = async () => {
         const result = await Swal.fire({
             icon: 'question',
-            title: 'Xác nhận xóa hàng loạt',
-            text: t('courseMgmt.confirmBulkDelete', `Bạn có chắc chắn muốn xóa ${selectedCourses.length} khóa học đã chọn?`),
+            title: t('courseMgmt.confirmBulkDeleteTitle', 'Confirm Bulk Delete'),
+            text: t('courseMgmt.confirmBulkDelete', `Are you sure you want to delete ${selectedCourses.length} selected courses?`),
             showCancelButton: true,
-            confirmButtonText: 'Xóa',
-            cancelButtonText: 'Hủy',
+            confirmButtonText: t('common.delete', 'Delete'),
+            cancelButtonText: t('common.cancel', 'Cancel'),
             confirmButtonColor: '#ef4444',
             cancelButtonColor: '#6b7280',
             reverseButtons: true
@@ -219,8 +219,8 @@ const CourseManagement = () => {
             await courseService.publishCourse(course.id);
             Swal.fire({
                 icon: 'success',
-                title: 'Thành công',
-                text: 'Đã công bố khóa học',
+                title: t('common.success', 'Success'),
+                text: t('courseMgmt.publishedSuccess', 'Course has been published'),
                 timer: 2000,
                 showConfirmButton: false
             });
@@ -229,8 +229,8 @@ const CourseManagement = () => {
             console.error("Failed to publish course:", error);
             Swal.fire({
                 icon: 'error',
-                title: 'Lỗi',
-                text: 'Không thể công bố khóa học',
+                title: t('common.error', 'Error'),
+                text: t('courseMgmt.publishError', 'Unable to publish course'),
                 confirmButtonColor: '#ef4444'
             });
         }
@@ -239,11 +239,11 @@ const CourseManagement = () => {
     const handleUnpublishCourse = async (course) => {
         const result = await Swal.fire({
             icon: 'question',
-            title: 'Hủy công bố?',
-            text: `Khóa học ${course.name} sẽ chuyển về trạng thái nháp`,
+            title: t('courseMgmt.unpublishTitle', 'Unpublish Course?'),
+            text: t('courseMgmt.unpublishText', `Course ${course.name} will be reverted to draft status`),
             showCancelButton: true,
-            confirmButtonText: 'Hủy công bố',
-            cancelButtonText: 'Đóng',
+            confirmButtonText: t('courseMgmt.unpublish', 'Unpublish'),
+            cancelButtonText: t('common.close', 'Close'),
             confirmButtonColor: '#f59e0b',
             cancelButtonColor: '#6b7280'
         });
@@ -253,8 +253,8 @@ const CourseManagement = () => {
                 await courseService.unpublishCourse(course.id);
                 Swal.fire({
                     icon: 'success',
-                    title: 'Thành công',
-                    text: 'Đã hủy công bố khóa học',
+                    title: t('common.success', 'Success'),
+                    text: t('courseMgmt.unpublishedSuccess', 'Course has been unpublished'),
                     timer: 2000,
                     showConfirmButton: false
                 });
@@ -263,8 +263,8 @@ const CourseManagement = () => {
                 console.error("Failed to unpublish course:", error);
                 Swal.fire({
                     icon: 'error',
-                    title: 'Lỗi',
-                    text: 'Không thể hủy công bố khóa học',
+                    title: t('common.error', 'Error'),
+                    text: t('courseMgmt.unpublishError', 'Unable to unpublish course'),
                     confirmButtonColor: '#ef4444'
                 });
             }
@@ -274,11 +274,11 @@ const CourseManagement = () => {
     const handleArchiveCourse = async (course) => {
         const result = await Swal.fire({
             icon: 'warning',
-            title: 'Lưu trữ khóa học?',
-            text: `Khóa học ${course.name} sẽ được lưu trữ và không còn hiển thị`,
+            title: t('courseMgmt.archiveTitle', 'Archive Course?'),
+            text: t('courseMgmt.archiveText', `Course ${course.name} will be archived and no longer visible`),
             showCancelButton: true,
-            confirmButtonText: 'Lưu trữ',
-            cancelButtonText: 'Hủy',
+            confirmButtonText: t('courseMgmt.archive', 'Archive'),
+            cancelButtonText: t('common.cancel', 'Cancel'),
             confirmButtonColor: '#6366f1',
             cancelButtonColor: '#6b7280'
         });
@@ -288,8 +288,8 @@ const CourseManagement = () => {
                 await courseService.archiveCourse(course.id);
                 Swal.fire({
                     icon: 'success',
-                    title: 'Thành công',
-                    text: 'Đã lưu trữ khóa học',
+                    title: t('common.success', 'Success'),
+                    text: t('courseMgmt.archivedSuccess', 'Course has been archived'),
                     timer: 2000,
                     showConfirmButton: false
                 });
@@ -298,8 +298,8 @@ const CourseManagement = () => {
                 console.error("Failed to archive course:", error);
                 Swal.fire({
                     icon: 'error',
-                    title: 'Lỗi',
-                    text: 'Không thể lưu trữ khóa học',
+                    title: t('common.error', 'Error'),
+                    text: t('courseMgmt.archiveError', 'Unable to archive course'),
                     confirmButtonColor: '#ef4444'
                 });
             }

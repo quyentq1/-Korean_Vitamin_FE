@@ -4,9 +4,9 @@ import Swal from 'sweetalert2';
 import { studentService } from '../../services/studentService';
 import { useTranslation } from 'react-i18next';
 
-const CertificateSubmitModal = ({ isOpen, onClose, eligibleCourses, onSubmitted }) => {
+const CertificateSubmitModal = ({ isOpen, onClose, eligibleCourses, onSubmitted, isResubmission = false }) => {
     const { t } = useTranslation();
-    const [selectedCourse, setSelectedCourse] = useState('');
+    const [selectedCourse, setSelectedCourse] = useState(isResubmission && eligibleCourses?.length > 0 ? eligibleCourses[0].classStudentId : '');
     const [certType, setCertType] = useState('TOPIK');
     const [notes, setNotes] = useState('');
     const [file, setFile] = useState(null);
@@ -77,13 +77,13 @@ const CertificateSubmitModal = ({ isOpen, onClose, eligibleCourses, onSubmitted 
     };
 
     return (
-        <div className="fixed inset-0 z-[1400] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg animate-scale-up overflow-hidden">
                 {/* Header */}
                 <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-5 text-white flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <Award className="w-6 h-6" />
-                        <h2 className="text-lg font-bold">{t('student.certificate.title')}</h2>
+                        <h2 className="text-lg font-bold">{isResubmission ? t('student.certificate.resubmitTitle') : t('student.certificate.title')}</h2>
                     </div>
                     <button onClick={handleClose} className="p-1 hover:bg-white/20 rounded-lg transition">
                         <X className="w-5 h-5" />
@@ -173,7 +173,7 @@ const CertificateSubmitModal = ({ isOpen, onClose, eligibleCourses, onSubmitted 
                             disabled={submitting || !selectedCourse || !file}
                             className="flex-1 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-bold hover:from-indigo-700 hover:to-purple-700 transition disabled:opacity-50 flex items-center justify-center gap-2"
                         >
-                            {submitting ? <><Loader2 className="w-4 h-4 animate-spin" /> {t('student.certificate.submitting')}</> : t('student.certificate.submitCertificate')}
+                            {submitting ? <><Loader2 className="w-4 h-4 animate-spin" /> {t('student.certificate.submitting')}</> : (isResubmission ? t('student.certificate.resubmit') : t('student.certificate.submitCertificate'))}
                         </button>
                     </div>
                 </div>

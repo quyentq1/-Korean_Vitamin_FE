@@ -124,7 +124,7 @@ const CreateManualStudent = () => {
             case 'phone':
                 if (!value.trim()) return `${t('common.phone')} is required`;
                 if (!phoneRegex.test(value.trim())) {
-                    return 'Số điện thoại không hợp lệ. Ví dụ: 0987654321 hoặc +84987654321';
+                    return t('staff.createStudent.phoneInvalid', 'Số điện thoại không hợp lệ. Ví dụ: 0987654321 hoặc +84987654321');
                 }
                 return '';
 

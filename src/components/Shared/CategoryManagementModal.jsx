@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { X } from 'lucide-react';
 import axiosClient from '../../api/axiosClient';
@@ -6,18 +6,31 @@ import Modal from '../ui/Modal';
 import { Button } from '../ui/Button';
 import Input from '../ui/Input';
 
-const CATEGORY_ICONS = [
-    { id: 'book', name: '📚', label: 'Sách' },
-    { id: 'question', name: '❓', label: 'Hỏi đáp' },
-    { id: 'lightbulb', name: '💡', label: 'Ý tưởng' },
-    { id: 'star', name: '⭐', label: 'Nổi bật' },
-    { id: 'fire', name: '🔥', label: 'Nóng' },
-    { id: 'trophy', name: '🏆', label: 'Cúp' },
-    { id: 'heart', name: '❤️', label: 'Yêu thích' },
-    { id: 'rocket', name: '🚀', label: 'Khởi đầu' },
-    { id: 'target', name: '🎯', label: 'Mục tiêu' },
-    { id: 'graduation-cap', name: '🎓', label: 'Tốt nghiệp' },
+const CATEGORY_ICON_IDS = [
+    { id: 'book', name: '📚' },
+    { id: 'question', name: '❓' },
+    { id: 'lightbulb', name: '💡' },
+    { id: 'star', name: '⭐' },
+    { id: 'fire', name: '🔥' },
+    { id: 'trophy', name: '🏆' },
+    { id: 'heart', name: '❤️' },
+    { id: 'rocket', name: '🚀' },
+    { id: 'target', name: '🎯' },
+    { id: 'graduation-cap', name: '🎓' },
 ];
+
+const CATEGORY_ICON_LABEL_KEYS = {
+    book: 'component.categoryManagement.book',
+    question: 'component.categoryManagement.ask',
+    lightbulb: 'component.categoryManagement.idea',
+    star: 'component.categoryManagement.featured',
+    fire: 'component.categoryManagement.hot',
+    trophy: 'component.categoryManagement.trophy',
+    heart: 'component.categoryManagement.favorite',
+    rocket: 'component.categoryManagement.start',
+    target: 'component.categoryManagement.target',
+    'graduation-cap': 'component.categoryManagement.graduation',
+};
 
 const CategoryManagementModal = ({ isOpen, onClose, onSuccess }) => {
     const { t } = useTranslation();
@@ -30,6 +43,14 @@ const CategoryManagementModal = ({ isOpen, onClose, onSuccess }) => {
         icon: 'book',
         color: '#3DCBB1',
     });
+
+    const categoryIcons = useMemo(() =>
+        CATEGORY_ICON_IDS.map(icon => ({
+            ...icon,
+            label: t(CATEGORY_ICON_LABEL_KEYS[icon.id]),
+        })),
+        [t]
+    );
 
     useEffect(() => {
         if (isOpen) {
@@ -135,7 +156,7 @@ const CategoryManagementModal = ({ isOpen, onClose, onSuccess }) => {
                         {t('forum.selectIcon')}
                     </label>
                     <div className="grid grid-cols-5 gap-2">
-                        {CATEGORY_ICONS.map((icon) => (
+                        {categoryIcons.map((icon) => (
                             <button
                                 key={icon.id}
                                 type="button"

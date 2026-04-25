@@ -49,14 +49,14 @@ const TagManagement = () => {
 
   // Categories
   const categories = [
-    { value: 'GRAMMAR', label: 'Ngữ pháp' },
-    { value: 'VOCABULARY', label: 'Từ vựng' },
-    { value: 'READING', label: 'Đọc hiểu' },
-    { value: 'WRITING', label: 'Viết' },
-    { value: 'LISTENING', label: 'Nghe' },
-    { value: 'SPEAKING', label: 'Nói' },
-    { value: 'CULTURE', label: 'Văn hóa' },
-    { value: 'OTHER', label: 'Khác' }
+    { value: 'GRAMMAR', label: t('tagManagement.categoryGrammar') },
+    { value: 'VOCABULARY', label: t('tagManagement.categoryVocabulary') },
+    { value: 'READING', label: t('tagManagement.categoryReading') },
+    { value: 'WRITING', label: t('tagManagement.categoryWriting') },
+    { value: 'LISTENING', label: t('tagManagement.categoryListening') },
+    { value: 'SPEAKING', label: t('tagManagement.categorySpeaking') },
+    { value: 'CULTURE', label: t('tagManagement.categoryCulture') },
+    { value: 'OTHER', label: t('tagManagement.categoryOther') }
   ];
 
   // Color options
@@ -77,7 +77,7 @@ const TagManagement = () => {
       setTags(response || []);
     } catch (err) {
       console.error('Error fetching tags:', err);
-      setError('Không thể tải danh sách tags. Vui lòng thử lại.');
+      setError(t('tagManagement.fetchError'));
     } finally {
       setLoading(false);
     }
@@ -108,19 +108,19 @@ const TagManagement = () => {
 
   const handleDelete = async (tag) => {
     const result = await Swal.fire({
-      title: 'Xóa Tag?',
-      text: `Bạn có chắc muốn xóa tag "${tag.name}"?`,
+      title: t('tagManagement.deleteTitle'),
+      text: t('tagManagement.deleteText', { name: tag.name }),
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#f56565',
       cancelButtonColor: '#667eea',
-      confirmButtonText: 'Xóa',
-      cancelButtonText: 'Hủy',
+      confirmButtonText: t('tagManagement.delete'),
+      cancelButtonText: t('common.cancel'),
       input: 'text',
-      inputPlaceholder: 'Nhập DELETE để xác nhận',
+      inputPlaceholder: t('tagManagement.deleteConfirmPlaceholder'),
       inputValidator: (value) => {
         if (value !== 'DELETE') {
-          return 'Bạn phải nhập DELETE để xác nhận!';
+          return t('tagManagement.deleteConfirmError');
         }
       }
     });
@@ -130,8 +130,8 @@ const TagManagement = () => {
         await teacherService.deleteTag(tag.id);
         Swal.fire({
           icon: 'success',
-          title: 'Đã Xóa!',
-          text: 'Tag đã được xóa thành công.',
+          title: t('tagManagement.deleted'),
+          text: t('tagManagement.deletedSuccess'),
           timer: 1500,
           showConfirmButton: false
         });
@@ -139,8 +139,8 @@ const TagManagement = () => {
       } catch (err) {
         Swal.fire({
           icon: 'error',
-          title: 'Lỗi',
-          text: err.response?.data?.message || 'Không thể xóa tag'
+          title: t('common.error'),
+          text: err.response?.data?.message || t('tagManagement.deleteError')
         });
       }
     }
@@ -163,7 +163,7 @@ const TagManagement = () => {
         await teacherService.updateTag(selectedTag.id, data);
         Swal.fire({
           icon: 'success',
-          title: 'Cập Nhật Thành Công!',
+          title: t('tagManagement.updateSuccess'),
           timer: 1500,
           showConfirmButton: false
         });
@@ -171,7 +171,7 @@ const TagManagement = () => {
         await teacherService.createTag(data);
         Swal.fire({
           icon: 'success',
-          title: 'Tạo Tag Thành Công!',
+          title: t('tagManagement.createSuccess'),
           timer: 1500,
           showConfirmButton: false
         });
@@ -182,7 +182,7 @@ const TagManagement = () => {
       fetchTags();
     } catch (err) {
       console.error('Error saving tag:', err);
-      setFormError(err.response?.data?.message || 'Không thể lưu tag. Vui lòng thử lại.');
+      setFormError(err.response?.data?.message || t('tagManagement.saveError'));
     } finally {
       setSubmitting(false);
     }
@@ -214,11 +214,11 @@ const TagManagement = () => {
     <PageContainer>
       {/* Header */}
       <PageHeader
-        title="Quản Lý Tags"
-        subtitle="Tạo và quản lý tags cho câu hỏi"
+        title={t('tagManagement.title')}
+        subtitle={t('tagManagement.subtitle')}
         actions={[
           {
-            label: 'Tạo Tag Mới',
+            label: t('tagManagement.createNew'),
             icon: Plus,
             onClick: handleCreate,
             variant: 'primary'
@@ -243,7 +243,7 @@ const TagManagement = () => {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input
               type="text"
-              placeholder="Tìm kiếm tags..."
+              placeholder={t('tagManagement.searchPlaceholder')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
@@ -257,16 +257,16 @@ const TagManagement = () => {
         <Card className="text-center py-12">
           <TagIcon className="w-16 h-16 mx-auto mb-4 text-gray-300" />
           <h3 className="text-lg font-semibold text-gray-900 mb-2">
-            {searchTerm ? 'Không tìm thấy tag nào' : 'Chưa có tag nào'}
+            {searchTerm ? t('tagManagement.noSearchResults') : t('tagManagement.noTags')}
           </h3>
           <p className="text-gray-500 mb-4">
             {searchTerm
-              ? 'Thử tìm kiếm với từ khóa khác'
-              : 'Tạo tag đầu tiên của bạn để bắt đầu tổ chức câu hỏi'}
+              ? t('tagManagement.tryDifferentSearch')
+              : t('tagManagement.createFirstTag')}
           </p>
           {!searchTerm && (
             <Button variant="primary" icon={Plus} onClick={handleCreate}>
-              Tạo Tag Mới
+              {t('tagManagement.createNew')}
             </Button>
           )}
         </Card>
@@ -309,7 +309,7 @@ const TagManagement = () => {
                   {getCategoryLabel(tag.category)}
                 </Badge>
                 <span className="text-xs text-gray-500">
-                  {tag.questionCount || 0} câu hỏi
+                  {tag.questionCount || 0} {t('tagManagement.questions')}
                 </span>
               </div>
             </Card>
@@ -325,7 +325,7 @@ const TagManagement = () => {
             <div className="px-6 py-4 border-b border-gray-200">
               <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
                 <TagIcon className="w-5 h-5" />
-                {showEditModal ? 'Sửa Tag' : 'Tạo Tag Mới'}
+                {showEditModal ? t('tagManagement.editTag') : t('tagManagement.createNew')}
               </h2>
             </div>
 
@@ -334,12 +334,12 @@ const TagManagement = () => {
               {/* Name */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Tên Tag <span className="text-red-500">*</span>
+                  {t('tagManagement.tagName')} <span className="text-red-500">*</span>
                 </label>
                 <Input
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="Ví dụ: Động từ, Mạo từ..."
+                  placeholder={t('tagManagement.tagNamePlaceholder')}
                   required
                 />
               </div>
@@ -347,7 +347,7 @@ const TagManagement = () => {
               {/* Category */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Danh Mục
+                  {t('tagManagement.category')}
                 </label>
                 <select
                   value={formData.category}
@@ -365,7 +365,7 @@ const TagManagement = () => {
               {/* Color */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Màu Sắc
+                  {t('tagManagement.color')}
                 </label>
                 <div className="flex gap-2 flex-wrap">
                   {colors.map(color => (
@@ -387,12 +387,12 @@ const TagManagement = () => {
               {/* Description */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Mô Tả
+                  {t('tagManagement.description')}
                 </label>
                 <textarea
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="Mô tả về tag (không bắt buộc)"
+                  placeholder={t('tagManagement.descriptionPlaceholder')}
                   rows={3}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 resize-none"
                 />
@@ -416,7 +416,7 @@ const TagManagement = () => {
                   disabled={submitting}
                   className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
                 >
-                  Hủy
+                  {t('common.cancel')}
                 </button>
                 <button
                   type="submit"
@@ -426,17 +426,17 @@ const TagManagement = () => {
                   {submitting ? (
                     <>
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      Đang lưu...
+                      {t('tagManagement.saving')}
                     </>
                   ) : showEditModal ? (
                     <>
                       <CheckCircle className="w-4 h-4" />
-                      Cập Nhật
+                      {t('tagManagement.update')}
                     </>
                   ) : (
                     <>
                       <Plus className="w-4 h-4" />
-                      Tạo Tag
+                      {t('tagManagement.create')}
                     </>
                   )}
                 </button>

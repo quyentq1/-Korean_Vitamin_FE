@@ -1,13 +1,15 @@
 import { useState, useEffect, useMemo } from 'react';
-import educationManagerService from '../../services/educationManagerService';
+import { useTranslation } from 'react-i18next';
 import {
     Search, Users, GraduationCap, Calendar, CheckCircle, XCircle,
     ChevronLeft, ChevronRight, BookOpen, TrendingUp, Clock
 } from 'lucide-react';
+import educationManagerService from '../../services/educationManagerService';
 
 const PAGE_SIZE = 15;
 
 const EduTeachingStats = () => {
+    const { t } = useTranslation();
     const [activeTab, setActiveTab] = useState('teachers');
     const [teachers, setTeachers] = useState([]);
     const [students, setStudents] = useState([]);
@@ -38,7 +40,6 @@ const EduTeachingStats = () => {
 
     const toggleRow = (id) => setExpandedRows(prev => ({ ...prev, [id]: !prev[id] }));
 
-    // Teachers
     const filteredTeachers = useMemo(() => {
         let list = [...teachers];
         if (searchTerm) {
@@ -55,7 +56,6 @@ const EduTeachingStats = () => {
         return list;
     }, [teachers, searchTerm, sortBy]);
 
-    // Students
     const filteredStudents = useMemo(() => {
         let list = [...students];
         if (searchTerm) {
@@ -91,7 +91,7 @@ const EduTeachingStats = () => {
             <div className="min-h-screen bg-gradient-to-br from-gray-50 to-purple-50/30 flex items-center justify-center">
                 <div className="text-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-                    <p className="text-gray-400 text-sm">Đang tải thống kê...</p>
+                    <p className="text-gray-400 text-sm">{t('eduManager.teachingStats.loading')}</p>
                 </div>
             </div>
         );
@@ -108,7 +108,7 @@ const EduTeachingStats = () => {
                             <TrendingUp className="w-6 h-6 text-white" />
                         </div>
                         <div>
-                            <h1 className="text-2xl font-bold">Thống kê dạy / học</h1>
+                            <h1 className="text-2xl font-bold">{t('eduManager.teachingStats.title')}</h1>
                             <p className="text-purple-100 text-sm mt-0.5">
                                 {new Date().toLocaleDateString('vi-VN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                             </p>
@@ -124,7 +124,7 @@ const EduTeachingStats = () => {
                         </div>
                         <div>
                             <div className="text-2xl font-bold bg-gradient-to-r from-indigo-500 to-indigo-600 bg-clip-text text-transparent">{teachers.length}</div>
-                            <div className="text-xs text-gray-400">Giáo viên</div>
+                            <div className="text-xs text-gray-400">{t('eduManager.teachingStats.teachers')}</div>
                         </div>
                     </div>
                     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 flex items-center gap-3 group hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300">
@@ -133,7 +133,7 @@ const EduTeachingStats = () => {
                         </div>
                         <div>
                             <div className="text-2xl font-bold bg-gradient-to-r from-purple-500 to-purple-600 bg-clip-text text-transparent">{students.length}</div>
-                            <div className="text-xs text-gray-400">Học viên</div>
+                            <div className="text-xs text-gray-400">{t('eduManager.teachingStats.students')}</div>
                         </div>
                     </div>
                     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 border-l-4 border-l-green-500 p-4 flex items-center gap-3 group hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300">
@@ -142,7 +142,7 @@ const EduTeachingStats = () => {
                         </div>
                         <div>
                             <div className="text-2xl font-bold text-green-600">{totalPresentDays}</div>
-                            <div className="text-xs text-gray-400">Ngày có mặt</div>
+                            <div className="text-xs text-gray-400">{t('eduManager.teachingStats.daysPresent')}</div>
                         </div>
                     </div>
                     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 border-l-4 border-l-red-500 p-4 flex items-center gap-3 group hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300">
@@ -151,7 +151,7 @@ const EduTeachingStats = () => {
                         </div>
                         <div>
                             <div className="text-2xl font-bold text-red-600">{totalAbsentDays}</div>
-                            <div className="text-xs text-gray-400">Ngày vắng</div>
+                            <div className="text-xs text-gray-400">{t('eduManager.teachingStats.daysAbsent')}</div>
                         </div>
                     </div>
                 </div>
@@ -167,7 +167,7 @@ const EduTeachingStats = () => {
                                         ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-md'
                                         : 'text-gray-600 hover:bg-white'
                                 }`}>
-                                <GraduationCap className="w-4 h-4 inline mr-1.5" /> Giáo viên
+                                <GraduationCap className="w-4 h-4 inline mr-1.5" /> {t('eduManager.teachingStats.teachers')}
                             </button>
                             <button onClick={() => { setActiveTab('students'); setSearchTerm(''); setCurrentPage(1); }}
                                 className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all ${
@@ -175,12 +175,12 @@ const EduTeachingStats = () => {
                                         ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-md'
                                         : 'text-gray-600 hover:bg-white'
                                 }`}>
-                                <Users className="w-4 h-4 inline mr-1.5" /> Học viên
+                                <Users className="w-4 h-4 inline mr-1.5" /> {t('eduManager.teachingStats.students')}
                             </button>
                         </div>
                         <div className="relative min-w-[180px]">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                            <input type="text" placeholder="Tìm tên..."
+                            <input type="text" placeholder={t('eduManager.teachingStats.searchPlaceholder')}
                                 value={searchTerm} onChange={e => { setSearchTerm(e.target.value); setCurrentPage(1); }}
                                 className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent" />
                         </div>
@@ -188,17 +188,17 @@ const EduTeachingStats = () => {
                             className="px-3 py-2 border border-gray-200 rounded-xl text-sm bg-white focus:ring-2 focus:ring-indigo-500">
                             {activeTab === 'teachers' ? (
                                 <>
-                                    <option value="name">Tên A-Z</option>
-                                    <option value="days_desc">Ngày dạy: Nhiều nhất</option>
-                                    <option value="days_asc">Ngày dạy: Ít nhất</option>
-                                    <option value="classes">Nhiều lớp nhất</option>
+                                    <option value="name">{t('eduManager.teachingStats.sortName')}</option>
+                                    <option value="days_desc">{t('eduManager.teachingStats.sortDaysDesc')}</option>
+                                    <option value="days_asc">{t('eduManager.teachingStats.sortDaysAsc')}</option>
+                                    <option value="classes">{t('eduManager.teachingStats.sortClasses')}</option>
                                 </>
                             ) : (
                                 <>
-                                    <option value="name">Tên A-Z</option>
-                                    <option value="present_desc">Có mặt: Nhiều nhất</option>
-                                    <option value="absent_desc">Vắng: Nhiều nhất</option>
-                                    <option value="rate_asc">Tỷ lệ: Thấp nhất</option>
+                                    <option value="name">{t('eduManager.teachingStats.sortName')}</option>
+                                    <option value="present_desc">{t('eduManager.teachingStats.sortPresentDesc')}</option>
+                                    <option value="absent_desc">{t('eduManager.teachingStats.sortAbsentDesc')}</option>
+                                    <option value="rate_asc">{t('eduManager.teachingStats.sortRateAsc')}</option>
                                 </>
                             )}
                         </select>
@@ -210,18 +210,18 @@ const EduTeachingStats = () => {
                             <table className="min-w-full">
                                 <thead>
                                     <tr className="bg-gradient-to-r from-indigo-50 to-purple-50">
-                                        <th className="px-5 py-3.5 text-left text-xs font-semibold text-indigo-600 uppercase w-16">STT</th>
-                                        <th className="px-5 py-3.5 text-left text-xs font-semibold text-indigo-600 uppercase">Giáo viên</th>
-                                        <th className="px-5 py-3.5 text-center text-xs font-semibold text-indigo-600 uppercase">Tổng ngày dạy</th>
-                                        <th className="px-5 py-3.5 text-center text-xs font-semibold text-indigo-600 uppercase">Số lớp</th>
-                                        <th className="px-5 py-3.5 text-left text-xs font-semibold text-indigo-600 uppercase">Chi tiết lớp</th>
+                                        <th className="px-5 py-3.5 text-left text-xs font-semibold text-indigo-600 uppercase w-16">{t('eduManager.teachingStats.colIndex')}</th>
+                                        <th className="px-5 py-3.5 text-left text-xs font-semibold text-indigo-600 uppercase">{t('eduManager.teachingStats.colTeacher')}</th>
+                                        <th className="px-5 py-3.5 text-center text-xs font-semibold text-indigo-600 uppercase">{t('eduManager.teachingStats.colTotalDays')}</th>
+                                        <th className="px-5 py-3.5 text-center text-xs font-semibold text-indigo-600 uppercase">{t('eduManager.teachingStats.colClassCount')}</th>
+                                        <th className="px-5 py-3.5 text-left text-xs font-semibold text-indigo-600 uppercase">{t('eduManager.teachingStats.colClassDetail')}</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-50">
                                     {pagedData.length === 0 ? (
                                         <tr><td colSpan="5" className="px-5 py-10 text-center text-gray-400">
                                             <GraduationCap className="w-8 h-8 mx-auto mb-2 text-gray-200" />
-                                            Không tìm thấy giáo viên
+                                            {t('eduManager.teachingStats.noTeachersFound')}
                                         </td></tr>
                                     ) : pagedData.map((t, i) => {
                                         const expanded = expandedRows[t.teacherId];
@@ -239,7 +239,7 @@ const EduTeachingStats = () => {
                                                 </td>
                                                 <td className="px-5 py-3.5 text-center">
                                                     <span className="text-lg font-bold text-indigo-600">{t.totalTeachingDays}</span>
-                                                    <span className="text-xs text-gray-400 ml-1">ngày</span>
+                                                    <span className="text-xs text-gray-400 ml-1">{t('eduManager.teachingStats.days')}</span>
                                                 </td>
                                                 <td className="px-5 py-3.5 text-center">
                                                     <span className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 font-medium">
@@ -248,23 +248,23 @@ const EduTeachingStats = () => {
                                                 </td>
                                                 <td className="px-5 py-3.5">
                                                     {breakdown.length === 0 ? (
-                                                        <span className="text-xs text-gray-400">Chưa phân công</span>
+                                                        <span className="text-xs text-gray-400">{t('eduManager.teachingStats.notAssigned')}</span>
                                                     ) : breakdown.length <= 2 || expanded ? (
                                                         <div className="flex flex-wrap gap-1.5">
                                                             {breakdown.map(c => (
                                                                 <span key={c.classId} className="text-xs px-2.5 py-1 rounded-lg bg-purple-50 text-purple-700 font-medium border border-purple-100">
-                                                                    {c.className}: <strong>{c.teachingDays}</strong> ngày
+                                                                    {c.className}: <strong>{c.teachingDays}</strong> {t('eduManager.teachingStats.days')}
                                                                 </span>
                                                             ))}
                                                         </div>
                                                     ) : (
                                                         <div className="flex items-center gap-2">
                                                             <span className="text-xs px-2.5 py-1 rounded-lg bg-purple-50 text-purple-700 font-medium border border-purple-100">
-                                                                {breakdown[0].className}: <strong>{breakdown[0].teachingDays}</strong> ngày
+                                                                {breakdown[0].className}: <strong>{breakdown[0].teachingDays}</strong> {t('eduManager.teachingStats.days')}
                                                             </span>
                                                             <button onClick={() => toggleRow(t.teacherId)}
                                                                 className="text-xs text-indigo-500 hover:text-indigo-700 font-medium">
-                                                                +{breakdown.length - 1} lớp khác
+                                                                +{breakdown.length - 1} {t('eduManager.teachingStats.moreClasses')}
                                                             </button>
                                                         </div>
                                                     )}
@@ -283,19 +283,19 @@ const EduTeachingStats = () => {
                             <table className="min-w-full">
                                 <thead>
                                     <tr className="bg-gradient-to-r from-indigo-50 to-purple-50">
-                                        <th className="px-5 py-3.5 text-left text-xs font-semibold text-indigo-600 uppercase w-16">STT</th>
-                                        <th className="px-5 py-3.5 text-left text-xs font-semibold text-indigo-600 uppercase">Học viên</th>
-                                        <th className="px-5 py-3.5 text-center text-xs font-semibold text-indigo-600 uppercase">Có mặt</th>
-                                        <th className="px-5 py-3.5 text-center text-xs font-semibold text-indigo-600 uppercase">Vắng</th>
-                                        <th className="px-5 py-3.5 text-center text-xs font-semibold text-indigo-600 uppercase">Tỷ lệ</th>
-                                        <th className="px-5 py-3.5 text-left text-xs font-semibold text-indigo-600 uppercase">Chi tiết lớp</th>
+                                        <th className="px-5 py-3.5 text-left text-xs font-semibold text-indigo-600 uppercase w-16">{t('eduManager.teachingStats.colIndex')}</th>
+                                        <th className="px-5 py-3.5 text-left text-xs font-semibold text-indigo-600 uppercase">{t('eduManager.teachingStats.colStudent')}</th>
+                                        <th className="px-5 py-3.5 text-center text-xs font-semibold text-indigo-600 uppercase">{t('eduManager.teachingStats.colPresent')}</th>
+                                        <th className="px-5 py-3.5 text-center text-xs font-semibold text-indigo-600 uppercase">{t('eduManager.teachingStats.colAbsent')}</th>
+                                        <th className="px-5 py-3.5 text-center text-xs font-semibold text-indigo-600 uppercase">{t('eduManager.teachingStats.colRate')}</th>
+                                        <th className="px-5 py-3.5 text-left text-xs font-semibold text-indigo-600 uppercase">{t('eduManager.teachingStats.colClassDetail')}</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-50">
                                     {pagedData.length === 0 ? (
                                         <tr><td colSpan="6" className="px-5 py-10 text-center text-gray-400">
                                             <Users className="w-8 h-8 mx-auto mb-2 text-gray-200" />
-                                            Không tìm thấy học viên
+                                            {t('eduManager.teachingStats.noStudentsFound')}
                                         </td></tr>
                                     ) : pagedData.map((s, i) => {
                                         const total = (s.totalDaysPresent || 0) + (s.totalDaysAbsent || 0);
@@ -329,7 +329,7 @@ const EduTeachingStats = () => {
                                                 </td>
                                                 <td className="px-5 py-3.5">
                                                     {breakdown.length === 0 ? (
-                                                        <span className="text-xs text-gray-400">Chưa đăng ký</span>
+                                                        <span className="text-xs text-gray-400">{t('eduManager.teachingStats.notEnrolled')}</span>
                                                     ) : breakdown.length <= 2 || expanded ? (
                                                         <div className="flex flex-wrap gap-1.5">
                                                             {breakdown.map(c => {
@@ -352,7 +352,7 @@ const EduTeachingStats = () => {
                                                             </span>
                                                             <button onClick={() => toggleRow(s.studentId)}
                                                                 className="text-xs text-indigo-500 hover:text-indigo-700 font-medium">
-                                                                +{breakdown.length - 1} lớp khác
+                                                                +{breakdown.length - 1} {t('eduManager.teachingStats.moreClasses')}
                                                             </button>
                                                         </div>
                                                     )}
@@ -369,7 +369,7 @@ const EduTeachingStats = () => {
                     {totalPages > 1 && (
                         <div className="flex items-center justify-between px-5 py-4 border-t border-gray-100 bg-gray-50/50">
                             <span className="text-xs text-gray-400">
-                                Hiển thị {(currentPage - 1) * PAGE_SIZE + 1}-{Math.min(currentPage * PAGE_SIZE, currentData.length)} / {currentData.length} {activeTab === 'teachers' ? 'giáo viên' : 'học viên'}
+                                {t('eduManager.teachingStats.showing')} {(currentPage - 1) * PAGE_SIZE + 1}-{Math.min(currentPage * PAGE_SIZE, currentData.length)} / {currentData.length} {activeTab === 'teachers' ? t('eduManager.teachingStats.teachers') : t('eduManager.teachingStats.students')}
                             </span>
                             <div className="flex items-center gap-1">
                                 <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}

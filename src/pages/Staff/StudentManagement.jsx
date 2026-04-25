@@ -105,8 +105,8 @@ const StudentManagement = () => {
                 await fetchStudents();
                 Swal.fire({
                     icon: 'success',
-                    title: 'Thành công',
-                    text: `Đã ${action.toLowerCase()} ${studentName}`,
+                    title: t('studentManagement.success', 'Thành công'),
+                    text: t('studentManagement.statusUpdated', 'Đã {{action}} {{name}}', { action: action.toLowerCase(), name: studentName }),
                     timer: 1500,
                     showConfirmButton: false,
                 });

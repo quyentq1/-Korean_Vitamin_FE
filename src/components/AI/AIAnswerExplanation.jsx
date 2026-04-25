@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import aiService from '../../services/aiService';
 
 /**
@@ -6,6 +7,7 @@ import aiService from '../../services/aiService';
  * Provides AI-powered explanations for Korean quiz/exam answers
  */
 const AIAnswerExplanation = ({ question, studentAnswer, onExplanationReceived }) => {
+  const { t } = useTranslation();
   const [explanation, setExplanation] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -40,7 +42,7 @@ const AIAnswerExplanation = ({ question, studentAnswer, onExplanationReceived })
 
     } catch (error) {
       console.error('AI explanation error:', error);
-      setError('AI tạm thời không khả dụng. Vui lòng thử lại sau.');
+      setError(t('ai.aiAnswerExplanation.errorUnavailable'));
     } finally {
       setLoading(false);
     }
@@ -82,17 +84,17 @@ const AIAnswerExplanation = ({ question, studentAnswer, onExplanationReceived })
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
-            AI đang phân tích...
+            {t('ai.aiAnswerExplanation.analyzing')}
           </>
         ) : explanation ? (
           <>
             <span>{getIconForType(question.type || question.questionType)}</span>
-            {showExplanation ? 'Ẩn giải thích' : 'Hiện giải thích'}
+            {showExplanation ? t('ai.aiAnswerExplanation.hideExplanation') : t('ai.aiAnswerExplanation.showExplanation')}
           </>
         ) : (
           <>
             <span>{getIconForType(question.type || question.questionType)}</span>
-            Giải thích đáp án
+            {t('ai.aiAnswerExplanation.explainBtn')}
           </>
         )}
       </button>
@@ -107,7 +109,7 @@ const AIAnswerExplanation = ({ question, studentAnswer, onExplanationReceived })
         <div className="mt-4 p-5 bg-gradient-to-br from-purple-50 via-indigo-50 to-blue-50 rounded-xl border-2 border-purple-200 shadow-md animate-slide-in">
           <div className="flex items-center gap-2 mb-4 pb-3 border-b border-purple-200">
             <span className="text-2xl">🤖</span>
-            <strong className="text-purple-900 text-base">Giải thích từ AI:</strong>
+            <strong className="text-purple-900 text-base">{t('ai.aiAnswerExplanation.aiExplanation')}:</strong>
           </div>
 
           <div className="mb-4">
@@ -117,7 +119,7 @@ const AIAnswerExplanation = ({ question, studentAnswer, onExplanationReceived })
           {explanation.grammarPoint && (
             <div className="mb-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
               <p className="text-sm">
-                <strong className="text-blue-900">Điểm ngữ pháp:</strong>{' '}
+                <strong className="text-blue-900">{t('ai.aiAnswerExplanation.grammarPoint')}:</strong>{' '}
                 <span className="text-blue-800">{explanation.grammarPoint}</span>
               </p>
             </div>
@@ -132,7 +134,7 @@ const AIAnswerExplanation = ({ question, studentAnswer, onExplanationReceived })
 
           <div className="p-3 bg-green-50 rounded-lg border border-green-200">
             <p className="text-sm">
-              <strong className="text-green-900">Đáp án đúng:</strong>{' '}
+              <strong className="text-green-900">{t('ai.aiAnswerExplanation.correctAnswer')}:</strong>{' '}
               <span className="text-green-800 font-medium">{getCorrectAnswerText()}</span>
             </p>
           </div>

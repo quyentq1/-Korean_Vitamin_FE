@@ -80,7 +80,7 @@ const OCRStudentForm = ({ onSuccess, onCancel }) => {
             });
             onSuccess();
         } catch (err) {
-            setError(err.response?.data?.message || 'Failed to create student from OCR data');
+            setError(err.response?.data?.message || t('ocr.createStudentFailed', 'Failed to create student from OCR data'));
         } finally {
             setLoading(false);
         }
@@ -127,7 +127,7 @@ const OCRStudentForm = ({ onSuccess, onCancel }) => {
             window.URL.revokeObjectURL(url);
         } catch (error) {
             console.error('Error exporting to Word:', error);
-            setError('Failed to export to Word document');
+            setError(t('ocr.exportWordFailed', 'Failed to export to Word document'));
         } finally {
             setExporting(false);
         }

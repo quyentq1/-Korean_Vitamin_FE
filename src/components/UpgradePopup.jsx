@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import './UpgradePopup.css';
 
 const UpgradePopup = ({ onClose }) => {
+    const { t } = useTranslation();
     const [submitted, setSubmitted] = useState(false);
 
     const handleSubmit = (e) => {
@@ -18,9 +20,9 @@ const UpgradePopup = ({ onClose }) => {
             <div className="popup-overlay">
                 <div className="popup-content success">
                     <div className="success-icon">✅</div>
-                    <h2>Yêu cầu đã được gửi!</h2>
-                    <p>Chúng tôi sẽ liên hệ với bạn sớm nhất để tư vấn nâng cấp tài khoản.</p>
-                    <button onClick={onClose} className="btn-close">Đóng</button>
+                    <h2>{t('component.upgradePopup.requestSent')}</h2>
+                    <p>{t('component.upgradePopup.willContact')}</p>
+                    <button onClick={onClose} className="btn-close">{t('component.upgradePopup.close')}</button>
                 </div>
             </div>
         );
@@ -30,34 +32,34 @@ const UpgradePopup = ({ onClose }) => {
         <div className="popup-overlay">
             <div className="popup-content">
                 <div className="popup-header">
-                    <h2>⚠️ Hết lượt thi thử miễn phí</h2>
+                    <h2>⚠️ {t('component.upgradePopup.freeTrialExpired')}</h2>
                     <button onClick={onClose} className="btn-close-x">×</button>
                 </div>
 
                 <div className="popup-body">
-                    <p>Bạn đã sử dụng hết <strong>2 lượt thi thử</strong> dành cho khách.</p>
-                    <p>Vui lòng nâng cấp tài khoản để thi không giới hạn và xem giải thích chi tiết!</p>
+                    <p>{t('component.upgradePopup.usedAllTrials')}</p>
+                    <p>{t('component.upgradePopup.upgradePrompt')}</p>
 
                     <div className="upgrade-benefits">
-                        <h3>✨ Lợi ích tài khoản Premium:</h3>
+                        <h3>✨ {t('component.upgradePopup.premiumBenefits')}</h3>
                         <ul>
-                            <li>✅ Thi không giới hạn số lượng đề</li>
-                            <li>✅ Xem đáp án và giải thích chi tiết</li>
-                            <li>✅ Lưu lịch sử làm bài và theo dõi tiến bộ</li>
-                            <li>✅ Truy cập ngân hàng câu hỏi phong phú</li>
+                            <li>✅ {t('component.upgradePopup.benefitUnlimited')}</li>
+                            <li>✅ {t('component.upgradePopup.benefitAnswers')}</li>
+                            <li>✅ {t('component.upgradePopup.benefitHistory')}</li>
+                            <li>✅ {t('component.upgradePopup.benefitQuestionBank')}</li>
                         </ul>
                     </div>
 
                     <form onSubmit={handleSubmit} className="contact-form">
-                        <h3>Liên hệ nâng cấp ngay:</h3>
-                        <input type="text" placeholder="Họ và tên" required />
-                        <input type="tel" placeholder="Số điện thoại" required />
-                        <input type="email" placeholder="Email" required />
-                        <button type="submit" className="btn-submit">Gửi yêu cầu tư vấn</button>
+                        <h3>{t('component.upgradePopup.contactTitle')}</h3>
+                        <input type="text" placeholder={t('component.upgradePopup.fullName')} required />
+                        <input type="tel" placeholder={t('component.upgradePopup.phone')} required />
+                        <input type="email" placeholder={t('component.upgradePopup.email')} required />
+                        <button type="submit" className="btn-submit">{t('component.upgradePopup.sendRequest')}</button>
                     </form>
 
                     <div className="contact-info">
-                        <p>Hotline: <strong>1900 1234</strong></p>
+                        <p>{t('component.upgradePopup.hotline')}: <strong>1900 1234</strong></p>
                         <p>Email: <strong>support@koreanvitamin.com</strong></p>
                     </div>
                 </div>

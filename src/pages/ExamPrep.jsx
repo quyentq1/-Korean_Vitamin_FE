@@ -122,10 +122,10 @@ const ExamPrep = () => {
                                     } else {
                                         Swal.fire({
                                             icon: 'info',
-                                            title: 'Cần đăng nhập',
-                                            text: 'Vui lòng đăng nhập để xem lịch thi',
+                                            title: t('prep.loginRequired'),
+                                            text: t('prep.loginRequiredDesc'),
                                             confirmButtonColor: '#3b82f6',
-                                            confirmButtonText: 'Đăng nhập ngay'
+                                            confirmButtonText: t('prep.loginNow')
                                         }).then((result) => {
                                             if (result.isConfirmed) {
                                                 navigate('/login');
@@ -207,10 +207,10 @@ const ExamPrep = () => {
                                             } else {
                                                 Swal.fire({
                                                     icon: 'info',
-                                                    title: 'Bắt đầu luyện tập',
-                                                    text: 'Bạn cần đăng nhập để luyện thi',
+                                                    title: t('prep.startPractice'),
+                                                    text: t('prep.loginToPractice'),
                                                     confirmButtonColor: '#3b82f6',
-                                                    confirmButtonText: 'Đăng nhập ngay'
+                                                    confirmButtonText: t('prep.loginNow')
                                                 }).then((result) => {
                                                     if (result.isConfirmed) {
                                                         navigate('/login');

@@ -62,8 +62,8 @@ const QuestionApproval = () => {
             console.error('Failed to fetch questions:', error);
             Swal.fire({
                 icon: 'error',
-                title: 'Lỗi',
-                text: 'Không thể tải danh sách câu hỏi',
+                title: t('common.error'),
+                text: t('manager.questionApproval.fetchFailed'),
                 timer: 2000,
                 showConfirmButton: false
             });
@@ -103,14 +103,14 @@ const QuestionApproval = () => {
     const handleApprove = async (question) => {
         const { value: feedback } = await Swal.fire({
             icon: 'question',
-            title: 'Duyệt câu hỏi?',
-            text: 'Câu hỏi này sẽ được công bố và giáo viên có thể sử dụng trong các bài kiểm tra',
+            title: t('manager.questionApproval.approveTitle'),
+            text: t('manager.questionApproval.approveText'),
             input: 'textarea',
-            inputLabel: 'Phản hồi (tùy chọn)',
-            inputPlaceholder: 'Nhập ghi chú hoặc để trống...',
+            inputLabel: t('manager.questionApproval.feedbackLabel'),
+            inputPlaceholder: t('manager.questionApproval.feedbackPlaceholder'),
             showCancelButton: true,
-            confirmButtonText: 'Duyệt',
-            cancelButtonText: 'Hủy',
+            confirmButtonText: t('common.approve'),
+            cancelButtonText: t('common.cancel'),
             confirmButtonColor: '#22c55e',
             cancelButtonColor: '#6b7280'
         });
@@ -121,8 +121,8 @@ const QuestionApproval = () => {
                 await educationManagerService.approveQuestion(question.id, feedback || '');
                 Swal.fire({
                     icon: 'success',
-                    title: 'Đã duyệt!',
-                    text: 'Câu hỏi đã được phê duyệt thành công',
+                    title: t('manager.questionApproval.approved'),
+                    text: t('manager.questionApproval.approvedSuccess'),
                     timer: 2000,
                     showConfirmButton: false
                 });
@@ -131,8 +131,8 @@ const QuestionApproval = () => {
                 console.error('Failed to approve question:', error);
                 Swal.fire({
                     icon: 'error',
-                    title: 'Lỗi',
-                    text: 'Không thể duyệt câu hỏi',
+                    title: t('common.error'),
+                    text: t('manager.questionApproval.approveFailed'),
                     timer: 2000,
                     showConfirmButton: false
                 });
@@ -145,17 +145,17 @@ const QuestionApproval = () => {
     const handleReject = async (question) => {
         const { value: reason } = await Swal.fire({
             icon: 'warning',
-            title: 'Từ chối câu hỏi?',
+            title: t('manager.questionApproval.rejectTitle'),
             input: 'textarea',
-            inputLabel: 'Lý do từ chối',
-            inputPlaceholder: 'Nhập lý do từ chối...',
+            inputLabel: t('manager.questionApproval.rejectReasonLabel'),
+            inputPlaceholder: t('manager.questionApproval.rejectPlaceholder'),
             showCancelButton: true,
-            confirmButtonText: 'Từ chối',
-            cancelButtonText: 'Hủy',
+            confirmButtonText: t('common.reject'),
+            cancelButtonText: t('common.cancel'),
             confirmButtonColor: '#ef4444',
             cancelButtonColor: '#6b7280',
             inputValidator: (value) => {
-                if (!value) return 'Vui lòng nhập lý do từ chối';
+                if (!value) return t('manager.questionApproval.rejectReasonRequired');
             }
         });
 
@@ -165,8 +165,8 @@ const QuestionApproval = () => {
                 await educationManagerService.rejectQuestion(question.id, reason);
                 Swal.fire({
                     icon: 'success',
-                    title: 'Đã từ chối',
-                    text: 'Câu hỏi đã bị từ chối và giáo viên sẽ được thông báo',
+                    title: t('manager.questionApproval.rejected'),
+                    text: t('manager.questionApproval.rejectedSuccess'),
                     timer: 2000,
                     showConfirmButton: false
                 });
@@ -175,8 +175,8 @@ const QuestionApproval = () => {
                 console.error('Failed to reject question:', error);
                 Swal.fire({
                     icon: 'error',
-                    title: 'Lỗi',
-                    text: 'Không thể từ chối câu hỏi',
+                    title: t('common.error'),
+                    text: t('manager.questionApproval.rejectFailed'),
                     timer: 2000,
                     showConfirmButton: false
                 });
@@ -194,13 +194,13 @@ const QuestionApproval = () => {
     const handleBulkApprove = async () => {
         const { value: feedback } = await Swal.fire({
             icon: 'question',
-            title: `Duyệt ${selectedIds.size} câu hỏi?`,
+            title: t('manager.questionApproval.bulkApproveTitle', { count: selectedIds.size }),
             input: 'textarea',
-            inputLabel: 'Phản hồi (tùy chọn)',
-            inputPlaceholder: 'Nhập ghi chú hoặc để trống...',
+            inputLabel: t('manager.questionApproval.feedbackLabel'),
+            inputPlaceholder: t('manager.questionApproval.feedbackPlaceholder'),
             showCancelButton: true,
-            confirmButtonText: 'Duyệt tất cả',
-            cancelButtonText: 'Hủy',
+            confirmButtonText: t('manager.questionApproval.approveAll'),
+            cancelButtonText: t('common.cancel'),
             confirmButtonColor: '#22c55e',
         });
         if (feedback !== undefined) {
@@ -208,10 +208,10 @@ const QuestionApproval = () => {
                 setActionLoading(true);
                 await educationManagerService.bulkApproveQuestions([...selectedIds], feedback || '');
                 setSelectedIds(new Set());
-                Swal.fire({ icon: 'success', title: `Đã duyệt ${selectedIds.size} câu hỏi!`, timer: 2000, showConfirmButton: false });
+                Swal.fire({ icon: 'success', title: t('manager.questionApproval.bulkApprovedSuccess', { count: selectedIds.size }), timer: 2000, showConfirmButton: false });
                 fetchPendingQuestions();
             } catch (error) {
-                Swal.fire({ icon: 'error', title: 'Lỗi', text: 'Không thể duyệt câu hỏi', timer: 2000, showConfirmButton: false });
+                Swal.fire({ icon: 'error', title: t('common.error'), text: t('manager.questionApproval.approveFailed'), timer: 2000, showConfirmButton: false });
             } finally {
                 setActionLoading(false);
             }
@@ -221,25 +221,25 @@ const QuestionApproval = () => {
     const handleBulkReject = async () => {
         const { value: reason } = await Swal.fire({
             icon: 'warning',
-            title: `Từ chối ${selectedIds.size} câu hỏi?`,
+            title: t('manager.questionApproval.bulkRejectTitle', { count: selectedIds.size }),
             input: 'textarea',
-            inputLabel: 'Lý do từ chối',
-            inputPlaceholder: 'Nhập lý do...',
+            inputLabel: t('manager.questionApproval.rejectReasonLabel'),
+            inputPlaceholder: t('manager.questionApproval.bulkRejectPlaceholder'),
             showCancelButton: true,
-            confirmButtonText: 'Từ chối tất cả',
-            cancelButtonText: 'Hủy',
+            confirmButtonText: t('manager.questionApproval.rejectAll'),
+            cancelButtonText: t('common.cancel'),
             confirmButtonColor: '#ef4444',
-            inputValidator: (value) => { if (!value) return 'Vui lòng nhập lý do'; }
+            inputValidator: (value) => { if (!value) return t('manager.questionApproval.rejectReasonRequired'); }
         });
         if (reason) {
             try {
                 setActionLoading(true);
                 await educationManagerService.bulkRejectQuestions([...selectedIds], reason);
                 setSelectedIds(new Set());
-                Swal.fire({ icon: 'success', title: `Đã từ chối ${selectedIds.size} câu hỏi!`, timer: 2000, showConfirmButton: false });
+                Swal.fire({ icon: 'success', title: t('manager.questionApproval.bulkRejectedSuccess', { count: selectedIds.size }), timer: 2000, showConfirmButton: false });
                 fetchPendingQuestions();
             } catch (error) {
-                Swal.fire({ icon: 'error', title: 'Lỗi', text: 'Không thể từ chối câu hỏi', timer: 2000, showConfirmButton: false });
+                Swal.fire({ icon: 'error', title: t('common.error'), text: t('manager.questionApproval.rejectFailed'), timer: 2000, showConfirmButton: false });
             } finally {
                 setActionLoading(false);
             }
@@ -279,13 +279,13 @@ const QuestionApproval = () => {
             <div className="mb-6">
                 <div className="flex items-center justify-between">
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-900">Duyệt Câu Hỏi</h1>
-                        <p className="text-gray-600 mt-1">Xem và duyệt các câu hỏi do giáo viên tạo</p>
+                        <h1 className="text-2xl font-bold text-gray-900">{t('manager.questionApproval.title')}</h1>
+                        <p className="text-gray-600 mt-1">{t('manager.questionApproval.subtitle')}</p>
                     </div>
                     <div className="flex items-center gap-2">
                         <div className="px-4 py-2 bg-blue-50 border border-blue-200 rounded-lg">
                             <span className="text-sm font-medium text-blue-900">
-                                {questions.length} câu hỏi
+                                {t('manager.questionApproval.questionCount', { count: questions.length })}
                             </span>
                         </div>
                     </div>
@@ -297,23 +297,23 @@ const QuestionApproval = () => {
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <Filter className="w-5 h-5 text-gray-400" />
-                        <span className="text-sm font-medium text-gray-700">Lọc theo trạng thái:</span>
+                        <span className="text-sm font-medium text-gray-700">{t('manager.questionApproval.filterByStatus')}:</span>
                         <select
                             value={filter}
                             onChange={(e) => setFilter(e.target.value)}
                             className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                         >
-                            <option value="PENDING">⏳ Chờ duyệt</option>
-                            <option value="APPROVED">✅ Đã duyệt</option>
-                            <option value="REJECTED">❌ Đã từ chối</option>
-                            <option value="ALL">📋 Tất cả</option>
+                            <option value="PENDING">{t('manager.questionApproval.statusPending')}</option>
+                            <option value="APPROVED">{t('manager.questionApproval.statusApproved')}</option>
+                            <option value="REJECTED">{t('manager.questionApproval.statusRejected')}</option>
+                            <option value="ALL">{t('manager.questionApproval.statusAll')}</option>
                         </select>
 
                         <button
                             onClick={fetchPendingQuestions}
                             disabled={loading}
                             className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
-                            title="Làm mới"
+                            title={t('common.refresh')}
                         >
                             <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
                         </button>
@@ -326,7 +326,7 @@ const QuestionApproval = () => {
                                     onChange={toggleSelectAll}
                                     className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                                 />
-                                Chọn tất cả
+                                {t('manager.questionApproval.selectAll')}
                             </label>
                         )}
                     </div>
@@ -341,7 +341,7 @@ const QuestionApproval = () => {
                                     : 'text-gray-600 hover:text-gray-900'
                             }`}
                         >
-                            📚 Khóa học ({allQuestions.filter(q => !q.unit && q.level).length})
+                            {t('manager.questionApproval.tabCourse', { count: allQuestions.filter(q => !q.unit && q.level).length })}
                         </button>
                         <button
                             onClick={() => setActiveTab('CLASS')}
@@ -351,7 +351,7 @@ const QuestionApproval = () => {
                                     : 'text-gray-600 hover:text-gray-900'
                             }`}
                         >
-                            👥 Lớp học ({allQuestions.filter(q => q.unit !== null && q.unit !== undefined).length})
+                            {t('manager.questionApproval.tabClass', { count: allQuestions.filter(q => q.unit !== null && q.unit !== undefined).length })}
                         </button>
                     </div>
                 </div>
@@ -360,27 +360,27 @@ const QuestionApproval = () => {
             {/* Bulk Action Bar */}
             {selectedIds.size > 0 && (
                 <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-4 mb-6 flex items-center justify-between">
-                    <span className="text-sm font-medium text-indigo-700">Đã chọn {selectedIds.size} câu hỏi</span>
+                    <span className="text-sm font-medium text-indigo-700">{t('manager.questionApproval.selectedCount', { count: selectedIds.size })}</span>
                     <div className="flex items-center gap-3">
                         <button
                             onClick={handleBulkApprove}
                             disabled={actionLoading}
                             className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium disabled:opacity-50 flex items-center gap-2"
                         >
-                            <CheckCircle className="w-4 h-4" /> Duyệt tất cả
+                            <CheckCircle className="w-4 h-4" /> {t('manager.questionApproval.approveAll')}
                         </button>
                         <button
                             onClick={handleBulkReject}
                             disabled={actionLoading}
                             className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm font-medium disabled:opacity-50 flex items-center gap-2"
                         >
-                            <XCircle className="w-4 h-4" /> Từ chối tất cả
+                            <XCircle className="w-4 h-4" /> {t('manager.questionApproval.rejectAll')}
                         </button>
                         <button
                             onClick={() => setSelectedIds(new Set())}
                             className="px-3 py-2 text-gray-600 hover:text-gray-800 text-sm"
                         >
-                            Bỏ chọn
+                            {t('manager.questionApproval.clearSelection')}
                         </button>
                     </div>
                 </div>
@@ -391,8 +391,8 @@ const QuestionApproval = () => {
                 {questions.length === 0 ? (
                     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
                         <FileText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                        <p className="text-gray-500 text-lg">Không có câu hỏi nào</p>
-                        <p className="text-gray-400 text-sm mt-2">Thử đổi bộ lọc hoặc kiểm tra lại sau</p>
+                        <p className="text-gray-500 text-lg">{t('manager.questionApproval.noQuestions')}</p>
+                        <p className="text-gray-400 text-sm mt-2">{t('manager.questionApproval.noQuestionsHint')}</p>
                     </div>
                 ) : (
                     questions.map((question) => (
@@ -452,13 +452,13 @@ const QuestionApproval = () => {
                                             question.verificationStatus === 'REJECTED' ? 'bg-red-100 text-red-700' :
                                             'bg-gray-100 text-gray-700'
                                         }`}>
-                                            {question.verificationStatus === 'PENDING' ? '⏳ Chờ duyệt' :
-                                             question.verificationStatus === 'APPROVED' ? '✅ Đã duyệt' :
-                                             question.verificationStatus === 'REJECTED' ? '❌ Đã từ chối' : 'N/A'}
+                                            {question.verificationStatus === 'PENDING' ? t('manager.questionApproval.badgePending') :
+                                             question.verificationStatus === 'APPROVED' ? t('manager.questionApproval.badgeApproved') :
+                                             question.verificationStatus === 'REJECTED' ? t('manager.questionApproval.badgeRejected') : 'N/A'}
                                         </span>
 
                                         <span className="px-3 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-700">
-                                            ⭐ {question.points || 1} điểm
+                                            {question.points || 1} {t('manager.questionApproval.points')}
                                         </span>
                                     </div>
 
@@ -470,7 +470,7 @@ const QuestionApproval = () => {
                                         {question.explanation && (
                                             <div className="bg-gray-50 rounded-lg p-3 mt-2">
                                                 <p className="text-sm text-gray-600">
-                                                    <span className="font-medium">Giải thích:</span> {question.explanation}
+                                                    <span className="font-medium">{t('manager.questionApproval.explanation')}:</span> {question.explanation}
                                                 </p>
                                             </div>
                                         )}
@@ -479,7 +479,7 @@ const QuestionApproval = () => {
                                     {/* Media */}
                                     {question.questionMediaUrl && (
                                         <div className="mb-3 p-3 bg-orange-50 border border-orange-200 rounded-lg">
-                                            <p className="text-xs font-medium text-orange-700 mb-2">🎵 Audio:</p>
+                                            <p className="text-xs font-medium text-orange-700 mb-2">{t('manager.questionApproval.audio')}:</p>
                                             <audio controls src={question.questionMediaUrl} className="w-full h-8" />
                                         </div>
                                     )}
@@ -497,7 +497,7 @@ const QuestionApproval = () => {
                                         {question.verificationStatus === 'REJECTED' && (
                                             <div className="flex items-center gap-1 text-red-600">
                                                 <AlertTriangle className="w-4 h-4" />
-                                                <span>Đã từ chối</span>
+                                                <span>{t('manager.questionApproval.badgeRejected')}</span>
                                             </div>
                                         )}
                                     </div>
@@ -509,7 +509,7 @@ const QuestionApproval = () => {
                                         onClick={() => handleViewDetail(question)}
                                         disabled={actionLoading}
                                         className="p-2 text-gray-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors disabled:opacity-50"
-                                        title="Xem chi tiết"
+                                        title={t('common.viewDetail')}
                                     >
                                         <Eye className="w-5 h-5" />
                                     </button>
@@ -519,19 +519,19 @@ const QuestionApproval = () => {
                                                 onClick={() => handleApprove(question)}
                                                 disabled={actionLoading}
                                                 className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                                                title="Duyệt câu hỏi"
+                                                title={t('manager.questionApproval.approveQuestion')}
                                             >
                                                 <CheckCircle className="w-4 h-4" />
-                                                Duyệt
+                                                {t('common.approve')}
                                             </button>
                                             <button
                                                 onClick={() => handleReject(question)}
                                                 disabled={actionLoading}
                                                 className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                                                title="Từ chối câu hỏi"
+                                                title={t('manager.questionApproval.rejectQuestion')}
                                             >
                                                 <XCircle className="w-4 h-4" />
-                                                Từ chối
+                                                {t('common.reject')}
                                             </button>
                                         </>
                                     )}
@@ -554,7 +554,7 @@ const QuestionApproval = () => {
                                         <Eye className="w-6 h-6 text-white" />
                                     </div>
                                     <div>
-                                        <h3 className="text-xl font-bold text-white">Chi Tiết Câu Hỏi</h3>
+                                        <h3 className="text-xl font-bold text-white">{t('manager.questionApproval.questionDetail')}</h3>
                                         <p className="text-sm text-blue-100 mt-0.5">ID: {selectedQuestion.id}</p>
                                     </div>
                                 </div>
@@ -573,11 +573,11 @@ const QuestionApproval = () => {
                                     selectedQuestion.verificationStatus === 'REJECTED' ? 'bg-red-100 text-red-700 border border-red-200' :
                                     'bg-amber-100 text-amber-700 border border-amber-200'
                                 }`}>
-                                    {selectedQuestion.verificationStatus === 'APPROVED' ? '✅ Đã duyệt' :
-                                     selectedQuestion.verificationStatus === 'REJECTED' ? '❌ Đã từ chối' : '⏳ Chờ duyệt'}
+                                    {selectedQuestion.verificationStatus === 'APPROVED' ? t('manager.questionApproval.badgeApproved') :
+                                     selectedQuestion.verificationStatus === 'REJECTED' ? t('manager.questionApproval.badgeRejected') : t('manager.questionApproval.badgePending')}
                                 </span>
                                 <span className="px-3 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-700 border border-blue-200">
-                                    {selectedQuestion.points || 1} điểm
+                                    {selectedQuestion.points || 1} {t('manager.questionApproval.points')}
                                 </span>
                             </div>
                         </div>
@@ -622,7 +622,7 @@ const QuestionApproval = () => {
                                     <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
                                         <FileText className="w-5 h-5 text-white" />
                                     </div>
-                                    <h4 className="text-lg font-bold text-gray-900">Nội dung câu hỏi</h4>
+                                    <h4 className="text-lg font-bold text-gray-900">{t('manager.questionApproval.questionContent')}</h4>
                                 </div>
                                 <p className="text-gray-900 text-base leading-relaxed pl-11">
                                     <span dangerouslySetInnerHTML={{ __html: selectedQuestion.questionText || selectedQuestion.content || 'N/A' }} />
@@ -634,7 +634,7 @@ const QuestionApproval = () => {
                                 <div className="rounded-xl overflow-hidden border border-gray-200">
                                     <div className="bg-gray-50 px-4 py-2 border-b border-gray-200">
                                         <p className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                                            🖼️ Hình ảnh
+                                            {t('manager.questionApproval.image')}
                                         </p>
                                     </div>
                                     <div className="p-4 bg-white">
@@ -656,7 +656,7 @@ const QuestionApproval = () => {
                                 <div className="rounded-xl overflow-hidden border border-gray-200">
                                     <div className="bg-gray-50 px-4 py-2 border-b border-gray-200">
                                         <p className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                                            🎵 Audio
+                                            {t('manager.questionApproval.audio')}
                                         </p>
                                     </div>
                                     <div className="p-4 bg-white">
@@ -669,7 +669,7 @@ const QuestionApproval = () => {
                             {selectedQuestion.options && selectedQuestion.options.length > 0 && (
                                 <div className="rounded-xl overflow-hidden border border-gray-200">
                                     <div className="bg-gray-50 px-4 py-2 border-b border-gray-200">
-                                        <p className="text-sm font-semibold text-gray-700">Các lựa chọn</p>
+                                        <p className="text-sm font-semibold text-gray-700">{t('manager.questionApproval.options')}</p>
                                     </div>
                                     <div className="p-4 bg-white space-y-3">
                                         {selectedQuestion.options.map((opt, index) => {
@@ -694,7 +694,7 @@ const QuestionApproval = () => {
                                                         </p>
                                                         {isCorrect && (
                                                             <span className="inline-block mt-1 px-2 py-0.5 text-xs font-semibold bg-green-600 text-white rounded">
-                                                                Đáp án đúng
+                                                                {t('manager.questionApproval.correctAnswer')}
                                                             </span>
                                                         )}
                                                     </div>
@@ -710,7 +710,7 @@ const QuestionApproval = () => {
                                 <div className="rounded-xl overflow-hidden border border-gray-200">
                                     <div className="bg-gray-50 px-4 py-2 border-b border-gray-200">
                                         <p className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                                            💡 Giải thích
+                                            {t('manager.questionApproval.explanation')}
                                         </p>
                                     </div>
                                     <div className="p-4 bg-white">
@@ -722,16 +722,16 @@ const QuestionApproval = () => {
                             {/* Metadata */}
                             <div className="grid grid-cols-2 gap-4 text-sm">
                                 <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                                    <p className="text-gray-500 text-xs font-medium mb-1">Người tạo</p>
+                                    <p className="text-gray-500 text-xs font-medium mb-1">{t('manager.questionApproval.createdBy')}</p>
                                     <p className="text-gray-900 font-medium">{selectedQuestion.createdBy?.fullName || selectedQuestion.createdBy?.username || 'N/A'}</p>
                                 </div>
                                 <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                                    <p className="text-gray-500 text-xs font-medium mb-1">Ngày tạo</p>
+                                    <p className="text-gray-500 text-xs font-medium mb-1">{t('manager.questionApproval.createdDate')}</p>
                                     <p className="text-gray-900 font-medium">{new Date(selectedQuestion.createdAt).toLocaleString('vi-VN')}</p>
                                 </div>
                                 {selectedQuestion.updatedAt && (
                                     <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                                        <p className="text-gray-500 text-xs font-medium mb-1">Cập nhật</p>
+                                        <p className="text-gray-500 text-xs font-medium mb-1">{t('manager.questionApproval.updatedDate')}</p>
                                         <p className="text-gray-900 font-medium">{new Date(selectedQuestion.updatedAt).toLocaleString('vi-VN')}</p>
                                     </div>
                                 )}
@@ -745,7 +745,7 @@ const QuestionApproval = () => {
                                     onClick={() => setShowDetailModal(false)}
                                     className="px-6 py-2.5 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium"
                                 >
-                                    Đóng
+                                    {t('common.close')}
                                 </button>
                                 {selectedQuestion.verificationStatus === 'PENDING' && (
                                     <>
@@ -758,7 +758,7 @@ const QuestionApproval = () => {
                                             className="px-6 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                                         >
                                             <XCircle className="w-4 h-4" />
-                                            Từ chối
+                                            {t('common.reject')}
                                         </button>
                                         <button
                                             onClick={() => {
@@ -769,7 +769,7 @@ const QuestionApproval = () => {
                                             className="px-6 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                                         >
                                             <CheckCircle className="w-4 h-4" />
-                                            Duyệt câu hỏi
+                                            {t('manager.questionApproval.approveQuestion')}
                                         </button>
                                     </>
                                 )}

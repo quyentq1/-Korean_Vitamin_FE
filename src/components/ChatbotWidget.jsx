@@ -5,7 +5,7 @@ const ChatbotWidget = () => {
     const { t } = useTranslation();
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState([
-        { id: 1, text: "Xin chào! Tôi có thể giúp gì cho bạn về các khóa học tiếng Hàn?", sender: 'bot' }
+        { id: 1, text: t('component.chatbot.welcomeMessage', "Xin chào! Tôi có thể giúp gì cho bạn về các khóa học tiếng Hàn?"), sender: 'bot' }
     ]);
     const [inputText, setInputText] = useState("");
     const messagesEndRef = useRef(null);
@@ -27,15 +27,15 @@ const ChatbotWidget = () => {
 
         // Simulate AI Response
         setTimeout(() => {
-            let botText = "Cảm ơn bạn đã quan tâm. Vui lòng để lại số điện thoại để tư vấn viên liên hệ.";
+            let botText = t('component.chatbot.defaultReply', "Cảm ơn bạn đã quan tâm. Vui lòng để lại số điện thoại để tư vấn viên liên hệ.");
             const lowerInput = userMsg.text.toLowerCase();
 
             if (lowerInput.includes("giá") || lowerInput.includes("học phí")) {
-                botText = "Khóa TOPIK I A1: 2.500.000đ/khóa. TOPIK II B2: 3.500.000đ/khóa. Bạn quan tâm khóa nào ạ?";
+                botText = t('component.chatbot.priceReply', "Khóa TOPIK I A1: 2.500.000đ/khóa. TOPIK II B2: 3.500.000đ/khóa. Bạn quan tâm khóa nào ạ?");
             } else if (lowerInput.includes("lịch") || lowerInput.includes("thời gian")) {
-                botText = "Chúng tôi có lớp sáng (8h-10h), chiều (14h-16h) và tối (18h-20h).";
+                botText = t('component.chatbot.scheduleReply', "Chúng tôi có lớp sáng (8h-10h), chiều (14h-16h) và tối (18h-20h).");
             } else if (lowerInput.includes("địa chỉ") || lowerInput.includes("ở đâu")) {
-                botText = "Trung tâm có cơ sở tại Hà Nội và TP.HCM. Bạn đang ở khu vực nào?";
+                botText = t('component.chatbot.addressReply', "Trung tâm có cơ sở tại Hà Nội và TP.HCM. Bạn đang ở khu vực nào?");
             }
 
             setMessages(prev => [...prev, { id: Date.now() + 1, text: botText, sender: 'bot' }]);
@@ -66,8 +66,8 @@ const ChatbotWidget = () => {
                         <div className="flex items-center gap-2">
                             <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center font-bold">AI</div>
                             <div>
-                                <h3 className="font-bold text-sm">Trợ lý ảo Korena</h3>
-                                <p className="text-xs opacity-80">Luôn sẵn sàng 24/7</p>
+                                <h3 className="font-bold text-sm">{t('component.chatbot.title', 'Trợ lý ảo Korena')}</h3>
+                                <p className="text-xs opacity-80">{t('component.chatbot.subtitle', 'Luôn sẵn sàng 24/7')}</p>
                             </div>
                         </div>
                         <button onClick={() => setIsOpen(false)} className="text-white hover:bg-white/20 rounded-full p-1">
@@ -98,7 +98,7 @@ const ChatbotWidget = () => {
                                 value={inputText}
                                 onChange={(e) => setInputText(e.target.value)}
                                 onKeyPress={handleKeyPress}
-                                placeholder="Nhập câu hỏi..."
+                                placeholder={t('component.chatbot.placeholder', "Nhập câu hỏi...")}
                                 className="flex-1 border rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-primary-500 bg-gray-50"
                             />
                             <button

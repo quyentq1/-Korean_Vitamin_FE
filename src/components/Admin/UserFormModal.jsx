@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { User, Mail, Phone, IdCard } from 'lucide-react';
 
 /**
@@ -6,6 +7,7 @@ import { User, Mail, Phone, IdCard } from 'lucide-react';
  * Priority 2: User Management Enhancement
  */
 const UserFormModal = ({ user, onClose, onSubmit }) => {
+    const { t } = useTranslation();
     const [formData, setFormData] = useState({
         username: '',
         fullName: '',
@@ -63,10 +65,10 @@ const UserFormModal = ({ user, onClose, onSubmit }) => {
                         </div>
                         <div>
                             <h3 className="text-lg font-semibold text-gray-900">
-                                {user ? 'Cập nhật người dùng' : 'Tạo người dùng mới'}
+                                {user ? t('admin.userForm.editTitle') : t('admin.userForm.createTitle')}
                             </h3>
                             <p className="text-sm text-gray-600">
-                                {user ? 'Chỉnh sửa thông tin người dùng' : 'Nhập thông tin để tạo người dùng mới'}
+                                {user ? t('admin.userForm.editSubtitle') : t('admin.userForm.createSubtitle')}
                             </p>
                         </div>
                     </div>
@@ -78,7 +80,7 @@ const UserFormModal = ({ user, onClose, onSubmit }) => {
                         {/* Username */}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Tên đăng nhập <span className="text-red-500">*</span>
+                                {t('admin.userForm.username')} <span className="text-red-500">*</span>
                             </label>
                             <div className="relative">
                                 <IdCard className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -87,7 +89,7 @@ const UserFormModal = ({ user, onClose, onSubmit }) => {
                                     name="username"
                                     value={formData.username}
                                     onChange={handleChange}
-                                    placeholder="Nhập tên đăng nhập..."
+                                    placeholder={t('admin.userForm.usernamePlaceholder')}
                                     className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                                     required
                                     disabled={!!user} // Cannot change username when editing
@@ -98,7 +100,7 @@ const UserFormModal = ({ user, onClose, onSubmit }) => {
                         {/* Full Name */}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Họ và tên <span className="text-red-500">*</span>
+                                {t('admin.userForm.fullName')} <span className="text-red-500">*</span>
                             </label>
                             <div className="relative">
                                 <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -107,7 +109,7 @@ const UserFormModal = ({ user, onClose, onSubmit }) => {
                                     name="fullName"
                                     value={formData.fullName}
                                     onChange={handleChange}
-                                    placeholder="Nhập họ và tên..."
+                                    placeholder={t('admin.userForm.fullNamePlaceholder')}
                                     className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                                     required
                                 />
@@ -117,7 +119,7 @@ const UserFormModal = ({ user, onClose, onSubmit }) => {
                         {/* Email */}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Email <span className="text-red-500">*</span>
+                                {t('admin.userForm.email')} <span className="text-red-500">*</span>
                             </label>
                             <div className="relative">
                                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -126,7 +128,7 @@ const UserFormModal = ({ user, onClose, onSubmit }) => {
                                     name="email"
                                     value={formData.email}
                                     onChange={handleChange}
-                                    placeholder="Nhập địa chỉ email..."
+                                    placeholder={t('admin.userForm.emailPlaceholder')}
                                     className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                                     required
                                 />
@@ -136,7 +138,7 @@ const UserFormModal = ({ user, onClose, onSubmit }) => {
                         {/* Phone */}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Số điện thoại
+                                {t('admin.userForm.phone')}
                             </label>
                             <div className="relative">
                                 <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -145,7 +147,7 @@ const UserFormModal = ({ user, onClose, onSubmit }) => {
                                     name="phone"
                                     value={formData.phone}
                                     onChange={handleChange}
-                                    placeholder="Nhập số điện thoại..."
+                                    placeholder={t('admin.userForm.phonePlaceholder')}
                                     className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                                 />
                             </div>
@@ -154,7 +156,7 @@ const UserFormModal = ({ user, onClose, onSubmit }) => {
                         {/* Role */}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Vai trò <span className="text-red-500">*</span>
+                                {t('admin.userForm.role')} <span className="text-red-500">*</span>
                             </label>
                             <select
                                 name="role"
@@ -163,10 +165,10 @@ const UserFormModal = ({ user, onClose, onSubmit }) => {
                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                                 required
                             >
-                                <option value="STUDENT">Học viên</option>
-                                <option value="TEACHER">Giáo viên</option>
-                                <option value="STAFF">Nhân viên</option>
-                                <option value="ADMIN">Quản trị viên</option>
+                                <option value="STUDENT">{t('admin.userForm.roleStudent')}</option>
+                                <option value="TEACHER">{t('admin.userForm.roleTeacher')}</option>
+                                <option value="STAFF">{t('admin.userForm.roleStaff')}</option>
+                                <option value="ADMIN">{t('admin.userForm.roleAdmin')}</option>
                             </select>
                         </div>
 
@@ -182,7 +184,7 @@ const UserFormModal = ({ user, onClose, onSubmit }) => {
                                     className="w-5 h-5 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
                                 />
                                 <label htmlFor="active" className="text-sm font-medium text-gray-700">
-                                    Tài khoản hoạt động
+                                    {t('admin.userForm.activeAccount')}
                                 </label>
                             </div>
                         )}
@@ -196,7 +198,7 @@ const UserFormModal = ({ user, onClose, onSubmit }) => {
                             disabled={submitting}
                             className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
                         >
-                            Hủy
+                            {t('common.cancel')}
                         </button>
                         <button
                             type="submit"
@@ -206,11 +208,11 @@ const UserFormModal = ({ user, onClose, onSubmit }) => {
                             {submitting ? (
                                 <>
                                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                                    Đang xử lý...
+                                    {t('common.processing')}
                                 </>
                             ) : (
                                 <>
-                                    {user ? 'Cập nhật' : 'Tạo mới'}
+                                    {user ? t('common.update') : t('common.create')}
                                 </>
                             )}
                         </button>

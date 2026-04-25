@@ -8,15 +8,11 @@ import {
 import Swal from 'sweetalert2';
 import staffService from '../../services/staffService';
 
-/**
- * OCR Student Creation Component
- * Upload image → OCR Processing → Preview/Edit → Create Student
- */
 const CreateOCRStudent = () => {
     const { t } = useTranslation();
     const navigate = useNavigate();
 
-    const [step, setStep] = useState(1); // 1: Upload, 2: Review/Edit, 3: Select Courses & Create
+    const [step, setStep] = useState(1);
     const [file, setFile] = useState(null);
     const [preview, setPreview] = useState(null);
     const [ocrData, setOcrData] = useState(null);
@@ -25,7 +21,6 @@ const CreateOCRStudent = () => {
     const [error, setError] = useState('');
     const [editMode, setEditMode] = useState(false);
 
-    // Editable OCR data
     const [editableData, setEditableData] = useState({
         studentName: '',
         email: '',
@@ -33,35 +28,31 @@ const CreateOCRStudent = () => {
         address: '',
         dateOfBirth: '',
         gender: '',
-        courseIds: [], // NEW: Array of selected course IDs
+        courseIds: [],
         courseCode: '',
         courseId: '',
         classId: '',
         notes: ''
     });
 
-    // Handle file selection
     const handleFileSelect = (e) => {
         const selectedFile = e.target.files?.[0];
         if (!selectedFile) return;
 
-        // Validate file type
         const validTypes = ['image/jpeg', 'image/png', 'image/bmp', 'image/webp'];
         if (!validTypes.includes(selectedFile.type)) {
-            setError('Invalid file type. Please upload JPG, PNG, BMP, or WebP images.');
+            setError(t('staff.ocrCreate.invalidFileType'));
             return;
         }
 
-        // Validate file size (max 10MB)
         if (selectedFile.size > 10 * 1024 * 1024) {
-            setError('File size exceeds 10MB. Please upload a smaller file.');
+            setError(t('staff.ocrCreate.fileTooLarge'));
             return;
         }
 
         setFile(selectedFile);
         setError('');
 
-        // Create preview
         const reader = new FileReader();
         reader.onloadend = () => {
             setPreview(reader.result);
@@ -69,7 +60,6 @@ const CreateOCRStudent = () => {
         reader.readAsDataURL(selectedFile);
     };
 
-    // Handle drag and drop
     const handleDrop = (e) => {
         e.preventDefault();
         const droppedFile = e.dataTransfer.files?.[0];
@@ -79,7 +69,6 @@ const CreateOCRStudent = () => {
         }
     };
 
-    // Process OCR
     const handleProcessOCR = async () => {
         if (!file) return;
 
@@ -93,7 +82,6 @@ const CreateOCRStudent = () => {
                 const extractedData = response.data || {};
                 setOcrData(extractedData);
 
-                // Populate editable form
                 setEditableData({
                     studentName: extractedData.studentName || '',
                     email: extractedData.email || '',
@@ -101,7 +89,7 @@ const CreateOCRStudent = () => {
                     address: extractedData.address || '',
                     dateOfBirth: extractedData.dateOfBirth || '',
                     gender: extractedData.gender || '',
-                    courseIds: [], // NEW: Empty array for manual course selection
+                    courseIds: [],
                     courseCode: extractedData.courseCode || '',
                     courseId: extractedData.courseId || '',
                     classId: extractedData.classId || '',
@@ -110,29 +98,26 @@ const CreateOCRStudent = () => {
 
                 setStep(2);
             } else {
-                setError(response?.error || 'OCR processing failed. Please try again.');
+                setError(response?.error || t('staff.ocrCreate.ocrFailed'));
             }
         } catch (err) {
             console.error('OCR Error:', err);
-            setError(err.message || 'Failed to process image. Please ensure the image is clear and all fields are visible.');
+            setError(err.message || t('staff.ocrCreate.imageProcessFailed'));
         } finally {
             setLoading(false);
         }
     };
 
-    // Handle input change in edit mode
     const handleInputChange = (field, value) => {
         setEditableData(prev => ({ ...prev, [field]: value }));
     };
 
-    // Handle next to Step 3 (course selection)
     const handleNextToStep3 = () => {
-        // Validate personal info
         if (!editableData.studentName.trim()) {
             Swal.fire({
                 icon: 'error',
-                title: 'Validation Error',
-                text: 'Student name is required',
+                title: t('staff.ocrCreate.validationError'),
+                text: t('staff.ocrCreate.studentNameRequired'),
                 confirmButtonColor: '#667eea',
             });
             return;
@@ -141,8 +126,8 @@ const CreateOCRStudent = () => {
         if (!editableData.email.trim()) {
             Swal.fire({
                 icon: 'error',
-                title: 'Validation Error',
-                text: 'Email is required',
+                title: t('staff.ocrCreate.validationError'),
+                text: t('staff.ocrCreate.emailRequired'),
                 confirmButtonColor: '#667eea',
             });
             return;
@@ -151,8 +136,8 @@ const CreateOCRStudent = () => {
         if (!editableData.phone.trim()) {
             Swal.fire({
                 icon: 'error',
-                title: 'Validation Error',
-                text: 'Phone number is required',
+                title: t('staff.ocrCreate.validationError'),
+                text: t('staff.ocrCreate.phoneRequired'),
                 confirmButtonColor: '#667eea',
             });
             return;
@@ -161,14 +146,12 @@ const CreateOCRStudent = () => {
         setStep(3);
     };
 
-    // Validate and submit
     const handleSubmit = async () => {
-        // Validation
         if (!editableData.studentName.trim()) {
             Swal.fire({
                 icon: 'error',
-                title: 'Validation Error',
-                text: 'Student name is required',
+                title: t('staff.ocrCreate.validationError'),
+                text: t('staff.ocrCreate.studentNameRequired'),
                 confirmButtonColor: '#667eea',
             });
             return;
@@ -177,8 +160,8 @@ const CreateOCRStudent = () => {
         if (!editableData.email.trim()) {
             Swal.fire({
                 icon: 'error',
-                title: 'Validation Error',
-                text: 'Email is required',
+                title: t('staff.ocrCreate.validationError'),
+                text: t('staff.ocrCreate.emailRequired'),
                 confirmButtonColor: '#667eea',
             });
             return;
@@ -187,19 +170,18 @@ const CreateOCRStudent = () => {
         if (!editableData.phone.trim()) {
             Swal.fire({
                 icon: 'error',
-                title: 'Validation Error',
-                text: 'Phone number is required',
+                title: t('staff.ocrCreate.validationError'),
+                text: t('staff.ocrCreate.phoneRequired'),
                 confirmButtonColor: '#667eea',
             });
             return;
         }
 
-        // Validate course selection
         if (!editableData.courseIds || editableData.courseIds.length === 0) {
             Swal.fire({
                 icon: 'error',
-                title: 'Validation Error',
-                text: 'Please select at least one course',
+                title: t('staff.ocrCreate.validationError'),
+                text: t('staff.ocrCreate.selectCourseRequired'),
                 confirmButtonColor: '#667eea',
             });
             return;
@@ -226,8 +208,8 @@ const CreateOCRStudent = () => {
             console.error('Create Student Error:', err);
             Swal.fire({
                 icon: 'error',
-                title: t('errors.error') || 'Lỗi',
-                text: err.message || t('errors.tryAgain') || 'Failed to create student',
+                title: t('errors.error'),
+                text: err.message || t('errors.tryAgain'),
                 confirmButtonColor: '#667eea',
             });
         } finally {
@@ -235,7 +217,6 @@ const CreateOCRStudent = () => {
         }
     };
 
-    // Reset
     const handleReset = () => {
         setStep(1);
         setFile(null);
@@ -286,21 +267,21 @@ const CreateOCRStudent = () => {
                         step === 1 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'
                     }`}>
                         <Upload className="w-4 h-4" />
-                        1. Upload Image
+                        {t('staff.ocrCreate.step1Upload')}
                     </div>
                     <div className="w-8 h-0.5 bg-gray-300" />
                     <div className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium ${
                         step === 2 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'
                     }`}>
                         <Eye className="w-4 h-4" />
-                        2. Review Info
+                        {t('staff.ocrCreate.step2Review')}
                     </div>
                     <div className="w-8 h-0.5 bg-gray-300" />
                     <div className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium ${
                         step === 3 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'
                     }`}>
                         <Save className="w-4 h-4" />
-                        3. Select Courses
+                        {t('staff.ocrCreate.step3Courses')}
                     </div>
                 </div>
             </div>
@@ -315,7 +296,7 @@ const CreateOCRStudent = () => {
                             <div className="flex items-center gap-2 mb-4">
                                 <Upload className="w-5 h-5 text-purple-600" />
                                 <h2 className="text-lg font-semibold text-gray-900">
-                                    {t('staff.ocrUpload.uploadForm')}
+                                    {t('staff.ocrUpload.title')}
                                 </h2>
                             </div>
 
@@ -348,7 +329,7 @@ const CreateOCRStudent = () => {
                                             }}
                                             className="text-red-600 hover:text-red-700 text-sm font-medium"
                                         >
-                                            Remove Image
+                                            {t('staff.ocrCreate.removeImage')}
                                         </button>
                                     </div>
                                 ) : (
@@ -358,13 +339,13 @@ const CreateOCRStudent = () => {
                                         </div>
                                         <div>
                                             <p className="text-gray-900 font-medium mb-1">
-                                                Drag & drop image here
+                                                {t('staff.ocrUpload.dragDrop')}
                                             </p>
-                                            <p className="text-gray-500 text-sm">or</p>
+                                            <p className="text-gray-500 text-sm">{t('staff.ocrUpload.or')}</p>
                                         </div>
                                         <label className="inline-flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-xl hover:shadow-lg transition-all cursor-pointer font-medium">
                                             <Upload className="w-4 h-4" />
-                                            {t('staff.ocrUpload.chooseFile')}
+                                            {t('staff.ocrUpload.browseFiles')}
                                             <input
                                                 type="file"
                                                 accept="image/jpeg,image/png,image/bmp,image/webp"
@@ -373,7 +354,7 @@ const CreateOCRStudent = () => {
                                             />
                                         </label>
                                         <p className="text-xs text-gray-500">
-                                            {t('staff.ocrUpload.support')}
+                                            {t('staff.ocrUpload.supportedFormats')}
                                         </p>
                                     </div>
                                 )}
@@ -399,7 +380,7 @@ const CreateOCRStudent = () => {
                                 ) : (
                                     <>
                                         <Scan className="w-5 h-5" />
-                                        {t('staff.ocrUpload.processOcr')}
+                                        {t('staff.ocrCreate.processOcr')}
                                     </>
                                 )}
                             </button>
@@ -410,44 +391,44 @@ const CreateOCRStudent = () => {
                             <div className="flex items-center gap-2 mb-4">
                                 <FileText className="w-5 h-5 text-blue-600" />
                                 <h2 className="text-lg font-semibold text-gray-900">
-                                    Instructions
+                                    {t('staff.ocrCreate.instructionsTitle')}
                                 </h2>
                             </div>
 
                             <div className="space-y-4">
                                 <div className="p-4 bg-blue-50 rounded-xl">
                                     <h3 className="font-medium text-blue-900 mb-2">
-                                        📷 Photo Guidelines
+                                        {t('staff.ocrCreate.photoGuidelines')}
                                     </h3>
                                     <ul className="text-sm text-blue-800 space-y-1">
-                                        <li>• Ensure good lighting</li>
-                                        <li>• Keep the document flat</li>
-                                        <li>• All text should be clearly visible</li>
-                                        <li>• Avoid reflections and shadows</li>
+                                        <li>{t('staff.ocrCreate.guideline1')}</li>
+                                        <li>{t('staff.ocrCreate.guideline2')}</li>
+                                        <li>{t('staff.ocrCreate.guideline3')}</li>
+                                        <li>{t('staff.ocrCreate.guideline4')}</li>
                                     </ul>
                                 </div>
 
                                 <div className="p-4 bg-green-50 rounded-xl">
                                     <h3 className="font-medium text-green-900 mb-2">
-                                        ✅ Required Fields
+                                        {t('staff.ocrCreate.requiredFields')}
                                     </h3>
                                     <ul className="text-sm text-green-800 space-y-1">
-                                        <li>• Student Name (Họ và tên)</li>
-                                        <li>• Email Address</li>
-                                        <li>• Phone Number</li>
-                                        <li>• Date of Birth (optional)</li>
-                                        <li>• Address (optional)</li>
+                                        <li>{t('staff.ocrCreate.requiredField1')}</li>
+                                        <li>{t('staff.ocrCreate.requiredField2')}</li>
+                                        <li>{t('staff.ocrCreate.requiredField3')}</li>
+                                        <li>{t('staff.ocrCreate.requiredField4')}</li>
+                                        <li>{t('staff.ocrCreate.requiredField5')}</li>
                                     </ul>
                                 </div>
 
                                 <div className="p-4 bg-amber-50 rounded-xl">
                                     <h3 className="font-medium text-amber-900 mb-2">
-                                        💡 Tips
+                                        {t('staff.ocrCreate.tipsTitle')}
                                     </h3>
                                     <ul className="text-sm text-amber-800 space-y-1">
-                                        <li>• You can edit extracted data before creating</li>
-                                        <li>• Password will be auto-generated</li>
-                                        <li>• Welcome email will be sent automatically</li>
+                                        <li>{t('staff.ocrCreate.tip1')}</li>
+                                        <li>{t('staff.ocrCreate.tip2')}</li>
+                                        <li>{t('staff.ocrCreate.tip3')}</li>
                                     </ul>
                                 </div>
                             </div>
@@ -464,14 +445,14 @@ const CreateOCRStudent = () => {
                                 <div className="flex items-center gap-2">
                                     <ImageIcon className="w-5 h-5 text-purple-600" />
                                     <h2 className="text-lg font-semibold text-gray-900">
-                                        Original Image
+                                        {t('staff.ocrCreate.originalImage')}
                                     </h2>
                                 </div>
                                 <button
                                     onClick={handleReset}
                                     className="text-sm text-gray-600 hover:text-gray-900"
                                 >
-                                    Upload New Image
+                                    {t('staff.ocrCreate.uploadNewImage')}
                                 </button>
                             </div>
                             <img
@@ -487,7 +468,7 @@ const CreateOCRStudent = () => {
                                 <div className="flex items-center gap-2">
                                     <User className="w-5 h-5 text-blue-600" />
                                     <h2 className="text-lg font-semibold text-gray-900">
-                                        {t('staff.ocrUpload.extractedInfo')}
+                                        {t('staff.ocrUpload.extractedData')}
                                     </h2>
                                 </div>
                                 <button
@@ -495,7 +476,7 @@ const CreateOCRStudent = () => {
                                     className="flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
                                 >
                                     <Edit className="w-4 h-4" />
-                                    {editMode ? 'View Mode' : 'Edit Mode'}
+                                    {editMode ? t('staff.ocrCreate.viewMode') : t('staff.ocrCreate.editMode')}
                                 </button>
                             </div>
 
@@ -557,10 +538,10 @@ const CreateOCRStudent = () => {
                                     )}
                                 </div>
 
-                                {/* Date of Birth - NEW */}
+                                {/* Date of Birth */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Ngày sinh / Date of Birth
+                                        {t('staff.createStudent.dob')}
                                     </label>
                                     {editMode ? (
                                         <input
@@ -581,10 +562,10 @@ const CreateOCRStudent = () => {
                                     )}
                                 </div>
 
-                                {/* Gender - NEW */}
+                                {/* Gender */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Giới tính / Gender
+                                        {t('staff.createStudent.gender')}
                                     </label>
                                     {editMode ? (
                                         <select
@@ -592,15 +573,15 @@ const CreateOCRStudent = () => {
                                             onChange={(e) => handleInputChange('gender', e.target.value)}
                                             className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                                         >
-                                            <option value="">Select Gender</option>
-                                            <option value="MALE">Nam / Male</option>
-                                            <option value="FEMALE">Nữ / Female</option>
-                                            <option value="OTHER">Other</option>
+                                            <option value="">{t('staff.ocrCreate.selectGender')}</option>
+                                            <option value="MALE">{t('staff.students.male')}</option>
+                                            <option value="FEMALE">{t('staff.students.female')}</option>
+                                            <option value="OTHER">{t('staff.ocrCreate.genderOther')}</option>
                                         </select>
                                     ) : (
                                         <p className="text-gray-900">
-                                            {editableData.gender === 'MALE' ? 'Nam / Male' :
-                                             editableData.gender === 'FEMALE' ? 'Nữ / Female' :
+                                            {editableData.gender === 'MALE' ? t('staff.students.male') :
+                                             editableData.gender === 'FEMALE' ? t('staff.students.female') :
                                              editableData.gender || t('staff.ocrUpload.notDetected')}
                                         </p>
                                     )}
@@ -652,13 +633,13 @@ const CreateOCRStudent = () => {
                                     className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 border-2 border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 transition-all font-medium"
                                 >
                                     <ArrowLeft className="w-4 h-4" />
-                                    Back
+                                    {t('common.back')}
                                 </button>
                                 <button
                                     onClick={handleNextToStep3}
                                     className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:shadow-lg transition-all font-medium"
                                 >
-                                    Next: Select Courses
+                                    {t('staff.ocrCreate.nextSelectCourses')}
                                     <ArrowLeft className="w-4 h-4 rotate-180" />
                                 </button>
                             </div>
@@ -673,7 +654,7 @@ const CreateOCRStudent = () => {
                             <div className="flex items-center gap-2">
                                 <Save className="w-5 h-5 text-green-600" />
                                 <h2 className="text-lg font-semibold text-gray-900">
-                                    Select Courses & Create Student
+                                    {t('staff.ocrCreate.selectCoursesCreate')}
                                 </h2>
                             </div>
                         </div>
@@ -681,16 +662,16 @@ const CreateOCRStudent = () => {
                         {/* Student Summary */}
                         <div className="mb-6 p-4 bg-blue-50 rounded-xl">
                             <h3 className="font-medium text-blue-900 mb-2">
-                                Student Information Summary
+                                {t('staff.ocrCreate.studentSummary')}
                             </h3>
                             <div className="grid grid-cols-2 gap-2 text-sm">
-                                <div><span className="font-medium">Name:</span> {editableData.studentName}</div>
-                                <div><span className="font-medium">Email:</span> {editableData.email}</div>
-                                <div><span className="font-medium">Phone:</span> {editableData.phone}</div>
-                                <div><span className="font-medium">DOB:</span> {editableData.dateOfBirth || 'N/A'}</div>
-                                <div><span className="font-medium">Gender:</span> {
-                                    editableData.gender === 'MALE' ? 'Nam' :
-                                    editableData.gender === 'FEMALE' ? 'Nữ' : 'N/A'
+                                <div><span className="font-medium">{t('staff.ocrCreate.summaryName')}:</span> {editableData.studentName}</div>
+                                <div><span className="font-medium">{t('common.email')}:</span> {editableData.email}</div>
+                                <div><span className="font-medium">{t('common.phone')}:</span> {editableData.phone}</div>
+                                <div><span className="font-medium">{t('staff.ocrCreate.summaryDob')}:</span> {editableData.dateOfBirth || 'N/A'}</div>
+                                <div><span className="font-medium">{t('staff.createStudent.gender')}:</span> {
+                                    editableData.gender === 'MALE' ? t('staff.students.male') :
+                                    editableData.gender === 'FEMALE' ? t('staff.students.female') : 'N/A'
                                 }</div>
                             </div>
                         </div>
@@ -698,10 +679,10 @@ const CreateOCRStudent = () => {
                         {/* Course Selection */}
                         <div className="mb-6">
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Select Courses <span className="text-red-500">*</span>
+                                {t('staff.createStudent.courses')} <span className="text-red-500">*</span>
                             </label>
                             <p className="text-xs text-gray-500 mb-3">
-                                Hold Ctrl/Cmd to select multiple courses
+                                {t('staff.ocrCreate.multiSelectHint')}
                             </p>
                             <select
                                 multiple
@@ -721,11 +702,10 @@ const CreateOCRStudent = () => {
                                 ))}
                             </select>
 
-                            {/* Selected Courses Display */}
                             {editableData.courseIds && editableData.courseIds.length > 0 && (
                                 <div className="mt-3 p-3 bg-green-50 rounded-lg">
                                     <p className="text-sm font-medium text-green-900 mb-2">
-                                        Selected Courses ({editableData.courseIds.length}):
+                                        {t('staff.ocrCreate.selectedCourses', { count: editableData.courseIds.length })}:
                                     </p>
                                     {editableData.courseIds.map(courseId => {
                                         const course = ocrData?.availableCourses?.find(c => c.id === courseId);
@@ -739,17 +719,17 @@ const CreateOCRStudent = () => {
                             )}
                         </div>
 
-                        {/* Notes (Optional) */}
+                        {/* Notes */}
                         <div className="mb-6">
                             <label className="block text-sm font-medium text-gray-700 mb-1">
-                                {t('staff.createStudent.notes')} (Optional)
+                                {t('staff.createStudent.notes')} ({t('staff.ocrCreate.optional')})
                             </label>
                             <textarea
                                 value={editableData.notes}
                                 onChange={(e) => handleInputChange('notes', e.target.value)}
                                 rows={2}
                                 className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-none"
-                                placeholder="Add any notes about this student..."
+                                placeholder={t('staff.ocrCreate.notesPlaceholder')}
                             />
                         </div>
 
@@ -760,7 +740,7 @@ const CreateOCRStudent = () => {
                                 className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 border-2 border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 transition-all font-medium"
                             >
                                 <ArrowLeft className="w-4 h-4" />
-                                Back to Edit
+                                {t('staff.ocrCreate.backToEdit')}
                             </button>
                             <button
                                 onClick={handleSubmit}
@@ -770,12 +750,12 @@ const CreateOCRStudent = () => {
                                 {processing ? (
                                     <>
                                         <Loader2 className="w-4 h-4 animate-spin" />
-                                        Creating...
+                                        {t('staff.ocrCreate.creating')}
                                     </>
                                 ) : (
                                     <>
                                         <Save className="w-4 h-4" />
-                                        Create Student
+                                        {t('staff.ocrCreate.createStudentBtn')}
                                     </>
                                 )}
                             </button>

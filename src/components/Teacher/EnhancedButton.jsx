@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Loader2 } from 'lucide-react';
 import styles from '../pages/Teacher/ExamEditor.module.css';
 
@@ -29,6 +30,7 @@ const EnhancedButton = ({
   type = 'button',
   ...props
 }) => {
+  const { t } = useTranslation();
   const baseClasses = 'inline-flex items-center justify-center gap-2 font-semibold rounded-xl shadow-md transition-all duration-300 ease-out relative overflow-hidden';
 
   const variantClasses = {
@@ -76,7 +78,7 @@ const EnhancedButton = ({
         {loading ? (
           <>
             <Loader2 className="w-4 h-4 animate-spin" />
-            {loading ? 'Đang xử lý...' : children}
+            {loading ? t('teacher.enhancedButton.processing', 'Đang xử lý...') : children}
           </>
         ) : (
           <>

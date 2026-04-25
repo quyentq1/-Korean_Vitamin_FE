@@ -315,10 +315,10 @@ const ClassExamManagement = () => {
               <div className="flex items-center justify-between mb-6">
                 <div>
                   <h2 className="text-lg font-semibold text-gray-900">
-                    Bài Kiểm Tra - {selectedClass.className}
+                    {t('teacher.classExamMgmt.tests')} - {selectedClass.className}
                   </h2>
                   <p className="text-sm text-gray-600">
-                    {exams.length} bài kiểm tra
+                    {exams.length} {t('teacher.classExamMgmt.examCount')}
                   </p>
                 </div>
               </div>
@@ -328,7 +328,7 @@ const ClassExamManagement = () => {
                   <FileText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                   <p className="text-gray-500 text-lg">{t('teacher.classExamMgmt.noExams')}</p>
                   <p className="text-gray-400 text-sm mt-2">
-                    Tạo bài kiểm tra đầu tiên cho lớp học này
+                    {t('teacher.classExamMgmt.createFirstExam')}
                   </p>
                   <button
                     onClick={handleCreateExam}

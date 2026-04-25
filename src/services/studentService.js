@@ -335,6 +335,17 @@ export const studentService = {
         });
         return response.data;
     },
+
+    updateCertificateFile: async ({ id, file, certificateType, notes }) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        if (certificateType) formData.append('certificateType', certificateType);
+        if (notes !== undefined) formData.append('notes', notes);
+        const response = await axiosClient.patch(`/student/certificate/submissions/${id}`, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        return response.data;
+    },
 };
 
 export default studentService;

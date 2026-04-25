@@ -15,7 +15,8 @@ import {
   BarChart3,
   Users,
   BookOpen,
-  Award
+  Award,
+  Shield
 } from 'lucide-react';
 import {
   PageContainer,
@@ -26,7 +27,7 @@ import {
 } from '../../components/ui';
 
 /**
- * ReportsManagement - Quản lý Báo cáo cho Admin
+ * ReportsManagement - Admin Report Management
  */
 const ReportsManagement = () => {
   const { t } = useTranslation();
@@ -45,7 +46,7 @@ const ReportsManagement = () => {
   const fetchReports = async () => {
     try {
       setLoading(true);
-      // TODO: Gọi API thực tế
+      // TODO: Call actual API
       // const data = await adminService.getReports(filterType, filterStatus);
 
       // Mock data
@@ -53,16 +54,16 @@ const ReportsManagement = () => {
         {
           id: 1,
           type: 'BUG_REPORT',
-          typeLabel: 'Báo cáo lỗi',
-          title: 'Lỗi hiển thị bài kiểm tra',
+          typeLabel: t('admin.reports.bugReport', 'Bug Report'),
+          title: t('admin.reports.bugTitle1', 'Test display error'),
           reporter: {
             id: 201,
-            fullName: 'Nguyễn Văn A',
+            fullName: 'Nguyen Van A',
             email: 'student.a@email.com',
             role: 'STUDENT',
             avatar: 'N'
           },
-          description: 'Khi làm bài kiểm tra TOPIK I, câu hỏi số 15 không hiển thị hình ảnh. Em đã thử refresh nhưng vẫn không được.',
+          description: t('admin.reports.bugDesc1', 'When taking the TOPIK I test, question 15 does not display the image. Refreshed but still not working.'),
           priority: 'HIGH',
           status: 'PENDING',
           submittedAt: '2026-03-23T08:30:00',
@@ -72,16 +73,16 @@ const ReportsManagement = () => {
         {
           id: 2,
           type: 'FEEDBACK',
-          typeLabel: 'Phản hồi',
-          title: 'Giao diện học tập rất tốt!',
+          typeLabel: t('admin.reports.feedback', 'Feedback'),
+          title: t('admin.reports.feedbackTitle1', 'Great learning interface!'),
           reporter: {
             id: 202,
-            fullName: 'Trần Thị B',
+            fullName: 'Tran Thi B',
             email: 'student.b@email.com',
             role: 'STUDENT',
             avatar: 'T'
           },
-          description: 'Em rất thích giao diện học tập mới, rất trực quan và dễ sử dụng. Tuy nhiên, em mong muốn có thêm bài tập về nhà tự động.',
+          description: t('admin.reports.feedbackDesc1', 'Really like the new learning interface, very intuitive and easy to use. However, wish for more auto homework.'),
           priority: 'LOW',
           status: 'RESOLVED',
           submittedAt: '2026-03-22T14:20:00',
@@ -91,8 +92,8 @@ const ReportsManagement = () => {
         {
           id: 3,
           type: 'ABUSE_REPORT',
-          typeLabel: 'Báo cáo vi phạm',
-          title: 'Người dùng spam trong bình luận',
+          typeLabel: t('admin.reports.abuseReport', 'Abuse Report'),
+          title: t('admin.reports.abuseTitle1', 'User spamming in comments'),
           reporter: {
             id: 2,
             fullName: 'Lee Su Jin',
@@ -100,7 +101,7 @@ const ReportsManagement = () => {
             role: 'TEACHER',
             avatar: 'L'
           },
-          description: 'Học viên username "student_spam" đang spam bình luận không liên quan trong bài giảng. Mong admin xử lý.',
+          description: t('admin.reports.abuseDesc1', 'Student username "student_spam" is spamming irrelevant comments in lectures. Admin please handle.'),
           priority: 'MEDIUM',
           status: 'IN_PROGRESS',
           submittedAt: '2026-03-21T10:15:00',
@@ -115,16 +116,16 @@ const ReportsManagement = () => {
         {
           id: 4,
           type: 'BUG_REPORT',
-          typeLabel: 'Báo cáo lỗi',
-          title: 'Không thể nộp bài viết',
+          typeLabel: t('admin.reports.bugReport', 'Bug Report'),
+          title: t('admin.reports.bugTitle2', 'Cannot submit assignment'),
           reporter: {
             id: 203,
-            fullName: 'Lê Văn C',
+            fullName: 'Le Van C',
             email: 'student.c@email.com',
             role: 'STUDENT',
             avatar: 'L'
           },
-          description: 'Em click nộp bài nhưng hệ thống báo lỗi "Network Error". Đã thử nhiều lần nhưng không được.',
+          description: t('admin.reports.bugDesc2', 'Click submit but system shows "Network Error". Tried multiple times but still not working.'),
           priority: 'HIGH',
           status: 'PENDING',
           submittedAt: '2026-03-23T09:00:00',
@@ -134,16 +135,16 @@ const ReportsManagement = () => {
         {
           id: 5,
           type: 'FEEDBACK',
-          typeLabel: 'Phản hồi',
-          title: 'Mong muốn thêm tính năng chat trực tiếp',
+          typeLabel: t('admin.reports.feedback', 'Feedback'),
+          title: t('admin.reports.feedbackTitle2', 'Request direct chat feature'),
           reporter: {
             id: 204,
-            fullName: 'Phạm Thị D',
+            fullName: 'Pham Thi D',
             email: 'student.d@email.com',
             role: 'STUDENT',
             avatar: 'P'
           },
-          description: 'Em mong muốn có tính năng chat trực tiếp với giáo viên để có thể hỏi bài nhanh hơn.',
+          description: t('admin.reports.feedbackDesc2', 'Would like a direct chat feature with teachers for faster Q&A.'),
           priority: 'MEDIUM',
           status: 'PENDING',
           submittedAt: '2026-03-20T16:45:00',
@@ -153,22 +154,22 @@ const ReportsManagement = () => {
         {
           id: 6,
           type: 'ABUSE_REPORT',
-          typeLabel: 'Báo cáo vi phạm',
-          title: 'Giáo viên không phản hồi',
+          typeLabel: t('admin.reports.abuseReport', 'Abuse Report'),
+          title: t('admin.reports.abuseTitle2', 'Teacher not responding'),
           reporter: {
             id: 205,
-            fullName: 'Hoàng Văn E',
+            fullName: 'Hoang Van E',
             email: 'student.e@email.com',
             role: 'STUDENT',
             avatar: 'H'
           },
-          description: 'Em đã gửi email hỏi bài nhưng giáo viên không phản hồi sau 3 ngày.',
+          description: t('admin.reports.abuseDesc2', 'Sent email to ask questions but teacher has not responded after 3 days.'),
           priority: 'MEDIUM',
           status: 'RESOLVED',
           submittedAt: '2026-03-19T11:30:00',
           category: 'Service Quality',
           attachments: ['email_screenshot.png'],
-          notes: 'Đã liên hệ giáo viên và giải quyết xong.'
+          notes: t('admin.reports.abuseNote', 'Contacted teacher and resolved.')
         }
       ];
 
@@ -193,11 +194,11 @@ const ReportsManagement = () => {
   const getStatusBadge = (status) => {
     switch (status) {
       case 'PENDING':
-        return <Badge variant="warning" size="sm">⏳ Chờ xử lý</Badge>;
+        return <Badge variant="warning" size="sm">⏳ {t('admin.reports.pending', 'Pending')}</Badge>;
       case 'IN_PROGRESS':
-        return <Badge variant="info" size="sm">🔄 Đang xử lý</Badge>;
+        return <Badge variant="info" size="sm">🔄 {t('admin.reports.inProgress', 'In Progress')}</Badge>;
       case 'RESOLVED':
-        return <Badge variant="success" size="sm">✅ Đã giải quyết</Badge>;
+        return <Badge variant="success" size="sm">✅ {t('admin.reports.resolved', 'Resolved')}</Badge>;
       default:
         return <Badge variant="secondary" size="sm">{status}</Badge>;
     }
@@ -206,11 +207,11 @@ const ReportsManagement = () => {
   const getPriorityBadge = (priority) => {
     switch (priority) {
       case 'HIGH':
-        return <Badge variant="error" size="sm">🔴 Cao</Badge>;
+        return <Badge variant="error" size="sm">🔴 {t('common.high', 'High')}</Badge>;
       case 'MEDIUM':
-        return <Badge variant="warning" size="sm">🟡 Trung bình</Badge>;
+        return <Badge variant="warning" size="sm">🟡 {t('common.medium', 'Medium')}</Badge>;
       case 'LOW':
-        return <Badge variant="secondary" size="sm">🟢 Thấp</Badge>;
+        return <Badge variant="secondary" size="sm">🟢 {t('common.low', 'Low')}</Badge>;
       default:
         return <Badge variant="secondary" size="sm">{priority}</Badge>;
     }
@@ -251,8 +252,8 @@ const ReportsManagement = () => {
   return (
     <PageContainer variant="wide">
       <PageHeader
-        title={t('admin.reports.title', 'Quản lý Báo cáo')}
-        subtitle={t('admin.reports.subtitle', 'Xử lý báo cáo, lỗi và phản hồi từ người dùng')}
+        title={t('admin.reports.title', 'Report Management')}
+        subtitle={t('admin.reports.subtitle', 'Handle reports, bugs and feedback from users')}
       />
 
       {/* Stats Cards */}
@@ -260,7 +261,7 @@ const ReportsManagement = () => {
         <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white border-0">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-blue-100 text-sm font-medium">Tổng báo cáo</p>
+              <p className="text-blue-100 text-sm font-medium">{t('admin.reports.totalReports', 'Total Reports')}</p>
               <p className="text-3xl font-bold mt-1">{reports.length}</p>
             </div>
             <FileText className="w-12 h-12 text-blue-200" />
@@ -270,7 +271,7 @@ const ReportsManagement = () => {
         <Card className="bg-gradient-to-br from-amber-500 to-amber-600 text-white border-0">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-amber-100 text-sm font-medium">Chờ xử lý</p>
+              <p className="text-amber-100 text-sm font-medium">{t('admin.reports.pending', 'Pending')}</p>
               <p className="text-3xl font-bold mt-1">{reports.filter(r => r.status === 'PENDING').length}</p>
             </div>
             <Clock className="w-12 h-12 text-amber-200" />
@@ -280,7 +281,7 @@ const ReportsManagement = () => {
         <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white border-0">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-blue-100 text-sm font-medium">Đang xử lý</p>
+              <p className="text-blue-100 text-sm font-medium">{t('admin.reports.inProgress', 'In Progress')}</p>
               <p className="text-3xl font-bold mt-1">{reports.filter(r => r.status === 'IN_PROGRESS').length}</p>
             </div>
             <BarChart3 className="w-12 h-12 text-blue-200" />
@@ -290,7 +291,7 @@ const ReportsManagement = () => {
         <Card className="bg-gradient-to-br from-green-500 to-green-600 text-white border-0">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-green-100 text-sm font-medium">Đã giải quyết</p>
+              <p className="text-green-100 text-sm font-medium">{t('admin.reports.resolved', 'Resolved')}</p>
               <p className="text-3xl font-bold mt-1">{reports.filter(r => r.status === 'RESOLVED').length}</p>
             </div>
             <CheckCircle className="w-12 h-12 text-green-200" />
@@ -300,7 +301,7 @@ const ReportsManagement = () => {
         <Card className="bg-gradient-to-br from-red-500 to-red-600 text-white border-0">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-red-100 text-sm font-medium">Ưu tiên cao</p>
+              <p className="text-red-100 text-sm font-medium">{t('admin.reports.highPriority', 'High Priority')}</p>
               <p className="text-3xl font-bold mt-1">{reports.filter(r => r.priority === 'HIGH').length}</p>
             </div>
             <AlertCircle className="w-12 h-12 text-red-200" />
@@ -316,7 +317,7 @@ const ReportsManagement = () => {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
               <input
                 type="text"
-                placeholder="Tìm kiếm báo cáo..."
+                placeholder={t('admin.reports.searchPlaceholder', 'Search reports...')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
@@ -331,10 +332,10 @@ const ReportsManagement = () => {
               onChange={(e) => setFilterType(e.target.value)}
               className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
             >
-              <option value="ALL">Tất cả loại</option>
-              <option value="BUG_REPORT">Báo cáo lỗi</option>
-              <option value="FEEDBACK">Phản hồi</option>
-              <option value="ABUSE_REPORT">Vi phạm</option>
+              <option value="ALL">{t('admin.reports.allTypes', 'All Types')}</option>
+              <option value="BUG_REPORT">{t('admin.reports.bugReport', 'Bug Report')}</option>
+              <option value="FEEDBACK">{t('admin.reports.feedback', 'Feedback')}</option>
+              <option value="ABUSE_REPORT">{t('admin.reports.abuseReport', 'Violation')}</option>
             </select>
 
             <select
@@ -342,10 +343,10 @@ const ReportsManagement = () => {
               onChange={(e) => setFilterStatus(e.target.value)}
               className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
             >
-              <option value="ALL">Tất cả trạng thái</option>
-              <option value="PENDING">Chờ xử lý</option>
-              <option value="IN_PROGRESS">Đang xử lý</option>
-              <option value="RESOLVED">Đã giải quyết</option>
+              <option value="ALL">{t('admin.reports.allStatuses', 'All Statuses')}</option>
+              <option value="PENDING">{t('admin.reports.pending', 'Pending')}</option>
+              <option value="IN_PROGRESS">{t('admin.reports.inProgress', 'In Progress')}</option>
+              <option value="RESOLVED">{t('admin.reports.resolved', 'Resolved')}</option>
             </select>
 
             <Button variant="secondary">
@@ -406,7 +407,7 @@ const ReportsManagement = () => {
                       <div className="flex items-center gap-2">
                         <p className="font-medium text-gray-900">{report.reporter.fullName}</p>
                         <Badge variant="secondary" size="sm">
-                          {report.reporter.role === 'STUDENT' ? 'Học viên' : 'Giáo viên'}
+                          {report.reporter.role === 'STUDENT' ? t('admin.reports.student', 'Student') : t('admin.reports.teacher', 'Teacher')}
                         </Badge>
                       </div>
                       <p className="text-xs text-gray-600">{report.reporter.email}</p>
@@ -427,13 +428,13 @@ const ReportsManagement = () => {
                     {report.attachments?.length > 0 && (
                       <span className="flex items-center gap-1">
                         <FileText className="w-3 h-3" />
-                        {report.attachments.length} tệp đính kèm
+                        {report.attachments.length} {t('admin.reports.attachments', 'attachments')}
                       </span>
                     )}
                     {report.reportedUser && (
                       <span className="flex items-center gap-1 text-red-600">
                         <User className="w-3 h-3" />
-                        Người bị báo cáo: {report.reportedUser.username}
+                        {t('admin.reports.reportedUser', 'Reported User')}: {report.reportedUser.username}
                       </span>
                     )}
                   </div>
@@ -443,12 +444,12 @@ const ReportsManagement = () => {
                     <div className="flex gap-2">
                       {report.status === 'PENDING' && (
                         <Button variant="secondary" size="sm">
-                          Bắt đầu xử lý
+                          {t('admin.reports.startProcessing', 'Start Processing')}
                         </Button>
                       )}
                       {report.status === 'IN_PROGRESS' && (
                         <Button variant="success" size="sm">
-                          Đánh dấu đã xong
+                          {t('admin.reports.markDone', 'Mark as Done')}
                         </Button>
                       )}
                     </div>
@@ -463,7 +464,7 @@ const ReportsManagement = () => {
                         }}
                       >
                         <Eye className="w-4 h-4 mr-1" />
-                        Chi tiết
+                        {t('admin.reports.details', 'Details')}
                       </Button>
                     </div>
                   </div>
@@ -477,8 +478,8 @@ const ReportsManagement = () => {
       {filteredReports.length === 0 && (
         <Card className="text-center py-12">
           <FileText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <p className="text-gray-500 text-lg">Không có báo cáo nào</p>
-          <p className="text-gray-400 text-sm mt-2">Thử thay đổi bộ lọc để xem các báo cáo khác</p>
+          <p className="text-gray-500 text-lg">{t('admin.reports.noReports', 'No reports found')}</p>
+          <p className="text-gray-400 text-sm mt-2">{t('admin.reports.tryChangeFilters', 'Try changing filters to see other reports')}</p>
         </Card>
       )}
 
@@ -488,7 +489,7 @@ const ReportsManagement = () => {
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-gray-200">
               <div className="flex items-center justify-between">
-                <h3 className="text-xl font-bold text-gray-900">Chi tiết báo cáo</h3>
+                <h3 className="text-xl font-bold text-gray-900">{t('admin.reports.reportDetails', 'Report Details')}</h3>
                 <button
                   onClick={() => setShowDetailModal(false)}
                   className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg"
@@ -518,7 +519,7 @@ const ReportsManagement = () => {
 
               {/* Reporter */}
               <div className="p-4 bg-gray-50 rounded-lg">
-                <h5 className="font-semibold text-gray-900 mb-3">Người báo cáo</h5>
+                <h5 className="font-semibold text-gray-900 mb-3">{t('admin.reports.reporter', 'Reporter')}</h5>
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
                     {selectedReport.reporter.avatar}
@@ -527,7 +528,7 @@ const ReportsManagement = () => {
                     <p className="font-medium text-gray-900">{selectedReport.reporter.fullName}</p>
                     <p className="text-sm text-gray-600">{selectedReport.reporter.email}</p>
                     <Badge variant="secondary" size="sm" className="mt-1">
-                      {selectedReport.reporter.role === 'STUDENT' ? 'Học viên' : 'Giáo viên'}
+                      {selectedReport.reporter.role === 'STUDENT' ? t('admin.reports.student', 'Student') : t('admin.reports.teacher', 'Teacher')}
                     </Badge>
                   </div>
                 </div>
@@ -536,7 +537,7 @@ const ReportsManagement = () => {
               {/* Reported User (if abuse report) */}
               {selectedReport.reportedUser && (
                 <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-                  <h5 className="font-semibold text-red-900 mb-3">Người bị báo cáo</h5>
+                  <h5 className="font-semibold text-red-900 mb-3">{t('admin.reports.reportedUser', 'Reported User')}</h5>
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
                       {selectedReport.reportedUser.username.charAt(0).toUpperCase()}
@@ -551,7 +552,7 @@ const ReportsManagement = () => {
 
               {/* Description */}
               <div>
-                <h5 className="font-semibold text-gray-900 mb-2">Nội dung</h5>
+                <h5 className="font-semibold text-gray-900 mb-2">{t('admin.reports.content', 'Content')}</h5>
                 <p className="text-sm text-gray-700 bg-gray-50 p-4 rounded-lg">
                   {selectedReport.description}
                 </p>
@@ -560,7 +561,7 @@ const ReportsManagement = () => {
               {/* Attachments */}
               {selectedReport.attachments?.length > 0 && (
                 <div>
-                  <h5 className="font-semibold text-gray-900 mb-2">Tài liệu đính kèm</h5>
+                  <h5 className="font-semibold text-gray-900 mb-2">{t('admin.reports.attachments', 'Attachments')}</h5>
                   <div className="space-y-2">
                     {selectedReport.attachments.map((file, index) => (
                       <div
@@ -583,18 +584,18 @@ const ReportsManagement = () => {
               {/* Notes */}
               {selectedReport.notes && (
                 <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                  <h5 className="font-semibold text-green-900 mb-2">Ghi chú xử lý</h5>
+                  <h5 className="font-semibold text-green-900 mb-2">{t('admin.reports.processingNotes', 'Processing Notes')}</h5>
                   <p className="text-sm text-green-800">{selectedReport.notes}</p>
                 </div>
               )}
 
               {/* Timeline */}
               <div>
-                <h5 className="font-semibold text-gray-900 mb-3">Timeline</h5>
+                <h5 className="font-semibold text-gray-900 mb-3">{t('admin.reports.timeline', 'Timeline')}</h5>
                 <div className="space-y-2 text-sm">
                   <div className="flex items-center gap-2 text-gray-600">
                     <Calendar className="w-4 h-4" />
-                    <span>Ngày gửi: {new Date(selectedReport.submittedAt).toLocaleString('vi-VN')}</span>
+                    <span>{t('admin.reports.submittedDate', 'Submitted')}: {new Date(selectedReport.submittedAt).toLocaleString('vi-VN')}</span>
                   </div>
                 </div>
               </div>
@@ -602,19 +603,19 @@ const ReportsManagement = () => {
 
             <div className="p-6 border-t border-gray-200 flex justify-between">
               <Button variant="ghost" onClick={() => setShowDetailModal(false)}>
-                Đóng
+                {t('common.close', 'Close')}
               </Button>
               <div className="flex gap-2">
                 {selectedReport.status === 'PENDING' && (
                   <>
                     <Button variant="secondary">
-                      Bắt đầu xử lý
+                      {t('admin.reports.startProcessing', 'Start Processing')}
                     </Button>
                   </>
                 )}
                 {selectedReport.status === 'IN_PROGRESS' && (
                   <Button variant="success">
-                    Đánh dấu đã xong
+                    {t('admin.reports.markDone', 'Mark as Done')}
                   </Button>
                 )}
               </div>

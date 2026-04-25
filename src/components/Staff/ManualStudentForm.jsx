@@ -58,9 +58,9 @@ const ManualStudentForm = ({ onSuccess, onCancel }) => {
             console.error('Error creating student:', error);
             Swal.fire({
                 icon: 'error',
-                title: 'Lỗi tạo học viên',
-                text: error.response?.data?.message || 'Không thể tạo học viên. Vui lòng thử lại.',
-                confirmButtonText: 'Đồng ý',
+                title: t('staff.manualStudent.createError'),
+                text: error.response?.data?.message || t('staff.manualStudent.createFailed'),
+                confirmButtonText: t('staff.manualStudent.agree'),
                 confirmButtonColor: '#ef4444'
             });
         } finally {

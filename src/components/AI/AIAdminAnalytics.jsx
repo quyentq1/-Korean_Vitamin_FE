@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import aiService from '../../services/aiService';
 
 /**
@@ -6,6 +7,7 @@ import aiService from '../../services/aiService';
  * Provides AI-powered insights on Korean learning data for administrators
  */
 const AIAdminAnalytics = ({ onAnalyticsReceived }) => {
+  const { t } = useTranslation();
   const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -44,7 +46,7 @@ const AIAdminAnalytics = ({ onAnalyticsReceived }) => {
 
     } catch (error) {
       console.error('AI analytics error:', error);
-      setError('Không thể tạo phân tích. Vui lòng thử lại sau.');
+      setError(t('ai.aiAdminAnalytics.errorGenerate'));
     } finally {
       setLoading(false);
     }
@@ -63,28 +65,28 @@ const AIAdminAnalytics = ({ onAnalyticsReceived }) => {
     <div className="mb-6">
       <div className="bg-white rounded-xl shadow-md p-5">
         <div className="mb-5">
-          <h3 className="text-xl font-bold text-gray-900 mb-1">🤖 AI Phân tích & Gợi ý</h3>
+          <h3 className="text-xl font-bold text-gray-900 mb-1">🤖 {t('ai.aiAdminAnalytics.title')}</h3>
           <p className="text-sm text-gray-600">
-            Phân tích dữ liệu học tiếng Hàn và đưa ra gợi ý cải thiện
+            {t('ai.aiAdminAnalytics.subtitle')}
           </p>
         </div>
 
         <div className="flex flex-wrap gap-4 items-end">
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-medium text-gray-700">Loại báo cáo:</label>
+            <label className="text-xs font-medium text-gray-700">{t('ai.aiAdminAnalytics.reportTypeLabel')}</label>
             <select
               value={dateRange.reportType}
               onChange={(e) => handleReportTypeChange(e.target.value)}
               className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent min-w-[180px]"
             >
-              <option value="topic_analysis">Phân tích chủ đề</option>
-              <option value="weekly_summary">Tổng kết tuần</option>
-              <option value="student_group_analysis">Phân tích nhóm học viên</option>
+              <option value="topic_analysis">{t('ai.aiAdminAnalytics.topicAnalysis')}</option>
+              <option value="weekly_summary">{t('ai.aiAdminAnalytics.weeklySummary')}</option>
+              <option value="student_group_analysis">{t('ai.aiAdminAnalytics.studentGroupAnalysis')}</option>
             </select>
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-medium text-gray-700">Từ ngày:</label>
+            <label className="text-xs font-medium text-gray-700">{t('ai.aiAdminAnalytics.dateFromLabel')}</label>
             <input
               type="date"
               value={dateRange.dateFrom}
@@ -94,7 +96,7 @@ const AIAdminAnalytics = ({ onAnalyticsReceived }) => {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-medium text-gray-700">Đến ngày:</label>
+            <label className="text-xs font-medium text-gray-700">{t('ai.aiAdminAnalytics.dateToLabel')}</label>
             <input
               type="date"
               value={dateRange.dateTo}
@@ -114,11 +116,11 @@ const AIAdminAnalytics = ({ onAnalyticsReceived }) => {
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                Đang phân tích...
+                {t('ai.aiAdminAnalytics.analyzing')}
               </>
             ) : (
               <>
-                📊 Tạo phân tích
+                📊 {t('ai.aiAdminAnalytics.generateBtn')}
               </>
             )}
           </button>
@@ -137,11 +139,11 @@ const AIAdminAnalytics = ({ onAnalyticsReceived }) => {
           <div className="flex items-start gap-4 p-5 bg-white rounded-lg shadow-sm mb-5">
             <div className="text-5xl">📈</div>
             <div className="flex-1">
-              <h4 className="text-lg font-bold text-blue-900 mb-3">Tổng quan</h4>
+              <h4 className="text-lg font-bold text-blue-900 mb-3">{t('ai.aiAdminAnalytics.overview')}</h4>
               <p className="text-gray-800 leading-relaxed mb-2">{analytics.summary}</p>
               {analytics.generatedAt && (
                 <span className="text-xs text-gray-600">
-                  Generated: {new Date(analytics.generatedAt).toLocaleString('vi-VN')}
+                  Generated: {new Date(analytics.generatedAt).toLocaleString()}
                 </span>
               )}
             </div>
@@ -150,7 +152,7 @@ const AIAdminAnalytics = ({ onAnalyticsReceived }) => {
           {/* Recommendations Section */}
           {analytics.recommendations && analytics.recommendations.length > 0 && (
             <div className="mb-5 p-5 bg-white rounded-lg shadow-sm">
-              <h4 className="text-base font-bold text-blue-900 mb-4">💡 Gợi ý cải thiện:</h4>
+              <h4 className="text-base font-bold text-blue-900 mb-4">💡 {t('ai.aiAdminAnalytics.improvementSuggestions')}</h4>
               <ul className="space-y-2">
                 {analytics.recommendations.map((rec, index) => (
                   <li key={index} className="p-3 bg-blue-50 border-l-3 border-blue-500 rounded text-sm text-blue-900 leading-relaxed">
@@ -164,7 +166,7 @@ const AIAdminAnalytics = ({ onAnalyticsReceived }) => {
           {/* Weak Topics Section */}
           {analytics.weakTopics && analytics.weakTopics.length > 0 && (
             <div className="mb-5 p-5 bg-white rounded-lg shadow-sm">
-              <h4 className="text-base font-bold text-red-700 mb-4">⚠️ Chủ đề cần cải thiện:</h4>
+              <h4 className="text-base font-bold text-red-700 mb-4">⚠️ {t('ai.aiAdminAnalytics.weakTopics')}</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {analytics.weakTopics.map((topic, index) => (
                   <div key={index} className="p-4 bg-red-50 border border-red-200 rounded-lg">
@@ -178,7 +180,7 @@ const AIAdminAnalytics = ({ onAnalyticsReceived }) => {
                         topic.correctRate >= 50 ? 'text-yellow-600' : 'text-red-600'
                       }`}
                     >
-                      {topic.correctRate}% đúng
+                      {topic.correctRate}% {t('ai.aiAdminAnalytics.correct')}
                     </div>
                     <div className="w-full bg-red-100 rounded-full h-1.5 overflow-hidden">
                       <div
@@ -199,7 +201,7 @@ const AIAdminAnalytics = ({ onAnalyticsReceived }) => {
           {analytics.cachedUntil && (
             <div className="p-3 bg-blue-100 rounded-lg text-center">
               <p className="text-xs text-blue-800">
-                ℹ️ Kết quả được cache đến: {new Date(analytics.cachedUntil).toLocaleString('vi-VN')}
+                ℹ️ {t('ai.aiAdminAnalytics.cachedUntil')}: {new Date(analytics.cachedUntil).toLocaleString()}
               </p>
             </div>
           )}

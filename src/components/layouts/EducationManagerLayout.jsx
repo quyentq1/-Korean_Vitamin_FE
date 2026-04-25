@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useLocation, Outlet, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 import {
     LayoutDashboard, BookOpen, Users, GraduationCap, ClipboardList,
@@ -8,56 +9,58 @@ import {
 } from 'lucide-react';
 import Swal from 'sweetalert2';
 import NotificationBell from '../NotificationBell';
-
-const navItems = [
-    {
-        section: 'Tổng quan',
-        items: [
-            { icon: LayoutDashboard, label: 'Dashboard', path: '/edu-manager' },
-            { icon: BarChart3, label: 'Analytics', path: '/edu-manager/analytics' },
-        ]
-    },
-    {
-        section: 'Duyệt',
-        items: [
-            { icon: CheckCircle, label: 'Duyệt Câu Hỏi', path: '/edu-manager/qb-approval' },
-            { icon: FileCheck, label: 'Duyệt Bài Thi', path: '/edu-manager/exam-approval' },
-            { icon: FileCheck, label: 'Duyệt Đề Thi', path: '/edu-manager/test-approval' },
-            { icon: Award, label: 'Duyệt Chứng Chỉ', path: '/edu-manager/certificates' },
-        ]
-    },
-    {
-        section: 'Quản lý',
-        items: [
-            { icon: BookOpen, label: 'Khóa học', path: '/edu-manager/courses' },
-            { icon: Users, label: 'Lớp học', path: '/edu-manager/classes' },
-            { icon: GraduationCap, label: 'Giáo viên', path: '/edu-manager/teachers' },
-            { icon: Users, label: 'Học viên', path: '/edu-manager/students' },
-            { icon: Calendar, label: 'Quản lý lịch học', path: '/edu-manager/schedules' },
-        ]
-    },
-    {
-        section: 'Điểm danh',
-        items: [
-            { icon: ClipboardCheck, label: 'Lịch sử điểm danh', path: '/edu-manager/attendance' },
-            { icon: TrendingUp, label: 'Thống kê dạy/học', path: '/edu-manager/teaching-stats' },
-        ]
-    },
-];
+import LanguageSwitcher from '../LanguageSwitcher';
 
 const EducationManagerLayout = () => {
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const location = useLocation();
     const { user, logout } = useAuth();
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
+    const navItems = [
+        {
+            section: t('layout.edu.overview'),
+            items: [
+                { icon: LayoutDashboard, label: 'Dashboard', path: '/edu-manager' },
+                { icon: BarChart3, label: 'Analytics', path: '/edu-manager/analytics' },
+            ]
+        },
+        {
+            section: t('layout.edu.approval'),
+            items: [
+                { icon: CheckCircle, label: t('layout.edu.approveQuestions'), path: '/edu-manager/qb-approval' },
+                { icon: FileCheck, label: t('layout.edu.approveExam'), path: '/edu-manager/exam-approval' },
+                { icon: FileCheck, label: t('layout.edu.approveTest'), path: '/edu-manager/test-approval' },
+                { icon: Award, label: t('layout.edu.approveCert'), path: '/edu-manager/certificates' },
+            ]
+        },
+        {
+            section: t('layout.edu.management'),
+            items: [
+                { icon: BookOpen, label: t('layout.edu.courses'), path: '/edu-manager/courses' },
+                { icon: Users, label: t('layout.edu.classes'), path: '/edu-manager/classes' },
+                { icon: GraduationCap, label: t('layout.edu.teachers'), path: '/edu-manager/teachers' },
+                { icon: Users, label: t('layout.edu.students'), path: '/edu-manager/students' },
+                { icon: Calendar, label: t('layout.edu.schedules'), path: '/edu-manager/schedules' },
+            ]
+        },
+        {
+            section: t('layout.edu.attendance'),
+            items: [
+                { icon: ClipboardCheck, label: t('layout.edu.attendanceHistory'), path: '/edu-manager/attendance' },
+                { icon: TrendingUp, label: t('layout.edu.teachingStats'), path: '/edu-manager/teaching-stats' },
+            ]
+        },
+    ];
+
     const handleLogout = () => {
         Swal.fire({
-            icon: 'question', title: 'Đăng xuất?',
-            text: 'Bạn có chắc chắn muốn đăng xuất?',
+            icon: 'question', title: t('layout.logout'),
+            text: t('layout.logoutConfirm'),
             showCancelButton: true,
             confirmButtonColor: '#7c3aed', cancelButtonColor: '#6b7280',
-            confirmButtonText: 'Đăng xuất', cancelButtonText: 'Hủy',
+            confirmButtonText: t('layout.logout'), cancelButtonText: t('common.cancel'),
         }).then(r => r.isConfirmed && logout());
     };
 
@@ -136,7 +139,7 @@ const EducationManagerLayout = () => {
                             <p className="text-white text-sm font-semibold truncate">{user?.fullName || user?.username}</p>
                             <p className="text-violet-300 text-xs">Education Manager</p>
                         </div>
-                        <button onClick={handleLogout} title="Đăng xuất" className="text-violet-300 hover:text-red-400 transition-colors shrink-0">
+                        <button onClick={handleLogout} title={t('layout.logout')} className="text-violet-300 hover:text-red-400 transition-colors shrink-0">
                             <LogOut className="w-4 h-4" />
                         </button>
                     </div>
@@ -168,6 +171,8 @@ const EducationManagerLayout = () => {
                     <div className="flex items-center gap-2">
                         {/* Notifications */}
                         <NotificationBell />
+
+                        <LanguageSwitcher />
 
                         <div className="w-px h-6 bg-gray-200 mx-1" />
 

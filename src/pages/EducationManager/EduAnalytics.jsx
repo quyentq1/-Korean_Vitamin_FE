@@ -142,9 +142,6 @@ const EduAnalytics = () => {
     );
 };
 
-/* ================================================================
-   OVERVIEW TAB - Tổng hợp toàn bộ hệ thống
-   ================================================================ */
 const OverviewTab = ({ dashboardStats, courseStats, classStats, teachers, pendingExams, classes }) => {
     const { t } = useTranslation();
     const totalQuestions = (dashboardStats.approvedQuestions || 0) + (dashboardStats.pendingQuestions || 0) + (dashboardStats.rejectedQuestions || 0);
@@ -155,7 +152,6 @@ const OverviewTab = ({ dashboardStats, courseStats, classStats, teachers, pendin
     const pendingRate = totalQuestions > 0
         ? Math.round(((dashboardStats.pendingQuestions || 0) / totalQuestions) * 100) : 0;
 
-    // Schedule overview - fetched separately since class list doesn't include schedules
     const [scheduleOverview, setScheduleOverview] = useState({ total: 0, completed: 0, upcoming: 0 });
     useEffect(() => {
         if (classes.length === 0) return;
@@ -240,24 +236,22 @@ const OverviewTab = ({ dashboardStats, courseStats, classStats, teachers, pendin
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                 <div className="flex items-center gap-2 mb-6">
                     <Activity className="w-5 h-5 text-indigo-600" />
-                    <h3 className="text-lg font-semibold text-gray-800">Tổng quan hệ thống</h3>
+                    <h3 className="text-lg font-semibold text-gray-800">{t('eduManager.analytics.systemOverview')}</h3>
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-                    <SummaryMetric label="Tỷ lệ duyệt câu hỏi" value={`${approvalRate}%`} trend={approvalRate >= 70 ? 'up' : 'down'} />
-                    <SummaryMetric label="Tỷ lệ publish khóa" value={courseStats.total > 0 ? `${Math.round((courseStats.published / courseStats.total) * 100)}%` : '0%'} trend={courseStats.published >= courseStats.draft ? 'up' : 'down'} />
-                    <SummaryMetric label="Lớp đang hoạt động" value={`${classStats.activeClasses}/${classStats.total}`} trend={classStats.activeClasses === classStats.total ? 'up' : 'down'} />
-                    <SummaryMetric label="TB học viên/lớp" value={classStats.avgStudents} trend="neutral" />
-                    <SummaryMetric label="Đề thi chờ duyệt" value={pendingExams.length} trend={pendingExams.length === 0 ? 'up' : 'down'} />
+                    <SummaryMetric label={t('eduManager.analytics.questionApprovalRateLabel')} value={`${approvalRate}%`} trend={approvalRate >= 70 ? 'up' : 'down'} />
+                    <SummaryMetric label={t('eduManager.analytics.coursePublishRate')} value={courseStats.total > 0 ? `${Math.round((courseStats.published / courseStats.total) * 100)}%` : '0%'} trend={courseStats.published >= courseStats.draft ? 'up' : 'down'} />
+                    <SummaryMetric label={t('eduManager.analytics.activeClassesLabel')} value={`${classStats.activeClasses}/${classStats.total}`} trend={classStats.activeClasses === classStats.total ? 'up' : 'down'} />
+                    <SummaryMetric label={t('eduManager.analytics.avgStudentsPerClass')} value={classStats.avgStudents} trend="neutral" />
+                    <SummaryMetric label={t('eduManager.analytics.pendingExamsLabel')} value={pendingExams.length} trend={pendingExams.length === 0 ? 'up' : 'down'} />
                 </div>
             </div>
         </div>
     );
 };
 
-/* ================================================================
-   SCHEDULE TAB - Phân tích lịch học
-   ================================================================ */
 const ScheduleTab = ({ classes }) => {
+    const { t } = useTranslation();
     const [scheduleLoading, setScheduleLoading] = useState(true);
     const [scheduleData, setScheduleData] = useState({
         totalSchedules: 0, completedSchedules: 0, scheduledSchedules: 0,
@@ -332,7 +326,7 @@ const ScheduleTab = ({ classes }) => {
             <div className="flex items-center justify-center py-20">
                 <div className="text-center">
                     <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-                    <p className="text-gray-500">Đang tải dữ liệu lịch học...</p>
+                    <p className="text-gray-500">{t('eduManager.analytics.loadingScheduleData')}</p>
                 </div>
             </div>
         );
@@ -342,12 +336,12 @@ const ScheduleTab = ({ classes }) => {
         <div className="space-y-6">
             {/* KPI Cards */}
             <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-                <KpiCard icon={Calendar} label="Tổng buổi" value={scheduleData.totalSchedules} color="indigo" />
-                <KpiCard icon={CheckCircle} label="Hoàn thành" value={scheduleData.completedSchedules} color="emerald" />
-                <KpiCard icon={Clock} label="Sắp tới" value={scheduleData.upcomingCount} color="blue" />
-                <KpiCard icon={Calendar} label="Đã lên lịch" value={scheduleData.scheduledSchedules} color="cyan" />
-                <KpiCard icon={XCircle} label="Đã hủy" value={scheduleData.cancelledSchedules} color="rose" />
-                <KpiCard icon={AlertCircle} label="Quá hạn" value={scheduleData.pastIncompleteCount} color="amber" />
+                <KpiCard icon={Calendar} label={t('eduManager.analytics.totalSessions')} value={scheduleData.totalSchedules} color="indigo" />
+                <KpiCard icon={CheckCircle} label={t('eduManager.analytics.completed')} value={scheduleData.completedSchedules} color="emerald" />
+                <KpiCard icon={Clock} label={t('eduManager.analytics.upcoming')} value={scheduleData.upcomingCount} color="blue" />
+                <KpiCard icon={Calendar} label={t('eduManager.analytics.scheduled')} value={scheduleData.scheduledSchedules} color="cyan" />
+                <KpiCard icon={XCircle} label={t('eduManager.analytics.cancelled')} value={scheduleData.cancelledSchedules} color="rose" />
+                <KpiCard icon={AlertCircle} label={t('eduManager.analytics.overdue')} value={scheduleData.pastIncompleteCount} color="amber" />
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -355,30 +349,30 @@ const ScheduleTab = ({ classes }) => {
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                     <div className="flex items-center gap-2 mb-6">
                         <Target className="w-5 h-5 text-indigo-600" />
-                        <h3 className="text-lg font-semibold text-gray-800">Tỷ lệ hoàn thành tổng</h3>
+                        <h3 className="text-lg font-semibold text-gray-800">{t('eduManager.analytics.overallCompletionRate')}</h3>
                     </div>
                     <div className="flex items-center gap-8">
                         <DonutChart
                             segments={[
-                                { value: scheduleData.completedSchedules, color: '#10b981', label: 'Hoàn thành' },
-                                { value: scheduleData.cancelledSchedules, color: '#ef4444', label: 'Đã hủy' },
-                                { value: scheduleData.totalSchedules - scheduleData.completedSchedules - scheduleData.cancelledSchedules, color: '#6366f1', label: 'Còn lại' },
+                                { value: scheduleData.completedSchedules, color: '#10b981', label: t('eduManager.analytics.completed') },
+                                { value: scheduleData.cancelledSchedules, color: '#ef4444', label: t('eduManager.analytics.cancelled') },
+                                { value: scheduleData.totalSchedules - scheduleData.completedSchedules - scheduleData.cancelledSchedules, color: '#6366f1', label: t('eduManager.analytics.remaining') },
                             ]}
                             total={scheduleData.totalSchedules}
                         />
                         <div className="flex-1 space-y-3">
-                            <LegendItem color="bg-emerald-500" label="Hoàn thành" value={scheduleData.completedSchedules} pct={scheduleData.completionRate} />
-                            <LegendItem color="bg-red-500" label="Đã hủy" value={scheduleData.cancelledSchedules} pct={scheduleData.cancellationRate} />
-                            <LegendItem color="bg-indigo-500" label="Còn lại" value={scheduleData.totalSchedules - scheduleData.completedSchedules - scheduleData.cancelledSchedules} pct={100 - scheduleData.completionRate - scheduleData.cancellationRate} />
+                            <LegendItem color="bg-emerald-500" label={t('eduManager.analytics.completed')} value={scheduleData.completedSchedules} pct={scheduleData.completionRate} />
+                            <LegendItem color="bg-red-500" label={t('eduManager.analytics.cancelled')} value={scheduleData.cancelledSchedules} pct={scheduleData.cancellationRate} />
+                            <LegendItem color="bg-indigo-500" label={t('eduManager.analytics.remaining')} value={scheduleData.totalSchedules - scheduleData.completedSchedules - scheduleData.cancelledSchedules} pct={100 - scheduleData.completionRate - scheduleData.cancellationRate} />
                         </div>
                     </div>
                 </div>
 
-                {/* Day of Week Distribution - Bar Chart */}
+                {/* Day of Week Distribution */}
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                     <div className="flex items-center gap-2 mb-6">
                         <BarChart3 className="w-5 h-5 text-violet-600" />
-                        <h3 className="text-lg font-semibold text-gray-800">Phân bổ theo ngày trong tuần</h3>
+                        <h3 className="text-lg font-semibold text-gray-800">{t('eduManager.analytics.dayOfWeekDistribution')}</h3>
                     </div>
                     <div className="flex items-end gap-3 h-48">
                         {dayOrder.map(day => {
@@ -405,12 +399,12 @@ const ScheduleTab = ({ classes }) => {
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                 <div className="flex items-center gap-2 mb-6">
                     <Layers className="w-5 h-5 text-indigo-600" />
-                    <h3 className="text-lg font-semibold text-gray-800">Tiến độ lịch học theo lớp</h3>
+                    <h3 className="text-lg font-semibold text-gray-800">{t('eduManager.analytics.scheduleProgressByClass')}</h3>
                 </div>
                 {scheduleData.classScheduleMap.length === 0 ? (
                     <div className="text-center py-10 text-gray-400">
                         <Calendar className="w-12 h-12 mx-auto mb-3 text-gray-200" />
-                        Chưa có lịch học nào được tạo
+                        {t('eduManager.analytics.noSchedulesCreated')}
                     </div>
                 ) : (
                     <div className="space-y-4">
@@ -424,9 +418,9 @@ const ScheduleTab = ({ classes }) => {
                                             <span className="text-xs text-gray-400 ml-2">({cls.classCode})</span>
                                         </div>
                                         <div className="flex items-center gap-3 text-xs">
-                                            <span className="text-emerald-600 font-medium">{cls.completed} hoàn thành</span>
-                                            <span className="text-blue-600 font-medium">{cls.upcoming} sắp tới</span>
-                                            {cls.cancelled > 0 && <span className="text-red-500 font-medium">{cls.cancelled} hủy</span>}
+                                            <span className="text-emerald-600 font-medium">{cls.completed} {t('eduManager.analytics.completed')}</span>
+                                            <span className="text-blue-600 font-medium">{cls.upcoming} {t('eduManager.analytics.upcoming')}</span>
+                                            {cls.cancelled > 0 && <span className="text-red-500 font-medium">{cls.cancelled} {t('eduManager.analytics.cancelled')}</span>}
                                         </div>
                                     </div>
                                     <div className="h-3 bg-gray-200 rounded-full overflow-hidden flex">
@@ -435,11 +429,11 @@ const ScheduleTab = ({ classes }) => {
                                         <div className="h-full bg-indigo-400 transition-all duration-700" style={{ width: `${cls.total > 0 ? (cls.scheduled / cls.total) * 100 : 0}%` }} />
                                     </div>
                                     <div className="flex justify-between mt-1">
-                                        <div className="text-xs text-gray-500">{cls.completionRate}% hoàn thành ({cls.total} buổi)</div>
+                                        <div className="text-xs text-gray-500">{cls.completionRate}% {t('eduManager.analytics.completed')} ({cls.total} {t('eduManager.analytics.sessions')})</div>
                                         <div className="flex gap-3 text-xs text-gray-400">
-                                            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" /> Hoàn thành</span>
-                                            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-400 inline-block" /> Hủy</span>
-                                            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-indigo-400 inline-block" /> Đã lên</span>
+                                            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" /> {t('eduManager.analytics.completed')}</span>
+                                            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-400 inline-block" /> {t('eduManager.analytics.cancelled')}</span>
+                                            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-indigo-400 inline-block" /> {t('eduManager.analytics.scheduled')}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -451,13 +445,11 @@ const ScheduleTab = ({ classes }) => {
     );
 };
 
-/* ================================================================
-   COURSES TAB - Phân tích khóa học
-   ================================================================ */
 const CoursesTab = ({ courses, courseStats }) => {
+    const { t } = useTranslation();
     const priceDistribution = useMemo(() => {
         const ranges = [
-            { label: 'Miễn phí', min: 0, max: 0, count: 0, color: '#10b981' },
+            { label: t('eduManager.analytics.priceFree'), min: 0, max: 0, count: 0, color: '#10b981' },
             { label: '< 500K', min: 1, max: 500000, count: 0, color: '#3b82f6' },
             { label: '500K - 1M', min: 500001, max: 1000000, count: 0, color: '#6366f1' },
             { label: '1M - 3M', min: 1000001, max: 3000000, count: 0, color: '#8b5cf6' },
@@ -470,7 +462,7 @@ const CoursesTab = ({ courses, courseStats }) => {
             }
         });
         return ranges;
-    }, [courses]);
+    }, [courses, t]);
 
     const maxPriceBucket = Math.max(...priceDistribution.map(r => r.count), 1);
     const totalRevenue = courses.reduce((sum, c) => sum + (Number(c.price) || 0), 0);
@@ -479,12 +471,12 @@ const CoursesTab = ({ courses, courseStats }) => {
         <div className="space-y-6">
             {/* KPI Cards */}
             <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-                <KpiCard icon={BookOpen} label="Tổng khóa học" value={courseStats.total} color="violet" />
-                <KpiCard icon={CheckCircle} label="Đã Publish" value={courseStats.published} color="emerald" />
-                <KpiCard icon={FileText} label="Bản nháp" value={courseStats.draft} color="slate" />
-                <KpiCard icon={Award} label="Giá trung bình" value={`${(courseStats.avgPrice / 1000).toFixed(0)}K`} color="amber" />
-                <KpiCard icon={TrendingUp} label="Giá cao nhất" value={`${(courseStats.maxPrice / 1000000).toFixed(1)}M`} color="rose" />
-                <KpiCard icon={TrendingDown} label="Tổng giá trị" value={`${(totalRevenue / 1000000).toFixed(1)}M`} color="cyan" />
+                <KpiCard icon={BookOpen} label={t('eduManager.analytics.totalCourses')} value={courseStats.total} color="violet" />
+                <KpiCard icon={CheckCircle} label={t('eduManager.analytics.published')} value={courseStats.published} color="emerald" />
+                <KpiCard icon={FileText} label={t('eduManager.analytics.draft')} value={courseStats.draft} color="slate" />
+                <KpiCard icon={Award} label={t('eduManager.analytics.avgPrice')} value={`${(courseStats.avgPrice / 1000).toFixed(0)}K`} color="amber" />
+                <KpiCard icon={TrendingUp} label={t('eduManager.analytics.maxPrice')} value={`${(courseStats.maxPrice / 1000000).toFixed(1)}M`} color="rose" />
+                <KpiCard icon={TrendingDown} label={t('eduManager.analytics.totalValue')} value={`${(totalRevenue / 1000000).toFixed(1)}M`} color="cyan" />
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -492,7 +484,7 @@ const CoursesTab = ({ courses, courseStats }) => {
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                     <div className="flex items-center gap-2 mb-6">
                         <Layers className="w-5 h-5 text-amber-600" />
-                        <h3 className="text-lg font-semibold text-gray-800">Phân bổ giá khóa học</h3>
+                        <h3 className="text-lg font-semibold text-gray-800">{t('eduManager.analytics.coursePriceDistribution')}</h3>
                     </div>
                     <div className="space-y-4">
                         {priceDistribution.map(item => {
@@ -501,7 +493,7 @@ const CoursesTab = ({ courses, courseStats }) => {
                                 <div key={item.label}>
                                     <div className="flex justify-between text-sm mb-1.5">
                                         <span className="text-gray-600 font-medium">{item.label}</span>
-                                        <span className="text-gray-900 font-bold">{item.count} khóa</span>
+                                        <span className="text-gray-900 font-bold">{item.count} {t('eduManager.analytics.coursesUnit')}</span>
                                     </div>
                                     <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
                                         <div className="h-full rounded-full transition-all duration-700" style={{ width: `${pct}%`, backgroundColor: item.color }} />
@@ -516,7 +508,7 @@ const CoursesTab = ({ courses, courseStats }) => {
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                     <div className="flex items-center gap-2 mb-6">
                         <BarChart3 className="w-5 h-5 text-violet-600" />
-                        <h3 className="text-lg font-semibold text-gray-800">Tỷ lệ trạng thái khóa học</h3>
+                        <h3 className="text-lg font-semibold text-gray-800">{t('eduManager.analytics.courseStatusRate')}</h3>
                     </div>
                     <div className="flex items-center gap-8">
                         <DonutChart
@@ -539,17 +531,17 @@ const CoursesTab = ({ courses, courseStats }) => {
             {/* Course Price Comparison Table */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                 <div className="p-5 border-b border-gray-100">
-                    <h3 className="text-lg font-semibold text-gray-800">So sánh giá khóa học</h3>
+                    <h3 className="text-lg font-semibold text-gray-800">{t('eduManager.analytics.coursePriceComparison')}</h3>
                 </div>
                 <div className="overflow-x-auto">
                     <table className="w-full">
                         <thead className="bg-gray-50">
                             <tr>
-                                <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Khóa học</th>
-                                <th className="px-5 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Mã</th>
-                                <th className="px-5 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Giá</th>
-                                <th className="px-5 py-3 text-center text-xs font-semibold text-gray-500 uppercase">So với TB</th>
-                                <th className="px-5 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Trạng thái</th>
+                                <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase">{t('eduManager.analytics.colCourse')}</th>
+                                <th className="px-5 py-3 text-center text-xs font-semibold text-gray-500 uppercase">{t('eduManager.analytics.colCode')}</th>
+                                <th className="px-5 py-3 text-center text-xs font-semibold text-gray-500 uppercase">{t('eduManager.analytics.colPrice')}</th>
+                                <th className="px-5 py-3 text-center text-xs font-semibold text-gray-500 uppercase">{t('eduManager.analytics.colVsAvg')}</th>
+                                <th className="px-5 py-3 text-center text-xs font-semibold text-gray-500 uppercase">{t('eduManager.analytics.colStatus')}</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-50">
@@ -577,7 +569,7 @@ const CoursesTab = ({ courses, courseStats }) => {
                                 );
                             })}
                             {courses.length === 0 && (
-                                <tr><td colSpan="5" className="px-5 py-10 text-center text-gray-400">Chưa có khóa học nào</td></tr>
+                                <tr><td colSpan="5" className="px-5 py-10 text-center text-gray-400">{t('eduManager.analytics.noCourses')}</td></tr>
                             )}
                         </tbody>
                     </table>
@@ -587,10 +579,8 @@ const CoursesTab = ({ courses, courseStats }) => {
     );
 };
 
-/* ================================================================
-   ATTENDANCE TAB - Phân tích điểm danh
-   ================================================================ */
 const AttendanceTab = ({ classes }) => {
+    const { t } = useTranslation();
     const [selectedClass, setSelectedClass] = useState(null);
     const [attendanceStats, setAttendanceStats] = useState(null);
     const [attLoading, setAttLoading] = useState(false);
@@ -618,7 +608,6 @@ const AttendanceTab = ({ classes }) => {
         const avgRate = students.length > 0
             ? Math.round(students.reduce((sum, s) => sum + (s.attendanceRate || 0), 0) / students.length)
             : 0;
-        // Rate distribution
         const excellent = students.filter(s => s.attendanceRate >= 90).length;
         const good = students.filter(s => s.attendanceRate >= 80 && s.attendanceRate < 90).length;
         const average = students.filter(s => s.attendanceRate >= 50 && s.attendanceRate < 80).length;
@@ -626,7 +615,6 @@ const AttendanceTab = ({ classes }) => {
         return { total: students.length, normal, warning, locked, avgRate, excellent, good, average, poor };
     }, [attendanceStats]);
 
-    // Session attendance trend
     const sessionTrend = useMemo(() => {
         if (!attendanceStats?.sessionStats) return [];
         return attendanceStats.sessionStats
@@ -647,10 +635,10 @@ const AttendanceTab = ({ classes }) => {
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
                 {/* Class Selector */}
                 <div className="lg:col-span-1">
-                    <h3 className="text-sm font-semibold text-gray-500 uppercase mb-3">Chọn lớp</h3>
+                    <h3 className="text-sm font-semibold text-gray-500 uppercase mb-3">{t('eduManager.analytics.selectClass')}</h3>
                     <div className="space-y-2 max-h-[calc(100vh-300px)] overflow-y-auto">
                         {classes.length === 0 ? (
-                            <div className="text-center py-8 text-gray-400 text-sm">Chưa có lớp học</div>
+                            <div className="text-center py-8 text-gray-400 text-sm">{t('eduManager.analytics.noClasses')}</div>
                         ) : classes.map(cls => (
                             <button
                                 key={cls.id}
@@ -677,17 +665,17 @@ const AttendanceTab = ({ classes }) => {
                     ) : !attendanceStats ? (
                         <div className="bg-white rounded-2xl border-2 border-dashed border-gray-200 p-16 text-center">
                             <ClipboardCheck className="w-16 h-16 mx-auto mb-4 text-gray-200" />
-                            <h3 className="text-lg font-semibold text-gray-400">Chọn lớp để xem phân tích điểm danh</h3>
+                            <h3 className="text-lg font-semibold text-gray-400">{t('eduManager.analytics.selectClassForAttendance')}</h3>
                         </div>
                     ) : (
                         <div className="space-y-5">
                             {/* KPI Cards */}
                             <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-                                <KpiCard icon={Calendar} label="Tổng buổi" value={attendanceStats.totalSessions || 0} color="indigo" />
-                                <KpiCard icon={Users} label="Học viên" value={attendanceSummary.total} color="violet" />
-                                <KpiCard icon={UserCheck} label="Bình thường" value={attendanceSummary.normal} color="emerald" />
-                                <KpiCard icon={AlertCircle} label="Cảnh báo" value={attendanceSummary.warning} color="amber" />
-                                <KpiCard icon={UserX} label="Đã khóa" value={attendanceSummary.locked} color="rose" />
+                                <KpiCard icon={Calendar} label={t('eduManager.analytics.totalSessions')} value={attendanceStats.totalSessions || 0} color="indigo" />
+                                <KpiCard icon={Users} label={t('eduManager.analytics.kpiStudents')} value={attendanceSummary.total} color="violet" />
+                                <KpiCard icon={UserCheck} label={t('eduManager.analytics.normal')} value={attendanceSummary.normal} color="emerald" />
+                                <KpiCard icon={AlertCircle} label={t('eduManager.analytics.warning')} value={attendanceSummary.warning} color="amber" />
+                                <KpiCard icon={UserX} label={t('eduManager.analytics.locked')} value={attendanceSummary.locked} color="rose" />
                             </div>
 
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -695,22 +683,22 @@ const AttendanceTab = ({ classes }) => {
                                 <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                                     <div className="flex items-center gap-2 mb-6">
                                         <Target className="w-5 h-5 text-indigo-600" />
-                                        <h3 className="text-lg font-semibold text-gray-800">Tỷ lệ điểm danh trung bình</h3>
+                                        <h3 className="text-lg font-semibold text-gray-800">{t('eduManager.analytics.avgAttendanceRate')}</h3>
                                     </div>
                                     <div className="flex items-center gap-8">
                                         <DonutChart
                                             segments={[
-                                                { value: attendanceSummary.avgRate, color: '#6366f1', label: 'Có mặt' },
-                                                { value: 100 - attendanceSummary.avgRate, color: '#e5e7eb', label: 'Vắng' },
+                                                { value: attendanceSummary.avgRate, color: '#6366f1', label: t('eduManager.analytics.present') },
+                                                { value: 100 - attendanceSummary.avgRate, color: '#e5e7eb', label: t('eduManager.analytics.absent') },
                                             ]}
                                             total={100}
                                             centerLabel={`${attendanceSummary.avgRate}%`}
                                         />
                                         <div className="flex-1 space-y-3">
-                                            <LegendItem color="bg-emerald-500" label="Xuất sắc (>=90%)" value={attendanceSummary.excellent} />
-                                            <LegendItem color="bg-blue-500" label="Tốt (80-89%)" value={attendanceSummary.good} />
-                                            <LegendItem color="bg-amber-500" label="Trung bình (50-79%)" value={attendanceSummary.average} />
-                                            <LegendItem color="bg-red-500" label="Kém (<50%)" value={attendanceSummary.poor} />
+                                            <LegendItem color="bg-emerald-500" label={t('eduManager.analytics.excellent90')} value={attendanceSummary.excellent} />
+                                            <LegendItem color="bg-blue-500" label={t('eduManager.analytics.good80')} value={attendanceSummary.good} />
+                                            <LegendItem color="bg-amber-500" label={t('eduManager.analytics.average50')} value={attendanceSummary.average} />
+                                            <LegendItem color="bg-red-500" label={t('eduManager.analytics.poor50')} value={attendanceSummary.poor} />
                                         </div>
                                     </div>
                                 </div>
@@ -719,17 +707,17 @@ const AttendanceTab = ({ classes }) => {
                                 <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                                     <div className="flex items-center gap-2 mb-6">
                                         <BarChart3 className="w-5 h-5 text-violet-600" />
-                                        <h3 className="text-lg font-semibold text-gray-800">Phân bổ mức điểm danh</h3>
+                                        <h3 className="text-lg font-semibold text-gray-800">{t('eduManager.analytics.attendanceLevelDistribution')}</h3>
                                     </div>
                                     {attendanceSummary.total === 0 ? (
-                                        <div className="text-center py-8 text-gray-400">Chưa có dữ liệu</div>
+                                        <div className="text-center py-8 text-gray-400">{t('eduManager.analytics.noData')}</div>
                                     ) : (
                                         <div className="space-y-4">
                                             {[
-                                                { label: 'Xuất sắc (>=90%)', count: attendanceSummary.excellent, color: 'bg-emerald-500' },
-                                                { label: 'Tốt (80-89%)', count: attendanceSummary.good, color: 'bg-blue-500' },
-                                                { label: 'Trung bình (50-79%)', count: attendanceSummary.average, color: 'bg-amber-500' },
-                                                { label: 'Kém (<50%)', count: attendanceSummary.poor, color: 'bg-red-500' },
+                                                { label: t('eduManager.analytics.excellent90'), count: attendanceSummary.excellent, color: 'bg-emerald-500' },
+                                                { label: t('eduManager.analytics.good80'), count: attendanceSummary.good, color: 'bg-blue-500' },
+                                                { label: t('eduManager.analytics.average50'), count: attendanceSummary.average, color: 'bg-amber-500' },
+                                                { label: t('eduManager.analytics.poor50'), count: attendanceSummary.poor, color: 'bg-red-500' },
                                             ].map(item => {
                                                 const pct = Math.round((item.count / attendanceSummary.total) * 100);
                                                 return (
@@ -754,7 +742,7 @@ const AttendanceTab = ({ classes }) => {
                                 <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                                     <div className="flex items-center gap-2 mb-6">
                                         <Activity className="w-5 h-5 text-indigo-600" />
-                                        <h3 className="text-lg font-semibold text-gray-800">Tỷ lệ điểm danh theo buổi</h3>
+                                        <h3 className="text-lg font-semibold text-gray-800">{t('eduManager.analytics.attendanceRateBySession')}</h3>
                                     </div>
                                     <div className="flex items-end gap-2 h-48">
                                         {sessionTrend.map((s, i) => (
@@ -785,17 +773,17 @@ const AttendanceTab = ({ classes }) => {
                             {/* Student Attendance Table */}
                             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                                 <div className="p-5 border-b border-gray-100">
-                                    <h3 className="text-lg font-semibold text-gray-800">Chi tiết điểm danh học viên</h3>
+                                    <h3 className="text-lg font-semibold text-gray-800">{t('eduManager.analytics.studentAttendanceDetail')}</h3>
                                 </div>
                                 <div className="overflow-x-auto">
                                     <table className="w-full">
                                         <thead className="bg-gray-50">
                                             <tr>
-                                                <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500">Học viên</th>
-                                                <th className="px-5 py-3 text-center text-xs font-semibold text-gray-500">Có mặt</th>
-                                                <th className="px-5 py-3 text-center text-xs font-semibold text-gray-500">Vắng</th>
-                                                <th className="px-5 py-3 text-center text-xs font-semibold text-gray-500">Tỷ lệ</th>
-                                                <th className="px-5 py-3 text-center text-xs font-semibold text-gray-500">Trạng thái</th>
+                                                <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500">{t('eduManager.analytics.colStudent')}</th>
+                                                <th className="px-5 py-3 text-center text-xs font-semibold text-gray-500">{t('eduManager.analytics.colPresent')}</th>
+                                                <th className="px-5 py-3 text-center text-xs font-semibold text-gray-500">{t('eduManager.analytics.colAbsent')}</th>
+                                                <th className="px-5 py-3 text-center text-xs font-semibold text-gray-500">{t('eduManager.analytics.colRate')}</th>
+                                                <th className="px-5 py-3 text-center text-xs font-semibold text-gray-500">{t('eduManager.analytics.colStatus')}</th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-gray-50">
@@ -830,11 +818,11 @@ const AttendanceTab = ({ classes }) => {
                                                     </td>
                                                     <td className="px-5 py-3 text-center">
                                                         {s.isLocked ? (
-                                                            <span className="text-xs px-2.5 py-1 rounded-full bg-red-100 text-red-700 font-medium">Khóa</span>
+                                                            <span className="text-xs px-2.5 py-1 rounded-full bg-red-100 text-red-700 font-medium">{t('eduManager.analytics.locked')}</span>
                                                         ) : s.isWarning ? (
-                                                            <span className="text-xs px-2.5 py-1 rounded-full bg-amber-100 text-amber-700 font-medium">Cảnh báo</span>
+                                                            <span className="text-xs px-2.5 py-1 rounded-full bg-amber-100 text-amber-700 font-medium">{t('eduManager.analytics.warning')}</span>
                                                         ) : (
-                                                            <span className="text-xs px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700 font-medium">Bình thường</span>
+                                                            <span className="text-xs px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700 font-medium">{t('eduManager.analytics.normal')}</span>
                                                         )}
                                                     </td>
                                                 </tr>
@@ -851,10 +839,8 @@ const AttendanceTab = ({ classes }) => {
     );
 };
 
-/* ================================================================
-   CLASSES TAB - Phân tích lớp học
-   ================================================================ */
 const ClassesTab = ({ classes, classStats }) => {
+    const { t } = useTranslation();
     const [classDetails, setClassDetails] = useState([]);
     const [detailsLoading, setDetailsLoading] = useState(true);
 
@@ -889,7 +875,7 @@ const ClassesTab = ({ classes, classStats }) => {
             <div className="flex items-center justify-center py-20">
                 <div className="text-center">
                     <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-                    <p className="text-gray-500">Đang tải dữ liệu lớp học...</p>
+                    <p className="text-gray-500">{t('eduManager.analytics.loadingClassData')}</p>
                 </div>
             </div>
         );
@@ -899,11 +885,11 @@ const ClassesTab = ({ classes, classStats }) => {
         <div className="space-y-6">
             {/* KPI Cards */}
             <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-                <KpiCard icon={Users} label="Tổng lớp" value={classStats.total} color="blue" />
-                <KpiCard icon={Users} label="Tổng học viên" value={classStats.totalStudents} color="violet" />
-                <KpiCard icon={Calendar} label="Đang hoạt động" value={classStats.activeClasses} color="emerald" />
-                <KpiCard icon={GraduationCap} label="TB học viên/lớp" value={classStats.avgStudents} color="amber" />
-                <KpiCard icon={Calendar} label="TB buổi/lớp" value={avgSchedules} color="cyan" />
+                <KpiCard icon={Users} label={t('eduManager.analytics.totalClasses')} value={classStats.total} color="blue" />
+                <KpiCard icon={Users} label={t('eduManager.analytics.totalStudents')} value={classStats.totalStudents} color="violet" />
+                <KpiCard icon={Calendar} label={t('eduManager.analytics.activeClassesLabel')} value={classStats.activeClasses} color="emerald" />
+                <KpiCard icon={GraduationCap} label={t('eduManager.analytics.avgStudentsPerClass')} value={classStats.avgStudents} color="amber" />
+                <KpiCard icon={Calendar} label={t('eduManager.analytics.avgSessionsPerClass')} value={avgSchedules} color="cyan" />
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -911,10 +897,10 @@ const ClassesTab = ({ classes, classStats }) => {
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                     <div className="flex items-center gap-2 mb-6">
                         <BarChart3 className="w-5 h-5 text-blue-600" />
-                        <h3 className="text-lg font-semibold text-gray-800">Quy mô lớp học</h3>
+                        <h3 className="text-lg font-semibold text-gray-800">{t('eduManager.analytics.classSize')}</h3>
                     </div>
                     {classDetails.length === 0 ? (
-                        <div className="text-center py-10 text-gray-400">Chưa có lớp học</div>
+                        <div className="text-center py-10 text-gray-400">{t('eduManager.analytics.noClasses')}</div>
                     ) : (
                         <div className="space-y-3">
                             {classDetails.map(cls => {
@@ -946,10 +932,10 @@ const ClassesTab = ({ classes, classStats }) => {
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                     <div className="flex items-center gap-2 mb-6">
                         <Target className="w-5 h-5 text-emerald-600" />
-                        <h3 className="text-lg font-semibold text-gray-800">Tiến độ hoàn thành theo lớp</h3>
+                        <h3 className="text-lg font-semibold text-gray-800">{t('eduManager.analytics.classCompletionProgress')}</h3>
                     </div>
                     {classDetails.length === 0 ? (
-                        <div className="text-center py-10 text-gray-400">Chưa có lớp học</div>
+                        <div className="text-center py-10 text-gray-400">{t('eduManager.analytics.noClasses')}</div>
                     ) : (
                         <div className="space-y-3">
                             {classDetails.map(cls => {
@@ -958,7 +944,7 @@ const ClassesTab = ({ classes, classStats }) => {
                                     <div key={cls.id}>
                                         <div className="flex justify-between text-sm mb-1">
                                             <span className="text-gray-700 font-medium truncate max-w-[60%]">{cls.className}</span>
-                                            <span className="text-gray-500 font-medium">{cls.completedSchedules}/{cls.scheduleCount} buổi</span>
+                                            <span className="text-gray-500 font-medium">{cls.completedSchedules}/{cls.scheduleCount} {t('eduManager.analytics.sessions')}</span>
                                         </div>
                                         <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden">
                                             <div
@@ -980,19 +966,19 @@ const ClassesTab = ({ classes, classStats }) => {
             {/* Summary Table */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                 <div className="p-5 border-b border-gray-100">
-                    <h3 className="text-lg font-semibold text-gray-800">Bảng tổng hợp lớp học</h3>
+                    <h3 className="text-lg font-semibold text-gray-800">{t('eduManager.analytics.classSummaryTable')}</h3>
                 </div>
                 <div className="overflow-x-auto">
                     <table className="w-full">
                         <thead className="bg-gray-50">
                             <tr>
-                                <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Lớp</th>
-                                <th className="px-5 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Mã</th>
-                                <th className="px-5 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Học viên</th>
-                                <th className="px-5 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Sức chứa</th>
-                                <th className="px-5 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Buổi học</th>
-                                <th className="px-5 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Hoàn thành</th>
-                                <th className="px-5 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Đóng góp %</th>
+                                <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase">{t('eduManager.analytics.colClass')}</th>
+                                <th className="px-5 py-3 text-center text-xs font-semibold text-gray-500 uppercase">{t('eduManager.analytics.colCode')}</th>
+                                <th className="px-5 py-3 text-center text-xs font-semibold text-gray-500 uppercase">{t('eduManager.analytics.colStudents')}</th>
+                                <th className="px-5 py-3 text-center text-xs font-semibold text-gray-500 uppercase">{t('eduManager.analytics.colCapacity')}</th>
+                                <th className="px-5 py-3 text-center text-xs font-semibold text-gray-500 uppercase">{t('eduManager.analytics.colSessions')}</th>
+                                <th className="px-5 py-3 text-center text-xs font-semibold text-gray-500 uppercase">{t('eduManager.analytics.completed')}</th>
+                                <th className="px-5 py-3 text-center text-xs font-semibold text-gray-500 uppercase">{t('eduManager.analytics.colContribution')}</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-50">
@@ -1027,36 +1013,33 @@ const ClassesTab = ({ classes, classStats }) => {
     );
 };
 
-/* ================================================================
-   EXAMS TAB - Phân tích bài thi
-   ================================================================ */
 const ExamsTab = ({ pendingExams, courses, dashboardStats }) => {
+    const { t } = useTranslation();
     const examStats = useMemo(() => {
         const totalPendingQ = pendingExams.reduce((sum, p) => sum + (p.exam?.examQuestions?.length || p.exam?.totalQuestions || 0), 0);
         const avgDuration = pendingExams.length > 0
             ? Math.round(pendingExams.reduce((sum, p) => sum + (p.exam?.duration || p.exam?.durationMinutes || 0), 0) / pendingExams.length)
             : 0;
-        // Group by course
         const byCourse = {};
         pendingExams.forEach(p => {
-            const name = p.exam?.course?.name || 'Không rõ';
+            const name = p.exam?.course?.name || t('eduManager.analytics.unknown');
             byCourse[name] = (byCourse[name] || 0) + 1;
         });
         const courseLabels = Object.entries(byCourse).map(([name, count]) => ({ name, count }));
         const maxByCourse = Math.max(...courseLabels.map(c => c.count), 1);
         return { totalPendingQ, avgDuration, courseLabels, maxByCourse };
-    }, [pendingExams]);
+    }, [pendingExams, t]);
 
     return (
         <div className="space-y-6">
             {/* KPI Cards */}
             <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-                <KpiCard icon={FileText} label="Chờ duyệt" value={pendingExams.length} color="amber" />
-                <KpiCard icon={FileText} label="Tổng câu hỏi chờ" value={examStats.totalPendingQ} color="blue" />
-                <KpiCard icon={Clock} label="TB thời lượng" value={`${examStats.avgDuration} phút`} color="cyan" />
-                <KpiCard icon={CheckCircle} label="Đã duyệt" value={dashboardStats.approvedExams || 0} color="emerald" />
-                <KpiCard icon={XCircle} label="Bị từ chối" value={dashboardStats.rejectedExams || 0} color="rose" />
-                <KpiCard icon={BookOpen} label="Tổng đề thi" value={(dashboardStats.approvedExams || 0) + (dashboardStats.rejectedExams || 0) + pendingExams.length} color="violet" />
+                <KpiCard icon={FileText} label={t('eduManager.analytics.pendingApprovalShort')} value={pendingExams.length} color="amber" />
+                <KpiCard icon={FileText} label={t('eduManager.analytics.totalPendingQuestions')} value={examStats.totalPendingQ} color="blue" />
+                <KpiCard icon={Clock} label={t('eduManager.analytics.avgDuration')} value={`${examStats.avgDuration} ${t('eduManager.analytics.minutes')}`} color="cyan" />
+                <KpiCard icon={CheckCircle} label={t('eduManager.analytics.approved')} value={dashboardStats.approvedExams || 0} color="emerald" />
+                <KpiCard icon={XCircle} label={t('eduManager.analytics.rejected')} value={dashboardStats.rejectedExams || 0} color="rose" />
+                <KpiCard icon={BookOpen} label={t('eduManager.analytics.totalExams')} value={(dashboardStats.approvedExams || 0) + (dashboardStats.rejectedExams || 0) + pendingExams.length} color="violet" />
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -1064,21 +1047,21 @@ const ExamsTab = ({ pendingExams, courses, dashboardStats }) => {
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                     <div className="flex items-center gap-2 mb-6">
                         <Target className="w-5 h-5 text-indigo-600" />
-                        <h3 className="text-lg font-semibold text-gray-800">Tỷ lệ phê duyệt đề thi</h3>
+                        <h3 className="text-lg font-semibold text-gray-800">{t('eduManager.analytics.examApprovalRate')}</h3>
                     </div>
                     <div className="flex items-center gap-8">
                         <DonutChart
                             segments={[
-                                { value: dashboardStats.approvedExams || 0, color: '#10b981', label: 'Đã duyệt' },
-                                { value: dashboardStats.rejectedExams || 0, color: '#ef4444', label: 'Từ chối' },
-                                { value: pendingExams.length, color: '#f59e0b', label: 'Chờ duyệt' },
+                                { value: dashboardStats.approvedExams || 0, color: '#10b981', label: t('eduManager.analytics.approved') },
+                                { value: dashboardStats.rejectedExams || 0, color: '#ef4444', label: t('eduManager.analytics.rejected') },
+                                { value: pendingExams.length, color: '#f59e0b', label: t('eduManager.analytics.pendingApproval') },
                             ]}
                             total={(dashboardStats.approvedExams || 0) + (dashboardStats.rejectedExams || 0) + pendingExams.length}
                         />
                         <div className="flex-1 space-y-3">
-                            <LegendItem color="bg-emerald-500" label="Đã duyệt" value={dashboardStats.approvedExams || 0} />
-                            <LegendItem color="bg-red-500" label="Từ chối" value={dashboardStats.rejectedExams || 0} />
-                            <LegendItem color="bg-amber-500" label="Chờ duyệt" value={pendingExams.length} />
+                            <LegendItem color="bg-emerald-500" label={t('eduManager.analytics.approved')} value={dashboardStats.approvedExams || 0} />
+                            <LegendItem color="bg-red-500" label={t('eduManager.analytics.rejected')} value={dashboardStats.rejectedExams || 0} />
+                            <LegendItem color="bg-amber-500" label={t('eduManager.analytics.pendingApproval')} value={pendingExams.length} />
                         </div>
                     </div>
                 </div>
@@ -1087,12 +1070,12 @@ const ExamsTab = ({ pendingExams, courses, dashboardStats }) => {
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                     <div className="flex items-center gap-2 mb-6">
                         <BarChart3 className="w-5 h-5 text-violet-600" />
-                        <h3 className="text-lg font-semibold text-gray-800">Đề thi chờ duyệt theo khóa học</h3>
+                        <h3 className="text-lg font-semibold text-gray-800">{t('eduManager.analytics.pendingExamsByCourse')}</h3>
                     </div>
                     {examStats.courseLabels.length === 0 ? (
                         <div className="text-center py-8">
                             <CheckCircle className="w-12 h-12 mx-auto mb-3 text-emerald-300" />
-                            <p className="text-gray-400">Không có đề thi nào chờ duyệt</p>
+                            <p className="text-gray-400">{t('eduManager.analytics.noPendingExams')}</p>
                         </div>
                     ) : (
                         <div className="space-y-4">
@@ -1102,7 +1085,7 @@ const ExamsTab = ({ pendingExams, courses, dashboardStats }) => {
                                     <div key={item.name}>
                                         <div className="flex justify-between text-sm mb-1.5">
                                             <span className="text-gray-600 font-medium truncate max-w-[70%]">{item.name}</span>
-                                            <span className="text-gray-900 font-bold">{item.count} đề</span>
+                                            <span className="text-gray-900 font-bold">{item.count} {t('eduManager.analytics.examsUnit')}</span>
                                         </div>
                                         <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
                                             <div className="h-full bg-gradient-to-r from-amber-400 to-orange-500 rounded-full transition-all duration-700" style={{ width: `${pct}%` }} />
@@ -1118,24 +1101,24 @@ const ExamsTab = ({ pendingExams, courses, dashboardStats }) => {
             {/* Pending Exam Details Table */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                 <div className="p-5 border-b border-gray-100">
-                    <h3 className="text-lg font-semibold text-gray-800">Chi tiết đề thi chờ phê duyệt</h3>
+                    <h3 className="text-lg font-semibold text-gray-800">{t('eduManager.analytics.pendingExamDetails')}</h3>
                 </div>
                 {pendingExams.length === 0 ? (
                     <div className="p-12 text-center">
                         <CheckCircle className="w-16 h-16 mx-auto mb-4 text-emerald-300" />
-                        <p className="text-gray-500 text-lg">Tất cả đề thi đã được xử lý</p>
+                        <p className="text-gray-500 text-lg">{t('eduManager.analytics.allExamsProcessed')}</p>
                     </div>
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full">
                             <thead className="bg-gray-50">
                                 <tr>
-                                    <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Đề thi</th>
-                                    <th className="px-5 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Khóa học</th>
-                                    <th className="px-5 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Câu hỏi</th>
-                                    <th className="px-5 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Thời lượng</th>
-                                    <th className="px-5 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Người gửi</th>
-                                    <th className="px-5 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Ngày gửi</th>
+                                    <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase">{t('eduManager.analytics.colExam')}</th>
+                                    <th className="px-5 py-3 text-center text-xs font-semibold text-gray-500 uppercase">{t('eduManager.analytics.colCourse')}</th>
+                                    <th className="px-5 py-3 text-center text-xs font-semibold text-gray-500 uppercase">{t('eduManager.analytics.colQuestions')}</th>
+                                    <th className="px-5 py-3 text-center text-xs font-semibold text-gray-500 uppercase">{t('eduManager.analytics.colDuration')}</th>
+                                    <th className="px-5 py-3 text-center text-xs font-semibold text-gray-500 uppercase">{t('eduManager.analytics.colSubmitter')}</th>
+                                    <th className="px-5 py-3 text-center text-xs font-semibold text-gray-500 uppercase">{t('eduManager.analytics.colSubmittedDate')}</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-50">
@@ -1147,7 +1130,7 @@ const ExamsTab = ({ pendingExams, courses, dashboardStats }) => {
                                         </td>
                                         <td className="px-5 py-3 text-center text-sm text-gray-600">{approval.exam?.course?.name || 'N/A'}</td>
                                         <td className="px-5 py-3 text-center text-sm font-bold text-gray-800">{approval.exam?.examQuestions?.length || approval.exam?.totalQuestions || 0}</td>
-                                        <td className="px-5 py-3 text-center text-sm text-gray-600">{approval.exam?.duration || approval.exam?.durationMinutes || 0} phút</td>
+                                        <td className="px-5 py-3 text-center text-sm text-gray-600">{approval.exam?.duration || approval.exam?.durationMinutes || 0} {t('eduManager.analytics.minutes')}</td>
                                         <td className="px-5 py-3 text-center text-sm text-gray-600">{approval.submittedBy?.fullName || approval.submittedBy?.username || 'N/A'}</td>
                                         <td className="px-5 py-3 text-center text-sm text-gray-500">{new Date(approval.submittedAt).toLocaleDateString('vi-VN')}</td>
                                     </tr>
@@ -1160,10 +1143,6 @@ const ExamsTab = ({ pendingExams, courses, dashboardStats }) => {
         </div>
     );
 };
-
-/* ================================================================
-   SHARED COMPONENTS
-   ================================================================ */
 
 const KpiCard = ({ icon: Icon, label, value, sub, color }) => {
     const colors = {

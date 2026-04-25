@@ -94,11 +94,11 @@ const QuestionBank = () => {
 
   // Mock data - will be replaced with API calls
   const mockQuestions = [
-    { id: 'Q101', content: 'Thủ đô của Hàn Quốc là gì?', category: 'Grammar', type: 'MULTIPLE_CHOICE', difficulty: 'EASY', status: 'Active', verificationStatus: 'APPROVED', createdAt: '2024-12-15', options: ['A', 'B', 'C', 'D'] },
-    { id: 'Q102', content: 'Chọn từ đúng điền vào chỗ trống: "Tôi ... là học sinh"', category: 'Vocabulary', type: 'MULTIPLE_CHOICE', difficulty: 'EASY', status: 'Active', verificationStatus: 'PENDING', createdAt: '2024-12-14', options: ['A', 'B', 'C', 'D'] },
-    { id: 'Q103', content: 'Nghe đoạn hội thoại sau và trả lời câu hỏi...', category: 'Listening', type: 'LISTENING', difficulty: 'MEDIUM', status: 'Review', verificationStatus: 'PENDING', createdAt: '2024-12-13', options: [] },
-    { id: 'Q104', content: 'Viết một đoạn văn ngắn về gia đình của bạn (khoảng 100 từ).', category: 'Writing', type: 'WRITING', difficulty: 'HARD', status: 'Active', verificationStatus: 'REJECTED', createdAt: '2024-12-12', options: [] },
-    { id: 'Q105', content: 'Dịch câu sau sang tiếng Hàn: "Hôm nay trời đẹp."', category: 'Reading', type: 'TRANSLATION', difficulty: 'MEDIUM', status: 'Active', verificationStatus: 'APPROVED', createdAt: '2024-12-11', options: ['A', 'B', 'C', 'D'] },
+    { id: 'Q101', content: t('qb.mockQ101'), category: 'Grammar', type: 'MULTIPLE_CHOICE', difficulty: 'EASY', status: 'Active', verificationStatus: 'APPROVED', createdAt: '2024-12-15', options: ['A', 'B', 'C', 'D'] },
+    { id: 'Q102', content: t('qb.mockQ102'), category: 'Vocabulary', type: 'MULTIPLE_CHOICE', difficulty: 'EASY', status: 'Active', verificationStatus: 'PENDING', createdAt: '2024-12-14', options: ['A', 'B', 'C', 'D'] },
+    { id: 'Q103', content: t('qb.mockQ103'), category: 'Listening', type: 'LISTENING', difficulty: 'MEDIUM', status: 'Review', verificationStatus: 'PENDING', createdAt: '2024-12-13', options: [] },
+    { id: 'Q104', content: t('qb.mockQ104'), category: 'Writing', type: 'WRITING', difficulty: 'HARD', status: 'Active', verificationStatus: 'REJECTED', createdAt: '2024-12-12', options: [] },
+    { id: 'Q105', content: t('qb.mockQ105'), category: 'Reading', type: 'TRANSLATION', difficulty: 'MEDIUM', status: 'Active', verificationStatus: 'APPROVED', createdAt: '2024-12-11', options: ['A', 'B', 'C', 'D'] },
   ];
 
   const mockCategories = [
@@ -1796,7 +1796,7 @@ const QuestionBank = () => {
                         <div className="flex items-start justify-between gap-2 mb-2">
                           <div className="flex-1">
                             <p className="text-sm font-semibold text-gray-900 mb-1">
-                              {history.action === 'REJECTED' ? '❌ Đã từ chối' : 'ℹ️ ' + history.action}
+                              {history.action === 'REJECTED' ? t('qb.rejected') : 'ℹ️ ' + history.action}
                             </p>
                             <p className="text-sm text-gray-600">
                               <span className="font-medium">{t('qb.reason', 'Lý do')}:</span> {history.feedback || t('qb.noReason', 'Không có lý do cụ thể')}
@@ -1966,12 +1966,12 @@ const QuestionBank = () => {
               </div>
             </div>
             <h3 className="text-xl font-bold text-gray-800 mb-2">
-              Xóa thành công!
+              {t('teacher.questionBank.deleteSuccessTitle')}
             </h3>
             <p className="text-gray-600">
               {deleteSuccessCount === 1
-                ? 'Đã xóa câu hỏi thành công'
-                : `Đã xóa ${deleteSuccessCount} câu hỏi thành công`}
+                ? t('teacher.questionBank.deleteSuccessSingle')
+                : t('teacher.questionBank.deleteSuccessMultiple', { count: deleteSuccessCount })}
             </p>
           </div>
         </Modal>

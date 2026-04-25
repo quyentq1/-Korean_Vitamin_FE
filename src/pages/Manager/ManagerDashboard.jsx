@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { CheckSquare, FileText, Calendar, ChevronRight, Clock, AlertCircle, ClipboardCheck } from 'lucide-react';
 import managerService from '../../services/managerService';
@@ -7,6 +8,7 @@ import managerService from '../../services/managerService';
  * BUG-04 FIX: Manager Dashboard — thay thế "Coming soon" placeholder
  */
 const ManagerDashboard = () => {
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const [stats, setStats] = useState({
         pendingQB: 0,
@@ -44,7 +46,7 @@ const ManagerDashboard = () => {
 
     const statCards = [
         {
-            label: 'Câu Hỏi Chờ Duyệt',
+            label: t('manager.dashboard.pendingQuestions'),
             value: stats.pendingQB,
             icon: <AlertCircle className="w-6 h-6" />,
             color: 'from-amber-500 to-orange-500',
@@ -53,7 +55,7 @@ const ManagerDashboard = () => {
             urgent: stats.pendingQB > 0,
         },
         {
-            label: 'Câu Hỏi Đã Duyệt',
+            label: t('manager.dashboard.approvedQuestions'),
             value: stats.approvedQB,
             icon: <CheckSquare className="w-6 h-6" />,
             color: 'from-emerald-500 to-green-600',
@@ -62,7 +64,7 @@ const ManagerDashboard = () => {
             urgent: false,
         },
         {
-            label: 'Đề Thi Chờ Duyệt',
+            label: t('manager.dashboard.pendingExams'),
             value: stats.pendingExams,
             icon: <ClipboardCheck className="w-6 h-6" />,
             color: 'from-rose-500 to-pink-600',
@@ -71,7 +73,7 @@ const ManagerDashboard = () => {
             urgent: stats.pendingExams > 0,
         },
         {
-            label: 'Đề Thi Đã Duyệt',
+            label: t('manager.dashboard.approvedExams'),
             value: stats.approvedExams,
             icon: <FileText className="w-6 h-6" />,
             color: 'from-cyan-500 to-teal-600',
@@ -80,7 +82,7 @@ const ManagerDashboard = () => {
             urgent: false,
         },
         {
-            label: 'Yêu Cầu Đổi Lịch',
+            label: t('manager.dashboard.scheduleRequests'),
             value: stats.scheduleRequests,
             icon: <Calendar className="w-6 h-6" />,
             color: 'from-blue-500 to-indigo-600',
@@ -89,7 +91,7 @@ const ManagerDashboard = () => {
             urgent: stats.scheduleRequests > 0,
         },
         {
-            label: 'Tổng Câu Hỏi trong QB',
+            label: t('manager.dashboard.totalQuestions'),
             value: stats.totalQuestions,
             icon: <FileText className="w-6 h-6" />,
             color: 'from-purple-500 to-violet-600',
@@ -100,10 +102,10 @@ const ManagerDashboard = () => {
     ];
 
     const quickLinks = [
-        { label: 'Duyệt Ngân Hàng Câu Hỏi', desc: 'Xem xét và phê duyệt câu hỏi từ giáo viên', path: '/edu-manager/qb-approval', icon: '✅', color: 'hover:border-amber-400', badge: stats.pendingQB },
-        { label: 'Duyệt Đề Thi', desc: 'Xem xét và phê duyệt đề thi từ giáo viên', path: '/edu-manager/test-approval', icon: '📝', color: 'hover:border-rose-400', badge: stats.pendingExams },
-        { label: 'Phân Công Giáo Viên', desc: 'Giao lớp và bài kiểm tra cho giáo viên', path: '/class-management', icon: '👩‍🏫', color: 'hover:border-blue-400', badge: 0 },
-        { label: 'Duyệt Yêu Cầu Đổi Lịch', desc: 'Xem xét đề nghị thay đổi lịch từ giáo viên', path: '/session-approval', icon: '📅', color: 'hover:border-green-400', badge: stats.scheduleRequests },
+        { label: t('manager.dashboard.approveQB'), desc: t('manager.dashboard.approveQBDesc'), path: '/edu-manager/qb-approval', icon: '✅', color: 'hover:border-amber-400', badge: stats.pendingQB },
+        { label: t('manager.dashboard.approveExams'), desc: t('manager.dashboard.approveExamsDesc'), path: '/edu-manager/test-approval', icon: '📝', color: 'hover:border-rose-400', badge: stats.pendingExams },
+        { label: t('manager.dashboard.assignTeachers'), desc: t('manager.dashboard.assignTeachersDesc'), path: '/class-management', icon: '👩‍🏫', color: 'hover:border-blue-400', badge: 0 },
+        { label: t('manager.dashboard.approveReschedule'), desc: t('manager.dashboard.approveRescheduleDesc'), path: '/session-approval', icon: '📅', color: 'hover:border-green-400', badge: stats.scheduleRequests },
     ];
 
     return (
@@ -116,7 +118,7 @@ const ManagerDashboard = () => {
                     </div>
                     <div>
                         <h1 className="text-2xl font-bold text-gray-900">Manager Dashboard</h1>
-                        <p className="text-gray-500 text-sm">Quản lý chất lượng đề thi và lịch giảng dạy</p>
+                        <p className="text-gray-500 text-sm">{t('manager.dashboard.headerSubtitle')}</p>
                     </div>
                 </div>
             </div>
@@ -133,7 +135,7 @@ const ManagerDashboard = () => {
                         </div>
                         <div className="text-sm text-gray-500 mt-1">{card.label}</div>
                         {card.urgent && (
-                            <div className="text-xs text-amber-600 font-medium mt-1">⚡ Cần xử lý</div>
+                            <div className="text-xs text-amber-600 font-medium mt-1">{t('manager.dashboard.needsAttention')}</div>
                         )}
                     </div>
                 ))}
@@ -141,7 +143,7 @@ const ManagerDashboard = () => {
 
             {/* Quick Links */}
             <div className="mb-8">
-                <h2 className="text-lg font-semibold text-gray-800 mb-4">Tác Vụ Ưu Tiên</h2>
+                <h2 className="text-lg font-semibold text-gray-800 mb-4">{t('manager.dashboard.priorityActions')}</h2>
                 <div className="flex flex-col gap-4">
                     {quickLinks.map((link, i) => (
                         <button
@@ -176,20 +178,20 @@ const ManagerDashboard = () => {
                 <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2">
                         <Clock className="w-5 h-5 text-gray-400" />
-                        <h2 className="text-lg font-semibold text-gray-800">Câu Hỏi Chờ Duyệt Gần Đây</h2>
+                        <h2 className="text-lg font-semibold text-gray-800">{t('manager.dashboard.recentPendingQuestions')}</h2>
                     </div>
                     <button
                         onClick={() => navigate('/edu-manager/qb-approval')}
                         className="text-sm text-indigo-600 font-medium hover:underline"
                     >
-                        Xem tất cả →
+                        {t('manager.dashboard.viewAll')} →
                     </button>
                 </div>
                 <div className="space-y-3">
                     {[
-                        { teacher: 'GV. Nguyễn Thị B', question: 'Dạng N3 - Nghe hiểu đoạn hội thoại ngắn', level: 'TOPIK I', time: '10 phút trước' },
-                        { teacher: 'GV. Trần Văn C', question: 'Dạng R2 - Đọc hiểu bảng thông báo', level: 'TOPIK II', time: '45 phút trước' },
-                        { teacher: 'GV. Lê Thị D', question: 'Dạng W1 - Viết câu theo gợi ý', level: 'TOPIK II', time: '2 giờ trước' },
+                        { teacher: t('manager.dashboard.sampleTeacher1'), question: t('manager.dashboard.sampleQuestion1'), level: 'TOPIK I', time: t('manager.dashboard.time10mAgo') },
+                        { teacher: t('manager.dashboard.sampleTeacher2'), question: t('manager.dashboard.sampleQuestion2'), level: 'TOPIK II', time: t('manager.dashboard.time45mAgo') },
+                        { teacher: t('manager.dashboard.sampleTeacher3'), question: t('manager.dashboard.sampleQuestion3'), level: 'TOPIK II', time: t('manager.dashboard.time2hAgo') },
                     ].map((item, i) => (
                         <div key={i} className="flex items-start justify-between py-3 border-b border-gray-50 last:border-0">
                             <div>
@@ -209,20 +211,20 @@ const ManagerDashboard = () => {
                 <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2">
                         <ClipboardCheck className="w-5 h-5 text-gray-400" />
-                        <h2 className="text-lg font-semibold text-gray-800">Đề Thi Chờ Duyệt Gần Đây</h2>
+                        <h2 className="text-lg font-semibold text-gray-800">{t('manager.dashboard.recentPendingExams')}</h2>
                     </div>
                     <button
                         onClick={() => navigate('/edu-manager/test-approval')}
                         className="text-sm text-indigo-600 font-medium hover:underline"
                     >
-                        Xem tất cả →
+                        {t('manager.dashboard.viewAll')} →
                     </button>
                 </div>
                 <div className="space-y-3">
                     {[
-                        { teacher: 'GV. Phạm Văn E', exam: 'Kiểm tra giữa kỳ - TOPIK I', course: 'Beginner Korean', time: '5 phút trước' },
-                        { teacher: 'GV. Nguyễn Thị F', exam: 'Kiểm tra cuối kỳ - TOPIK II', course: 'Intermediate Korean', time: '1 giờ trước' },
-                        { teacher: 'GV. Trần Văn G', exam: 'Đề thi thử - TOPIK II', course: 'Advanced Korean', time: '3 giờ trước' },
+                        { teacher: t('manager.dashboard.sampleExamTeacher1'), exam: t('manager.dashboard.sampleExam1'), course: 'Beginner Korean', time: t('manager.dashboard.time5mAgo') },
+                        { teacher: t('manager.dashboard.sampleExamTeacher2'), exam: t('manager.dashboard.sampleExam2'), course: 'Intermediate Korean', time: t('manager.dashboard.time1hAgo') },
+                        { teacher: t('manager.dashboard.sampleExamTeacher3'), exam: t('manager.dashboard.sampleExam3'), course: 'Advanced Korean', time: t('manager.dashboard.time3hAgo') },
                     ].map((item, i) => (
                         <div key={i} className="flex items-start justify-between py-3 border-b border-gray-50 last:border-0">
                             <div>

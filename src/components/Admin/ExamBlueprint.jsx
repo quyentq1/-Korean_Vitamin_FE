@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Layers, Target, Clock, Plus, Trash2 } from 'lucide-react';
 
 /**
@@ -6,6 +7,7 @@ import { Layers, Target, Clock, Plus, Trash2 } from 'lucide-react';
  * Priority 1: Exam System (Admin)
  */
 const ExamBlueprint = ({ blueprint, onChange, onGenerate }) => {
+    const { t } = useTranslation();
     const [sections, setSections] = useState(blueprint?.sections || []);
 
     const addSection = () => {
@@ -43,8 +45,8 @@ const ExamBlueprint = ({ blueprint, onChange, onGenerate }) => {
                 <div className="flex items-center gap-3">
                     <Layers className="w-6 h-6 text-indigo-600" />
                     <div>
-                        <h3 className="text-lg font-semibold text-gray-900">Blueprint Đề Thi</h3>
-                        <p className="text-sm text-gray-600">Thiết kế cấu trúc đề thi</p>
+                        <h3 className="text-lg font-semibold text-gray-900">{t('admin.examBlueprint.title')}</h3>
+                        <p className="text-sm text-gray-600">{t('admin.examBlueprint.subtitle')}</p>
                     </div>
                 </div>
             </div>
@@ -55,14 +57,14 @@ const ExamBlueprint = ({ blueprint, onChange, onGenerate }) => {
                     <div className="p-4 bg-blue-50 rounded-lg">
                         <div className="flex items-center gap-2 mb-1">
                             <Target className="w-5 h-5 text-blue-600" />
-                            <span className="text-sm font-medium text-gray-700">Tổng câu hỏi</span>
+                            <span className="text-sm font-medium text-gray-700">{t('admin.examBlueprint.totalQuestions')}</span>
                         </div>
                         <p className="text-2xl font-bold text-blue-600">{totals.questions}</p>
                     </div>
                     <div className="p-4 bg-green-50 rounded-lg">
                         <div className="flex items-center gap-2 mb-1">
                             <Clock className="w-5 h-5 text-green-600" />
-                            <span className="text-sm font-medium text-gray-700">Tổng điểm</span>
+                            <span className="text-sm font-medium text-gray-700">{t('admin.examBlueprint.totalPoints')}</span>
                         </div>
                         <p className="text-2xl font-bold text-green-600">{totals.points}</p>
                     </div>
@@ -75,56 +77,56 @@ const ExamBlueprint = ({ blueprint, onChange, onGenerate }) => {
                             <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
                                 <div>
                                     <label className="block text-xs font-medium text-gray-700 mb-1">
-                                        Danh mục
+                                        {t('admin.examBlueprint.category')}
                                     </label>
                                     <select
                                         value={section.category}
                                         onChange={(e) => updateSection(index, 'category', e.target.value)}
                                         className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-indigo-500"
                                     >
-                                        <option value="">Chọn</option>
-                                        <option value="Grammar">Ngữ pháp</option>
-                                        <option value="Vocabulary">Từ vựng</option>
-                                        <option value="Reading">Đọc hiểu</option>
-                                        <option value="Listening">Nghe hiểu</option>
+                                        <option value="">{t('admin.examBlueprint.select')}</option>
+                                        <option value="Grammar">{t('admin.examBlueprint.grammar')}</option>
+                                        <option value="Vocabulary">{t('admin.examBlueprint.vocabulary')}</option>
+                                        <option value="Reading">{t('admin.examBlueprint.reading')}</option>
+                                        <option value="Listening">{t('admin.examBlueprint.listening')}</option>
                                     </select>
                                 </div>
 
                                 <div>
                                     <label className="block text-xs font-medium text-gray-700 mb-1">
-                                        Độ khó
+                                        {t('admin.examBlueprint.difficulty')}
                                     </label>
                                     <select
                                         value={section.difficulty}
                                         onChange={(e) => updateSection(index, 'difficulty', e.target.value)}
                                         className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-indigo-500"
                                     >
-                                        <option value="">Chọn</option>
-                                        <option value="EASY">Dễ</option>
-                                        <option value="MEDIUM">Trung bình</option>
-                                        <option value="HARD">Khó</option>
+                                        <option value="">{t('admin.examBlueprint.select')}</option>
+                                        <option value="EASY">{t('admin.examBlueprint.easy')}</option>
+                                        <option value="MEDIUM">{t('admin.examBlueprint.medium')}</option>
+                                        <option value="HARD">{t('admin.examBlueprint.hard')}</option>
                                     </select>
                                 </div>
 
                                 <div>
                                     <label className="block text-xs font-medium text-gray-700 mb-1">
-                                        Loại câu hỏi
+                                        {t('admin.examBlueprint.questionType')}
                                     </label>
                                     <select
                                         value={section.questionType}
                                         onChange={(e) => updateSection(index, 'questionType', e.target.value)}
                                         className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-indigo-500"
                                     >
-                                        <option value="">Chọn</option>
-                                        <option value="MULTIPLE_CHOICE">Trắc nghiệm</option>
-                                        <option value="FILL_BLANK">Điền từ</option>
-                                        <option value="SHORT_ANSWER">Tự luận</option>
+                                        <option value="">{t('admin.examBlueprint.select')}</option>
+                                        <option value="MULTIPLE_CHOICE">{t('admin.examBlueprint.multipleChoice')}</option>
+                                        <option value="FILL_BLANK">{t('admin.examBlueprint.fillBlank')}</option>
+                                        <option value="SHORT_ANSWER">{t('admin.examBlueprint.shortAnswer')}</option>
                                     </select>
                                 </div>
 
                                 <div>
                                     <label className="block text-xs font-medium text-gray-700 mb-1">
-                                        Số lượng
+                                        {t('admin.examBlueprint.quantity')}
                                     </label>
                                     <input
                                         type="number"
@@ -137,7 +139,7 @@ const ExamBlueprint = ({ blueprint, onChange, onGenerate }) => {
 
                                 <div className="relative">
                                     <label className="block text-xs font-medium text-gray-700 mb-1">
-                                        Điểm/câu
+                                        {t('admin.examBlueprint.pointsPerQuestion')}
                                     </label>
                                     <input
                                         type="number"
@@ -165,7 +167,7 @@ const ExamBlueprint = ({ blueprint, onChange, onGenerate }) => {
                     className="mt-4 w-full px-4 py-2 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-indigo-500 hover:text-indigo-600 transition-colors flex items-center justify-center gap-2"
                 >
                     <Plus className="w-4 h-4" />
-                    Thêm Phần Blueprint
+                    {t('admin.examBlueprint.addSection')}
                 </button>
 
                 <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-200">
@@ -173,14 +175,14 @@ const ExamBlueprint = ({ blueprint, onChange, onGenerate }) => {
                         onClick={() => onChange({ sections })}
                         className="px-6 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
                     >
-                        Lưu Blueprint
+                        {t('admin.examBlueprint.save')}
                     </button>
                     <button
                         onClick={() => onGenerate(sections)}
                         className="px-6 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 flex items-center gap-2"
                     >
                         <Target className="w-4 h-4" />
-                        Tạo Đề Thi
+                        {t('admin.examBlueprint.generate')}
                     </button>
                 </div>
             </div>

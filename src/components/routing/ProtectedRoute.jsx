@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 import { PageLoading, ErrorAlert } from '../ui';
 
@@ -22,6 +23,7 @@ export const ProtectedRoute = ({
   fallbackPath = '/unauthorized'
 }) => {
   const { user, isAuthenticated, isLoading, hasRole, hasPermission, authError } = useAuth();
+  const { t } = useTranslation();
   const location = useLocation();
 
   // Lưu lại đường dẫn hiện tại để redirect sau khi đăng nhập
@@ -31,7 +33,7 @@ export const ProtectedRoute = ({
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <PageLoading message="Đang kiểm tra xác thực..." />
+        <PageLoading message={t('protectedRoute.checkingAuth', 'Đang kiểm tra xác thực...')} />
       </div>
     );
   }
@@ -42,7 +44,7 @@ export const ProtectedRoute = ({
       <div className="min-h-screen flex items-center justify-center p-4 bg-gray-50">
         <div className="max-w-md w-full">
           <ErrorAlert
-            title="Lỗi xác thực"
+            title={t('protectedRoute.authError', 'Lỗi xác thực')}
             message={authError}
             dismissible={false}
           />
@@ -78,7 +80,7 @@ export const ProtectedRoute = ({
         to={fallbackPath}
         state={{
           error: 'INSUFFICIENT_ROLE',
-          message: `Bạn không có quyền truy cập trang này. Vai trò yêu cầu: ${Array.isArray(allowedRoles) ? allowedRoles.join(', ') : allowedRoles}`
+          message: t('protectedRoute.insufficientRole', 'Bạn không có quyền truy cập trang này. Vai trò yêu cầu: {{roles}}', { roles: Array.isArray(allowedRoles) ? allowedRoles.join(', ') : allowedRoles })
         }}
         replace
       />
@@ -94,7 +96,7 @@ export const ProtectedRoute = ({
           to={fallbackPath}
           state={{
             error: 'INSUFFICIENT_PERMISSION',
-            message: 'Bạn không có đủ quyền để thực hiện hành động này.'
+            message: t('protectedRoute.insufficientPermission', 'Bạn không có đủ quyền để thực hiện hành động này.')
           }}
           replace
         />

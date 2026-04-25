@@ -20,8 +20,8 @@ const AddScheduleModal = ({ classId, classStartDate, classEndDate, onClose, onSu
         if (!lessonNumber || !lessonDate || !startTime || !endTime) {
             Swal.fire({
                 icon: 'warning',
-                title: 'Thiếu thông tin',
-                text: 'Vui lòng nhập số buổi, ngày học và giờ học',
+                title: t('staff.addSchedule.missingInfo'),
+                text: t('staff.addSchedule.enterSessions'),
                 confirmButtonColor: '#667eea'
             });
             return;
@@ -31,8 +31,8 @@ const AddScheduleModal = ({ classId, classStartDate, classEndDate, onClose, onSu
         if (classStartDate && lessonDate < classStartDate) {
             Swal.fire({
                 icon: 'warning',
-                title: 'Lỗi',
-                text: `Ngày học không được trước ngày bắt đầu lớp học (${new Date(classStartDate).toLocaleDateString('vi-VN')})`,
+                title: t('staff.addSchedule.error'),
+                text: t('staff.addSchedule.dateBeforeStart', 'Ngày học không được trước ngày bắt đầu lớp học', { date: new Date(classStartDate).toLocaleDateString() }),
                 confirmButtonColor: '#667eea'
             });
             return;
@@ -40,8 +40,8 @@ const AddScheduleModal = ({ classId, classStartDate, classEndDate, onClose, onSu
         if (classEndDate && lessonDate > classEndDate) {
             Swal.fire({
                 icon: 'warning',
-                title: 'Lỗi',
-                text: `Ngày học không được sau ngày kết thúc lớp học (${new Date(classEndDate).toLocaleDateString('vi-VN')})`,
+                title: t('staff.addSchedule.error'),
+                text: t('staff.addSchedule.dateAfterEnd', 'Ngày học không được sau ngày kết thúc lớp học', { date: new Date(classEndDate).toLocaleDateString() }),
                 confirmButtonColor: '#667eea'
             });
             return;
@@ -64,7 +64,7 @@ const AddScheduleModal = ({ classId, classStartDate, classEndDate, onClose, onSu
 
             Swal.fire({
                 icon: 'success',
-                title: 'Thêm lịch học thành công',
+                title: t('staff.addSchedule.success'),
                 timer: 1500,
                 showConfirmButton: false
             });
@@ -74,8 +74,8 @@ const AddScheduleModal = ({ classId, classStartDate, classEndDate, onClose, onSu
             console.error('Error creating schedule:', error);
             Swal.fire({
                 icon: 'error',
-                title: 'Lỗi',
-                text: error.response?.data?.message || 'Không thể thêm lịch học',
+                title: t('staff.addSchedule.error'),
+                text: error.response?.data?.message || t('staff.addSchedule.createFailed'),
                 confirmButtonColor: '#667eea'
             });
         } finally {
@@ -90,7 +90,7 @@ const AddScheduleModal = ({ classId, classStartDate, classEndDate, onClose, onSu
                 <div className="border-b border-gray-200 px-6 py-4 flex items-center justify-between">
                     <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
                         <Calendar className="w-5 h-5" />
-                        Thêm Lịch Học
+                        {t('staff.addSchedule.title')}
                     </h2>
                     <button
                         onClick={onClose}
@@ -105,7 +105,7 @@ const AddScheduleModal = ({ classId, classStartDate, classEndDate, onClose, onSu
                     {/* Lesson Number */}
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Số buổi <span className="text-red-500">*</span>
+                            {t('staff.addSchedule.lessonNumber')} <span className="text-red-500">*</span>
                         </label>
                         <input
                             type="number"
@@ -120,7 +120,7 @@ const AddScheduleModal = ({ classId, classStartDate, classEndDate, onClose, onSu
                     {/* Lesson Date */}
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Ngày học <span className="text-red-500">*</span>
+                            {t('staff.addSchedule.lessonDate')} <span className="text-red-500">*</span>
                         </label>
                         <input
                             type="date"
@@ -136,7 +136,7 @@ const AddScheduleModal = ({ classId, classStartDate, classEndDate, onClose, onSu
                     <div className="grid grid-cols-2 gap-4">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Giờ bắt đầu <span className="text-red-500">*</span>
+                                {t('staff.addSchedule.startTime')} <span className="text-red-500">*</span>
                             </label>
                             <input
                                 type="time"
@@ -147,7 +147,7 @@ const AddScheduleModal = ({ classId, classStartDate, classEndDate, onClose, onSu
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Giờ kết thúc <span className="text-red-500">*</span>
+                                {t('staff.addSchedule.endTime')} <span className="text-red-500">*</span>
                             </label>
                             <input
                                 type="time"
@@ -161,28 +161,28 @@ const AddScheduleModal = ({ classId, classStartDate, classEndDate, onClose, onSu
                     {/* Topic */}
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Chủ đề
+                            {t('staff.addSchedule.topic')}
                         </label>
                         <input
                             type="text"
                             value={topic}
                             onChange={(e) => setTopic(e.target.value)}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            placeholder="Chủ đề bài học..."
+                            placeholder={t('staff.addSchedule.topicPlaceholder')}
                         />
                     </div>
 
                     {/* Room */}
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Phòng học
+                            {t('staff.addSchedule.room')}
                         </label>
                         <input
                             type="text"
                             value={room}
                             onChange={(e) => setRoom(e.target.value)}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            placeholder="Phòng 301, A101..."
+                            placeholder={t('staff.addSchedule.roomPlaceholder')}
                         />
                     </div>
 
@@ -194,14 +194,14 @@ const AddScheduleModal = ({ classId, classStartDate, classEndDate, onClose, onSu
                             disabled={loading}
                             className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
                         >
-                            Hủy
+                            {t('staff.addSchedule.cancel')}
                         </button>
                         <button
                             type="submit"
                             disabled={loading}
                             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
                         >
-                            {loading ? 'Đang lưu...' : 'Thêm lịch học'}
+                            {loading ? t('staff.addSchedule.saving') : t('staff.addSchedule.submit')}
                         </button>
                     </div>
                 </form>

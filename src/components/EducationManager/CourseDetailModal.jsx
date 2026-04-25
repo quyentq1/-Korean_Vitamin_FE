@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import lessonService from '../../services/lessonService';
 
 const CourseDetailModal = ({ course, onClose }) => {
+    const { t } = useTranslation();
     const [activeTab, setActiveTab] = useState('overview');
     const [lessons, setLessons] = useState([]);
     const [lessonsLoading, setLessonsLoading] = useState(false);
@@ -26,15 +27,15 @@ const CourseDetailModal = ({ course, onClose }) => {
     }, [course?.id, activeTab]);
 
     const levelLabels = {
-        'BEGINNER': 'TOPIK I',
-        'INTERMEDIATE': 'TOPIK II',
-        'ADVANCED': 'ESP'
+        'BEGINNER': t('admin.courseDetail.topikI', 'TOPIK I'),
+        'INTERMEDIATE': t('admin.courseDetail.topikII', 'TOPIK II'),
+        'ADVANCED': t('admin.courseDetail.esp', 'ESP')
     };
 
     const statusLabels = {
-        'DRAFT': 'Bản nháp',
-        'PUBLISHED': 'Đã công bố',
-        'ARCHIVED': 'Lưu trữ'
+        'DRAFT': t('admin.courseDetail.draft', 'Bản nháp'),
+        'PUBLISHED': t('admin.courseDetail.published', 'Đã công bố'),
+        'ARCHIVED': t('admin.courseDetail.archived', 'Lưu trữ')
     };
 
     const statusColors = {
@@ -90,7 +91,7 @@ const CourseDetailModal = ({ course, onClose }) => {
                         )}
                         <div className="text-white">
                             <h2 className="text-2xl font-bold">{course.name}</h2>
-                            <p className="text-violet-100 text-sm">Mã: {course.code}</p>
+                            <p className="text-violet-100 text-sm">{t('admin.courseDetail.code', 'Mã')}: {course.code}</p>
                         </div>
                     </div>
                     <button onClick={onClose} className="text-white/80 hover:text-white transition-colors">
@@ -111,10 +112,10 @@ const CourseDetailModal = ({ course, onClose }) => {
                                         : 'border-transparent text-gray-500 hover:text-gray-700'
                                 }`}
                             >
-                                {tab === 'overview' && 'Tổng quan'}
-                                {tab === 'curriculum' && 'Giáo trình'}
-                                {tab === 'requirements' && 'Yêu cầu'}
-                                {tab === 'instructor' && 'Giáo viên'}
+                                {tab === 'overview' && t('admin.courseDetail.overview', 'Tổng quan')}
+                                {tab === 'curriculum' && t('admin.courseDetail.curriculum', 'Giáo trình')}
+                                {tab === 'requirements' && t('admin.courseDetail.requirements', 'Yêu cầu')}
+                                {tab === 'instructor' && t('admin.courseDetail.instructor', 'Giáo viên')}
                             </button>
                         ))}
                     </div>
@@ -130,7 +131,7 @@ const CourseDetailModal = ({ course, onClose }) => {
                                 <div className="bg-gray-50 rounded-xl p-4">
                                     <div className="flex items-center gap-2 mb-3">
                                         <Globe className="w-5 h-5 text-violet-600" />
-                                        <span className="font-semibold text-gray-700">Ảnh khóa học</span>
+                                        <span className="font-semibold text-gray-700">{t('admin.courseDetail.courseImage', 'Ảnh khóa học')}</span>
                                     </div>
                                     <img
                                         src={course.thumbnailUrl}
@@ -145,7 +146,7 @@ const CourseDetailModal = ({ course, onClose }) => {
                                 <div className="bg-gray-50 rounded-xl p-4">
                                     <div className="flex items-center gap-2 mb-3">
                                         <Globe className="w-5 h-5 text-red-500" />
-                                        <span className="font-semibold text-gray-700">Video giới thiệu</span>
+                                        <span className="font-semibold text-gray-700">{t('admin.courseDetail.introVideo', 'Video giới thiệu')}</span>
                                     </div>
                                     <div className="aspect-video rounded-lg overflow-hidden">
                                         <iframe
@@ -166,7 +167,7 @@ const CourseDetailModal = ({ course, onClose }) => {
                                             rel="noopener noreferrer"
                                             className="text-sm text-violet-600 hover:text-violet-700 mt-2 inline-block"
                                         >
-                                            Mở link YouTube →
+                                            {t('admin.courseDetail.openYouTube', 'Mở link YouTube')} →
                                         </a>
                                     )}
                                 </div>
@@ -174,7 +175,7 @@ const CourseDetailModal = ({ course, onClose }) => {
                                 <div className="bg-gray-50 rounded-xl p-4">
                                     <div className="flex items-center gap-2 mb-3">
                                         <Globe className="w-5 h-5 text-blue-500" />
-                                        <span className="font-semibold text-gray-700">Link giới thiệu</span>
+                                        <span className="font-semibold text-gray-700">{t('admin.courseDetail.introLink', 'Link giới thiệu')}</span>
                                     </div>
                                     <a
                                         href={course.promoVideoUrl}
@@ -184,14 +185,14 @@ const CourseDetailModal = ({ course, onClose }) => {
                                     >
                                         {course.promoVideoUrl}
                                     </a>
-                                    <p className="text-sm text-gray-500 mt-2">Click để mở video trong tab mới</p>
+                                    <p className="text-sm text-gray-500 mt-2">{t('admin.courseDetail.clickToOpen', 'Click để mở video trong tab mới')}</p>
                                 </div>
                             ) : null}
 
                             {/* Description */}
                             {course.description && (
                                 <div>
-                                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Mô tả khóa học</h3>
+                                    <h3 className="text-lg font-semibold text-gray-900 mb-2">{t('admin.courseDetail.description', 'Mô tả khóa học')}</h3>
                                     <p className="text-gray-600 whitespace-pre-wrap">{course.description}</p>
                                 </div>
                             )}
@@ -200,24 +201,24 @@ const CourseDetailModal = ({ course, onClose }) => {
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                 <div className="bg-blue-50 rounded-lg p-4">
                                     <BookOpen className="w-5 h-5 text-blue-600 mb-2" />
-                                    <p className="text-xs text-gray-600">Trình độ</p>
+                                    <p className="text-xs text-gray-600">{t('admin.courseDetail.level', 'Trình độ')}</p>
                                     <p className="font-semibold text-gray-900">{levelLabels[course.level] || course.level}</p>
                                 </div>
                                 <div className="bg-green-50 rounded-lg p-4">
                                     <Clock className="w-5 h-5 text-green-600 mb-2" />
-                                    <p className="text-xs text-gray-600">Thời lượng</p>
-                                    <p className="font-semibold text-gray-900">{course.duration || 0} giờ</p>
+                                    <p className="text-xs text-gray-600">{t('admin.courseDetail.duration', 'Thời lượng')}</p>
+                                    <p className="font-semibold text-gray-900">{course.duration || 0} {t('admin.courseDetail.hours', 'giờ')}</p>
                                 </div>
                                 <div className="bg-amber-50 rounded-lg p-4">
                                     <DollarSign className="w-5 h-5 text-amber-600 mb-2" />
-                                    <p className="text-xs text-gray-600">Học phí</p>
+                                    <p className="text-xs text-gray-600">{t('admin.courseDetail.tuition', 'Học phí')}</p>
                                     <p className="font-semibold text-gray-900">
                                         {new Intl.NumberFormat('vi-VN').format(course.fee || 0)}₫
                                     </p>
                                 </div>
                                 <div className="bg-purple-50 rounded-lg p-4">
                                     <Globe className="w-5 h-5 text-purple-600 mb-2" />
-                                    <p className="text-xs text-gray-600">Trạng thái</p>
+                                    <p className="text-xs text-gray-600">{t('admin.courseDetail.status', 'Trạng thái')}</p>
                                     <p className={`font-semibold text-xs px-2 py-1 rounded-full inline-block ${statusColors[course.status]}`}>
                                         {statusLabels[course.status] || course.status}
                                     </p>
@@ -229,7 +230,7 @@ const CourseDetailModal = ({ course, onClose }) => {
                                 <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-5">
                                     <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
                                         <CheckCircle2 className="w-5 h-5 text-green-600" />
-                                        Mục tiêu khóa học
+                                        {t('admin.courseDetail.objectives', 'Mục tiêu khóa học')}
                                     </h3>
                                     <div className="text-gray-700 whitespace-pre-wrap space-y-1">
                                         {course.objectives.split('\n').map((line, idx) => (
@@ -277,10 +278,10 @@ const CourseDetailModal = ({ course, onClose }) => {
                                     <div className="flex items-center justify-between mb-2">
                                         <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
                                             <BookOpen className="w-5 h-5 text-violet-600" />
-                                            Bài học ({lessons.length})
+                                            {t('admin.courseDetail.lessons', 'Bài học')} ({lessons.length})
                                         </h3>
                                         <span className="text-sm text-gray-400">
-                                            Tổng: {lessons.reduce((s, l) => s + (l.durationMinutes || 0), 0)} phút
+                                            {t('admin.courseDetail.total', 'Tổng')}: {lessons.reduce((s, l) => s + (l.durationMinutes || 0), 0)} {t('admin.courseDetail.minutes', 'phút')}
                                         </span>
                                     </div>
                                     {lessons.map((lesson) => (
@@ -297,13 +298,13 @@ const CourseDetailModal = ({ course, onClose }) => {
                                                         <span className="font-medium text-gray-900 truncate">{lesson.title}</span>
                                                         {lesson.isPreview && (
                                                             <span className="shrink-0 text-[10px] px-1.5 py-0.5 rounded-full bg-green-100 text-green-700 font-medium">
-                                                                <Eye className="w-3 h-3 inline mr-0.5" />Xem trước
+                                                                <Eye className="w-3 h-3 inline mr-0.5" />{t('admin.courseDetail.preview', 'Xem trước')}
                                                             </span>
                                                         )}
                                                     </div>
                                                     <div className="flex items-center gap-3 mt-0.5 text-xs text-gray-400">
-                                                        {lesson.durationMinutes && <span>{lesson.durationMinutes} phút</span>}
-                                                        {lesson.videoUrl && <span className="flex items-center gap-0.5"><Video className="w-3 h-3" /> Video</span>}
+                                                        {lesson.durationMinutes && <span>{lesson.durationMinutes} {t('admin.courseDetail.minutes', 'phút')}</span>}
+                                                        {lesson.videoUrl && <span className="flex items-center gap-0.5"><Video className="w-3 h-3" /> {t('admin.courseDetail.video', 'Video')}</span>}
                                                         {lesson.description && <span className="truncate max-w-[200px]">{lesson.description}</span>}
                                                     </div>
                                                 </div>
@@ -322,7 +323,7 @@ const CourseDetailModal = ({ course, onClose }) => {
                                                                     return match ? (
                                                                         <iframe width="100%" height="250" src={`https://www.youtube.com/embed/${match[1]}`} frameBorder="0" allowFullScreen className="rounded-lg" />
                                                                     ) : (
-                                                                        <a href={lesson.videoUrl} target="_blank" rel="noopener noreferrer" className="text-violet-600 underline text-sm">Mở video</a>
+                                                                        <a href={lesson.videoUrl} target="_blank" rel="noopener noreferrer" className="text-violet-600 underline text-sm">{t('admin.courseDetail.openVideo', 'Mở video')}</a>
                                                                     );
                                                                 })()
                                                             ) : (
@@ -334,7 +335,7 @@ const CourseDetailModal = ({ course, onClose }) => {
                                                     {lesson.content ? (
                                                         <div className="prose prose-sm max-w-none text-gray-700" dangerouslySetInnerHTML={{ __html: lesson.content }} />
                                                     ) : (
-                                                        <p className="text-sm text-gray-400 italic">Chưa có nội dung</p>
+                                                        <p className="text-sm text-gray-400 italic">{t('admin.courseDetail.noContent', 'Chưa có nội dung')}</p>
                                                     )}
                                                 </div>
                                             )}
@@ -344,8 +345,8 @@ const CourseDetailModal = ({ course, onClose }) => {
                             ) : (
                                 <div className="text-center text-gray-500 py-10">
                                     <BookOpen className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                                    <p>Chưa có bài học nào</p>
-                                    <p className="text-sm mt-1">Thêm bài học trong trang chỉnh sửa khóa học</p>
+                                    <p>{t('admin.courseDetail.noLessons', 'Chưa có bài học nào')}</p>
+                                    <p className="text-sm mt-1">{t('admin.courseDetail.addLessonsHint', 'Thêm bài học trong trang chỉnh sửa khóa học')}</p>
                                 </div>
                             )}
 
@@ -354,7 +355,7 @@ const CourseDetailModal = ({ course, onClose }) => {
                                 <div className="bg-gradient-to-br from-amber-50 to-yellow-50 rounded-xl p-5">
                                     <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
                                         <Award className="w-5 h-5 text-amber-600" />
-                                        Cấu trúc bài kiểm tra
+                                        {t('admin.courseDetail.testStructure', 'Cấu trúc bài kiểm tra')}
                                     </h3>
                                     <div className="text-gray-700 whitespace-pre-wrap prose prose-sm max-w-none">
                                         {course.testSummary}
@@ -369,14 +370,14 @@ const CourseDetailModal = ({ course, onClose }) => {
                         <div className="space-y-6">
                             {course.requirements ? (
                                 <div className="bg-gradient-to-br from-orange-50 to-red-50 rounded-xl p-5">
-                                    <h3 className="text-lg font-semibold text-gray-900 mb-3">Yêu cầu / Điều kiện tiên quyết</h3>
+                                    <h3 className="text-lg font-semibold text-gray-900 mb-3">{t('admin.courseDetail.prerequisites', 'Yêu cầu / Điều kiện tiên quyết')}</h3>
                                     <div className="text-gray-700 whitespace-pre-wrap">
                                         {course.requirements}
                                     </div>
                                 </div>
                             ) : (
                                 <div className="text-center text-gray-500 py-10">
-                                    <p>Không có yêu cầu đặc biệt</p>
+                                    <p>{t('admin.courseDetail.noRequirements', 'Không có yêu cầu đặc biệt')}</p>
                                 </div>
                             )}
 
@@ -384,7 +385,7 @@ const CourseDetailModal = ({ course, onClose }) => {
                                 <div className="bg-gray-50 rounded-xl p-5">
                                     <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
                                         <Calendar className="w-5 h-5 text-gray-600" />
-                                        Lịch học mẫu
+                                        {t('admin.courseDetail.sampleSchedule', 'Lịch học mẫu')}
                                     </h3>
                                     <p className="text-gray-700">{course.schedule}</p>
                                 </div>
@@ -399,7 +400,7 @@ const CourseDetailModal = ({ course, onClose }) => {
                                 <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-5">
                                     <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
                                         <User className="w-5 h-5 text-purple-600" />
-                                        Thông tin giáo viên
+                                        {t('admin.courseDetail.instructorInfo', 'Thông tin giáo viên')}
                                     </h3>
                                     <div className="text-gray-700 whitespace-pre-wrap prose prose-sm max-w-none">
                                         {course.instructorInfo}
@@ -408,7 +409,7 @@ const CourseDetailModal = ({ course, onClose }) => {
                             ) : (
                                 <div className="text-center text-gray-500 py-10">
                                     <User className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                                    <p>Chưa có thông tin giáo viên</p>
+                                    <p>{t('admin.courseDetail.noInstructor', 'Chưa có thông tin giáo viên')}</p>
                                 </div>
                             )}
                         </div>

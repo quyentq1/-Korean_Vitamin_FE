@@ -29,15 +29,14 @@ const ConsultationList = () => {
     try {
       setLoading(true);
       const data = await consultationService.getConsultations();
-      // Handle the case where backend returns directly array or data array
       const items = Array.isArray(data) ? data : data.data || [];
       setConsultations(items);
     } catch (error) {
       console.error('Error fetching consultations:', error);
       Swal.fire({
         icon: 'error',
-        title: 'Lỗi tải dữ liệu',
-        text: 'Không thể tải danh sách tư vấn'
+        title: t('errors.error'),
+        text: t('staff.consultationList.errorLoadText')
       });
     } finally {
       setLoading(false);
@@ -74,21 +73,21 @@ const ConsultationList = () => {
 
   const handleReject = async (id) => {
     const { value: reason } = await Swal.fire({
-      title: 'Hủy yêu cầu tư vấn',
+      title: t('staff.consultationList.rejectTitle'),
       input: 'textarea',
-      inputLabel: 'Lý do từ chối (Sẽ được gửi qua Email cho khách):',
-      inputPlaceholder: 'Nhập lý do chi tiết...',
+      inputLabel: t('staff.consultationList.rejectInputLabel'),
+      inputPlaceholder: t('staff.consultationList.rejectInputPlaceholder'),
       inputAttributes: {
-        'aria-label': 'Lý do từ chối'
+        'aria-label': t('staff.consultationList.rejectInputLabel')
       },
       showCancelButton: true,
       confirmButtonColor: '#EF4444',
       cancelButtonColor: '#9CA3AF',
-      confirmButtonText: 'Hủy yêu cầu & Gửi mail',
-      cancelButtonText: 'Quay lại',
+      confirmButtonText: t('staff.consultationList.rejectConfirmBtn'),
+      cancelButtonText: t('common.cancel'),
       inputValidator: (value) => {
         if (!value || value.trim().length < 5) {
-          return 'Vui lòng nhập lý do từ chối (ít nhất 5 ký tự)!';
+          return t('staff.consultationList.rejectValidation');
         }
       }
     });
@@ -96,8 +95,8 @@ const ConsultationList = () => {
     if (reason) {
       try {
         Swal.fire({
-          title: 'Đang gửi email',
-          text: 'Hệ thống đang xử lý, vui lòng chờ...',
+          title: t('staff.consultationList.sendingEmail'),
+          text: t('staff.consultationList.sendingEmailText'),
           allowOutsideClick: false,
           didOpen: () => {
             Swal.showLoading();
@@ -105,11 +104,11 @@ const ConsultationList = () => {
         });
 
         await consultationService.rejectConsultation(id, reason);
-        
+
         Swal.fire({
           icon: 'success',
-          title: 'Đã hủy!',
-          text: 'Đã hủy yêu cầu tư vấn và gửi email thông báo.',
+          title: t('staff.consultationList.rejectedTitle'),
+          text: t('staff.consultationList.rejectedText'),
           timer: 2000,
           showConfirmButton: false
         });
@@ -117,8 +116,8 @@ const ConsultationList = () => {
       } catch (error) {
         Swal.fire({
           icon: 'error',
-          title: 'Lỗi',
-          text: error.response?.data?.message || 'Không thể hủy yêu cầu.'
+          title: t('errors.error'),
+          text: error.response?.data?.message || t('staff.consultationList.rejectError')
         });
       }
     }
@@ -129,8 +128,8 @@ const ConsultationList = () => {
       await consultationService.updateStatus(id, newStatus);
       Swal.fire({
         icon: 'success',
-        title: 'Thành công',
-        text: 'Cập nhật trạng thái thành công',
+        title: t('staff.consultationList.successTitle'),
+        text: t('staff.consultationList.statusUpdateSuccess'),
         timer: 1500,
         showConfirmButton: false
       });
@@ -138,8 +137,8 @@ const ConsultationList = () => {
     } catch (error) {
       Swal.fire({
         icon: 'error',
-        title: 'Lỗi',
-        text: 'Không thể cập nhật trạng thái'
+        title: t('errors.error'),
+        text: t('staff.consultationList.statusUpdateError')
       });
     }
   };
@@ -157,20 +156,20 @@ const ConsultationList = () => {
 
   const translateStatus = (status) => {
     switch (status) {
-      case 'NEW': return 'Chờ xử lý';
-      case 'CONTACTED': return 'Đã liên hệ';
-      case 'CLOSED': return 'Đã kết thúc';
-      case 'ACCOUNT_CREATED': return 'Đã cấp Account';
-      case 'REJECTED': return 'Đã Hủy';
+      case 'NEW': return t('staff.consultationList.statusNew');
+      case 'CONTACTED': return t('staff.consultationList.statusContacted');
+      case 'CLOSED': return t('staff.consultationList.statusClosed');
+      case 'ACCOUNT_CREATED': return t('staff.consultationList.statusAccountCreated');
+      case 'REJECTED': return t('staff.consultationList.statusRejected');
       default: return status;
     }
   };
 
   const translateContactTime = (time) => {
     switch(time) {
-      case 'morning': return 'Sáng (8h-12h)';
-      case 'afternoon': return 'Chiều (13h-17h)';
-      case 'evening': return 'Tối (18h-20h)';
+      case 'morning': return t('staff.consultationList.timeMorning');
+      case 'afternoon': return t('staff.consultationList.timeAfternoon');
+      case 'evening': return t('staff.consultationList.timeEvening');
       default: return time;
     }
   };
@@ -184,7 +183,7 @@ const ConsultationList = () => {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
             <Input
               type="text"
-              placeholder="Tìm kiếm theo Tên, Email, SĐT..."
+              placeholder={t('staff.consultationList.searchPlaceholder')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10 w-full"
@@ -196,12 +195,12 @@ const ConsultationList = () => {
               onChange={(e) => setStatusFilter(e.target.value)}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none h-[42px]"
             >
-              <option value="all">Tất cả trạng thái</option>
-              <option value="NEW">Chờ xử lý</option>
-              <option value="CONTACTED">Đã liên hệ</option>
-              <option value="ACCOUNT_CREATED">Đã cấp Account</option>
-              <option value="REJECTED">Đã Hủy</option>
-              <option value="CLOSED">Đã kết thúc</option>
+              <option value="all">{t('staff.consultationList.allStatus')}</option>
+              <option value="NEW">{t('staff.consultationList.statusNew')}</option>
+              <option value="CONTACTED">{t('staff.consultationList.statusContacted')}</option>
+              <option value="ACCOUNT_CREATED">{t('staff.consultationList.statusAccountCreated')}</option>
+              <option value="REJECTED">{t('staff.consultationList.statusRejected')}</option>
+              <option value="CLOSED">{t('staff.consultationList.statusClosed')}</option>
             </select>
           </div>
         </div>
@@ -214,7 +213,7 @@ const ConsultationList = () => {
       ) : filteredConsultations.length === 0 ? (
         <div className="bg-white rounded-xl shadow-sm p-12 text-center border border-gray-100">
           <FileText className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-          <p className="text-gray-500">Chưa có yêu cầu tư vấn nào.</p>
+          <p className="text-gray-500">{t('staff.consultationList.noConsultations')}</p>
         </div>
       ) : (
         <div className="grid gap-4">
@@ -229,7 +228,7 @@ const ConsultationList = () => {
                       {translateStatus(item.status)}
                     </span>
                   </div>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-y-2 gap-x-8 text-sm text-gray-600">
                     <div className="flex items-center gap-2">
                       <Phone className="w-4 h-4 text-gray-400" />
@@ -241,11 +240,11 @@ const ConsultationList = () => {
                     </div>
                     <div className="flex items-center gap-2">
                       <Clock className="w-4 h-4 text-gray-400" />
-                      <span>Gọi lúc: <span className="font-medium">{translateContactTime(item.contactTime)}</span></span>
+                      <span>{t('staff.consultationList.callAt')}: <span className="font-medium">{translateContactTime(item.contactTime)}</span></span>
                     </div>
                     <div className="flex items-center gap-2">
                       <FileText className="w-4 h-4 text-gray-400" />
-                      <span>Ngày tạo: {new Date(item.createdAt).toLocaleDateString()}</span>
+                      <span>{t('staff.consultationList.createdAt')}: {new Date(item.createdAt).toLocaleDateString()}</span>
                     </div>
                   </div>
 
@@ -267,9 +266,9 @@ const ConsultationList = () => {
                         className="flex items-center shadow-sm"
                       >
                         <UserPlus className="w-4 h-4 mr-2" />
-                        Tạo Account
+                        {t('staff.consultationList.createAccount')}
                       </Button>
-                      
+
                       {item.status === 'NEW' && (
                         <Button
                           variant="secondary"
@@ -278,7 +277,7 @@ const ConsultationList = () => {
                           className="flex items-center shadow-sm text-blue-600 hover:text-blue-700 hover:bg-blue-50"
                         >
                           <PhoneCall className="w-4 h-4 mr-2" />
-                          Đã gọi tư vấn
+                          {t('staff.consultationList.consulted')}
                         </Button>
                       )}
 
@@ -289,7 +288,7 @@ const ConsultationList = () => {
                         className="flex items-center shadow-sm border-transparent bg-red-100 text-red-600 hover:bg-red-200"
                       >
                         <XSquare className="w-4 h-4 mr-2" />
-                        Hủy yêu cầu
+                        {t('staff.consultationList.rejectRequest')}
                       </Button>
                     </>
                   )}

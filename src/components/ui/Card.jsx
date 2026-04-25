@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { BookOpen, Clock, Users, TrendingUp, Star } from 'lucide-react';
 
 /**
@@ -51,6 +52,7 @@ export const CourseCard = ({
   className = '',
   ...props
 }) => {
+  const { t } = useTranslation();
   const levelColors = {
     beginner: 'bg-badge-beginner bg text-badge-beginner-text',
     intermediate: 'bg-badge-intermediate bg text-badge-intermediate-text',
@@ -134,7 +136,7 @@ export const CourseCard = ({
             </span>
           )}
           <button className="px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg font-medium transition-colors">
-            Xem chi tiết
+            {t('card.viewDetails', 'Xem chi tiết')}
           </button>
         </div>
       </div>
@@ -152,6 +154,7 @@ export const StatsCard = ({
   className = '',
   ...props
 }) => {
+  const { t } = useTranslation();
   const colorClasses = {
     primary: 'bg-primary-50 text-primary-600',
     secondary: 'bg-gray-50 text-gray-600',
@@ -176,7 +179,7 @@ export const StatsCard = ({
           {change !== undefined && (
             <p className={`text-sm font-medium mt-2 flex items-center gap-1 ${isPositive ? 'text-success-600' : 'text-error-600'}`}>
               <TrendingUp className={`w-4 h-4 ${isPositive ? '' : 'rotate-180'}`} />
-              {Math.abs(change)}% {isPositive ? 'tăng' : 'giảm'}
+              {Math.abs(change)}% {isPositive ? t('card.increase', 'tăng') : t('card.decrease', 'giảm')}
             </p>
           )}
         </div>

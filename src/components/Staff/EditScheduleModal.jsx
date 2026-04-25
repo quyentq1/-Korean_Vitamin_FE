@@ -33,8 +33,8 @@ const EditScheduleModal = ({ classId, classStartDate, classEndDate, schedule, on
         if (!lessonNumber || !lessonDate || !startTime || !endTime) {
             Swal.fire({
                 icon: 'warning',
-                title: 'Thiếu thông tin',
-                text: 'Vui lòng nhập số buổi, ngày học và giờ học',
+                title: t('staff.editSchedule.missingInfo'),
+                text: t('staff.editSchedule.enterSessions'),
                 confirmButtonColor: '#667eea'
             });
             return;
@@ -44,8 +44,8 @@ const EditScheduleModal = ({ classId, classStartDate, classEndDate, schedule, on
         if (classStartDate && lessonDate < classStartDate) {
             Swal.fire({
                 icon: 'warning',
-                title: 'Lỗi',
-                text: `Ngày học không được trước ngày bắt đầu lớp học (${new Date(classStartDate).toLocaleDateString('vi-VN')})`,
+                title: t('staff.editSchedule.error'),
+                text: t('staff.editSchedule.dateBeforeStart', 'Ngày học không được trước ngày bắt đầu lớp học', { date: new Date(classStartDate).toLocaleDateString() }),
                 confirmButtonColor: '#667eea'
             });
             return;
@@ -53,8 +53,8 @@ const EditScheduleModal = ({ classId, classStartDate, classEndDate, schedule, on
         if (classEndDate && lessonDate > classEndDate) {
             Swal.fire({
                 icon: 'warning',
-                title: 'Lỗi',
-                text: `Ngày học không được sau ngày kết thúc lớp học (${new Date(classEndDate).toLocaleDateString('vi-VN')})`,
+                title: t('staff.editSchedule.error'),
+                text: t('staff.editSchedule.dateAfterEnd', 'Ngày học không được sau ngày kết thúc lớp học', { date: new Date(classEndDate).toLocaleDateString() }),
                 confirmButtonColor: '#667eea'
             });
             return;
@@ -77,7 +77,7 @@ const EditScheduleModal = ({ classId, classStartDate, classEndDate, schedule, on
 
             Swal.fire({
                 icon: 'success',
-                title: 'Cập nhật lịch học thành công',
+                title: t('staff.editSchedule.success'),
                 timer: 1500,
                 showConfirmButton: false
             });
@@ -87,8 +87,8 @@ const EditScheduleModal = ({ classId, classStartDate, classEndDate, schedule, on
             console.error('Error updating schedule:', error);
             Swal.fire({
                 icon: 'error',
-                title: 'Lỗi',
-                text: error.response?.data?.message || 'Không thể cập nhật lịch học',
+                title: t('staff.editSchedule.error'),
+                text: error.response?.data?.message || t('staff.editSchedule.updateFailed'),
                 confirmButtonColor: '#667eea'
             });
         } finally {
@@ -103,7 +103,7 @@ const EditScheduleModal = ({ classId, classStartDate, classEndDate, schedule, on
                 <div className="border-b border-gray-200 px-6 py-4 flex items-center justify-between">
                     <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
                         <Calendar className="w-5 h-5" />
-                        Chỉnh Sửa Lịch Học
+                        {t('staff.editSchedule.title')}
                     </h2>
                     <button
                         onClick={onClose}
@@ -118,7 +118,7 @@ const EditScheduleModal = ({ classId, classStartDate, classEndDate, schedule, on
                     {/* Lesson Number */}
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Số buổi <span className="text-red-500">*</span>
+                            {t('staff.editSchedule.lessonNumber')} <span className="text-red-500">*</span>
                         </label>
                         <input
                             type="number"
@@ -133,7 +133,7 @@ const EditScheduleModal = ({ classId, classStartDate, classEndDate, schedule, on
                     {/* Lesson Date */}
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Ngày học <span className="text-red-500">*</span>
+                            {t('staff.editSchedule.lessonDate')} <span className="text-red-500">*</span>
                         </label>
                         <input
                             type="date"
@@ -149,7 +149,7 @@ const EditScheduleModal = ({ classId, classStartDate, classEndDate, schedule, on
                     <div className="grid grid-cols-2 gap-4">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Giờ bắt đầu <span className="text-red-500">*</span>
+                                {t('staff.editSchedule.startTime')} <span className="text-red-500">*</span>
                             </label>
                             <input
                                 type="time"
@@ -160,7 +160,7 @@ const EditScheduleModal = ({ classId, classStartDate, classEndDate, schedule, on
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Giờ kết thúc <span className="text-red-500">*</span>
+                                {t('staff.editSchedule.endTime')} <span className="text-red-500">*</span>
                             </label>
                             <input
                                 type="time"
@@ -174,45 +174,45 @@ const EditScheduleModal = ({ classId, classStartDate, classEndDate, schedule, on
                     {/* Topic */}
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Chủ đề
+                            {t('staff.editSchedule.topic')}
                         </label>
                         <input
                             type="text"
                             value={topic}
                             onChange={(e) => setTopic(e.target.value)}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            placeholder="Chủ đề bài học..."
+                            placeholder={t('staff.editSchedule.topicPlaceholder')}
                         />
                     </div>
 
                     {/* Room */}
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Phòng học
+                            {t('staff.editSchedule.room')}
                         </label>
                         <input
                             type="text"
                             value={room}
                             onChange={(e) => setRoom(e.target.value)}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            placeholder="Phòng 301, A101..."
+                            placeholder={t('staff.editSchedule.roomPlaceholder')}
                         />
                     </div>
 
                     {/* Status */}
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Trạng thái
+                            {t('staff.editSchedule.status')}
                         </label>
                         <select
                             value={status}
                             onChange={(e) => setStatus(e.target.value)}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         >
-                            <option value="SCHEDULED">Đã lên lịch</option>
-                            <option value="COMPLETED">Đã hoàn thành</option>
-                            <option value="CANCELLED">Đã hủy</option>
-                            <option value="RESCHEDULED">Đã dời lịch</option>
+                            <option value="SCHEDULED">{t('staff.editSchedule.statusScheduled')}</option>
+                            <option value="COMPLETED">{t('staff.editSchedule.statusCompleted')}</option>
+                            <option value="CANCELLED">{t('staff.editSchedule.statusCancelled')}</option>
+                            <option value="RESCHEDULED">{t('staff.editSchedule.statusRescheduled')}</option>
                         </select>
                     </div>
 
@@ -224,14 +224,14 @@ const EditScheduleModal = ({ classId, classStartDate, classEndDate, schedule, on
                             disabled={loading}
                             className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
                         >
-                            Hủy
+                            {t('staff.editSchedule.cancel')}
                         </button>
                         <button
                             type="submit"
                             disabled={loading}
                             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
                         >
-                            {loading ? 'Đang lưu...' : 'Lưu thay đổi'}
+                            {loading ? t('staff.editSchedule.saving') : t('staff.editSchedule.submit')}
                         </button>
                     </div>
                 </form>

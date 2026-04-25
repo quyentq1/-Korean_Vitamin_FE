@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { teacherService } from '../services/teacherService';
 import Swal from 'sweetalert2';
 import { X, Calendar, Clock, AlertTriangle, Loader2 } from 'lucide-react';
 
 const RescheduleSessionModal = ({ session, onClose, onSuccess, classStartDate, classEndDate }) => {
+    const { t } = useTranslation();
     const [loading, setLoading] = useState(false);
     const [newDate, setNewDate] = useState('');
     const [newStartTime, setNewStartTime] = useState(session?.startTime?.substring(0, 5) || '');
@@ -19,19 +21,19 @@ const RescheduleSessionModal = ({ session, onClose, onSuccess, classStartDate, c
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!newDate) { Swal.fire('Thiếu thông tin', 'Vui lòng chọn ngày mới', 'warning'); return; }
-        if (!newStartTime) { Swal.fire('Thiếu thông tin', 'Vui lòng nhập giờ bắt đầu', 'warning'); return; }
-        if (!newEndTime) { Swal.fire('Thiếu thông tin', 'Vui lòng nhập giờ kết thúc', 'warning'); return; }
-        if (newStartTime >= newEndTime) { Swal.fire('Lỗi', 'Giờ kết thúc phải sau giờ bắt đầu', 'warning'); return; }
-        if (!reason.trim()) { Swal.fire('Thiếu thông tin', 'Vui lòng nhập lý do dời lịch', 'warning'); return; }
+        if (!newDate) { Swal.fire(t('common.missingInfo'), t('component.reschedule.selectDate'), 'warning'); return; }
+        if (!newStartTime) { Swal.fire(t('common.missingInfo'), t('component.reschedule.selectStartTime'), 'warning'); return; }
+        if (!newEndTime) { Swal.fire(t('common.missingInfo'), t('component.reschedule.selectEndTime'), 'warning'); return; }
+        if (newStartTime >= newEndTime) { Swal.fire(t('common.error'), t('component.reschedule.endTimeAfterStart'), 'warning'); return; }
+        if (!reason.trim()) { Swal.fire(t('common.missingInfo'), t('component.reschedule.enterReason'), 'warning'); return; }
 
         // Validate date is within class date range
         if (classStartDate && newDate < classStartDate) {
-            Swal.fire('Lỗi', `Ngày dời lịch không được trước ngày bắt đầu lớp học (${new Date(classStartDate).toLocaleDateString('vi-VN')})`, 'warning');
+            Swal.fire(t('common.error'), t('component.reschedule.dateBeforeClassStart', { date: new Date(classStartDate).toLocaleDateString('vi-VN') }), 'warning');
             return;
         }
         if (classEndDate && newDate > classEndDate) {
-            Swal.fire('Lỗi', `Ngày dời lịch không được sau ngày kết thúc lớp học (${new Date(classEndDate).toLocaleDateString('vi-VN')})`, 'warning');
+            Swal.fire(t('common.error'), t('component.reschedule.dateAfterClassEnd', { date: new Date(classEndDate).toLocaleDateString('vi-VN') }), 'warning');
             return;
         }
 
@@ -45,8 +47,8 @@ const RescheduleSessionModal = ({ session, onClose, onSuccess, classStartDate, c
             });
             Swal.fire({
                 icon: 'success',
-                title: 'Dời lịch thành công!',
-                text: 'Đã gửi email thông báo đến học viên và quản lý đào tạo.',
+                title: t('component.reschedule.success'),
+                text: t('component.reschedule.successMessage'),
                 confirmButtonColor: '#6366f1',
                 timer: 3000,
                 timerProgressBar: true
@@ -55,8 +57,8 @@ const RescheduleSessionModal = ({ session, onClose, onSuccess, classStartDate, c
         } catch (err) {
             Swal.fire({
                 icon: 'error',
-                title: 'Dời lịch thất bại',
-                text: err?.response?.data?.message || 'Đã có lỗi xảy ra, vui lòng thử lại.',
+                title: t('component.reschedule.failed'),
+                text: err?.response?.data?.message || t('common.tryAgain'),
                 confirmButtonColor: '#6366f1'
             });
         } finally {
@@ -79,7 +81,7 @@ const RescheduleSessionModal = ({ session, onClose, onSuccess, classStartDate, c
                     <div className="absolute inset-0 bg-white/70 rounded-2xl z-10 flex items-center justify-center">
                         <div className="text-center">
                             <Loader2 className="w-10 h-10 text-indigo-600 animate-spin mx-auto mb-3" />
-                            <p className="text-sm font-medium text-gray-600">Đang xử lý dời lịch...</p>
+                            <p className="text-sm font-medium text-gray-600">{t('component.reschedule.processing')}</p>
                         </div>
                     </div>
                 )}
@@ -87,8 +89,8 @@ const RescheduleSessionModal = ({ session, onClose, onSuccess, classStartDate, c
                 {/* Header */}
                 <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-t-2xl px-6 py-5 text-white flex items-center justify-between">
                     <div>
-                        <h2 className="text-lg font-bold">Dời lịch học</h2>
-                        <p className="text-indigo-100 text-sm mt-0.5">Buổi {session?.lessonNumber} - {session?.className}</p>
+                        <h2 className="text-lg font-bold">{t('component.reschedule.title')}</h2>
+                        <p className="text-indigo-100 text-sm mt-0.5">{t('component.reschedule.sessionInfo', { lesson: session?.lessonNumber, className: session?.className })}</p>
                     </div>
                     <button onClick={onClose} disabled={loading}
                         className="p-2 hover:bg-white/20 rounded-lg transition-colors disabled:opacity-30">
@@ -98,7 +100,7 @@ const RescheduleSessionModal = ({ session, onClose, onSuccess, classStartDate, c
 
                 {/* Current Info */}
                 <div className="px-6 py-4 bg-gray-50 border-b border-gray-100">
-                    <p className="text-xs font-semibold text-gray-400 uppercase mb-2">Lịch hiện tại</p>
+                    <p className="text-xs font-semibold text-gray-400 uppercase mb-2">{t('component.reschedule.currentSchedule')}</p>
                     <div className="flex flex-wrap gap-4 text-sm">
                         <div className="flex items-center gap-1.5 text-gray-700">
                             <Calendar className="w-4 h-4 text-indigo-400" />
@@ -114,12 +116,12 @@ const RescheduleSessionModal = ({ session, onClose, onSuccess, classStartDate, c
                 <form onSubmit={handleSubmit} className="p-6 space-y-4">
                     <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-2">
                         <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
-                        <p className="text-xs text-amber-800">Chỉ có thể dời lịch trước ít nhất 1 ngày.</p>
+                        <p className="text-xs text-amber-800">{t('component.reschedule.warning')}</p>
                     </div>
 
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                            Ngày mới <span className="text-red-500">*</span>
+                            {t('component.reschedule.newDate')} <span className="text-red-500">*</span>
                         </label>
                         <input type="date" value={newDate} onChange={e => setNewDate(e.target.value)}
                             min={minDate} max={maxDate} disabled={loading}
@@ -129,7 +131,7 @@ const RescheduleSessionModal = ({ session, onClose, onSuccess, classStartDate, c
                     <div className="grid grid-cols-2 gap-4">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                                Giờ bắt đầu <span className="text-red-500">*</span>
+                                {t('component.reschedule.startTime')} <span className="text-red-500">*</span>
                             </label>
                             <input type="time" value={newStartTime} onChange={e => setNewStartTime(e.target.value)}
                                 disabled={loading}
@@ -137,7 +139,7 @@ const RescheduleSessionModal = ({ session, onClose, onSuccess, classStartDate, c
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                                Giờ kết thúc <span className="text-red-500">*</span>
+                                {t('component.reschedule.endTime')} <span className="text-red-500">*</span>
                             </label>
                             <input type="time" value={newEndTime} onChange={e => setNewEndTime(e.target.value)}
                                 disabled={loading}
@@ -147,22 +149,22 @@ const RescheduleSessionModal = ({ session, onClose, onSuccess, classStartDate, c
 
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                            Lý do dời lịch <span className="text-red-500">*</span>
+                            {t('component.reschedule.reason')} <span className="text-red-500">*</span>
                         </label>
                         <textarea value={reason} onChange={e => setReason(e.target.value)}
-                            rows={3} placeholder="Nhập lý do dời lịch..." disabled={loading}
+                            rows={3} placeholder={t('component.reschedule.reasonPlaceholder')} disabled={loading}
                             className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm resize-none disabled:bg-gray-100 disabled:cursor-not-allowed" />
                     </div>
 
                     <div className="flex justify-end gap-3 pt-2">
                         <button type="button" onClick={onClose} disabled={loading}
                             className="px-5 py-2.5 border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 text-sm font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
-                            Huỷ
+                            {t('common.cancel')}
                         </button>
                         <button type="submit" disabled={loading}
                             className="px-5 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-xl hover:shadow-lg disabled:opacity-40 disabled:cursor-not-allowed text-sm font-medium transition-all inline-flex items-center gap-2">
                             {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-                            {loading ? 'Đang xử lý...' : 'Xác nhận dời lịch'}
+                            {loading ? t('common.processing') : t('component.reschedule.confirm')}
                         </button>
                     </div>
                 </form>

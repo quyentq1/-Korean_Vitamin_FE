@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Edit, Save, FileText, Award, User, Tags, X, Upload } from 'lucide-react';
 import Swal from 'sweetalert2';
 
 const EditCourseModal = ({ course, onClose, onSubmit }) => {
+    const { t } = useTranslation();
     const [formData, setFormData] = useState(() => course ? { ...course } : {
         name: '',
         code: '',
@@ -38,9 +40,9 @@ const EditCourseModal = ({ course, onClose, onSubmit }) => {
             if (file.size > 5 * 1024 * 1024) {
                 Swal.fire({
                     icon: 'error',
-                    title: 'File quá lớn',
-                    text: 'Kích thước ảnh không được vượt quá 5MB',
-                    confirmButtonText: 'Đồng ý',
+                    title: t('admin.editCourseModal.fileTooLarge'),
+                    text: t('admin.editCourseModal.fileSizeLimit'),
+                    confirmButtonText: t('common.ok'),
                     confirmButtonColor: '#ef4444'
                 });
                 return;
@@ -48,9 +50,9 @@ const EditCourseModal = ({ course, onClose, onSubmit }) => {
             if (!file.type.startsWith('image/')) {
                 Swal.fire({
                     icon: 'error',
-                    title: 'Sai định dạng',
-                    text: 'Chỉ chấp nhận file hình ảnh',
-                    confirmButtonText: 'Đồng ý',
+                    title: t('admin.editCourseModal.invalidFormat'),
+                    text: t('admin.editCourseModal.onlyImages'),
+                    confirmButtonText: t('common.ok'),
                     confirmButtonColor: '#ef4444'
                 });
                 return;
@@ -81,9 +83,9 @@ const EditCourseModal = ({ course, onClose, onSubmit }) => {
             } catch (error) {
                 Swal.fire({
                     icon: 'error',
-                    title: 'Lỗi tải ảnh',
-                    text: 'Không thể tải ảnh lên. Vui lòng thử lại.',
-                    confirmButtonText: 'Đồng ý',
+                    title: t('admin.editCourseModal.uploadError'),
+                    text: t('admin.editCourseModal.uploadErrorText'),
+                    confirmButtonText: t('common.ok'),
                     confirmButtonColor: '#ef4444'
                 });
             }
@@ -93,11 +95,11 @@ const EditCourseModal = ({ course, onClose, onSubmit }) => {
     const handleRemoveImage = () => {
         Swal.fire({
             icon: 'question',
-            title: 'Xóa ảnh',
-            text: 'Bạn có chắc muốn xóa ảnh này?',
+            title: t('admin.editCourseModal.removeImage'),
+            text: t('admin.editCourseModal.confirmRemoveImage'),
             showCancelButton: true,
-            confirmButtonText: 'Xóa',
-            cancelButtonText: 'Hủy',
+            confirmButtonText: t('common.delete'),
+            cancelButtonText: t('common.cancel'),
             confirmButtonColor: '#ef4444',
             cancelButtonColor: '#6b7280',
             reverseButtons: true
@@ -126,23 +128,23 @@ const EditCourseModal = ({ course, onClose, onSubmit }) => {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
             <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
                 <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4 border-b">
-                    <h3 className="text-lg font-semibold text-gray-900">Cập Nhật Khóa Học</h3>
+                    <h3 className="text-lg font-semibold text-gray-900">{t('admin.editCourseModal.title')}</h3>
                 </div>
                 <form onSubmit={handleSubmit} className="p-6 space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Tên khóa học *</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">{t('admin.editCourseModal.courseName')}</label>
                             <input type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} required className="w-full px-3 py-2 border rounded-lg" />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Mã khóa học</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">{t('admin.editCourseModal.courseCode')}</label>
                             <input type="text" value={formData.code} onChange={e => setFormData({...formData, code: e.target.value.toUpperCase()})} className="w-full px-3 py-2 border rounded-lg" />
                         </div>
                     </div>
 
                     {/* Image Upload */}
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Ảnh khóa học</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">{t('admin.editCourseModal.courseImage')}</label>
                         <div className="flex items-start gap-4">
                             <div className="flex-1">
                                 <input
@@ -161,7 +163,7 @@ const EditCourseModal = ({ course, onClose, onSubmit }) => {
                                         type="button"
                                         onClick={handleRemoveImage}
                                         className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
-                                        title="Xóa ảnh"
+                                        title={t('admin.editCourseModal.removeImage')}
                                     >
                                         <X className="w-4 h-4" />
                                     </button>
@@ -171,18 +173,18 @@ const EditCourseModal = ({ course, onClose, onSubmit }) => {
                         {formData.thumbnailUrl && (
                             <div className="mt-2 flex items-center gap-2">
                                 <Upload className="w-4 h-4 text-gray-400" />
-                                <p className="text-xs text-gray-500">Chọn ảnh khác để thay thế</p>
+                                <p className="text-xs text-gray-500">{t('admin.editCourseModal.chooseDifferentImage')}</p>
                             </div>
                         )}
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Mô tả</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">{t('admin.editCourseModal.description')}</label>
                         <textarea value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} rows={3} className="w-full px-3 py-2 border rounded-lg" />
                     </div>
                     <div className="grid grid-cols-3 gap-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Trình độ</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">{t('admin.editCourseModal.level')}</label>
                             <select value={formData.level} onChange={e => setFormData({...formData, level: e.target.value})} className="w-full px-3 py-2 border rounded-lg">
                                 <option value="BEGINNER">TOPIK I</option>
                                 <option value="INTERMEDIATE">TOPIK II</option>
@@ -190,57 +192,57 @@ const EditCourseModal = ({ course, onClose, onSubmit }) => {
                             </select>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Thời lượng (giờ)</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">{t('admin.editCourseModal.duration')}</label>
                             <input type="number" value={formData.duration} onChange={e => setFormData({...formData, duration: parseInt(e.target.value)})} className="w-full px-3 py-2 border rounded-lg" />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Trạng thái</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">{t('admin.editCourseModal.status')}</label>
                             <select value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})} className="w-full px-3 py-2 border rounded-lg">
-                                <option value="DRAFT">Bản nháp</option>
-                                <option value="PUBLISHED">Đã công bố</option>
-                                <option value="ARCHIVED">Lưu trữ</option>
+                                <option value="DRAFT">{t('admin.editCourseModal.statusDraft')}</option>
+                                <option value="PUBLISHED">{t('admin.editCourseModal.statusPublished')}</option>
+                                <option value="ARCHIVED">{t('admin.editCourseModal.statusArchived')}</option>
                             </select>
                         </div>
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Lịch học</label>
-                        <input type="text" value={formData.schedule} onChange={e => setFormData({...formData, schedule: e.target.value})} className="w-full px-3 py-2 border rounded-lg" placeholder="Thứ 2,4,6 - 18:00-20:00" />
+                        <label className="block text-sm font-medium text-gray-700 mb-1">{t('admin.editCourseModal.schedule')}</label>
+                        <input type="text" value={formData.schedule} onChange={e => setFormData({...formData, schedule: e.target.value})} className="w-full px-3 py-2 border rounded-lg" placeholder={t('admin.editCourseModal.schedulePlaceholder')} />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Học phí (VND)</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">{t('admin.editCourseModal.fee')}</label>
                         <input type="number" value={formData.fee} onChange={e => setFormData({...formData, fee: parseInt(e.target.value)})} className="w-full px-3 py-2 border rounded-lg" />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Giá (VND)</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">{t('admin.editCourseModal.price')}</label>
                             <input type="number" value={formData.price} onChange={e => setFormData({...formData, price: parseInt(e.target.value)})} className="w-full px-3 py-2 border rounded-lg" />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Giá KM</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">{t('admin.editCourseModal.discountPrice')}</label>
                             <input type="number" value={formData.discountPrice || ''} onChange={e => setFormData({...formData, discountPrice: e.target.value ? parseInt(e.target.value) : null})} className="w-full px-3 py-2 border rounded-lg" />
                         </div>
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Mục tiêu</label>
-                        <textarea value={formData.objectives} onChange={e => setFormData({...formData, objectives: e.target.value})} rows={2} className="w-full px-3 py-2 border rounded-lg" placeholder="Mục tiêu học tập (mỗi dòng một mục tiêu)" />
+                        <label className="block text-sm font-medium text-gray-700 mb-1">{t('admin.editCourseModal.objectives')}</label>
+                        <textarea value={formData.objectives} onChange={e => setFormData({...formData, objectives: e.target.value})} rows={2} className="w-full px-3 py-2 border rounded-lg" placeholder={t('admin.editCourseModal.objectivesPlaceholder')} />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Yêu cầu</label>
-                        <textarea value={formData.requirements} onChange={e => setFormData({...formData, requirements: e.target.value})} rows={2} className="w-full px-3 py-2 border rounded-lg" placeholder="Điều kiện tiên quyết, kiến thức cần có..." />
+                        <label className="block text-sm font-medium text-gray-700 mb-1">{t('admin.editCourseModal.requirements')}</label>
+                        <textarea value={formData.requirements} onChange={e => setFormData({...formData, requirements: e.target.value})} rows={2} className="w-full px-3 py-2 border rounded-lg" placeholder={t('admin.editCourseModal.requirementsPlaceholder')} />
                     </div>
 
                     {/* NEW: Detailed Syllabus */}
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
                             <FileText className="w-4 h-4" />
-                            Giáo trình chi tiết
+                            {t('admin.editCourseModal.syllabus')}
                         </label>
                         <textarea
                             value={formData.syllabus || ''}
                             onChange={e => setFormData({...formData, syllabus: e.target.value})}
                             rows={4}
                             className="w-full px-3 py-2 border rounded-lg"
-                            placeholder="Mô tả chi tiết nội dung từng bài học, từng tuần... (có thể dùng Markdown)"
+                            placeholder={t('admin.editCourseModal.syllabusPlaceholder')}
                         />
                     </div>
 
@@ -248,14 +250,14 @@ const EditCourseModal = ({ course, onClose, onSubmit }) => {
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
                             <Award className="w-4 h-4" />
-                            Cấu trúc bài kiểm tra
+                            {t('admin.editCourseModal.testSummary')}
                         </label>
                         <textarea
                             value={formData.testSummary || ''}
                             onChange={e => setFormData({...formData, testSummary: e.target.value})}
                             rows={3}
                             className="w-full px-3 py-2 border rounded-lg"
-                            placeholder="VD: 2 bài kiểm tra giữa kỳ, 1 bài cuối kỳ, mỗi bài 20 câu trắc nghiệm..."
+                            placeholder={t('admin.editCourseModal.testSummaryPlaceholder')}
                         />
                     </div>
 
@@ -263,14 +265,14 @@ const EditCourseModal = ({ course, onClose, onSubmit }) => {
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
                             <User className="w-4 h-4" />
-                            Thông tin giáo viên
+                            {t('admin.editCourseModal.instructorInfo')}
                         </label>
                         <textarea
                             value={formData.instructorInfo || ''}
                             onChange={e => setFormData({...formData, instructorInfo: e.target.value})}
                             rows={2}
                             className="w-full px-3 py-2 border rounded-lg"
-                            placeholder="Tên giáo viên, kinh nghiệm, bằng cấp..."
+                            placeholder={t('admin.editCourseModal.instructorInfoPlaceholder')}
                         />
                     </div>
 
@@ -278,21 +280,21 @@ const EditCourseModal = ({ course, onClose, onSubmit }) => {
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
                             <Tags className="w-4 h-4" />
-                            Tags khóa học
+                            {t('admin.editCourseModal.courseTags')}
                         </label>
                         <input
                             type="text"
                             value={formData.courseTags || ''}
                             onChange={e => setFormData({...formData, courseTags: e.target.value})}
                             className="w-full px-3 py-2 border rounded-lg"
-                            placeholder="VD: TOPIK, TOPIK I, Ngữ pháp, Listening (cách nhau bằng dấu phẩy)"
+                            placeholder={t('admin.editCourseModal.courseTagsPlaceholder')}
                         />
                     </div>
 
                     <div className="flex justify-end gap-3 pt-4 border-t">
-                        <button type="button" onClick={onClose} className="px-6 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200">Hủy</button>
+                        <button type="button" onClick={onClose} className="px-6 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200">{t('common.cancel')}</button>
                         <button type="submit" className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2">
-                            <Save className="w-4 h-4" /> Lưu thay đổi
+                            <Save className="w-4 h-4" /> {t('admin.editCourseModal.saveChanges')}
                         </button>
                     </div>
                 </form>

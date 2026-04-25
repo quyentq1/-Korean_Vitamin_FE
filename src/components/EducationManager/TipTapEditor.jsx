@@ -1,12 +1,12 @@
 import { useEditor, EditorContent } from '@tiptap/react';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
 import Link from '@tiptap/extension-link';
 import Placeholder from '@tiptap/extension-placeholder';
 import Underline from '@tiptap/extension-underline';
 import TextAlign from '@tiptap/extension-text-align';
-import { useRef } from 'react';
 import {
     Bold, Italic, Underline as UnderlineIcon, Heading2, Heading3,
     List, ListOrdered, AlignLeft, AlignCenter, AlignRight,
@@ -33,8 +33,10 @@ const ToolbarButton = ({ onClick, active, disabled, title, children }) => (
 
 const Divider = () => <div className="w-px h-6 bg-gray-200 mx-1" />;
 
-const TipTapEditor = ({ content, onChange, placeholder = 'Nhập nội dung bài học...' }) => {
+const TipTapEditor = ({ content, onChange, placeholder }) => {
+    const { t } = useTranslation();
     const fileInputRef = useRef(null);
+    const _placeholder = placeholder || t('tipTap.placeholder', 'Nhập nội dung bài học...');
 
     const editor = useEditor({
         extensions: [
@@ -43,7 +45,7 @@ const TipTapEditor = ({ content, onChange, placeholder = 'Nhập nội dung bài
             }),
             Image.configure({ inline: false, allowBase64: false }),
             Link.configure({ openOnClick: false, HTMLAttributes: { rel: 'noopener noreferrer', target: '_blank' } }),
-            Placeholder.configure({ placeholder }),
+            Placeholder.configure({ placeholder: _placeholder }),
             Underline,
             TextAlign.configure({ types: ['heading', 'paragraph'] }),
         ],
@@ -68,7 +70,7 @@ const TipTapEditor = ({ content, onChange, placeholder = 'Nhập nội dung bài
 
         if (!file.type.startsWith('image/')) return;
         if (file.size > 5 * 1024 * 1024) {
-            alert('Kích thước ảnh không được vượt quá 5MB');
+            alert(t('tipTap.imageSizeLimit', 'Kích thước ảnh không được vượt quá 5MB'));
             return;
         }
 
@@ -82,7 +84,7 @@ const TipTapEditor = ({ content, onChange, placeholder = 'Nhập nội dung bài
     };
 
     const addLink = () => {
-        const url = window.prompt('Nhập URL:');
+        const url = window.prompt(t('tipTap.enterUrl', 'Nhập URL:'));
         if (url) {
             editor.chain().focus().setLink({ href: url }).run();
         }
@@ -95,21 +97,21 @@ const TipTapEditor = ({ content, onChange, placeholder = 'Nhập nội dung bài
                 <ToolbarButton
                     onClick={() => editor.chain().focus().toggleBold().run()}
                     active={editor.isActive('bold')}
-                    title="In đậm"
+                    title={t('tipTap.bold', 'In đậm')}
                 >
                     <Bold className="w-4 h-4" />
                 </ToolbarButton>
                 <ToolbarButton
                     onClick={() => editor.chain().focus().toggleItalic().run()}
                     active={editor.isActive('italic')}
-                    title="In nghiêng"
+                    title={t('tipTap.italic', 'In nghiêng')}
                 >
                     <Italic className="w-4 h-4" />
                 </ToolbarButton>
                 <ToolbarButton
                     onClick={() => editor.chain().focus().toggleUnderline().run()}
                     active={editor.isActive('underline')}
-                    title="Gạch chân"
+                    title={t('tipTap.underline', 'Gạch chân')}
                 >
                     <UnderlineIcon className="w-4 h-4" />
                 </ToolbarButton>
@@ -119,14 +121,14 @@ const TipTapEditor = ({ content, onChange, placeholder = 'Nhập nội dung bài
                 <ToolbarButton
                     onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
                     active={editor.isActive('heading', { level: 2 })}
-                    title="Tiêu đề 2"
+                    title={t('tipTap.heading2', 'Tiêu đề 2')}
                 >
                     <Heading2 className="w-4 h-4" />
                 </ToolbarButton>
                 <ToolbarButton
                     onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
                     active={editor.isActive('heading', { level: 3 })}
-                    title="Tiêu đề 3"
+                    title={t('tipTap.heading3', 'Tiêu đề 3')}
                 >
                     <Heading3 className="w-4 h-4" />
                 </ToolbarButton>
@@ -136,14 +138,14 @@ const TipTapEditor = ({ content, onChange, placeholder = 'Nhập nội dung bài
                 <ToolbarButton
                     onClick={() => editor.chain().focus().toggleBulletList().run()}
                     active={editor.isActive('bulletList')}
-                    title="Danh sách"
+                    title={t('tipTap.bulletList', 'Danh sách')}
                 >
                     <List className="w-4 h-4" />
                 </ToolbarButton>
                 <ToolbarButton
                     onClick={() => editor.chain().focus().toggleOrderedList().run()}
                     active={editor.isActive('orderedList')}
-                    title="Danh sách số"
+                    title={t('tipTap.orderedList', 'Danh sách số')}
                 >
                     <ListOrdered className="w-4 h-4" />
                 </ToolbarButton>
@@ -153,40 +155,40 @@ const TipTapEditor = ({ content, onChange, placeholder = 'Nhập nội dung bài
                 <ToolbarButton
                     onClick={() => editor.chain().focus().setTextAlign('left').run()}
                     active={editor.isActive({ textAlign: 'left' })}
-                    title="Căn trái"
+                    title={t('tipTap.alignLeft', 'Căn trái')}
                 >
                     <AlignLeft className="w-4 h-4" />
                 </ToolbarButton>
                 <ToolbarButton
                     onClick={() => editor.chain().focus().setTextAlign('center').run()}
                     active={editor.isActive({ textAlign: 'center' })}
-                    title="Căn giữa"
+                    title={t('tipTap.alignCenter', 'Căn giữa')}
                 >
                     <AlignCenter className="w-4 h-4" />
                 </ToolbarButton>
                 <ToolbarButton
                     onClick={() => editor.chain().focus().setTextAlign('right').run()}
                     active={editor.isActive({ textAlign: 'right' })}
-                    title="Căn phải"
+                    title={t('tipTap.alignRight', 'Căn phải')}
                 >
                     <AlignRight className="w-4 h-4" />
                 </ToolbarButton>
 
                 <Divider />
 
-                <ToolbarButton onClick={addLink} active={editor.isActive('link')} title="Chèn link">
+                <ToolbarButton onClick={addLink} active={editor.isActive('link')} title={t('tipTap.insertLink', 'Chèn link')}>
                     <LinkIcon className="w-4 h-4" />
                 </ToolbarButton>
                 <ToolbarButton
                     onClick={() => fileInputRef.current?.click()}
-                    title="Chèn ảnh"
+                    title={t('tipTap.insertImage', 'Chèn ảnh')}
                 >
                     <ImagePlus className="w-4 h-4" />
                 </ToolbarButton>
                 <ToolbarButton
                     onClick={() => editor.chain().focus().toggleCodeBlock().run()}
                     active={editor.isActive('codeBlock')}
-                    title="Code block"
+                    title={t('tipTap.codeBlock', 'Code block')}
                 >
                     <Code className="w-4 h-4" />
                 </ToolbarButton>
@@ -196,14 +198,14 @@ const TipTapEditor = ({ content, onChange, placeholder = 'Nhập nội dung bài
                 <ToolbarButton
                     onClick={() => editor.chain().focus().undo().run()}
                     disabled={!editor.can().undo()}
-                    title="Hoàn tác"
+                    title={t('tipTap.undo', 'Hoàn tác')}
                 >
                     <Undo className="w-4 h-4" />
                 </ToolbarButton>
                 <ToolbarButton
                     onClick={() => editor.chain().focus().redo().run()}
                     disabled={!editor.can().redo()}
-                    title="Làm lại"
+                    title={t('tipTap.redo', 'Làm lại')}
                 >
                     <Redo className="w-4 h-4" />
                 </ToolbarButton>

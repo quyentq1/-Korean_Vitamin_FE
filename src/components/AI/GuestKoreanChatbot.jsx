@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 import aiService from '../../services/aiService';
 
@@ -8,6 +9,7 @@ import aiService from '../../services/aiService';
  * Supports Korean language learning queries
  */
 const GuestKoreanChatbot = () => {
+  const { t } = useTranslation();
   const { isAuthenticated } = useAuth();
 
   // Don't show if authenticated user - MUST be before all hooks!
@@ -35,7 +37,7 @@ const GuestKoreanChatbot = () => {
     setMessages([
       {
         role: 'assistant',
-        content: '안녕하세요! Tôi là trợ lý học tiếng Hàn. Bạn có thể hỏi tôi về ngữ pháp, từ vựng, hoặc thi TOPIK nhé! 🇰🇷'
+        content: t('ai.guestKoreanChatbot.welcomeMessage')
       }
     ]);
   }, []);
@@ -79,7 +81,7 @@ const GuestKoreanChatbot = () => {
         ...prev,
         {
           role: 'assistant',
-          content: 'Xin lỗi, tôi không thể trả lời lúc này. Vui lòng thử lại sau ít phút. 😔'
+          content: t('ai.guestKoreanChatbot.errorMessage')
         }
       ]);
     } finally {
@@ -95,10 +97,10 @@ const GuestKoreanChatbot = () => {
   };
 
   const getQuickActions = () => [
-    { label: 'Ngữ pháp 에 vs 에서', message: '에 và 에서 khác nhau như thế nào?' },
-    { label: 'Từ vựng Hán-Hàn', message: 'Tại sao từ vựng Hán-Hàn quan trọng?' },
-    { label: 'Luyện thi TOPIK I', message: 'Làm thế nào để thi TOPIK I đạt điểm cao?' },
-    { label: 'Chào hỏi tiếng Hàn', message: 'Làm sao để tự giới thiệu bằng tiếng Hàn?' }
+    { label: t('ai.guestKoreanChatbot.quickAction1Label'), message: t('ai.guestKoreanChatbot.quickAction1Message') },
+    { label: t('ai.guestKoreanChatbot.quickAction2Label'), message: t('ai.guestKoreanChatbot.quickAction2Message') },
+    { label: t('ai.guestKoreanChatbot.quickAction3Label'), message: t('ai.guestKoreanChatbot.quickAction3Message') },
+    { label: t('ai.guestKoreanChatbot.quickAction4Label'), message: t('ai.guestKoreanChatbot.quickAction4Message') }
   ];
 
   return (
@@ -108,7 +110,7 @@ const GuestKoreanChatbot = () => {
         <button
           onClick={() => setIsOpen(true)}
           className="w-14 h-14 bg-gradient-to-br from-red-500 to-red-700 hover:from-red-600 hover:to-red-800 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center text-2xl font-bold hover:scale-110 transform"
-          title="Trợ lý học tiếng Hàn"
+          title={t('ai.guestKoreanChatbot.toggleTitle')}
         >
           한
         </button>
@@ -121,12 +123,12 @@ const GuestKoreanChatbot = () => {
           <div className="bg-gradient-to-r from-red-500 to-red-700 text-white px-4 py-3 flex items-center justify-between flex-shrink-0">
             <div className="flex items-center gap-2">
               <span className="text-2xl">🇰🇷</span>
-              <span className="font-semibold">Trợ lý luyện thi tiếng Hàn</span>
+              <span className="font-semibold">{t('ai.guestKoreanChatbot.headerTitle')}</span>
             </div>
             <button
               onClick={() => setIsOpen(false)}
               className="w-8 h-8 hover:bg-white/20 rounded-full flex items-center justify-center transition-colors"
-              title="Đóng chat"
+              title={t('ai.guestKoreanChatbot.closeChat')}
             >
               ✕
             </button>
@@ -169,7 +171,7 @@ const GuestKoreanChatbot = () => {
           {/* Quick Actions (show when no conversation) */}
           {messages.length <= 1 && (
             <div className="px-4 py-3 bg-white border-t border-gray-200 flex-shrink-0">
-              <div className="text-xs font-semibold text-gray-700 mb-2">Câu hỏi thường gặp:</div>
+              <div className="text-xs font-semibold text-gray-700 mb-2">{t('ai.guestKoreanChatbot.faqTitle')}:</div>
               <div className="flex flex-wrap gap-2">
                 {getQuickActions().map((action, index) => (
                   <button
@@ -188,7 +190,7 @@ const GuestKoreanChatbot = () => {
           {remaining <= 5 && remaining > 0 && (
             <div className="px-4 py-2 bg-yellow-50 border-t border-yellow-200 flex-shrink-0">
               <p className="text-xs text-yellow-800 text-center">
-                ⚠️ Còn {remaining} tin nhắn hôm nay
+                ⚠️ {t('ai.guestKoreanChatbot.remainingWarning', { count: remaining })}
               </p>
             </div>
           )}
@@ -196,7 +198,7 @@ const GuestKoreanChatbot = () => {
           {remaining === 0 && (
             <div className="px-4 py-2 bg-red-50 border-t border-red-200 flex-shrink-0">
               <p className="text-xs text-red-800 text-center">
-                ❌ Bạn đã hết tin nhắn hôm nay. Vui lòng quay lại sau 1 giờ.
+                {t('ai.guestKoreanChatbot.noMessagesLeft')}
               </p>
             </div>
           )}
@@ -207,7 +209,7 @@ const GuestKoreanChatbot = () => {
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder="Hỏi về tiếng Hàn, TOPIK..."
+              placeholder={t('ai.guestKoreanChatbot.placeholder')}
               className="flex-1 px-3 py-2 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm"
               rows={1}
               disabled={remaining === 0 || isTyping}
@@ -217,14 +219,14 @@ const GuestKoreanChatbot = () => {
               disabled={!inputText.trim() || remaining === 0 || isTyping}
               className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-lg font-medium text-sm transition-colors"
             >
-              {isTyping ? '...' : 'Gửi'}
+              {isTyping ? '...' : t('ai.guestKoreanChatbot.sendBtn')}
             </button>
           </div>
 
           {/* Footer */}
           <div className="px-4 py-2 bg-gray-50 border-t border-gray-200 flex-shrink-0">
             <p className="text-xs text-gray-600 text-center">
-              ⚡ Powered by AI • {remaining} tin nhắn còn lại
+              ⚡ Powered by AI • {t('ai.guestKoreanChatbot.messagesLeft', { count: remaining })}
             </p>
           </div>
         </div>

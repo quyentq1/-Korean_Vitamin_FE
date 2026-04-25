@@ -57,8 +57,8 @@ const CourseStatus = () => {
           bgColor: 'bg-red-50',
           textColor: 'text-red-700',
           icon: Lock,
-          text: 'Đã hết hạn',
-          description: 'Khóa học đã kết thúc'
+          text: t('component.courseStatus.expired', 'Đã hết hạn'),
+          description: t('component.courseStatus.expiredDesc', 'Khóa học đã kết thúc')
         };
       case 'critical':
         return {
@@ -66,8 +66,8 @@ const CourseStatus = () => {
           bgColor: 'bg-red-50',
           textColor: 'text-red-700',
           icon: AlertTriangle,
-          text: 'Sắp hết hạn',
-          description: 'Còn ít hơn 7 ngày'
+          text: t('component.courseStatus.critical', 'Sắp hết hạn'),
+          description: t('component.courseStatus.criticalDesc', 'Còn ít hơn 7 ngày')
         };
       case 'warning':
         return {
@@ -75,17 +75,17 @@ const CourseStatus = () => {
           bgColor: 'bg-yellow-50',
           textColor: 'text-yellow-700',
           icon: Clock,
-          text: 'Sắp hết hạn',
-          description: 'Còn ít hơn 30 ngày'
+          text: t('component.courseStatus.warning', 'Sắp hết hạn'),
+          description: t('component.courseStatus.warningDesc', 'Còn ít hơn 30 ngày')
         };
       default:
         return {
           color: 'green',
           bgColor: 'bg-green-50',
-          textColor: text-green-700,
+          textColor: 'text-green-700',
           icon: CheckCircle,
-          text: 'Đang học',
-          description: 'Đang trong thời hạn'
+          text: t('component.courseStatus.active', 'Đang học'),
+          description: t('component.courseStatus.activeDesc', 'Đang trong thời hạn')
         };
     }
   };
@@ -104,10 +104,10 @@ const CourseStatus = () => {
     return (
     <div className="text-center py-8 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
         <BookOpen className="w-12 h-12 mx-auto mb-3 text-gray-400" />
-        <p className="text-gray-600 mb-1">Bạn chưa tham gia khóa học nào</p>
+        <p className="text-gray-600 mb-1">{t('component.courseStatus.noCourses', 'Bạn chưa tham gia khóa học nào')}</p>
         <p className="text-sm text-gray-500">
           <a href="/courses" className="text-blue-600 hover:underline">
-            Xem danh sách khóa học
+            {t('component.courseStatus.viewCourses', 'Xem danh sách khóa học')}
           </a>
         </p>
     </div>
@@ -129,11 +129,10 @@ const CourseStatus = () => {
             <AlertTriangle className="w-6 h-6 text-red-600 shrink-0 mt-0.5" />
             <div className="flex-1">
               <h4 className="font-semibold text-red-900 mb-1">
-                Cảnh báo: Tài khoản của bạn có thể bị khóa
+                {t('component.courseStatus.warningTitle', 'Cảnh báo: Tài khoản của bạn có thể bị khóa')}
               </h4>
               <p className="text-sm text-red-700">
-                Một hoặc nhiều khóa học của bạn đã hết hạn hoặc sắp hết hạn.
-                Vui lòng liên hệ Staff để gia hạn hoặc đăng ký khóa học mới.
+                {t('component.courseStatus.warningDesc', 'Một hoặc nhiều khóa học của bạn đã hết hạn hoặc sắp hết hạn. Vui lòng liên hệ Staff để gia hạn hoặc đăng ký khóa học mới.')}
               </p>
             </div>
           </div>
@@ -166,7 +165,7 @@ const CourseStatus = () => {
                 </div>
                 <div>
                   <h4 className="font-semibold text-gray-900">
-                    {enrollment.courseName || enrollment.className || 'Khóa học'}
+                    {enrollment.courseName || enrollment.className || t('component.courseStatus.course', 'Khóa học')}
                   </h4>
                   <p className="text-sm text-gray-600">
                     {enrollment.classCode || enrollment.courseCode}
@@ -181,14 +180,14 @@ const CourseStatus = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
               <div>
-                <p className="text-gray-500 mb-1">Thời gian học</p>
+                <p className="text-gray-500 mb-1">{t('component.courseStatus.studyPeriod', 'Thời gian học')}</p>
                 <p className="font-medium text-gray-900">
                   {new Date(enrollment.startDate).toLocaleDateString('vi-VN')} - {new Date(enrollment.endDate).toLocaleDateString('vi-VN')}
                 </p>
               </div>
 
               <div>
-                <p className="text-gray-500 mb-1">Số ngày còn lại</p>
+                <p className="text-gray-500 mb-1">{t('component.courseStatus.daysRemaining', 'Số ngày còn lại')}</p>
                 <p className={`font-semibold ${
                   daysRemaining < 0
                     ? 'text-red-600'
@@ -199,8 +198,8 @@ const CourseStatus = () => {
                         : 'text-green-600'
                 }`}>
                   {daysRemaining < 0
-                    ? 'Đã hết hạn'
-                    : `${daysRemaining} ngày`
+                    ? t('component.courseStatus.expired', 'Đã hết hạn')
+                    : `${daysRemaining} ${t('component.courseStatus.days', 'ngày')}`
                   }
                 </p>
               </div>
@@ -210,13 +209,13 @@ const CourseStatus = () => {
             {status === 'expired' && (
               <div className="mt-3 p-3 bg-white rounded-lg border border-red-200">
                 <p className="text-sm text-red-700 mb-2">
-                  Khóa học này đã kết thúc. Vui lòng liên hệ để gia hạn hoặc đăng ký khóa học mới.
+                  {t('component.courseStatus.courseEnded', 'Khóa học này đã kết thúc. Vui lòng liên hệ để gia hạn hoặc đăng ký khóa học mới.')}
                 </p>
                 <button
                   onClick={() => window.location.href = '/courses'}
                   className="text-sm bg-blue-600 text-white px-3 py-1.5 rounded-lg hover:bg-blue-700 transition-colors"
                 >
-                  Xem khóa học khác
+                  {t('component.courseStatus.viewOtherCourses', 'Xem khóa học khác')}
                 </button>
               </div>
             )}
@@ -225,11 +224,11 @@ const CourseStatus = () => {
             {status === 'critical' && (
               <div className="mt-3 p-3 bg-white rounded-lg border border-yellow-200">
                 <p className="text-sm text-yellow-700">
-                  ⚠️ Khóa học sẽ kết thúc trong {daysRemaining} ngày nữa.
+                  {t('component.courseStatus.courseEnding', '⚠️ Khóa học sẽ kết thúc trong {{days}} ngày nữa.', { days: daysRemaining })}
                   <a href="/contact" className="text-blue-600 hover:underline font-medium">
-                    Liên hệ ngay
+                    {' '}{t('component.courseStatus.contactNow', 'Liên hệ ngay')}
                   </a>
-                  {' '}để gia hạn.
+                  {' '}{t('component.courseStatus.toRenew', 'để gia hạn.')}
                 </p>
               </div>
             )}
@@ -243,7 +242,7 @@ const CourseStatus = () => {
         className="w-full py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
       >
         <Calendar className="w-4 h-4" />
-        Liên hệ Staff để gia hạn
+        {t('component.courseStatus.contactStaff', 'Liên hệ Staff để gia hạn')}
       </button>
     </div>
   );

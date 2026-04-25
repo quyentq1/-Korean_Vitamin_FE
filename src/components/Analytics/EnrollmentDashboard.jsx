@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Users, TrendingUp, Calendar, CheckCircle, Clock, XCircle, BarChart3, Filter, Download } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import axiosClient from '../../api/axiosClient';
 import Swal from 'sweetalert2';
 
@@ -17,6 +18,7 @@ import Swal from 'sweetalert2';
  * - Export functionality
  */
 const EnrollmentDashboard = ({ timeRange = 'month' }) => {
+    const { t } = useTranslation();
     const [loading, setLoading] = useState(true);
     const [enrollmentData, setEnrollmentData] = useState(null);
     const [selectedPeriod, setSelectedPeriod] = useState(timeRange);
@@ -37,8 +39,8 @@ const EnrollmentDashboard = ({ timeRange = 'month' }) => {
             console.error('Error fetching enrollment data:', error);
             Swal.fire({
                 icon: 'error',
-                title: 'Lỗi',
-                text: 'Không thể tải dữ liệu đăng ký',
+                title: t('common.error'),
+                text: t('analytics.enrollment.swal.fetchError'),
                 confirmButtonColor: '#6366f1'
             });
         } finally {
@@ -61,16 +63,16 @@ const EnrollmentDashboard = ({ timeRange = 'month' }) => {
             link.remove();
             await Swal.fire({
                 icon: 'success',
-                title: 'Đã xuất',
-                text: 'File Excel đã được tải xuống',
+                title: t('analytics.enrollment.swal.exported'),
+                text: t('analytics.enrollment.swal.exportedText'),
                 timer: 2000,
                 showConfirmButton: false
             });
         } catch (error) {
             Swal.fire({
                 icon: 'error',
-                title: 'Lỗi',
-                text: 'Không thể xuất báo cáo',
+                title: t('common.error'),
+                text: t('analytics.enrollment.swal.exportError'),
                 confirmButtonColor: '#6366f1'
             });
         }
@@ -80,7 +82,7 @@ const EnrollmentDashboard = ({ timeRange = 'month' }) => {
         return (
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
-                <p className="text-gray-600 mt-4">Đang tải dữ liệu đăng ký...</p>
+                <p className="text-gray-600 mt-4">{t('analytics.enrollment.loading')}</p>
             </div>
         );
     }
@@ -89,7 +91,7 @@ const EnrollmentDashboard = ({ timeRange = 'month' }) => {
         return (
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
                 <Users className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                <p className="text-gray-500">Không có dữ liệu đăng ký</p>
+                <p className="text-gray-500">{t('analytics.enrollment.emptyState')}</p>
             </div>
         );
     }
@@ -99,8 +101,8 @@ const EnrollmentDashboard = ({ timeRange = 'month' }) => {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h2 className="text-2xl font-bold text-gray-900">Thống Kê Đăng Ký</h2>
-                    <p className="text-gray-600">Theo dõi và phân tích dữ liệu đăng ký học viên</p>
+                    <h2 className="text-2xl font-bold text-gray-900">{t('analytics.enrollment.heading')}</h2>
+                    <p className="text-gray-600">{t('analytics.enrollment.description')}</p>
                 </div>
                 <div className="flex items-center gap-3">
                     <select
@@ -108,27 +110,27 @@ const EnrollmentDashboard = ({ timeRange = 'month' }) => {
                         onChange={(e) => setSelectedPeriod(e.target.value)}
                         className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
                     >
-                        <option value="week">Tuần này</option>
-                        <option value="month">Tháng này</option>
-                        <option value="quarter">Quý này</option>
-                        <option value="year">Năm nay</option>
+                        <option value="week">{t('analytics.enrollment.period.week')}</option>
+                        <option value="month">{t('analytics.enrollment.period.month')}</option>
+                        <option value="quarter">{t('analytics.enrollment.period.quarter')}</option>
+                        <option value="year">{t('analytics.enrollment.period.year')}</option>
                     </select>
                     <select
                         value={statusFilter}
                         onChange={(e) => setStatusFilter(e.target.value)}
                         className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
                     >
-                        <option value="all">Tất cả trạng thái</option>
-                        <option value="pending">Chờ xử lý</option>
-                        <option value="approved">Đã duyệt</option>
-                        <option value="rejected">Đã từ chối</option>
+                        <option value="all">{t('analytics.enrollment.statusFilter.all')}</option>
+                        <option value="pending">{t('analytics.enrollment.statusFilter.pending')}</option>
+                        <option value="approved">{t('analytics.enrollment.statusFilter.approved')}</option>
+                        <option value="rejected">{t('analytics.enrollment.statusFilter.rejected')}</option>
                     </select>
                     <button
                         onClick={handleExport}
                         className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2"
                     >
                         <Download className="w-4 h-4" />
-                        Xuất Excel
+                        {t('analytics.enrollment.exportExcel')}
                     </button>
                 </div>
             </div>
@@ -136,32 +138,32 @@ const EnrollmentDashboard = ({ timeRange = 'month' }) => {
             {/* Key Metrics */}
             <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                 <MetricCard
-                    title="Tổng đăng ký"
+                    title={t('analytics.enrollment.cards.total')}
                     value={enrollmentData.totalEnrollments}
                     icon={<Users className="w-5 h-5" />}
                     color="purple"
                     trend={enrollmentData.enrollmentTrend}
                 />
                 <MetricCard
-                    title="Đã duyệt"
+                    title={t('analytics.enrollment.cards.approved')}
                     value={enrollmentData.approved}
                     icon={<CheckCircle className="w-5 h-5" />}
                     color="green"
                 />
                 <MetricCard
-                    title="Chờ xử lý"
+                    title={t('analytics.enrollment.cards.pending')}
                     value={enrollmentData.pending}
                     icon={<Clock className="w-5 h-5" />}
                     color="yellow"
                 />
                 <MetricCard
-                    title="Đã từ chối"
+                    title={t('analytics.enrollment.cards.rejected')}
                     value={enrollmentData.rejected}
                     icon={<XCircle className="w-5 h-5" />}
                     color="red"
                 />
                 <MetricCard
-                    title="Tỷ lệ chuyển đổi"
+                    title={t('analytics.enrollment.cards.conversionRate')}
                     value={enrollmentData.conversionRate}
                     unit="%"
                     icon={<TrendingUp className="w-5 h-5" />}
@@ -176,7 +178,7 @@ const EnrollmentDashboard = ({ timeRange = 'month' }) => {
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                     <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
                         <BarChart3 className="w-5 h-5 text-purple-600" />
-                        Xu hướng đăng ký
+                        {t('analytics.enrollment.sections.enrollmentTrend')}
                     </h3>
                     <EnrollmentTrendChart data={enrollmentData.trendData} />
                 </div>
@@ -185,7 +187,7 @@ const EnrollmentDashboard = ({ timeRange = 'month' }) => {
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                     <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
                         <Calendar className="w-5 h-5 text-blue-600" />
-                        Đăng ký theo khóa học
+                        {t('analytics.enrollment.sections.enrollmentByCourse')}
                     </h3>
                     <div className="space-y-3">
                         {enrollmentData.byCourse?.map((course, idx) => (
@@ -211,16 +213,16 @@ const EnrollmentDashboard = ({ timeRange = 'month' }) => {
 
             {/* Recent Registrations Table */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <h3 className="font-semibold text-gray-900 mb-4">Đăng ký gần đây</h3>
+                <h3 className="font-semibold text-gray-900 mb-4">{t('analytics.enrollment.sections.recentRegistrations')}</h3>
                 <div className="overflow-x-auto">
                     <table className="w-full">
                         <thead>
                             <tr className="border-b border-gray-200">
-                                <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase">Họ tên</th>
-                                <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase">Khóa học</th>
-                                <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase">Ngày đăng ký</th>
-                                <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase">Trạng thái</th>
-                                <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase">Nguồn</th>
+                                <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase">{t('analytics.enrollment.table.fullName')}</th>
+                                <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase">{t('analytics.enrollment.table.course')}</th>
+                                <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase">{t('analytics.enrollment.table.registrationDate')}</th>
+                                <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase">{t('analytics.enrollment.table.status')}</th>
+                                <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase">{t('analytics.enrollment.table.source')}</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200">
@@ -240,8 +242,8 @@ const EnrollmentDashboard = ({ timeRange = 'month' }) => {
                                             reg.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
                                             'bg-red-100 text-red-700'
                                         }`}>
-                                            {reg.status === 'approved' ? 'Đã duyệt' :
-                                             reg.status === 'pending' ? 'Chờ xử lý' : 'Đã từ chối'}
+                                            {reg.status === 'approved' ? t('analytics.enrollment.status.approved') :
+                                             reg.status === 'pending' ? t('analytics.enrollment.status.pending') : t('analytics.enrollment.status.rejected')}
                                         </span>
                                     </td>
                                     <td className="py-3 px-4 text-sm text-gray-600">{reg.source}</td>
@@ -254,7 +256,7 @@ const EnrollmentDashboard = ({ timeRange = 'month' }) => {
 
             {/* Conversion Funnel */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <h3 className="font-semibold text-gray-900 mb-4">Phễu chuyển đổi</h3>
+                <h3 className="font-semibold text-gray-900 mb-4">{t('analytics.enrollment.sections.conversionFunnel')}</h3>
                 <div className="flex items-center justify-between">
                     {enrollmentData.funnel?.map((stage, idx) => (
                         <React.Fragment key={idx}>
@@ -318,11 +320,12 @@ const MetricCard = ({ title, value, unit, icon, color, trend }) => {
 };
 
 const EnrollmentTrendChart = ({ data }) => {
+    const { t } = useTranslation();
     if (!data || data.length === 0) {
         return (
             <div className="h-48 flex items-center justify-center text-gray-400">
                 <BarChart3 className="w-12 h-12" />
-                <p className="ml-2">Không có dữ liệu</p>
+                <p className="ml-2">{t('analytics.enrollment.noData')}</p>
             </div>
         );
     }
@@ -338,7 +341,7 @@ const EnrollmentTrendChart = ({ data }) => {
                         style={{ height: `${(item.count / maxValue) * 150}px` }}
                     >
                         <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 hidden group-hover:block bg-gray-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
-                            {item.count} đăng ký
+                            {item.count} {t('analytics.enrollment.enrollments')}
                         </div>
                     </div>
                     <p className="text-xs text-gray-600 mt-2 text-center">{item.label}</p>

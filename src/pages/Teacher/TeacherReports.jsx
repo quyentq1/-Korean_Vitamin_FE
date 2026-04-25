@@ -95,16 +95,16 @@ const TeacherReports = () => {
   // Handlers
   const handleSendToStaff = () => {
     const reportData = {
-      title: 'Báo cáo giảng dạy',
+      title: t('teacher.reports.teachingReport'),
       classId: selectedClass,
-      className: selectedClass === 'all' ? 'Tất cả lớp' : classData.find(c => c.id === selectedClass)?.name,
+      className: selectedClass === 'all' ? t('teacher.reports.allClasses') : classData.find(c => c.id === selectedClass)?.name,
       dateRange: dateRange === 'custom'
         ? `${customStartDate} - ${customEndDate}`
         : dateRange === 'month'
-          ? 'Tháng này'
+          ? t('teacher.reports.thisMonth')
           : dateRange === 'week'
-            ? 'Tuần này'
-            : 'Hôm nay',
+            ? t('teacher.reports.thisWeek')
+            : t('teacher.reports.today'),
       data: {
         classData,
         topStudents,
@@ -256,7 +256,7 @@ const TeacherReports = () => {
               icon={<Send className="w-4 h-4" />}
               onClick={handleSendToStaff}
             >
-              Gửi cho Staff
+              {t('teacher.reports.sendToStaff')}
             </Button>
             <Button
               variant="primary"

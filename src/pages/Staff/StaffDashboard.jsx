@@ -9,10 +9,6 @@ import {
 import Swal from 'sweetalert2';
 import staffService from '../../services/staffService';
 
-/**
- * Staff Dashboard - Main dashboard content
- * Note: Sidebar và Topbar đã được chuyển sang StaffLayout
- */
 const StaffDashboard = () => {
     const { t } = useTranslation();
     const navigate = useNavigate();
@@ -27,7 +23,6 @@ const StaffDashboard = () => {
     const [loading, setLoading] = useState(true);
     const [recentActivities, setRecentActivities] = useState([]);
 
-    // Fetch dashboard stats
     useEffect(() => {
         const fetchDashboardData = async () => {
             try {
@@ -52,8 +47,8 @@ const StaffDashboard = () => {
                 console.error('Error fetching dashboard stats:', error);
                 Swal.fire({
                     icon: 'error',
-                    title: t('errors.error') || 'Lỗi',
-                    text: error.message || t('errors.tryAgain') || 'Vui lòng thử lại',
+                    title: t('errors.error'),
+                    text: error.message || t('errors.tryAgain'),
                     confirmButtonColor: '#667eea',
                 });
 
@@ -73,7 +68,6 @@ const StaffDashboard = () => {
         fetchDashboardData();
     }, [t]);
 
-    // Stats cards configuration
     const statCards = [
         {
             label: t('staff.dashboard.totalStudents'),
@@ -115,7 +109,6 @@ const StaffDashboard = () => {
         },
     ];
 
-    // Quick action cards
     const quickActions = [
         {
             label: t('staff.dashboard.addStudent'),
@@ -147,7 +140,6 @@ const StaffDashboard = () => {
         },
     ];
 
-    // Loading state
     if (loading) {
         return (
             <div className="flex items-center justify-center h-full">
@@ -168,10 +160,10 @@ const StaffDashboard = () => {
 
                 <div className="relative z-10">
                     <h1 className="text-2xl lg:text-3xl font-bold mb-2">
-                        {t('staff.dashboard.welcome') || 'Xin chào'}! 👋
+                        {t('staff.dashboard.welcome')}! 👋
                     </h1>
                     <p className="text-blue-100 text-sm lg:text-base">
-                        {t('staff.dashboard.welcomeDesc') || 'Đây là trang dashboard của bạn. Quản lý tất cả hoạt động tại đây.'}
+                        {t('staff.dashboard.welcomeDesc')}
                     </p>
                 </div>
 
@@ -181,14 +173,14 @@ const StaffDashboard = () => {
                         className="bg-white text-blue-600 px-6 py-2.5 rounded-xl font-semibold hover:bg-blue-50 transition-all shadow-lg flex items-center gap-2"
                     >
                         <Users className="w-5 h-5" />
-                        <span>{t('staff.dashboard.addStudent') || 'Thêm học viên'}</span>
+                        <span>{t('staff.dashboard.addStudent')}</span>
                     </button>
                     <button
                         onClick={() => navigate('/class-management')}
                         className="bg-white/20 text-white px-6 py-2.5 rounded-xl font-semibold hover:bg-white/30 transition-all flex items-center gap-2"
                     >
                         <BookOpen className="w-5 h-5" />
-                        <span>{t('staff.dashboard.manageClasses') || 'Quản lý lớp'}</span>
+                        <span>{t('staff.dashboard.manageClasses')}</span>
                     </button>
                 </div>
             </div>
@@ -227,7 +219,7 @@ const StaffDashboard = () => {
                 <div className="lg:col-span-2">
                     <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
                         <Award className="w-5 h-5 text-blue-500" />
-                        {t('staff.dashboard.quickActions') || 'Hành động nhanh'}
+                        {t('staff.dashboard.quickActions')}
                     </h2>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {quickActions.map((action, i) => (
@@ -250,7 +242,7 @@ const StaffDashboard = () => {
                 <div className="lg:col-span-1">
                     <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
                         <Clock className="w-5 h-5 text-blue-500" />
-                        {t('staff.dashboard.recentActivity') || 'Hoạt động gần đây'}
+                        {t('staff.dashboard.recentActivity')}
                     </h2>
                     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
                         {recentActivities.length > 0 ? (
@@ -270,7 +262,7 @@ const StaffDashboard = () => {
                         ) : (
                             <div className="text-center py-8">
                                 <UserCheck className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                                <p className="text-gray-500 text-sm">{t('common.noData') || 'Không có dữ liệu'}</p>
+                                <p className="text-gray-500 text-sm">{t('common.noData')}</p>
                             </div>
                         )}
                     </div>

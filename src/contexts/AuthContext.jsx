@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import authService from '../services/authService';
 
 const AuthContext = createContext(null);
@@ -15,6 +16,7 @@ export const useAuth = () => {
 
 export const AuthProvider = ({ children }) => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   // State quản lý người dùng và xác thực
   const [user, setUser] = useState(null);
@@ -64,7 +66,7 @@ export const AuthProvider = ({ children }) => {
         setLastActivity(Date.now());
       }
     } catch (error) {
-      console.error('Lỗi khi khởi tạo auth:', error);
+      console.error(t('auth.initError'), error);
       clearAuthData();
     } finally {
       setIsLoading(false);
@@ -99,7 +101,7 @@ export const AuthProvider = ({ children }) => {
         navigate('/login', {
           state: {
             logoutReason: 'SESSION_EXPIRED',
-            logoutMessage: 'Phiên làm việc đã hết hạn. Vui lòng đăng nhập lại.'
+            logoutMessage: t('auth.sessionExpired')
           }
         });
       } else if (timeSinceLastActivity > (SESSION_TIMEOUT - WARNING_THRESHOLD)) {
@@ -158,7 +160,7 @@ export const AuthProvider = ({ children }) => {
       // Nếu không chọn ghi nhớ, thiết lập timeout
       if (!rememberMe) {
         const timeoutId = setTimeout(() => {
-          logout({ reason: 'SESSION_EXPIRED', message: 'Phiên làm việc đã hết hạn.' });
+          logout({ reason: 'SESSION_EXPIRED', message: t('auth.sessionExpired') });
         }, 30 * 60 * 1000); // 30 phút
         setSessionTimeout(timeoutId);
       }
@@ -167,7 +169,7 @@ export const AuthProvider = ({ children }) => {
         success: true,
         user: userData,
         role: userData.role,
-        message: 'Đăng nhập thành công!'
+        message: t('auth.loginSuccess')
       };
     } catch (error) {
       const errorMessage = handleLoginError(error);
@@ -193,27 +195,27 @@ export const AuthProvider = ({ children }) => {
 
       switch (status) {
         case 400:
-          return data?.message || 'Dữ liệu đăng nhập không hợp lệ. Vui lòng kiểm tra lại.';
+          return data?.message || t('auth.invalidData');
         case 401:
-          return 'Tên đăng nhập hoặc mật khẩu không đúng.';
+          return t('auth.invalidCredentials');
         case 403:
-          return 'Tài khoản của bạn đã bị khóa hoặc không có quyền truy cập.';
+          return t('auth.accountLocked');
         case 429:
-          return 'Bạn đã đăng nhập quá nhiều lần. Vui lòng thử lại sau vài phút.';
+          return t('auth.tooManyAttempts');
         case 500:
-          return 'Lỗi máy chủ. Vui lòng thử lại sau hoặc liên hệ hỗ trợ.';
+          return t('auth.serverError');
         default:
-          return data?.message || 'Đăng nhập thất bại. Vui lòng thử lại.';
+          return data?.message || t('auth.loginFailed');
       }
     }
 
     // Lỗi mạng - không có response nhưng có request
     if (!error.response && error.request) {
-      return 'Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối mạng của bạn.';
+      return t('auth.networkError');
     }
 
     // Lỗi khác
-    return error.message || 'Đã xảy ra lỗi không xác định. Vui lòng thử lại.';
+    return error.message || t('auth.unknownError');
   };
 
   /**
@@ -229,7 +231,7 @@ export const AuthProvider = ({ children }) => {
     try {
       authService.logout();
     } catch (error) {
-      console.error('Lỗi khi gọi logout API:', error);
+      console.error(t('auth.logoutApiError'), error);
     }
 
     // Xóa dữ liệu xác thực
@@ -239,7 +241,7 @@ export const AuthProvider = ({ children }) => {
     navigate('/login', {
       state: {
         logoutReason: reason,
-        logoutMessage: message || 'Bạn đã đăng xuất thành công.'
+        logoutMessage: message || t('auth.logoutSuccess')
       }
     });
   }, [navigate, clearAuthData]);
@@ -258,8 +260,8 @@ export const AuthProvider = ({ children }) => {
       }
       return false;
     } catch (error) {
-      console.error('Lỗi khi refresh token:', error);
-      logout({ reason: 'REFRESH_FAILED', message: 'Phiên làm việc đã hết hạn. Vui lòng đăng nhập lại.' });
+      console.error(t('auth.refreshTokenError'), error);
+      logout({ reason: 'REFRESH_FAILED', message: t('auth.sessionExpired') });
       return false;
     }
   }, [logout]);

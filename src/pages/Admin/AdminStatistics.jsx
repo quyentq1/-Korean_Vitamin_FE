@@ -154,13 +154,13 @@ const AdminStatistics = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Filter className="w-5 h-5 text-gray-400" />
-            <span className="text-sm font-medium text-gray-700">Khoảng thời gian:</span>
+            <span className="text-sm font-medium text-gray-700">{t('admin.statistics.timeRange', 'Time Range')}:</span>
           </div>
           <div className="flex items-center gap-2">
             {[
-              { value: '7d', label: '7 ngày' },
-              { value: '30d', label: '30 ngày' },
-              { value: '90d', label: '90 ngày' },
+              { value: '7d', label: t('admin.statistics.7days', '7 Days') },
+              { value: '30d', label: t('admin.statistics.30days', '30 Days') },
+              { value: '90d', label: t('admin.statistics.90days', '90 Days') },
             ].map((range) => (
               <button
                 key={range.value}
@@ -191,10 +191,10 @@ const AdminStatistics = () => {
               {stats.users.growth >= 0 ? '+' : ''}{stats.users.growth}%
             </span>
           </div>
-          <p className="text-blue-100 text-sm">Tổng người dùng</p>
+          <p className="text-blue-100 text-sm">{t('admin.statistics.totalUsers', 'Total Users')}</p>
           <p className="text-3xl font-bold">{stats.users.total.toLocaleString()}</p>
           <p className="text-blue-200 text-xs mt-1">
-            +{stats.users.new} người dùng mới
+            +{stats.users.new} {t('admin.statistics.newUsers', 'new users')}
           </p>
         </Card>
 
@@ -205,10 +205,10 @@ const AdminStatistics = () => {
               {stats.students.growth >= 0 ? '+' : ''}{stats.students.growth}%
             </span>
           </div>
-          <p className="text-green-100 text-sm">Học viên</p>
+          <p className="text-green-100 text-sm">{t('admin.statistics.students', 'Students')}</p>
           <p className="text-3xl font-bold">{stats.students.total.toLocaleString()}</p>
           <p className="text-green-200 text-xs mt-1">
-            {stats.students.active} đang hoạt động
+            {stats.students.active} {t('admin.statistics.active', 'active')}
           </p>
         </Card>
 
@@ -219,10 +219,10 @@ const AdminStatistics = () => {
               {stats.courses.growth >= 0 ? '+' : ''}{stats.courses.growth}%
             </span>
           </div>
-          <p className="text-purple-100 text-sm">Khóa học</p>
+          <p className="text-purple-100 text-sm">{t('admin.statistics.courses', 'Courses')}</p>
           <p className="text-3xl font-bold">{stats.courses.total}</p>
           <p className="text-purple-200 text-xs mt-1">
-            {stats.courses.active} đang hoạt động
+            {stats.courses.active} {t('admin.statistics.active', 'active')}
           </p>
         </Card>
 
@@ -233,7 +233,7 @@ const AdminStatistics = () => {
               {stats.revenue.growth >= 0 ? '+' : ''}{stats.revenue.growth}%
             </span>
           </div>
-          <p className="text-amber-100 text-sm">Doanh thu</p>
+          <p className="text-amber-100 text-sm">{t('admin.statistics.revenue', 'Revenue')}</p>
           <p className="text-3xl font-bold">
             {(stats.revenue.total / 1000000).toFixed(0)}M
           </p>
@@ -249,8 +249,8 @@ const AdminStatistics = () => {
         <Card>
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h3 className="text-lg font-bold text-gray-900">Tăng trưởng người dùng</h3>
-              <p className="text-sm text-gray-500">Số lượng người dùng theo thời gian</p>
+              <h3 className="text-lg font-bold text-gray-900">{t('admin.statistics.userGrowth', 'User Growth')}</h3>
+              <p className="text-sm text-gray-500">{t('admin.statistics.userGrowthDesc', 'Number of users over time')}</p>
             </div>
             <Activity className="w-5 h-5 text-gray-400" />
           </div>
@@ -261,12 +261,12 @@ const AdminStatistics = () => {
                   <div
                     className="w-full bg-gradient-to-t from-blue-500 to-blue-400 rounded-t transition-all hover:from-blue-600 hover:to-blue-500"
                     style={{ height: `${(item.students / 1000) * 100}%` }}
-                    title={`Học viên: ${item.students}`}
+                    title={`${t('admin.statistics.students', 'Students')}: ${item.students}`}
                   />
                   <div
                     className="w-full bg-gradient-to-t from-purple-500 to-purple-400 rounded-t transition-all hover:from-purple-600 hover:to-purple-500"
                     style={{ height: `${(item.teachers / 200) * 100}%` }}
-                    title={`Giáo viên: ${item.teachers}`}
+                    title={`${t('admin.statistics.teachers', 'Teachers')}: ${item.teachers}`}
                   />
                 </div>
                 <span className="text-xs text-gray-500">{item.date}</span>
@@ -276,11 +276,11 @@ const AdminStatistics = () => {
           <div className="flex items-center justify-center gap-6 mt-4 text-sm">
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 bg-blue-500 rounded" />
-              <span className="text-gray-600">Học viên</span>
+              <span className="text-gray-600">{t('admin.statistics.students', 'Students')}</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 bg-purple-500 rounded" />
-              <span className="text-gray-600">Giáo viên</span>
+              <span className="text-gray-600">{t('admin.statistics.teachers', 'Teachers')}</span>
             </div>
           </div>
         </Card>
@@ -289,8 +289,8 @@ const AdminStatistics = () => {
         <Card>
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h3 className="text-lg font-bold text-gray-900">Doanh thu</h3>
-              <p className="text-sm text-gray-500">Doanh thu theo thời gian</p>
+              <h3 className="text-lg font-bold text-gray-900">{t('admin.statistics.revenue', 'Revenue')}</h3>
+              <p className="text-sm text-gray-500">{t('admin.statistics.revenueDesc', 'Revenue over time')}</p>
             </div>
             <DollarSign className="w-5 h-5 text-gray-400" />
           </div>
@@ -315,8 +315,8 @@ const AdminStatistics = () => {
         <Card>
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h3 className="text-lg font-bold text-gray-900">Khóa học phổ biến</h3>
-              <p className="text-sm text-gray-500">Số học viên đăng ký theo khóa học</p>
+              <h3 className="text-lg font-bold text-gray-900">{t('admin.statistics.popularCourses', 'Popular Courses')}</h3>
+              <p className="text-sm text-gray-500">{t('admin.statistics.popularCoursesDesc', 'Student enrollment by course')}</p>
             </div>
             <BookOpen className="w-5 h-5 text-gray-400" />
           </div>
@@ -325,7 +325,7 @@ const AdminStatistics = () => {
               <div key={index} className="space-y-2">
                 <div className="flex items-center justify-between text-sm">
                   <span className="font-medium text-gray-900">{course.name}</span>
-                  <span className="text-gray-600">{course.students} học viên</span>
+                  <span className="text-gray-600">{course.students} {t('admin.statistics.students', 'students')}</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
                   <div
@@ -342,8 +342,8 @@ const AdminStatistics = () => {
         <Card>
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h3 className="text-lg font-bold text-gray-900">Hiệu suất giáo viên</h3>
-              <p className="text-sm text-gray-500">Top giáo viên theo số học viên</p>
+              <h3 className="text-lg font-bold text-gray-900">{t('admin.statistics.teacherPerformance', 'Teacher Performance')}</h3>
+              <p className="text-sm text-gray-500">{t('admin.statistics.teacherPerformanceDesc', 'Top teachers by student count')}</p>
             </div>
             <Award className="w-5 h-5 text-gray-400" />
           </div>
@@ -359,7 +359,7 @@ const AdminStatistics = () => {
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-gray-900 truncate">{teacher.name}</p>
                   <p className="text-xs text-gray-500">
-                    {teacher.students} học viên • {teacher.courses} khóa học
+                    {teacher.students} {t('admin.statistics.students', 'students')} • {teacher.courses} {t('admin.statistics.courses', 'courses')}
                   </p>
                 </div>
                 <div className="flex items-center gap-1 text-amber-500">
@@ -376,8 +376,8 @@ const AdminStatistics = () => {
       <Card>
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h3 className="text-lg font-bold text-gray-900">Thống kê bài kiểm tra</h3>
-            <p className="text-sm text-gray-500">Tổng quan về bài kiểm tra</p>
+            <h3 className="text-lg font-bold text-gray-900">{t('admin.statistics.examStats', 'Exam Statistics')}</h3>
+            <p className="text-sm text-gray-500">{t('admin.statistics.examStatsDesc', 'Overview of exams')}</p>
           </div>
           <Target className="w-5 h-5 text-gray-400" />
         </div>
@@ -386,17 +386,17 @@ const AdminStatistics = () => {
             <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center text-white font-bold text-2xl mx-auto mb-3">
               {stats.exams.total}
             </div>
-            <p className="text-sm text-gray-600 mb-1">Tổng bài kiểm tra</p>
-            <p className="text-xs text-gray-500">Được tạo trong hệ thống</p>
+            <p className="text-sm text-gray-600 mb-1">{t('admin.statistics.totalExams', 'Total Exams')}</p>
+            <p className="text-xs text-gray-500">{t('admin.statistics.createdInSystem', 'Created in the system')}</p>
           </div>
 
           <div className="text-center p-6 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl">
             <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center text-white font-bold text-2xl mx-auto mb-3">
               {stats.exams.completed}
             </div>
-            <p className="text-sm text-gray-600 mb-1">Đã hoàn thành</p>
+            <p className="text-sm text-gray-600 mb-1">{t('admin.statistics.completed', 'Completed')}</p>
             <p className="text-xs text-gray-500">
-              {((stats.exams.completed / stats.exams.total) * 100).toFixed(1)}% tỷ lệ hoàn thành
+              {((stats.exams.completed / stats.exams.total) * 100).toFixed(1)}% {t('admin.statistics.completionRate', 'completion rate')}
             </p>
           </div>
 
@@ -404,8 +404,8 @@ const AdminStatistics = () => {
             <div className="w-16 h-16 bg-gradient-to-br from-amber-500 to-yellow-500 rounded-full flex items-center justify-center text-white font-bold text-2xl mx-auto mb-3">
               {stats.exams.avgScore}
             </div>
-            <p className="text-sm text-gray-600 mb-1">Điểm trung bình</p>
-            <p className="text-xs text-gray-500">Của tất cả bài kiểm tra</p>
+            <p className="text-sm text-gray-600 mb-1">{t('admin.statistics.avgScore', 'Average Score')}</p>
+            <p className="text-xs text-gray-500">{t('admin.statistics.ofAllExams', 'Of all exams')}</p>
           </div>
         </div>
       </Card>
@@ -418,10 +418,10 @@ const AdminStatistics = () => {
               <Users className="w-8 h-8" />
             </div>
             <div>
-              <p className="text-sm text-gray-600">Giáo viên đang hoạt động</p>
+              <p className="text-sm text-gray-600">{t('admin.statistics.activeTeachers', 'Active Teachers')}</p>
               <p className="text-2xl font-bold text-gray-900">{stats.teachers.active}/{stats.teachers.total}</p>
               <p className="text-xs text-green-600">
-                +{stats.teachers.growth}% so với kỳ trước
+                +{stats.teachers.growth}% {t('admin.statistics.vsPreviousPeriod', 'vs previous period')}
               </p>
             </div>
           </div>
@@ -433,10 +433,10 @@ const AdminStatistics = () => {
               <Clock className="w-8 h-8" />
             </div>
             <div>
-              <p className="text-sm text-gray-600">Thời gian trung bình</p>
-              <p className="text-2xl font-bold text-gray-900">2.5 giờ/ngày</p>
+              <p className="text-sm text-gray-600">{t('admin.statistics.avgTime', 'Average Time')}</p>
+              <p className="text-2xl font-bold text-gray-900">2.5 {t('admin.statistics.hoursPerDay', 'hrs/day')}</p>
               <p className="text-xs text-blue-600">
-                Thời gian học của học viên
+                {t('admin.statistics.studentStudyTime', 'Student study time')}
               </p>
             </div>
           </div>

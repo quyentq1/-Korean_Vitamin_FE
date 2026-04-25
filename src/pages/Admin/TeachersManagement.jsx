@@ -55,11 +55,11 @@ const TeachersManagement = () => {
       setTeachers(response.data || []);
     } catch (err) {
       console.error('Failed to fetch teachers:', err);
-      setError('Không thể tải danh sách giáo viên');
+      setError(t('admin.teachers.fetchError', 'Unable to load teacher list'));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     fetchTeachers();
@@ -104,14 +104,14 @@ const TeachersManagement = () => {
 
   // Handle lock/unlock
   const handleToggleStatus = async (teacher) => {
-    const action = teacher.active ? 'khóa' : 'mở khóa';
+    const action = teacher.active ? t('admin.teachers.lock', 'lock') : t('admin.teachers.unlock', 'unlock');
     const result = await Swal.fire({
       icon: 'question',
-      title: `${action.charAt(0).toUpperCase() + action.slice(1)} tài khoản?`,
-      text: `Bạn có chắc chắn muốn ${action} tài khoản của ${teacher.fullName}?`,
+      title: t('admin.teachers.toggleStatusTitle', `${action.charAt(0).toUpperCase() + action.slice(1)} account?`),
+      text: t('admin.teachers.toggleStatusText', `Are you sure you want to ${action} ${teacher.fullName}'s account?`),
       showCancelButton: true,
-      confirmButtonText: 'Có, đồng ý',
-      cancelButtonText: 'Hủy',
+      confirmButtonText: t('common.yes', 'Yes, confirm'),
+      cancelButtonText: t('common.cancel', 'Cancel'),
       confirmButtonColor: teacher.active ? '#dc3545' : '#28a745',
     });
 
@@ -126,9 +126,9 @@ const TeachersManagement = () => {
           await axiosClient.post(`/admin/users/${teacher.id}/unlock`);
         }
         await fetchTeachers();
-        Swal.fire('Thành công', `Đã ${action} tài khoản`, 'success');
+        Swal.fire(t('common.success', 'Success'), t('admin.teachers.toggleStatusSuccess', `Account ${action}ed`), 'success');
       } catch (err) {
-        Swal.fire('Lỗi', 'Không thể thay đổi trạng thái tài khoản', 'error');
+        Swal.fire(t('common.error', 'Error'), t('admin.teachers.toggleStatusError', 'Unable to change account status'), 'error');
       }
     }
   };
@@ -137,11 +137,11 @@ const TeachersManagement = () => {
   const handleDelete = async (teacher) => {
     const result = await Swal.fire({
       icon: 'warning',
-      title: 'Xóa giáo viên?',
-      text: `Bạn có chắc chắn muốn xóa ${teacher.fullName}? Hành động này không thể hoàn tác.`,
+      title: t('admin.teachers.deleteTitle', 'Delete Teacher?'),
+      text: t('admin.teachers.deleteText', `Are you sure you want to delete ${teacher.fullName}? This action cannot be undone.`),
       showCancelButton: true,
-      confirmButtonText: 'Xóa',
-      cancelButtonText: 'Hủy',
+      confirmButtonText: t('common.delete', 'Delete'),
+      cancelButtonText: t('common.cancel', 'Cancel'),
       confirmButtonColor: '#dc3545',
     });
 
@@ -149,9 +149,9 @@ const TeachersManagement = () => {
       try {
         await axiosClient.delete(`/admin/users/${teacher.id}`);
         await fetchTeachers();
-        Swal.fire('Thành công', 'Đã xóa giáo viên', 'success');
+        Swal.fire(t('common.success', 'Success'), t('admin.teachers.deleteSuccess', 'Teacher deleted'), 'success');
       } catch (err) {
-        Swal.fire('Lỗi', 'Không thể xóa giáo viên', 'error');
+        Swal.fire(t('common.error', 'Error'), t('admin.teachers.deleteError', 'Unable to delete teacher'), 'error');
       }
     }
   };
@@ -168,8 +168,8 @@ const TeachersManagement = () => {
     <div className="p-6 lg:p-8 space-y-6">
       {/* Page Header */}
       <PageHeader
-        title="Quản lý Giáo viên"
-        subtitle="Quản lý thông tin và phân công giáo viên"
+        title={t('admin.teachers.title', 'Teacher Management')}
+        subtitle={t('admin.teachers.subtitle', 'Manage teacher information and assignments')}
         icon={<Users className="w-8 h-8" />}
       />
 
@@ -182,7 +182,7 @@ const TeachersManagement = () => {
         <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-blue-100 text-sm font-medium">Tổng giáo viên</p>
+              <p className="text-blue-100 text-sm font-medium">{t('admin.teachers.totalTeachers', 'Total Teachers')}</p>
               <p className="text-3xl font-bold mt-1">{teachers.length}</p>
             </div>
             <Users className="w-12 h-12 text-blue-200" />
@@ -192,8 +192,8 @@ const TeachersManagement = () => {
         <Card className="bg-gradient-to-br from-green-500 to-green-600 text-white">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-green-100 text-sm font-medium">Đang hoạt động</p>
-              <p className="text-3xl font-bold mt-1">{teachers.filter(t => t.active).length}</p>
+              <p className="text-green-100 text-sm font-medium">{t('admin.teachers.active', 'Active')}</p>
+              <p className="text-3xl font-bold mt-1">{teachers.filter(tc => tc.active).length}</p>
             </div>
             <CheckCircle className="w-12 h-12 text-green-200" />
           </div>
@@ -202,8 +202,8 @@ const TeachersManagement = () => {
         <Card className="bg-gradient-to-br from-amber-500 to-amber-600 text-white">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-amber-100 text-sm font-medium">Tài khoản bị khóa</p>
-              <p className="text-3xl font-bold mt-1">{teachers.filter(t => !t.active).length}</p>
+              <p className="text-amber-100 text-sm font-medium">{t('admin.teachers.locked', 'Locked Accounts')}</p>
+              <p className="text-3xl font-bold mt-1">{teachers.filter(tc => !tc.active).length}</p>
             </div>
             <Lock className="w-12 h-12 text-amber-200" />
           </div>
@@ -212,9 +212,9 @@ const TeachersManagement = () => {
         <Card className="bg-gradient-to-br from-purple-500 to-purple-600 text-white">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-purple-100 text-sm font-medium">Đang phân công</p>
+              <p className="text-purple-100 text-sm font-medium">{t('admin.teachers.assigned', 'Assigned')}</p>
               <p className="text-3xl font-bold mt-1">
-                {teachers.reduce((sum, t) => sum + (t.assignedCourses || 0), 0)}
+                {teachers.reduce((sum, tc) => sum + (tc.assignedCourses || 0), 0)}
               </p>
             </div>
             <BookOpen className="w-12 h-12 text-purple-200" />
@@ -230,7 +230,7 @@ const TeachersManagement = () => {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
             <input
               type="text"
-              placeholder="Tìm kiếm giáo viên..."
+              placeholder={t('admin.teachers.searchPlaceholder', 'Search teachers...')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -244,9 +244,9 @@ const TeachersManagement = () => {
               onChange={(e) => setStatusFilter(e.target.value)}
               className="px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
-              <option value="all">Tất cả trạng thái</option>
-              <option value="active">Đang hoạt động</option>
-              <option value="inactive">Bị khóa</option>
+              <option value="all">{t('admin.teachers.allStatuses', 'All Statuses')}</option>
+              <option value="active">{t('admin.teachers.active', 'Active')}</option>
+              <option value="inactive">{t('admin.teachers.locked', 'Locked')}</option>
             </select>
 
             <select
@@ -258,12 +258,12 @@ const TeachersManagement = () => {
               }}
               className="px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
-              <option value="name-asc">Tên A-Z</option>
-              <option value="name-desc">Tên Z-A</option>
-              <option value="courses-desc">Số khóa học ↓</option>
-              <option value="courses-asc">Số khóa học ↑</option>
-              <option value="createdAt-desc">Mới nhất</option>
-              <option value="createdAt-asc">Cũ nhất</option>
+              <option value="name-asc">{t('admin.teachers.nameAZ', 'Name A-Z')}</option>
+              <option value="name-desc">{t('admin.teachers.nameZA', 'Name Z-A')}</option>
+              <option value="courses-desc">{t('admin.teachers.coursesDesc', 'Courses ↓')}</option>
+              <option value="courses-asc">{t('admin.teachers.coursesAsc', 'Courses ↑')}</option>
+              <option value="createdAt-desc">{t('admin.teachers.newest', 'Newest')}</option>
+              <option value="createdAt-asc">{t('admin.teachers.oldest', 'Oldest')}</option>
             </select>
 
             <Button
@@ -272,7 +272,7 @@ const TeachersManagement = () => {
               className="flex items-center gap-2"
             >
               <RefreshCw className="w-4 h-4" />
-              Làm mới
+              {t('common.refresh', 'Refresh')}
             </Button>
           </div>
         </div>
@@ -285,22 +285,22 @@ const TeachersManagement = () => {
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  Giáo viên
+                  {t('admin.teachers.teacher', 'Teacher')}
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  Liên hệ
+                  {t('admin.teachers.contact', 'Contact')}
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  Khóa học
+                  {t('admin.teachers.courses', 'Courses')}
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  Trạng thái
+                  {t('admin.teachers.status', 'Status')}
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  Ngày tham gia
+                  {t('admin.teachers.joinDate', 'Join Date')}
                 </th>
                 <th className="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  Hành động
+                  {t('admin.teachers.actions', 'Actions')}
                 </th>
               </tr>
             </thead>
@@ -309,8 +309,8 @@ const TeachersManagement = () => {
                 <tr>
                   <td colSpan="6" className="px-6 py-12 text-center text-gray-500">
                     <Users className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                    <p className="text-lg font-medium">Không tìm thấy giáo viên nào</p>
-                    <p className="text-sm">Thử thay đổi điều kiện tìm kiếm</p>
+                    <p className="text-lg font-medium">{t('admin.teachers.noTeachers', 'No teachers found')}</p>
+                    <p className="text-sm">{t('admin.teachers.tryChangeSearch', 'Try changing search criteria')}</p>
                   </td>
                 </tr>
               ) : (
@@ -345,7 +345,7 @@ const TeachersManagement = () => {
                       <div className="flex items-center gap-2">
                         <BookOpen className="w-4 h-4 text-gray-400" />
                         <span className="font-semibold text-gray-900">{teacher.assignedCourses || 0}</span>
-                        <span className="text-sm text-gray-500">khóa học</span>
+                        <span className="text-sm text-gray-500">{t('admin.teachers.courses', 'courses')}</span>
                       </div>
                     </td>
                     <td className="px-6 py-4">
@@ -356,12 +356,12 @@ const TeachersManagement = () => {
                         {teacher.active ? (
                           <>
                             <CheckCircle className="w-3 h-3" />
-                            Hoạt động
+                            {t('admin.teachers.active', 'Active')}
                           </>
                         ) : (
                           <>
                             <Lock className="w-3 h-3" />
-                            Đã khóa
+                            {t('admin.teachers.locked', 'Locked')}
                           </>
                         )}
                       </Badge>
@@ -378,7 +378,7 @@ const TeachersManagement = () => {
                           variant="ghost"
                           size="sm"
                           onClick={() => handleViewDetails(teacher)}
-                          title="Xem chi tiết"
+                          title={t('admin.teachers.viewDetails', 'View Details')}
                         >
                           <Eye className="w-4 h-4" />
                         </Button>
@@ -386,7 +386,7 @@ const TeachersManagement = () => {
                           variant="ghost"
                           size="sm"
                           onClick={() => handleToggleStatus(teacher)}
-                          title={teacher.active ? 'Khóa tài khoản' : 'Mở khóa'}
+                          title={teacher.active ? t('admin.teachers.lockAccount', 'Lock Account') : t('admin.teachers.unlockAccount', 'Unlock')}
                           className={teacher.active ? 'text-amber-600 hover:text-amber-700' : 'text-green-600 hover:text-green-700'}
                         >
                           {teacher.active ? <Lock className="w-4 h-4" /> : <Unlock className="w-4 h-4" />}
@@ -395,7 +395,7 @@ const TeachersManagement = () => {
                           variant="ghost"
                           size="sm"
                           onClick={() => handleDelete(teacher)}
-                          title="Xóa"
+                          title={t('common.delete', 'Delete')}
                           className="text-red-600 hover:text-red-700"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -433,29 +433,29 @@ const TeachersManagement = () => {
                   <p className="font-medium">{selectedTeacher.email}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500 mb-1">Số điện thoại</p>
-                  <p className="font-medium">{selectedTeacher.phone || 'Chưa có'}</p>
+                  <p className="text-sm text-gray-500 mb-1">{t('admin.teachers.phone', 'Phone')}</p>
+                  <p className="font-medium">{selectedTeacher.phone || t('common.notSet', 'N/A')}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500 mb-1">Số khóa học</p>
+                  <p className="text-sm text-gray-500 mb-1">{t('admin.teachers.courseCount', 'Course Count')}</p>
                   <p className="font-medium">{selectedTeacher.assignedCourses || 0}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500 mb-1">Trạng thái</p>
+                  <p className="text-sm text-gray-500 mb-1">{t('admin.teachers.status', 'Status')}</p>
                   <Badge type={selectedTeacher.active ? 'success' : 'danger'}>
-                    {selectedTeacher.active ? 'Hoạt động' : 'Đã khóa'}
+                    {selectedTeacher.active ? t('admin.teachers.active', 'Active') : t('admin.teachers.locked', 'Locked')}
                   </Badge>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500 mb-1">Ngày tham gia</p>
+                  <p className="text-sm text-gray-500 mb-1">{t('admin.teachers.joinDate', 'Join Date')}</p>
                   <p className="font-medium">
                     {selectedTeacher.createdAt ? new Date(selectedTeacher.createdAt).toLocaleDateString('vi-VN') : 'N/A'}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500 mb-1">Đăng nhập lần cuối</p>
+                  <p className="text-sm text-gray-500 mb-1">{t('admin.teachers.lastLogin', 'Last Login')}</p>
                   <p className="font-medium">
-                    {selectedTeacher.lastLogin ? new Date(selectedTeacher.lastLogin).toLocaleString('vi-VN') : 'Chưa đăng nhập'}
+                    {selectedTeacher.lastLogin ? new Date(selectedTeacher.lastLogin).toLocaleString('vi-VN') : t('admin.teachers.neverLoggedIn', 'Never logged in')}
                   </p>
                 </div>
               </div>
@@ -463,7 +463,7 @@ const TeachersManagement = () => {
 
             <div className="flex justify-end gap-3 mt-6">
               <Button variant="outline" onClick={() => setShowDetailModal(false)}>
-                Đóng
+                {t('common.close', 'Close')}
               </Button>
               <Button
                 onClick={() => {
@@ -471,7 +471,7 @@ const TeachersManagement = () => {
                   navigate(`/admin/teachers/${selectedTeacher.id}`);
                 }}
               >
-                Chỉnh sửa
+                {t('common.edit', 'Edit')}
               </Button>
             </div>
           </div>

@@ -145,7 +145,7 @@ const UserManagement = () => {
             setTotalPages(Math.ceil(filtered.length / itemsPerPage));
         } catch (error) {
             console.error("Failed to fetch users:", error);
-            showToast('Không thể tải danh sách người dùng', 'error');
+            showToast(t('userMgmt.fetchError', 'Không thể tải danh sách người dùng'), 'error');
         } finally {
             setLoading(false);
         }
@@ -176,11 +176,11 @@ const UserManagement = () => {
     const handleDelete = async (user) => {
         const result = await Swal.fire({
             icon: 'question',
-            title: 'Xác nhận xóa',
+            title: t('userMgmt.confirmDeleteTitle'),
             text: t('userMgmt.confirmDelete', `Bạn có chắc chắn muốn xóa người dùng ${user.name}?`),
             showCancelButton: true,
-            confirmButtonText: 'Xóa',
-            cancelButtonText: 'Hủy',
+            confirmButtonText: t('common.delete'),
+            cancelButtonText: t('common.cancel'),
             confirmButtonColor: '#ef4444',
             cancelButtonColor: '#6b7280',
             reverseButtons: true
@@ -194,7 +194,7 @@ const UserManagement = () => {
             await userService.deleteUser(user.id);
             await fetchUsers();
             setShowDeleteModal(false);
-            showToast('Xóa người dùng thành công!', 'success');
+            showToast(t('userMgmt.deleteSuccess', 'Xóa người dùng thành công!'), 'success');
         } catch (error) {
             console.error("Failed to delete user:", error);
             showToast(t('userMgmt.deleteError', 'Không thể xóa người dùng'), 'error');
@@ -204,11 +204,11 @@ const UserManagement = () => {
     const handleBulkDelete = async () => {
         const result = await Swal.fire({
             icon: 'question',
-            title: 'Xác nhận xóa hàng loạt',
+            title: t('userMgmt.confirmBulkDeleteTitle'),
             text: t('userMgmt.confirmBulkDelete', `Bạn có chắc chắn muốn xóa ${selectedUsers.length} người dùng đã chọn?`),
             showCancelButton: true,
-            confirmButtonText: 'Xóa',
-            cancelButtonText: 'Hủy',
+            confirmButtonText: t('common.delete'),
+            cancelButtonText: t('common.cancel'),
             confirmButtonColor: '#ef4444',
             cancelButtonColor: '#6b7280',
             reverseButtons: true
@@ -223,7 +223,7 @@ const UserManagement = () => {
             setSelectedUsers([]);
             await fetchUsers();
             setShowDeleteModal(false);
-            showToast('Xóa người dùng thành công!', 'success');
+            showToast(t('userMgmt.deleteSuccess', 'Xóa người dùng thành công!'), 'success');
         } catch (error) {
             console.error("Failed to bulk delete users:", error);
             showToast(t('userMgmt.bulkDeleteError', 'Không thể xóa người dùng'), 'error');
@@ -253,7 +253,7 @@ const UserManagement = () => {
             await userService.lockAccount(currentUser.id, { reason });
             setShowLockModal(false);
             await fetchUsers();
-            showToast('Khóa tài khoản thành công!', 'success');
+            showToast(t('userMgmt.lockSuccess', 'Khóa tài khoản thành công!'), 'success');
         } catch (error) {
             console.error("Failed to lock account:", error);
             showToast(t('userMgmt.lockError', 'Không thể khóa tài khoản'), 'error');
@@ -271,7 +271,7 @@ const UserManagement = () => {
             await userService.unlockAccount(currentUser.id);
             setShowUnlockModal(false);
             await fetchUsers();
-            showToast('Mở khóa tài khoản thành công!', 'success');
+            showToast(t('userMgmt.unlockSuccess', 'Mở khóa tài khoản thành công!'), 'success');
         } catch (error) {
             console.error("Failed to unlock account:", error);
             showToast(t('userMgmt.unlockError', 'Không thể mở khóa tài khoản'), 'error');
@@ -285,7 +285,7 @@ const UserManagement = () => {
             setNewUser({ fullName: '', email: '', password: '', role: 'STUDENT' });
             setShowAddUserModal(false);
             await fetchUsers();
-            showToast('Tạo người dùng thành công!', 'success');
+            showToast(t('userMgmt.createSuccess', 'Tạo người dùng thành công!'), 'success');
         } catch (error) {
             console.error("Failed to create user:", error);
             showToast(t('userMgmt.createError', 'Không thể tạo người dùng'), 'error');
@@ -300,7 +300,7 @@ const UserManagement = () => {
             setShowEditUserModal(false);
             setCurrentUser(null);
             await fetchUsers();
-            showToast('Cập nhật người dùng thành công!', 'success');
+            showToast(t('userMgmt.updateSuccess', 'Cập nhật người dùng thành công!'), 'success');
         } catch (error) {
             console.error("Failed to update user:", error);
             showToast(t('userMgmt.updateError', 'Không thể cập nhật người dùng'), 'error');
@@ -309,7 +309,7 @@ const UserManagement = () => {
 
     // Handle export CSV
     const handleExportCSV = () => {
-        const headers = ['ID', 'Tên', 'Email', 'Vai trò', 'Trạng thái', 'Ngày hết hạn', 'Đăng nhập cuối'];
+        const headers = [t('userMgmt.id', 'ID'), t('userMgmt.name', 'Tên'), t('userMgmt.email', 'Email'), t('userMgmt.role', 'Vai trò'), t('userMgmt.status', 'Trạng thái'), t('userMgmt.expirationDate', 'Ngày hết hạn'), t('userMgmt.lastLogin', 'Đăng nhập cuối')];
         const csvContent = [
             headers.join(','),
             ...users.map(user => [
@@ -318,7 +318,7 @@ const UserManagement = () => {
                 user.email,
                 user.role,
                 user.status,
-                user.expirationDate || 'Chưa có',
+                user.expirationDate || t('common.notSet', 'Chưa có'),
                 user.lastLogin
             ].join(','))
         ].join('\n');
@@ -379,7 +379,7 @@ const UserManagement = () => {
             setImportFile(null);
             setImportPreview(null);
             await fetchUsers();
-            showToast('Nhập người dùng từ CSV thành công!', 'success');
+            showToast(t('userMgmt.importSuccess', 'Nhập người dùng từ CSV thành công!'), 'success');
         } catch (error) {
             console.error("Failed to import users:", error);
             showToast(t('userMgmt.importError', 'Không thể nhập người dùng'), 'error');
@@ -405,13 +405,13 @@ const UserManagement = () => {
 
         // Validate file type
         if (!file.type.startsWith('image/')) {
-            showToast('Vui lòng chọn file ảnh', 'warning');
+            showToast(t('userMgmt.selectImageFile', 'Vui lòng chọn file ảnh'), 'warning');
             return;
         }
 
         // Validate file size (max 5MB)
         if (file.size > 5 * 1024 * 1024) {
-            showToast('Kích thước file không được quá 5MB', 'warning');
+            showToast(t('userMgmt.fileSizeLimit', 'Kích thước file không được quá 5MB'), 'warning');
             return;
         }
 
@@ -419,10 +419,10 @@ const UserManagement = () => {
             setUploadingAvatar(true);
             const response = await adminService.uploadUserAvatar(file);
             setEditUser(prev => ({ ...prev, avatar: response.data?.url || response.url }));
-            showToast('Đã tải lên ảnh đại diện thành công!', 'success');
+            showToast(t('userMgmt.avatarUploadSuccess', 'Đã tải lên ảnh đại diện thành công!'), 'success');
         } catch (error) {
             console.error('Error uploading avatar:', error);
-            showToast('Không thể tải lên ảnh đại diện', 'error');
+            showToast(t('userMgmt.avatarUploadError', 'Không thể tải lên ảnh đại diện'), 'error');
         } finally {
             setUploadingAvatar(false);
         }
@@ -502,7 +502,7 @@ const UserManagement = () => {
             header: t('userMgmt.email', 'Email'),
             sortable: true,
             className: 'min-w-[200px]',
-            render: (value, row) => <span className="text-gray-600">{row?.email || 'Chưa có'}</span>
+            render: (value, row) => <span className="text-gray-600">{row?.email || t('common.notSet', 'Chưa có')}</span>
         },
         {
             key: 'role',
@@ -526,7 +526,7 @@ const UserManagement = () => {
             header: t('userMgmt.expirationDate', 'Ngày hết hạn'),
             sortable: true,
             className: 'min-w-[120px]',
-            render: (value, row) => <span className="text-gray-600">{row?.expirationDate || 'Chưa có'}</span>
+            render: (value, row) => <span className="text-gray-600">{row?.expirationDate || t('common.notSet', 'Chưa có')}</span>
         },
         {
             key: 'lastLogin',
@@ -535,7 +535,7 @@ const UserManagement = () => {
             className: 'min-w-[150px]',
             render: (value, row) => {
                 const lastLogin = row?.lastLogin;
-                if (!lastLogin) return <span className="text-gray-400">Chưa đăng nhập</span>;
+                if (!lastLogin) return <span className="text-gray-400">{t('userMgmt.neverLoggedIn', 'Chưa đăng nhập')}</span>;
                 
                 const loginDate = new Date(lastLogin);
                 const now = new Date();
@@ -543,17 +543,17 @@ const UserManagement = () => {
                 
                 let formatted;
                 if (diffDays === 0) {
-                    formatted = 'Hôm nay';
+                    formatted = t('common.today', 'Hôm nay');
                 } else if (diffDays === 1) {
-                    formatted = 'Hôm qua';
+                    formatted = t('common.yesterday', 'Hôm qua');
                 } else if (diffDays < 7) {
-                    formatted = `${diffDays} ngày trước`;
+                    formatted = t('common.daysAgo', '{{count}} ngày trước', { count: diffDays });
                 } else if (diffDays < 30) {
-                    formatted = `${Math.floor(diffDays / 7)} tuần trước`;
+                    formatted = t('common.weeksAgo', '{{count}} tuần trước', { count: Math.floor(diffDays / 7) });
                 } else if (diffDays < 365) {
-                    formatted = `${Math.floor(diffDays / 30)} tháng trước`;
+                    formatted = t('common.monthsAgo', '{{count}} tháng trước', { count: Math.floor(diffDays / 30) });
                 } else {
-                    formatted = `${Math.floor(diffDays / 365)} năm trước`;
+                    formatted = t('common.yearsAgo', '{{count}} năm trước', { count: Math.floor(diffDays / 365) });
                 }
                 
                 return (
@@ -803,7 +803,7 @@ const UserManagement = () => {
                                     await Promise.all(selectedUsers.map(id => userService.updateUser(id, { status: 'active' })));
                                     setSelectedUsers([]);
                                     await fetchUsers();
-                                    showToast('Kích hoạt người dùng thành công!', 'success');
+                                    showToast(t('userMgmt.activateSuccess', 'Kích hoạt người dùng thành công!'), 'success');
                                 } catch (error) {
                                     console.error("Failed to activate users:", error);
                                     showToast(t('userMgmt.activateError', 'Không thể kích hoạt người dùng'), 'error');
@@ -821,7 +821,7 @@ const UserManagement = () => {
                                     await Promise.all(selectedUsers.map(id => userService.updateUser(id, { status: 'inactive' })));
                                     setSelectedUsers([]);
                                     await fetchUsers();
-                                    showToast('Vô hiệu hóa người dùng thành công!', 'success');
+                                    showToast(t('userMgmt.deactivateSuccess', 'Vô hiệu hóa người dùng thành công!'), 'success');
                                 } catch (error) {
                                     console.error("Failed to deactivate users:", error);
                                     showToast(t('userMgmt.deactivateError', 'Không thể vô hiệu hóa người dùng'), 'error');
@@ -986,7 +986,7 @@ const UserManagement = () => {
                         <div>
                             <h4 className="text-base font-semibold text-gray-900 mb-4 flex items-center gap-2">
                                 <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-                                Thông tin cơ bản
+                                {t('userMgmt.basicInfo', 'Thông tin cơ bản')}
                             </h4>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
@@ -996,7 +996,7 @@ const UserManagement = () => {
                                     <input
                                         type="text"
                                         value={editUser.fullName || ''}
-                                        placeholder="Nhập tên..."
+                                        placeholder={t('userMgmt.namePlaceholder', 'Nhập tên...')}
                                         onChange={(e) => setEditUser({ ...editUser, fullName: e.target.value })}
                                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                     />
@@ -1010,38 +1010,38 @@ const UserManagement = () => {
                                         value={editUser.email || ''}
                                         disabled
                                         className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed"
-                                        title="Email không thể thay đổi"
+                                        title={t('userMgmt.emailCannotChange', 'Email không thể thay đổi')}
                                     />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Số điện thoại
+                                        {t('userMgmt.phone', 'Số điện thoại')}
                                     </label>
                                     <input
                                         type="text"
                                         value={editUser.phone || ''}
-                                        placeholder="Nhập số điện thoại..."
+                                        placeholder={t('userMgmt.phonePlaceholder', 'Nhập số điện thoại...')}
                                         onChange={(e) => setEditUser({ ...editUser, phone: e.target.value })}
                                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                     />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Giới tính
+                                        {t('userMgmt.gender', 'Giới tính')}
                                     </label>
                                     <select
                                         value={editUser.gender || ''}
                                         onChange={(e) => setEditUser({ ...editUser, gender: e.target.value })}
                                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                     >
-                                        <option value="">Chưa chọn</option>
-                                        <option value="MALE">Nam</option>
-                                        <option value="FEMALE">Nữ</option>
+                                        <option value="">{t('userMgmt.notSelected', 'Chưa chọn')}</option>
+                                        <option value="MALE">{t('userMgmt.male', 'Nam')}</option>
+                                        <option value="FEMALE">{t('userMgmt.female', 'Nữ')}</option>
                                     </select>
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Ngày sinh
+                                        {t('userMgmt.dateOfBirth', 'Ngày sinh')}
                                     </label>
                                     <input
                                         type="date"
@@ -1052,7 +1052,7 @@ const UserManagement = () => {
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Ảnh đại diện
+                                        {t('userMgmt.avatar', 'Ảnh đại diện')}
                                     </label>
                                     <div className="flex items-center gap-4">
                                         {/* Avatar Preview */}
@@ -1095,21 +1095,21 @@ const UserManagement = () => {
                                             >
                                                 <Upload className="w-4 h-4" />
                                                 <span className="text-sm font-medium">
-                                                    {uploadingAvatar ? 'Đang tải lên...' : 'Chọn ảnh'}
+                                                    {uploadingAvatar ? t('common.uploading', 'Đang tải lên...') : t('userMgmt.chooseImage', 'Chọn ảnh')}
                                                 </span>
                                             </label>
-                                            <p className="text-xs text-gray-500 mt-1">JPG, PNG (tối đa 5MB)</p>
+                                            <p className="text-xs text-gray-500 mt-1">{t('userMgmt.imageHint', 'JPG, PNG (tối đa 5MB)')}</p>
                                         </div>
                                     </div>
                                 </div>
                                 <div className="md:col-span-2">
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Địa chỉ
+                                        {t('userMgmt.address', 'Địa chỉ')}
                                     </label>
                                     <input
                                         type="text"
                                         value={editUser.address || ''}
-                                        placeholder="Nhập địa chỉ..."
+                                        placeholder={t('userMgmt.addressPlaceholder', 'Nhập địa chỉ...')}
                                         onChange={(e) => setEditUser({ ...editUser, address: e.target.value })}
                                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                     />
@@ -1121,7 +1121,7 @@ const UserManagement = () => {
                         <div>
                             <h4 className="text-base font-semibold text-gray-900 mb-4 flex items-center gap-2">
                                 <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
-                                Thông tin tài khoản
+                                {t('userMgmt.accountInfo', 'Thông tin tài khoản')}
                             </h4>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div>
@@ -1133,12 +1133,12 @@ const UserManagement = () => {
                                         onChange={(e) => setEditUser({ ...editUser, role: e.target.value })}
                                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                     >
-                                        <option value="STUDENT">Học viên</option>
-                                        <option value="TEACHER">Giảng viên</option>
-                                        <option value="STAFF">Nhân viên</option>
-                                        <option value="MANAGER">Quản lý</option>
-                                        <option value="EDUCATION_MANAGER">Giáo dục viên</option>
-                                        <option value="ADMIN">Quản trị viên</option>
+                                        <option value="STUDENT">{t('userMgmt.learner', 'Học viên')}</option>
+                                        <option value="TEACHER">{t('userMgmt.teacher', 'Giảng viên')}</option>
+                                        <option value="STAFF">{t('userMgmt.staff', 'Nhân viên')}</option>
+                                        <option value="MANAGER">{t('userMgmt.manager', 'Quản lý')}</option>
+                                        <option value="EDUCATION_MANAGER">{t('userMgmt.eduManager', 'Giáo dục viên')}</option>
+                                        <option value="ADMIN">{t('userMgmt.admin', 'Quản trị viên')}</option>
                                     </select>
                                 </div>
                                 <div>
@@ -1150,22 +1150,22 @@ const UserManagement = () => {
                                         onChange={(e) => setEditUser({ ...editUser, active: e.target.value === 'true' })}
                                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                     >
-                                        <option value="true">Hoạt động</option>
-                                        <option value="false">Không hoạt động</option>
+                                        <option value="true">{t('userMgmt.active', 'Hoạt động')}</option>
+                                        <option value="false">{t('userMgmt.inactive', 'Không hoạt động')}</option>
                                     </select>
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Loại tài khoản
+                                        {t('userMgmt.accountType', 'Loại tài khoản')}
                                     </label>
                                     <select
                                         value={editUser.paymentTier || 'BASIC'}
                                         onChange={(e) => setEditUser({ ...editUser, paymentTier: e.target.value })}
                                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                     >
-                                        <option value="BASIC">Cơ bản</option>
-                                        <option value="PREMIUM">Premium</option>
-                                        <option value="VIP">VIP</option>
+                                        <option value="BASIC">{t('userMgmt.basic', 'Cơ bản')}</option>
+                                        <option value="PREMIUM">{t('userMgmt.premium', 'Premium')}</option>
+                                        <option value="VIP">{t('userMgmt.vip', 'VIP')}</option>
                                     </select>
                                 </div>
                             </div>
@@ -1175,7 +1175,7 @@ const UserManagement = () => {
                         <div>
                             <h4 className="text-base font-semibold text-gray-900 mb-4 flex items-center gap-2">
                                 <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                                Cài đặt thêm
+                                {t('userMgmt.additionalSettings', 'Cài đặt thêm')}
                             </h4>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="flex items-center gap-2">
@@ -1187,7 +1187,7 @@ const UserManagement = () => {
                                         className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                                     />
                                     <label htmlFor="isPremium" className="text-sm font-medium text-gray-700">
-                                        Tài khoản Premium
+                                        {t('userMgmt.premiumAccount', 'Tài khoản Premium')}
                                     </label>
                                 </div>
                                 <div className="flex items-center gap-2">
@@ -1199,7 +1199,7 @@ const UserManagement = () => {
                                         className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                                     />
                                     <label htmlFor="accountNonLocked" className="text-sm font-medium text-gray-700">
-                                        Cho phép đăng nhập
+                                        {t('userMgmt.allowLogin', 'Cho phép đăng nhập')}
                                     </label>
                                 </div>
                             </div>
@@ -1209,12 +1209,12 @@ const UserManagement = () => {
                         <div>
                             <h4 className="text-base font-semibold text-gray-900 mb-4 flex items-center gap-2">
                                 <span className="w-2 h-2 bg-orange-500 rounded-full"></span>
-                                Thời hạn
+                                {t('userMgmt.validityPeriod', 'Thời hạn')}
                             </h4>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Ngày hết hạn
+                                        {t('userMgmt.expirationDate', 'Ngày hết hạn')}
                                     </label>
                                     <input
                                         type="date"
@@ -1222,7 +1222,7 @@ const UserManagement = () => {
                                         onChange={(e) => setEditUser({ ...editUser, expirationDate: e.target.value })}
                                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                     />
-                                    <p className="text-xs text-gray-500 mt-1">Để trống nếu không giới hạn</p>
+                                    <p className="text-xs text-gray-500 mt-1">{t('userMgmt.leaveBlankNoLimit', 'Để trống nếu không giới hạn')}</p>
                                 </div>
                             </div>
                         </div>
@@ -1334,7 +1334,7 @@ const UserManagement = () => {
                     setShowViewModal(false);
                     setCurrentUser(null);
                 }}
-                title="Chi Tiết Người Dùng"
+                title={t('userMgmt.userDetails', 'Chi Tiết Người Dùng')}
                 size="3xl"
                 className=""
             >
@@ -1359,7 +1359,7 @@ const UserManagement = () => {
                                 <h3 className="text-2xl font-bold text-gray-900 mb-1">
                                     {currentUser?.fullName || currentUser?.name || 'Unknown'}
                                 </h3>
-                                <p className="text-gray-600">@{currentUser?.username || 'Chưa có'}</p>
+                                <p className="text-gray-600">@{currentUser?.username || t('common.notSet', 'Chưa có')}</p>
                                 <div className="flex items-center gap-3 mt-3">
                                     <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
                                         currentUser?.role === 'STUDENT' ? 'bg-blue-100 text-blue-700' :
@@ -1368,12 +1368,12 @@ const UserManagement = () => {
                                         currentUser?.role === 'EDUCATION_MANAGER' ? 'bg-orange-100 text-orange-700' :
                                         'bg-gray-100 text-gray-700'
                                     }`}>
-                                        {currentUser?.role || 'Chưa có'}
+                                        {currentUser?.role || t('common.notSet', 'Chưa có')}
                                     </span>
                                     <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
                                         currentUser?.active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'
                                     }`}>
-                                        {currentUser?.active ? 'Hoạt động' : 'Không hoạt động'}
+                                        {currentUser?.active ? t('userMgmt.active', 'Hoạt động') : t('userMgmt.inactive', 'Không hoạt động')}
                                     </span>
                                 </div>
                             </div>
@@ -1385,20 +1385,20 @@ const UserManagement = () => {
                             <div className="bg-white border border-gray-200 rounded-xl p-5">
                                 <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
                                     <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-                                    Thông Tin Liên Hệ
+                                    {t('userMgmt.contactInfo', 'Thông Tin Liên Hệ')}
                                 </h4>
                                 <div className="space-y-3">
                                     <div className="flex justify-between items-center py-2 border-b border-gray-100">
                                         <span className="text-sm text-gray-500">Email</span>
-                                        <span className="text-sm font-medium text-gray-900">{currentUser?.email || 'Chưa có'}</span>
+                                        <span className="text-sm font-medium text-gray-900">{currentUser?.email || t('common.notSet', 'Chưa có')}</span>
                                     </div>
                                     <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                                        <span className="text-sm text-gray-500">Điện thoại</span>
-                                        <span className="text-sm font-medium text-gray-900">{currentUser?.phone || 'Chưa có'}</span>
+                                        <span className="text-sm text-gray-500">{t('userMgmt.phone', 'Điện thoại')}</span>
+                                        <span className="text-sm font-medium text-gray-900">{currentUser?.phone || t('common.notSet', 'Chưa có')}</span>
                                     </div>
                                     <div className="flex justify-between items-center py-2">
-                                        <span className="text-sm text-gray-500">Địa chỉ</span>
-                                        <span className="text-sm font-medium text-gray-900">{currentUser?.address || 'Chưa có'}</span>
+                                        <span className="text-sm text-gray-500">{t('userMgmt.address', 'Địa chỉ')}</span>
+                                        <span className="text-sm font-medium text-gray-900">{currentUser?.address || t('common.notSet', 'Chưa có')}</span>
                                     </div>
                                 </div>
                             </div>
@@ -1407,23 +1407,23 @@ const UserManagement = () => {
                             <div className="bg-white border border-gray-200 rounded-xl p-5">
                                 <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
                                     <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                                    Thông Tin Cá Nhân
+                                    {t('userMgmt.personalInfo', 'Thông Tin Cá Nhân')}
                                 </h4>
                                 <div className="space-y-3">
                                     <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                                        <span className="text-sm text-gray-500">Giới tính</span>
+                                        <span className="text-sm text-gray-500">{t('userMgmt.gender', 'Giới tính')}</span>
                                         <span className="text-sm font-medium text-gray-900">
-                                            {currentUser?.gender === 'MALE' ? 'Nam' :
-                                             currentUser?.gender === 'FEMALE' ? 'Nữ' :
-                                             currentUser?.gender || 'Chưa có'}
+                                            {currentUser?.gender === 'MALE' ? t('userMgmt.male', 'Nam') :
+                                             currentUser?.gender === 'FEMALE' ? t('userMgmt.female', 'Nữ') :
+                                             currentUser?.gender || t('common.notSet', 'Chưa có')}
                                         </span>
                                     </div>
                                     <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                                        <span className="text-sm text-gray-500">Ngày sinh</span>
-                                        <span className="text-sm font-medium text-gray-900">{currentUser?.dateOfBirth || 'Chưa có'}</span>
+                                        <span className="text-sm text-gray-500">{t('userMgmt.dateOfBirth', 'Ngày sinh')}</span>
+                                        <span className="text-sm font-medium text-gray-900">{currentUser?.dateOfBirth || t('common.notSet', 'Chưa có')}</span>
                                     </div>
                                     <div className="flex justify-between items-center py-2">
-                                        <span className="text-sm text-gray-500">Avatar</span>
+                                        <span className="text-sm text-gray-500">{t('userMgmt.avatar', 'Avatar')}</span>
                                         {currentUser?.avatar ? (
                                             <img src={currentUser.avatar} alt="Avatar" className="w-10 h-10 rounded-full object-cover" />
                                         ) : (
@@ -1437,27 +1437,27 @@ const UserManagement = () => {
                             <div className="bg-white border border-gray-200 rounded-xl p-5">
                                 <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
                                     <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
-                                    Thông Tin Tài Khoản
+                                    {t('userMgmt.accountInfo', 'Thông Tin Tài Khoản')}
                                 </h4>
                                 <div className="space-y-3">
                                     <div className="flex justify-between items-center py-2 border-b border-gray-100">
                                         <span className="text-sm text-gray-500">ID</span>
-                                        <span className="text-sm font-medium text-gray-900">#{currentUser?.id || 'Chưa có'}</span>
+                                        <span className="text-sm font-medium text-gray-900">#{currentUser?.id || t('common.notSet', 'Chưa có')}</span>
                                     </div>
                                     <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                                        <span className="text-sm text-gray-500">Trạng thái</span>
+                                        <span className="text-sm text-gray-500">{t('userMgmt.status', 'Trạng thái')}</span>
                                         <span className={`text-sm font-medium ${
                                             currentUser?.active ? 'text-green-600' : 'text-gray-600'
                                         }`}>
-                                            {currentUser?.active ? '✓ Hoạt động' : '✗ Không hoạt động'}
+                                            {currentUser?.active ? t('userMgmt.activeCheck', '✓ Hoạt động') : t('userMgmt.inactiveCheck', '✗ Không hoạt động')}
                                         </span>
                                     </div>
                                     <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                                        <span className="text-sm text-gray-500">Khóa tài khoản</span>
+                                        <span className="text-sm text-gray-500">{t('userMgmt.accountLock', 'Khóa tài khoản')}</span>
                                         <span className={`text-sm font-medium ${
                                             currentUser?.accountNonLocked !== false ? 'text-green-600' : 'text-red-600'
                                         }`}>
-                                            {currentUser?.accountNonLocked !== false ? '✓ Bình thường' : '✗ Đã khóa'}
+                                            {currentUser?.accountNonLocked !== false ? t('userMgmt.normalCheck', '✓ Bình thường') : t('userMgmt.lockedCheck', '✗ Đã khóa')}
                                         </span>
                                     </div>
                                     <div className="flex justify-between items-center py-2">
@@ -1465,7 +1465,7 @@ const UserManagement = () => {
                                         <span className={`text-sm font-medium ${
                                             currentUser?.isPremium ? 'text-amber-600' : 'text-gray-600'
                                         }`}>
-                                            {currentUser?.isPremium ? '⭐ Premium' : 'Thường'}
+                                            {currentUser?.isPremium ? t('userMgmt.premiumStar', '⭐ Premium') : t('userMgmt.regular', 'Thường')}
                                         </span>
                                     </div>
                                 </div>
@@ -1475,28 +1475,28 @@ const UserManagement = () => {
                             <div className="bg-white border border-gray-200 rounded-xl p-5">
                                 <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
                                     <span className="w-2 h-2 bg-orange-500 rounded-full"></span>
-                                    Thông Tin Hệ Thống
+                                    {t('userMgmt.systemInfo', 'Thông Tin Hệ Thống')}
                                 </h4>
                                 <div className="space-y-3">
                                     <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                                        <span className="text-sm text-gray-500">Ngày tạo</span>
+                                        <span className="text-sm text-gray-500">{t('userMgmt.createdAt', 'Ngày tạo')}</span>
                                         <span className="text-sm font-medium text-gray-900">{currentUser?.createdAt ? new Date(currentUser.createdAt).toLocaleDateString('vi-VN') : 'N/A'}</span>
                                     </div>
                                     <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                                        <span className="text-sm text-gray-500">Cập nhật lần cuối</span>
+                                        <span className="text-sm text-gray-500">{t('userMgmt.lastUpdated', 'Cập nhật lần cuối')}</span>
                                         <span className="text-sm font-medium text-gray-900">{currentUser?.updatedAt ? new Date(currentUser.updatedAt).toLocaleDateString('vi-VN') : 'N/A'}</span>
                                     </div>
                                     <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                                        <span className="text-sm text-gray-500">Đăng nhập cuối</span>
-                                        <span className="text-sm font-medium text-gray-900">{currentUser?.lastLogin ? new Date(currentUser.lastLogin).toLocaleString('vi-VN') : 'Chưa đăng nhập'}</span>
+                                        <span className="text-sm text-gray-500">{t('userMgmt.lastLogin', 'Đăng nhập cuối')}</span>
+                                        <span className="text-sm font-medium text-gray-900">{currentUser?.lastLogin ? new Date(currentUser.lastLogin).toLocaleString('vi-VN') : t('userMgmt.neverLoggedIn', 'Chưa đăng nhập')}</span>
                                     </div>
                                     <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                                        <span className="text-sm text-gray-500">Số lần đăng nhập</span>
-                                        <span className="text-sm font-medium text-gray-900">{currentUser?.loginCount || 0} lần</span>
+                                        <span className="text-sm text-gray-500">{t('userMgmt.loginCount', 'Số lần đăng nhập')}</span>
+                                        <span className="text-sm font-medium text-gray-900">{currentUser?.loginCount || 0} {t('common.times', 'lần')}</span>
                                     </div>
                                     <div className="flex justify-between items-center py-2">
-                                        <span className="text-sm text-gray-500">Lần thử miễn phí</span>
-                                        <span className="text-sm font-medium text-gray-900">{currentUser?.freeTestCount || 0} lần</span>
+                                        <span className="text-sm text-gray-500">{t('userMgmt.freeTestCount', 'Lần thử miễn phí')}</span>
+                                        <span className="text-sm font-medium text-gray-900">{currentUser?.freeTestCount || 0} {t('common.times', 'lần')}</span>
                                     </div>
                                 </div>
                             </div>
@@ -1507,24 +1507,24 @@ const UserManagement = () => {
                             <div className="bg-amber-50 border border-amber-200 rounded-xl p-5">
                                 <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
                                     <span className="w-2 h-2 bg-amber-500 rounded-full"></span>
-                                    Trạng Thái Đặc Biệt
+                                    {t('userMgmt.specialStatus', 'Trạng Thái Đặc Biệt')}
                                 </h4>
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                     {currentUser?.lockedAt && (
                                         <div>
-                                            <p className="text-xs text-gray-500 mb-1">Ngày khóa</p>
+                                            <p className="text-xs text-gray-500 mb-1">{t('userMgmt.lockedDate', 'Ngày khóa')}</p>
                                             <p className="text-sm font-medium text-gray-900">{new Date(currentUser.lockedAt).toLocaleString('vi-VN')}</p>
                                         </div>
                                     )}
                                     {currentUser?.lockedReason && (
                                         <div>
-                                            <p className="text-xs text-gray-500 mb-1">Lý do khóa</p>
+                                            <p className="text-xs text-gray-500 mb-1">{t('userMgmt.lockReason', 'Lý do khóa')}</p>
                                             <p className="text-sm font-medium text-gray-900">{currentUser.lockedReason}</p>
                                         </div>
                                     )}
                                     {currentUser?.expirationDate && (
                                         <div>
-                                            <p className="text-xs text-gray-500 mb-1">Ngày hết hạn</p>
+                                            <p className="text-xs text-gray-500 mb-1">{t('userMgmt.expirationDate', 'Ngày hết hạn')}</p>
                                             <p className="text-sm font-medium text-gray-900">{new Date(currentUser.expirationDate).toLocaleDateString('vi-VN')}</p>
                                         </div>
                                     )}
@@ -1557,13 +1557,13 @@ const UserManagement = () => {
                                 }}
                             >
                                 <Edit2 className="w-4 h-4 mr-2" />
-                                Chỉnh sửa
+                                {t('common.edit', 'Chỉnh sửa')}
                             </Button>
                             <Button
                                 variant="primary"
                                 onClick={() => setShowViewModal(false)}
                             >
-                                Đóng
+                                {t('common.close', 'Đóng')}
                             </Button>
                         </div>
                     </div>

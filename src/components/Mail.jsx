@@ -73,9 +73,9 @@ const Mail = ({ userRole = 'student' }) => {
         id: 1,
         from: { name: 'Admin System', email: 'admin@koreanvitamin.com', avatar: 'A' },
         to: { name: 'Student User', email: 'student@example.com' },
-        subject: 'Thông báo: Bài kiểm tra mới đã được tạo',
-        preview: 'Một bài kiểm tra mới TOPIK I đã được tạo. Vui lòng kiểm tra và làm bài trước thời hạn...',
-        body: 'Chào bạn,\n\nMột bài kiểm tra mới TOPIK I đã được tạo. Vui lòng kiểm tra và làm bài trước thời hạn.\n\nThời gian bắt đầu: 25/03/2026 10:00\nThời lượng: 60 phút\n\nTrân trọng,\nAdmin System',
+        subject: t('component.mail.mockSubject1', 'Thông báo: Bài kiểm tra mới đã được tạo'),
+        preview: t('component.mail.mockPreview1', 'Một bài kiểm tra mới TOPIK I đã được tạo. Vui lòng kiểm tra và làm bài trước thời hạn...'),
+        body: t('component.mail.mockBody1', 'Chào bạn,\n\nMột bài kiểm tra mới TOPIK I đã được tạo. Vui lòng kiểm tra và làm bài trước thời hạn.\n\nThời gian bắt đầu: 25/03/2026 10:00\nThời lượng: 60 phút\n\nTrân trọng,\nAdmin System'),
         timestamp: '2026-03-23T09:30:00',
         read: false,
         starred: false,
@@ -87,9 +87,9 @@ const Mail = ({ userRole = 'student' }) => {
         id: 2,
         from: { name: 'Teacher Kim', email: 'teacher@koreanvitamin.com', avatar: 'K' },
         to: { name: 'Student User', email: 'student@example.com' },
-        subject: 'Nhắc nhở: Nộp bài viết',
-        preview: 'Bạn chưa nộp bài viết về chủ đề "Gia đình". Hạn chót là ngày 25/03/2026...',
-        body: 'Chào bạn,\n\nBạn chưa nộp bài viết về chủ đề "Gia đình".\n\nHạn chót: 25/03/2026\n\nVui lòng nộp bài sớm để được điểm cao.\n\nThân mến,\nTeacher Kim',
+        subject: t('component.mail.mockSubject2', 'Nhắc nhở: Nộp bài viết'),
+        preview: t('component.mail.mockPreview2', 'Bạn chưa nộp bài viết về chủ đề "Gia đình". Hạn chót là ngày 25/03/2026...'),
+        body: t('component.mail.mockBody2', 'Chào bạn,\n\nBạn chưa nộp bài viết về chủ đề "Gia đình".\n\nHạn chót: 25/03/2026\n\nVui lòng nộp bài sớm để được điểm cao.\n\nThân mến,\nTeacher Kim'),
         timestamp: '2026-03-22T14:15:00',
         read: true,
         starred: true,
@@ -103,9 +103,9 @@ const Mail = ({ userRole = 'student' }) => {
         id: 3,
         from: { name: 'Student User', email: 'student@example.com', avatar: 'S' },
         to: { name: 'Teacher Kim', email: 'teacher@koreanvitamin.com' },
-        subject: 'Re: Nhắc nhở: Nộp bài viết',
-        preview: 'Cảm ơn thầy đã nhắc nhở. Em sẽ nộp bài trong hôm nay...',
-        body: 'Thầy Kim ơi,\n\nCảm ơn thầy đã nhắc nhở. Em sẽ nộp bài trong hôm nay.\n\nEm đã hoàn thành bài và đang kiểm tra lại.\n\nThân mến,\nStudent',
+        subject: t('component.mail.mockSubject3', 'Re: Nhắc nhở: Nộp bài viết'),
+        preview: t('component.mail.mockPreview3', 'Cảm ơn thầy đã nhắc nhở. Em sẽ nộp bài trong hôm nay...'),
+        body: t('component.mail.mockBody3', 'Thầy Kim ơi,\n\nCảm ơn thầy đã nhắc nhở. Em sẽ nộp bài trong hôm nay.\n\nEm đã hoàn thành bài và đang kiểm tra lại.\n\nThân mến,\nStudent'),
         timestamp: '2026-03-22T15:30:00',
         read: true,
         starred: false,
@@ -378,7 +378,7 @@ const Mail = ({ userRole = 'student' }) => {
                     <span className="text-sm text-gray-500">&lt;{selectedMail.from.email}&gt;</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm text-gray-500">
-                    <span>Đến:</span>
+                    <span>{t('component.mail.to', 'Đến')}:</span>
                     <span>{selectedMail.to.name}</span>
                     <span className="mx-1">•</span>
                     <Clock className="w-4 h-4" />
@@ -462,9 +462,9 @@ const ComposeMail = ({ onClose, onSend, userRole }) => {
     if (!to || !subject) {
       Swal.fire({
         icon: 'warning',
-        title: 'Thiếu thông tin',
-        text: 'Vui lòng nhập người nhận và chủ đề',
-        confirmButtonText: 'Đồng ý',
+        title: t('component.mail.missingInfo', 'Thiếu thông tin'),
+        text: t('component.mail.missingInfoDesc', 'Vui lòng nhập người nhận và chủ đề'),
+        confirmButtonText: t('component.mail.agree', 'Đồng ý'),
         confirmButtonColor: '#f59e0b'
       });
       return;

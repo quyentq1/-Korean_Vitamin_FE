@@ -58,8 +58,8 @@ const EditStudent = () => {
                 console.error('Error fetching student:', error);
                 Swal.fire({
                     icon: 'error',
-                    title: 'Lỗi',
-                    text: 'Không thể tải thông tin học viên',
+                    title: t('editStudent.error', 'Lỗi'),
+                    text: t('editStudent.cannotLoadStudent', 'Không thể tải thông tin học viên'),
                     confirmButtonColor: '#667eea',
                 }).then(() => {
                     navigate('/student-management');
@@ -85,16 +85,16 @@ const EditStudent = () => {
             setFormData(prev => ({ ...prev, avatar: response.data?.url || response.url }));
             Swal.fire({
                 icon: 'success',
-                title: 'Thành công',
-                text: 'Đã tải lên ảnh đại diện',
+                title: t('editStudent.success', 'Thành công'),
+                text: t('editStudent.avatarUploaded', 'Đã tải lên ảnh đại diện'),
                 timer: 1500,
                 showConfirmButton: false,
             });
         } catch (error) {
             Swal.fire({
                 icon: 'error',
-                title: 'Lỗi',
-                text: 'Không thể tải lên ảnh đại diện',
+                title: t('editStudent.error', 'Lỗi'),
+                text: t('editStudent.avatarUploadFailed', 'Không thể tải lên ảnh đại diện'),
                 confirmButtonColor: '#667eea',
             });
         } finally {
@@ -116,18 +116,18 @@ const EditStudent = () => {
         const newErrors = {};
 
         if (!formData.fullName.trim()) {
-            newErrors.fullName = 'Họ và tên là bắt buộc';
+            newErrors.fullName = t('editStudent.fullNameRequired', 'Họ và tên là bắt buộc');
         }
         if (!formData.dateOfBirth) {
-            newErrors.dateOfBirth = 'Ngày sinh là bắt buộc';
+            newErrors.dateOfBirth = t('editStudent.dobRequired', 'Ngày sinh là bắt buộc');
         }
         if (!formData.email.trim()) {
-            newErrors.email = 'Email là bắt buộc';
+            newErrors.email = t('editStudent.emailRequired', 'Email là bắt buộc');
         } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-            newErrors.email = 'Email không hợp lệ';
+            newErrors.email = t('editStudent.emailInvalid', 'Email không hợp lệ');
         }
         if (!formData.phone.trim()) {
-            newErrors.phone = 'Số điện thoại là bắt buộc';
+            newErrors.phone = t('editStudent.phoneRequired', 'Số điện thoại là bắt buộc');
         }
 
         setErrors(newErrors);
@@ -149,8 +149,8 @@ const EditStudent = () => {
 
             Swal.fire({
                 icon: 'success',
-                title: 'Thành công',
-                text: 'Đã cập nhật thông tin học viên',
+                title: t('editStudent.success', 'Thành công'),
+                text: t('editStudent.studentUpdated', 'Đã cập nhật thông tin học viên'),
                 timer: 1500,
                 showConfirmButton: false,
             }).then(() => {
@@ -160,8 +160,8 @@ const EditStudent = () => {
             console.error('Error updating student:', error);
             Swal.fire({
                 icon: 'error',
-                title: 'Lỗi',
-                text: error.message || 'Không thể cập nhật thông tin',
+                title: t('editStudent.error', 'Lỗi'),
+                text: error.message || t('editStudent.cannotUpdate', 'Không thể cập nhật thông tin'),
                 confirmButtonColor: '#667eea',
             });
         } finally {
@@ -191,7 +191,7 @@ const EditStudent = () => {
                     className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4 transition-colors"
                 >
                     <ArrowLeft className="w-5 h-5" />
-                    {t('common.back') || 'Quay lại'}
+                    {t('common.back')}
                 </button>
 
                 <div className="flex items-center gap-4">
@@ -215,7 +215,7 @@ const EditStudent = () => {
                     </div>
                     <div>
                         <h1 className="text-2xl font-bold text-gray-900">
-                            Chỉnh sửa học viên
+                            {t('editStudent.title', 'Chỉnh sửa học viên')}
                         </h1>
                         <p className="text-gray-500 text-sm mt-1">
                             {student?.fullName} • {student?.studentCode || 'N/A'}
@@ -231,20 +231,20 @@ const EditStudent = () => {
                     <div>
                         <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
                             <User className="w-5 h-5 text-blue-600" />
-                            Thông tin cá nhân
+                            {t('editStudent.personalInfo', 'Thông tin cá nhân')}
                         </h2>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {/* Full Name */}
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Họ và tên <span className="text-red-500">*</span>
+                                    {t('editStudent.fullName', 'Họ và tên')} <span className="text-red-500">*</span>
                                 </label>
                                 <input
                                     type="text"
                                     value={formData.fullName}
                                     onChange={(e) => handleChange('fullName', e.target.value)}
-                                    placeholder="Nhập họ và tên"
+                                    placeholder={t('editStudent.fullNamePlaceholder', 'Nhập họ và tên')}
                                     className={`w-full px-4 py-2.5 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all ${errors.fullName ? 'border-red-300 bg-red-50' : 'border-gray-200'
                                         }`}
                                 />
@@ -259,7 +259,7 @@ const EditStudent = () => {
                             {/* Date of Birth */}
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Ngày sinh <span className="text-red-500">*</span>
+                                    {t('editStudent.dob', 'Ngày sinh')} <span className="text-red-500">*</span>
                                 </label>
                                 <input
                                     type="date"
@@ -280,7 +280,7 @@ const EditStudent = () => {
                             {/* Gender */}
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Giới tính
+                                    {t('editStudent.gender', 'Giới tính')}
                                 </label>
                                 <div className="flex gap-3">
                                     {['MALE', 'FEMALE', 'OTHER'].map((gender) => (
@@ -300,7 +300,7 @@ const EditStudent = () => {
                                                 className="hidden"
                                             />
                                             <span className="capitalize">
-                                                {gender === 'MALE' ? 'Nam' : gender === 'FEMALE' ? 'Nữ' : 'Khác'}
+                                                {gender === 'MALE' ? t('editStudent.male', 'Nam') : gender === 'FEMALE' ? t('editStudent.female', 'Nữ') : t('editStudent.other', 'Khác')}
                                             </span>
                                         </label>
                                     ))}
@@ -310,7 +310,7 @@ const EditStudent = () => {
                             {/* Email */}
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Email <span className="text-red-500">*</span>
+                                    {t('editStudent.email', 'Email')} <span className="text-red-500">*</span>
                                 </label>
                                 <div className="relative">
                                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -333,7 +333,7 @@ const EditStudent = () => {
                             {/* Phone */}
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Số điện thoại <span className="text-red-500">*</span>
+                                    {t('editStudent.phone', 'Số điện thoại')} <span className="text-red-500">*</span>
                                 </label>
                                 <div className="relative">
                                     <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -358,14 +358,14 @@ const EditStudent = () => {
                         {/* Address - Full width */}
                         <div className="mt-6">
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Địa chỉ
+                                {t('editStudent.address', 'Địa chỉ')}
                             </label>
                             <div className="relative">
                                 <MapPin className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
                                 <textarea
                                     value={formData.address}
                                     onChange={(e) => handleChange('address', e.target.value)}
-                                    placeholder="Nhập địa chỉ"
+                                    placeholder={t('editStudent.addressPlaceholder', 'Nhập địa chỉ')}
                                     rows={3}
                                     className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all resize-none"
                                 />
@@ -382,10 +382,9 @@ const EditStudent = () => {
                                 </svg>
                             </div>
                             <div>
-                                <h4 className="font-semibold text-yellow-900">Lưu ý</h4>
+                                <h4 className="font-semibold text-yellow-900">{t('editStudent.warning', 'Lưu ý')}</h4>
                                 <p className="text-sm text-yellow-800 mt-1">
-                                    Thay đổi thông tin cá nhân có thể ảnh hưởng đến các dữ liệu liên quan như điểm danh, báo cáo.
-                                    Vui lòng kiểm tra kỹ trước khi lưu.
+                                    {t('editStudent.warningText', 'Thay đổi thông tin cá nhân có thể ảnh hưởng đến các dữ liệu liên quan như điểm danh, báo cáo. Vui lòng kiểm tra kỹ trước khi lưu.')}
                                 </p>
                             </div>
                         </div>
@@ -399,7 +398,7 @@ const EditStudent = () => {
                             className="px-6 py-2.5 border-2 border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 transition-all font-medium"
                             disabled={saving}
                         >
-                            Hủy
+                            {t('common.cancel', 'Hủy')}
                         </button>
                         <button
                             type="submit"
@@ -409,12 +408,12 @@ const EditStudent = () => {
                             {saving ? (
                                 <>
                                     <Loader2 className="w-4 h-4 animate-spin" />
-                                    Đang lưu...
+                                    {t('editStudent.saving', 'Đang lưu...')}
                                 </>
                             ) : (
                                 <>
                                     <Save className="w-4 h-4" />
-                                    Lưu thay đổi
+                                    {t('editStudent.saveChanges', 'Lưu thay đổi')}
                                 </>
                             )}
                         </button>

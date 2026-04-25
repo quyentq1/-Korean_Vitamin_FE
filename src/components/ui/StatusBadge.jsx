@@ -1,29 +1,31 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { useTranslation } from 'react-i18next';
 
 /**
  * StatusBadge Component
  * Displays course status badges (OPENING, COMING_SOON, CLOSED)
  */
 const StatusBadge = ({ status, size = 'md' }) => {
+    const { t } = useTranslation();
     const getStatusConfig = (status) => {
         const statusMap = {
             'OPENING': {
-                label: 'Đang Mở',
+                label: t('statusBadge.opening', 'Đang Mở'),
                 color: 'from-blue-400 to-blue-600',
                 bgColor: 'bg-blue-50',
                 textColor: 'text-blue-700',
                 borderColor: 'border-blue-200'
             },
             'COMING_SOON': {
-                label: 'Sắp Khai Giảng',
+                label: t('statusBadge.comingSoon', 'Sắp Khai Giảng'),
                 color: 'from-yellow-400 to-yellow-600',
                 bgColor: 'bg-yellow-50',
                 textColor: 'text-yellow-700',
                 borderColor: 'border-yellow-200'
             },
             'CLOSED': {
-                label: 'Đã Đóng',
+                label: t('statusBadge.closed', 'Đã Đóng'),
                 color: 'from-gray-400 to-gray-600',
                 bgColor: 'bg-gray-50',
                 textColor: 'text-gray-700',

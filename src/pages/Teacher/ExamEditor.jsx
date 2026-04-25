@@ -156,7 +156,7 @@ const ExamEditor = () => {
 
         setTitleExists(response.exists);
         if (response.exists) {
-          setTitleErrorMessage(response.message || 'Tiêu đề bài kiểm tra đã tồn tại!');
+          setTitleErrorMessage(response.message || t('exam.titleExists'));
         }
       } catch (err) {
         console.error('Failed to check title:', err);
@@ -192,7 +192,7 @@ const ExamEditor = () => {
 
         setCodeExists(response.exists);
         if (response.exists) {
-          setCodeErrorMessage(response.message || 'Mã bài kiểm tra đã tồn tại!');
+          setCodeErrorMessage(response.message || t('exam.codeExists'));
         }
       } catch (err) {
         console.error('Failed to check code:', err);
@@ -260,12 +260,12 @@ const ExamEditor = () => {
       if (response.approvalStatus === 'APPROVED' || response.published) {
         await Swal.fire({
           icon: 'warning',
-          title: 'Không thể chỉnh sửa',
+          title: t('exam.cannotEdit'),
           text: response.published
-            ? 'Bài kiểm tra này đã xuất bản. Không thể chỉnh sửa.'
-            : 'Bài kiểm tra này đã được duyệt. Không thể chỉnh sửa bài thi đã được duyệt.',
+            ? t('exam.publishedCannotEdit')
+            : t('exam.approvedCannotEdit'),
           confirmButtonColor: '#ef4444',
-          footer: 'Vui lòng liên hệ Education Manager nếu cần thay đổi.'
+          footer: t('exam.contactManager')
         });
 
         // Navigate back to exam management
@@ -353,15 +353,15 @@ const ExamEditor = () => {
       setError('');
     } catch (err) {
       console.error('Failed to load exam:', err);
-      const errorMessage = err.response?.data?.message || err.message || 'Lỗi khi tải thông tin bài kiểm tra.';
+      const errorMessage = err.response?.data?.message || err.message || t('exam.loadError');
 
       // Show error alert instead of silent error
       await Swal.fire({
         icon: 'error',
-        title: 'Lỗi!',
-        text: errorMessage + (err.response?.status === 404 ? '\n\nBài kiểm tra không tồn tại hoặc bạn không có quyền truy cập.' : ''),
+        title: t('common.error'),
+        text: errorMessage + (err.response?.status === 404 ? '\n\n' + t('teacher.examEditor.examNotFoundOrNoPermission') : ''),
         confirmButtonColor: '#ef4444',
-        footer: '<a href="/teacher/exam-management" class="text-blue-600 underline">Về danh sách bài kiểm tra</a>'
+        footer: `<a href="/teacher/exam-management" class="text-blue-600 underline">${t('exam.backToExamList')}</a>`
       });
 
       setError(errorMessage);
@@ -502,17 +502,17 @@ const ExamEditor = () => {
     // For Class exams, check if class is selected
     if (formData.classId) {
       if (!selectedClassInfo) {
-        setError(t('exam.selectClassFirst', 'Vui lòng chọn lớp trước.'));
+        setError(t('exam.selectClassFirst'));
         return;
       }
       if (!formData.unit) {
-        setError(t('exam.selectUnitFirst', 'Vui lòng chọn Unit trước.'));
+        setError(t('exam.selectUnitFirst'));
         return;
       }
     } else {
       // For Course exams, check if course is selected
       if (!selectedCourseInfo) {
-        setError(t('exam.selectCourseFirst', 'Vui lòng chọn khóa học trước.'));
+        setError(t('exam.selectCourseFirst'));
         return;
       }
     }
@@ -603,8 +603,8 @@ const ExamEditor = () => {
         if (!formData.courseId && !formData.classId) {
           Swal.fire({
             icon: 'warning',
-            title: 'Thiếu thông tin',
-            text: 'Vui lòng chọn khóa học hoặc lớp học.',
+            title: t('teacher.examEditor.missingInfo'),
+            text: t('exam.selectCourseOrClass'),
             confirmButtonColor: '#3b82f6'
           });
           setSaving(false);
@@ -615,8 +615,8 @@ const ExamEditor = () => {
         if (!formData.title || formData.title.trim() === '') {
           Swal.fire({
             icon: 'warning',
-            title: 'Thiếu thông tin',
-            text: t('exam.titleRequired', 'Vui lòng nhập tên bài kiểm tra.'),
+            title: t('teacher.examEditor.missingInfo'),
+            text: t('exam.titleRequired'),
             confirmButtonColor: '#3b82f6'
           });
           setSaving(false);
@@ -627,8 +627,8 @@ const ExamEditor = () => {
         if (titleExists) {
           Swal.fire({
             icon: 'warning',
-            title: 'Tiêu đề bị trùng',
-            text: titleErrorMessage || 'Tiêu đề bài kiểm tra đã tồn tại. Vui lòng chọn tiêu đề khác.',
+            title: t('exam.titleDuplicate'),
+            text: titleErrorMessage || t('exam.titleDuplicateText'),
             confirmButtonColor: '#3b82f6'
           });
           setSaving(false);
@@ -639,8 +639,8 @@ const ExamEditor = () => {
         if (!formData.code || formData.code.trim() === '') {
           Swal.fire({
             icon: 'warning',
-            title: 'Thiếu thông tin',
-            text: 'Vui lòng nhập mã bài kiểm tra.',
+            title: t('teacher.examEditor.missingInfo'),
+            text: t('exam.codeRequired'),
             confirmButtonColor: '#3b82f6'
           });
           setSaving(false);
@@ -651,8 +651,8 @@ const ExamEditor = () => {
         if (codeExists) {
           Swal.fire({
             icon: 'warning',
-            title: 'Mã bài kiểm tra bị trùng',
-            text: codeErrorMessage || 'Mã bài kiểm tra đã tồn tại trong hệ thống. Vui lòng chọn mã khác.',
+            title: t('exam.codeDuplicate'),
+            text: codeErrorMessage || t('exam.codeDuplicateText'),
             confirmButtonColor: '#3b82f6'
           });
           setSaving(false);
@@ -663,8 +663,8 @@ const ExamEditor = () => {
         if (!formData.duration || formData.duration <= 0) {
           Swal.fire({
             icon: 'warning',
-            title: 'Thiếu thông tin',
-            text: t('exam.durationRequired', 'Vui lòng nhập thời gian làm bài (phút).'),
+            title: t('teacher.examEditor.missingInfo'),
+            text: t('exam.durationRequired'),
             confirmButtonColor: '#3b82f6'
           });
           setSaving(false);
@@ -675,8 +675,8 @@ const ExamEditor = () => {
         if (!formData.passingScore || formData.passingScore <= 0 || formData.passingScore > 100) {
           Swal.fire({
             icon: 'warning',
-            title: 'Thiếu thông tin',
-            text: t('exam.passingScoreRequired', 'Vui lòng nhập điểm đạt (0-100).'),
+            title: t('teacher.examEditor.missingInfo'),
+            text: t('exam.passingScoreRequired'),
             confirmButtonColor: '#3b82f6'
           });
           setSaving(false);
@@ -687,8 +687,8 @@ const ExamEditor = () => {
         if (!formData.examType) {
           Swal.fire({
             icon: 'warning',
-            title: 'Thiếu thông tin',
-            text: t('exam.examTypeRequired', 'Vui lòng chọn hình thức bài thi.'),
+            title: t('teacher.examEditor.missingInfo'),
+            text: t('exam.examTypeRequired'),
             confirmButtonColor: '#3b82f6'
           });
           setSaving(false);
@@ -699,8 +699,8 @@ const ExamEditor = () => {
         if (!formData.examCategory) {
           Swal.fire({
             icon: 'warning',
-            title: 'Thiếu thông tin',
-            text: t('exam.examCategoryRequired', 'Vui lòng chọn loại đề thi.'),
+            title: t('teacher.examEditor.missingInfo'),
+            text: t('exam.examCategoryRequired'),
             confirmButtonColor: '#3b82f6'
           });
           setSaving(false);
@@ -711,8 +711,8 @@ const ExamEditor = () => {
         if (!questions || questions.length === 0) {
           Swal.fire({
             icon: 'warning',
-            title: 'Thiếu câu hỏi',
-            text: t('exam.questionsRequired', 'Vui lòng thêm ít nhất một câu hỏi vào bài kiểm tra.'),
+            title: t('teacher.examEditor.missingQuestions'),
+            text: t('exam.questionsRequired'),
             confirmButtonColor: '#3b82f6'
           });
           setSaving(false);
@@ -755,10 +755,10 @@ const ExamEditor = () => {
         // Show success alert
         await Swal.fire({
           icon: 'success',
-          title: 'Thành công!',
+          title: t('teacher.examEditor.success'),
           text: classId
-            ? 'Đã tạo bài kiểm tra cho lớp học thành công!'
-            : t('exam.createSuccess', 'Đã tạo bài kiểm tra thành công! Đang chờ Education Manager duyệt.'),
+            ? t('exam.createClassSuccess')
+            : t('exam.createSuccess'),
           confirmButtonColor: '#10b981'
         });
 
@@ -770,8 +770,8 @@ const ExamEditor = () => {
         if (!formData.title || formData.title.trim() === '') {
           Swal.fire({
             icon: 'warning',
-            title: 'Thiếu thông tin',
-            text: t('exam.titleRequired', 'Vui lòng nhập tên bài kiểm tra.'),
+            title: t('teacher.examEditor.missingInfo'),
+            text: t('exam.titleRequired'),
             confirmButtonColor: '#3b82f6'
           });
           setSaving(false);
@@ -781,8 +781,8 @@ const ExamEditor = () => {
         if (!formData.duration || formData.duration <= 0) {
           Swal.fire({
             icon: 'warning',
-            title: 'Thiếu thông tin',
-            text: t('exam.durationRequired', 'Vui lòng nhập thời gian làm bài (phút).'),
+            title: t('teacher.examEditor.missingInfo'),
+            text: t('exam.durationRequired'),
             confirmButtonColor: '#3b82f6'
           });
           setSaving(false);
@@ -792,8 +792,8 @@ const ExamEditor = () => {
         if (!formData.passingScore || formData.passingScore <= 0 || formData.passingScore > 100) {
           Swal.fire({
             icon: 'warning',
-            title: 'Thiếu thông tin',
-            text: t('exam.passingScoreRequired', 'Vui lòng nhập điểm đạt (0-100).'),
+            title: t('teacher.examEditor.missingInfo'),
+            text: t('exam.passingScoreRequired'),
             confirmButtonColor: '#3b82f6'
           });
           setSaving(false);
@@ -804,17 +804,17 @@ const ExamEditor = () => {
         if (exam?.approvalStatus === 'APPROVED') {
           const { value: confirm } = await Swal.fire({
             icon: 'warning',
-            title: 'Cảnh báo: Bài thi đã được duyệt!',
-            text: 'Bài thi này đã được Education Manager duyệt. Nếu bạn chỉnh sửa, bài thi sẽ được chuyển về trạng thái "Chờ duyệt" và cần gửi lại cho Education Manager phê duyệt trước khi công bố.',
+            title: t('exam.approvedWarning'),
+            text: t('exam.approvedWarningText'),
             input: 'checkbox',
-            inputPlaceholder: 'Tôi hiểu và muốn tiếp tục chỉnh sửa',
-            confirmButtonText: 'Tiếp tục chỉnh sửa',
+            inputPlaceholder: t('exam.understandCheckbox'),
+            confirmButtonText: t('exam.continueEditing'),
             confirmButtonColor: '#ef4444',
-            cancelButtonText: 'Hủy',
+            cancelButtonText: t('common.cancel'),
             showCancelButton: true,
             inputValidator: (result) => {
               if (!result) {
-                return 'Bạn cần tick vào checkbox để xác nhận!';
+                return t('exam.confirmCheckbox');
               }
             }
           });
@@ -838,10 +838,10 @@ const ExamEditor = () => {
         const wasApproved = exam?.approvalStatus === 'APPROVED';
         await Swal.fire({
           icon: 'success',
-          title: 'Thành công!',
+          title: t('teacher.examEditor.success'),
           text: wasApproved
-            ? 'Đã lưu bài kiểm tra! Bài thi đã được chuyển về trạng thái "Chờ duyệt" và gửi lại cho Education Manager phê duyệt.'
-            : t('exam.saveSuccess', 'Đã lưu bài kiểm tra thành công!'),
+            ? t('exam.savedReverted')
+            : t('exam.saveSuccess'),
           confirmButtonColor: '#10b981'
         });
 
@@ -859,8 +859,8 @@ const ExamEditor = () => {
       // Show error alert
       await Swal.fire({
         icon: 'error',
-        title: 'Lỗi!',
-        text: err.response?.data?.message || t('exam.saveError', 'Lỗi khi lưu bài kiểm tra.'),
+        title: t('teacher.examEditor.error'),
+        text: err.response?.data?.message || t('exam.saveError'),
         confirmButtonColor: '#ef4444'
       });
 
@@ -902,14 +902,14 @@ const ExamEditor = () => {
 
       setShowStructureBuilder(false);
       setAutoGenerateMode(false);
-      setSuccess(`Đã tạo đề thi tự động theo cấu trúc ${blueprint.topikLevel}! (${questionsWithOrder.length} câu hỏi)`);
+      setSuccess(t('exam.autoGenerateSuccess', { level: blueprint.topikLevel, count: questionsWithOrder.length }));
       setError('');
 
       // Switch to questions tab
       setActiveTab('questions');
     } catch (err) {
       console.error('Error generating exam:', err);
-      setError('Không thể tạo đề thi tự động: ' + (err.response?.data?.message || err.message));
+      setError(t('exam.autoGenerateError') + ': ' + (err.response?.data?.message || err.message));
     }
   };
 
@@ -925,7 +925,7 @@ const ExamEditor = () => {
     });
 
     setQuestions(newQuestions);
-    setSuccess(`Đã đổi ${replacements.length} câu hỏi thành công!`);
+    setSuccess(t('exam.replaceSuccess', { count: replacements.length }));
     setError('');
   };
 
@@ -936,13 +936,13 @@ const ExamEditor = () => {
       const validation = validateExamBeforePublish(formData, questions);
 
       if (!validation.valid) {
-        setError('Không thể publish đề thi:\n' + validation.errors.join('\n'));
+        setError(t('exam.cannotPublish') + '\n' + validation.errors.join('\n'));
         return;
       }
 
       if (validation.warnings.length > 0) {
         const confirmed = window.confirm(
-          'Cảnh báo:\n' + validation.warnings.join('\n') + '\n\nBạn có chắc muốn publish?'
+          t('exam.publishWarning') + '\n' + validation.warnings.join('\n') + '\n\n' + t('exam.confirmPublishQuestion')
         );
         if (!confirmed) return;
       }
@@ -966,7 +966,7 @@ const ExamEditor = () => {
   // Check if exam can be edited
   const checkCanEdit = () => {
     if (exam && exam.published) {
-      setError('Đề thi đã published. Không thể chỉnh sửa. Vui lòng unpublish trước.');
+      setError(t('exam.publishedCannotEditError'));
       return false;
     }
     return true;
@@ -977,11 +977,11 @@ const ExamEditor = () => {
   // Get question type badge
   const getQuestionTypeBadge = (type) => {
     const typeConfig = {
-      MULTIPLE_CHOICE: { variant: 'success', label: t('exam.type.multipleChoice', 'Trắc nghiệm') },
-      WRITING: { variant: 'info', label: t('exam.type.writing', 'Viết') },
-      LISTENING: { variant: 'warning', label: t('exam.type.listening', 'Nghe') },
-      READING: { variant: 'purple', label: t('exam.type.reading', 'Đọc hiểu') },
-      MIXED: { variant: 'primary', label: t('exam.type.mixed', 'Hỗn hợp') }
+      MULTIPLE_CHOICE: { variant: 'success', label: t('exam.type.multipleChoice') },
+      WRITING: { variant: 'info', label: t('exam.type.writing') },
+      LISTENING: { variant: 'warning', label: t('exam.type.listening') },
+      READING: { variant: 'purple', label: t('exam.type.reading') },
+      MIXED: { variant: 'primary', label: t('exam.type.mixed') }
     };
     
     const config = typeConfig[type] || typeConfig.MIXED;
@@ -991,9 +991,9 @@ const ExamEditor = () => {
   // Get difficulty badge
   const getDifficultyBadge = (difficulty) => {
     const difficultyConfig = {
-      EASY: { variant: 'success', label: t('exam.difficulty.easy', 'Dễ') },
-      MEDIUM: { variant: 'warning', label: t('exam.difficulty.medium', 'Trung bình') },
-      HARD: { variant: 'error', label: t('exam.difficulty.hard', 'Khó') }
+      EASY: { variant: 'success', label: t('exam.difficulty.easy') },
+      MEDIUM: { variant: 'warning', label: t('exam.difficulty.medium') },
+      HARD: { variant: 'error', label: t('exam.difficulty.hard') }
     };
     
     const config = difficultyConfig[difficulty] || difficultyConfig.MEDIUM;
@@ -1025,11 +1025,11 @@ const ExamEditor = () => {
                   <ArrowLeft className="w-5 h-5 text-gray-600" />
                 </button>
                 <h1 className="text-2xl font-bold text-gray-900">
-                  {isCreateMode ? t('exam.create', 'Tạo Bài Kiểm Tra Mới') : t('exam.edit', 'Chỉnh Sửa Bài Kiểm Tra')}
+                  {isCreateMode ? t('exam.create') : t('exam.edit')}
                 </h1>
               </div>
               <p className="text-sm text-gray-500 ml-10">
-                {exam?.code || t('exam.createSubtitle', 'Tạo bài kiểm tra mới cho khóa học')}
+                {exam?.code || t('exam.createSubtitle')}
               </p>
             </div>
             <div className="flex items-center gap-3">
@@ -1039,7 +1039,7 @@ const ExamEditor = () => {
                 <div className={`w-3 h-3 rounded-full ${formData.courseId || formData.classId ? 'bg-green-500' : 'bg-gray-300'}`}></div>
                 <div className={`w-3 h-3 rounded-full ${questions.length > 0 ? 'bg-green-500' : 'bg-gray-300'}`}></div>
                 <span className="text-xs text-gray-600 ml-2">
-                  {questions.length > 0 ? 'Hoàn thành' : 'Đang tạo'}
+                  {questions.length > 0 ? t('exam.complete') : t('exam.creating')}
                 </span>
               </div>
               <Button
@@ -1050,19 +1050,19 @@ const ExamEditor = () => {
                 className="shadow-lg"
                 title={
                   titleExists
-                    ? 'Tiêu đề bị trùng'
+                    ? t('exam.titleDuplicate')
                     : codeExists
-                    ? 'Mã bài kiểm tra bị trùng'
+                    ? t('exam.codeDuplicate')
                     : ''
                 }
               >
                 {saving ? (
                   <>
                     <Loading.Spinner size="sm" />
-                    {t('exam.saving', 'Đang lưu...')}
+                    {t('exam.saving')}
                   </>
                 ) : (
-                  t('exam.save', 'Lưu')
+                  t('exam.save')
                 )}
               </Button>
             </div>
@@ -1155,7 +1155,7 @@ const ExamEditor = () => {
                 <div>
                   <div className="flex items-center gap-2 mb-6">
                     <div className="w-1 h-6 bg-gradient-to-b from-blue-500 to-blue-600 rounded-full"></div>
-                    <h3 className="text-lg font-semibold text-gray-900">Thông tin cơ bản</h3>
+                    <h3 className="text-lg font-semibold text-gray-900">{t('exam.basicInfo')}</h3>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1180,17 +1180,17 @@ const ExamEditor = () => {
                           {titleChecking ? (
                             <div className="flex items-center gap-2 text-gray-500">
                               <Loader2 className="w-4 h-4 animate-spin" />
-                              <span>Đang kiểm tra...</span>
+                              <span>{t('teacher.examEditor.checking')}</span>
                             </div>
                           ) : titleExists ? (
                             <div className="flex items-center gap-2 text-red-600">
                               <AlertCircle className="w-4 h-4" />
-                              <span>{titleErrorMessage || 'Tiêu đề đã tồn tại!'}</span>
+                              <span>{titleErrorMessage || t('exam.titleExistsShort')}</span>
                             </div>
                           ) : (
                             <div className="flex items-center gap-2 text-green-600">
                               <CheckCircle2 className="w-4 h-4" />
-                              <span>Tiêu đề có thể sử dụng</span>
+                              <span>{t('teacher.examEditor.titleAvailable')}</span>
                             </div>
                           )}
                         </div>
@@ -1218,17 +1218,17 @@ const ExamEditor = () => {
                           {codeChecking ? (
                             <div className="flex items-center gap-2 text-gray-500">
                               <Loader2 className="w-4 h-4 animate-spin" />
-                              <span>Đang kiểm tra...</span>
+                              <span>{t('teacher.examEditor.checking')}</span>
                             </div>
                           ) : codeExists ? (
                             <div className="flex items-center gap-2 text-red-600">
                               <AlertCircle className="w-4 h-4" />
-                              <span>{codeErrorMessage || 'Mã bài kiểm tra đã tồn tại!'}</span>
+                              <span>{codeErrorMessage || t('exam.codeExistsShort')}</span>
                             </div>
                           ) : (
                             <div className="flex items-center gap-2 text-green-600">
                               <CheckCircle2 className="w-4 h-4" />
-                              <span>Mã có thể sử dụng</span>
+                              <span>{t('teacher.examEditor.codeAvailable')}</span>
                             </div>
                           )}
                         </div>
@@ -1257,7 +1257,7 @@ const ExamEditor = () => {
                         {courses.length === 0 && (
                           <p className="mt-1 text-sm text-amber-600 flex items-center gap-1">
                             <AlertCircle className="w-4 h-4" />
-                            {t('exam.noCoursesAssigned', 'Bạn chưa được assigned vào khóa học nào.')}
+                            {t('exam.noCoursesAssigned')}
                           </p>
                         )}
                       </div>
@@ -1268,7 +1268,7 @@ const ExamEditor = () => {
                       <div>
                         <label className="block text-sm font-semibold text-gray-700 mb-2">
                           {t('exam.course', 'Khóa học')}
-                          {!isCreateMode && <span className="ml-2 text-xs text-gray-500">(Không thể thay đổi)</span>}
+                          {!isCreateMode && <span className="ml-2 text-xs text-gray-500">({t('teacher.examEditor.cannotChange')})</span>}
                         </label>
                         <div className="w-full px-4 py-3 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg text-gray-700">
                           <div className="font-semibold text-blue-900">{selectedCourseInfo.name}</div>
@@ -1283,7 +1283,7 @@ const ExamEditor = () => {
                       <div className="md:col-span-2">
                         <label className="block text-sm font-semibold text-gray-700 mb-2">
                           {t('exam.class', 'Lớp học')}
-                          {!isCreateMode && <span className="ml-2 text-xs text-gray-500">(Không thể thay đổi - Bài thi này thuộc về lớp này)</span>}
+                          {!isCreateMode && <span className="ml-2 text-xs text-gray-500">({t('teacher.examEditor.cannotChangeBelongsToClass')})</span>}
                         </label>
                         <div className="w-full px-4 py-3 bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg text-gray-700">
                           <div className="font-semibold text-purple-900">{selectedClassInfo.className}</div>
@@ -1313,7 +1313,7 @@ const ExamEditor = () => {
                 <div>
                   <div className="flex items-center gap-2 mb-6">
                     <div className="w-1 h-6 bg-gradient-to-b from-purple-500 to-purple-600 rounded-full"></div>
-                    <h3 className="text-lg font-semibold text-gray-900">Cấu hình bài thi</h3>
+                    <h3 className="text-lg font-semibold text-gray-900">{t('exam.examConfig')}</h3>
                   </div>
 
                   {/* Exam Type & Category in one row */}
@@ -1357,10 +1357,10 @@ const ExamEditor = () => {
                               <div className={`font-semibold text-sm mb-1 ${
                                 formData.examCategory === 'PRACTICE' ? 'text-blue-700' : 'text-gray-700'
                               }`}>
-                                Bài luyện tập
+                                {t('exam.practiceExam')}
                               </div>
                               <div className="text-xs text-gray-500">
-                                Cho học viên trong khóa
+                                {t('exam.practiceExamDesc')}
                               </div>
                             </div>
                           </button>
@@ -1382,7 +1382,7 @@ const ExamEditor = () => {
                                 Mock Test
                               </div>
                               <div className="text-xs text-gray-500">
-                                Cho Guest/FreeTest
+                                {t('teacher.examEditor.mockTestDesc')}
                               </div>
                             </div>
                           </button>
@@ -1390,8 +1390,8 @@ const ExamEditor = () => {
                         <p className="mt-2 text-xs text-gray-500 flex items-center gap-1">
                           <CheckCircle2 className="w-3 h-3" />
                           {formData.examCategory === 'MOCK'
-                            ? 'Bài Mock sẽ hiển thị cho khách (Guest) trong trang FreeTest'
-                            : 'Bài luyện tập chỉ hiển thị cho học viên đã đăng ký khóa học'}
+                            ? t('teacher.examEditor.mockTestNote')
+                            : t('teacher.examEditor.practiceExamNote')}
                         </p>
                       </div>
                     )}
@@ -1401,11 +1401,11 @@ const ExamEditor = () => {
                       <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
                         <div className="flex items-center gap-2 mb-2">
                           <BookOpen className="w-5 h-5 text-blue-600" />
-                          <span className="font-semibold text-blue-900">Bài kiểm tra cho lớp học</span>
+                          <span className="font-semibold text-blue-900">{t('teacher.examEditor.examForClass')}</span>
                         </div>
                         <p className="text-sm text-blue-700">
-                          Bài kiểm tra này sẽ được gán cho lớp học và chỉ hiển thị cho học viên trong lớp.
-                          Loại bài thi: <strong>Bài luyện tập (PRACTICE)</strong>
+                          {t('teacher.examEditor.examForClassDesc')}
+                        </p>
                         </p>
                       </div>
                     )}
@@ -1416,7 +1416,7 @@ const ExamEditor = () => {
                     <div className="mt-8 p-6 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl border-2 border-indigo-100">
                       <div className="flex items-center gap-2 mb-4">
                         <Wand2 className="w-5 h-5 text-indigo-600" />
-                        <h4 className="font-bold text-gray-900">Chọn chế độ tạo đề thi</h4>
+                        <h4 className="font-bold text-gray-900">{t('teacher.examEditor.selectExamMode')}</h4>
                       </div>
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1443,15 +1443,15 @@ const ExamEditor = () => {
                             </div>
                             <div className="flex-1">
                               <div className={`font-bold mb-1 ${!autoGenerateMode ? 'text-indigo-700' : 'text-gray-700'}`}>
-                                ✋ Tự chọn câu hỏi
+                                {t('teacher.examEditor.manualMode')}
                               </div>
                               <div className="text-sm text-gray-600">
-                                Tự động chọn từng câu hỏi từ Question Bank theo ý muốn
+                                {t('teacher.examEditor.manualModeDesc')}
                               </div>
                               {!autoGenerateMode && (
                                 <div className="mt-2 flex items-center gap-1 text-xs text-indigo-600 font-semibold">
                                   <CheckCircle2 className="w-3 h-3" />
-                                  Đang chọn
+                                  {t('teacher.examEditor.selected')}
                                 </div>
                               )}
                             </div>
@@ -1481,15 +1481,15 @@ const ExamEditor = () => {
                             </div>
                             <div className="flex-1">
                               <div className={`font-bold mb-1 ${autoGenerateMode ? 'text-purple-700' : 'text-gray-700'}`}>
-                                ✨ Tạo tự động
+                                {t('teacher.examEditor.autoMode')}
                               </div>
                               <div className="text-sm text-gray-600">
-                                Random câu hỏi theo cấu trúc TOPIK tự động
+                                {t('teacher.examEditor.autoModeDesc')}
                               </div>
                               {autoGenerateMode && (
                                 <div className="mt-2 flex items-center gap-1 text-xs text-purple-600 font-semibold">
                                   <CheckCircle2 className="w-3 h-3" />
-                                  Đang chọn
+                                  {t('teacher.examEditor.selected')}
                                 </div>
                               )}
                             </div>
@@ -1517,7 +1517,7 @@ const ExamEditor = () => {
                 <div>
                   <div className="flex items-center gap-2 mb-6">
                     <div className="w-1 h-6 bg-gradient-to-b from-green-500 to-green-600 rounded-full"></div>
-                    <h3 className="text-lg font-semibold text-gray-900">Cài đặt bài thi</h3>
+                    <h3 className="text-lg font-semibold text-gray-900">{t('exam.examSettings')}</h3>
                   </div>
 
                   {/* Duration, Passing Score, Max Attempts */}
@@ -1563,7 +1563,7 @@ const ExamEditor = () => {
                         <label className="block text-sm font-semibold text-gray-700 mb-2">
                           <div className="flex items-center gap-2">
                             <BookOpen className="w-4 h-4 text-purple-500" />
-                            Unit (1-12)
+                            {t('teacher.examEditor.unit')}
                           </div>
                         </label>
                         <select
@@ -1598,7 +1598,7 @@ const ExamEditor = () => {
                     disabled={(!selectedCourseInfo && !selectedClassInfo) || exam?.published}
                   >
                     {t('exam.selectFromQuestionBank', 'Chọn từ Ngân Hàng Câu Hỏi')}
-                    {!selectedCourseInfo && !selectedClassInfo && ` (${t('exam.selectCourseOrClassFirst', 'Chọn khóa học hoặc lớp học trước')})`}
+                    {!selectedCourseInfo && !selectedClassInfo && ` (${t('exam.selectCourseOrClassFirst')})`}
                   </Button>
 
                   {/* NEW: Replace Questions Buttons */}
@@ -1606,14 +1606,14 @@ const ExamEditor = () => {
                     <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200">
                       <div className="flex items-center justify-between mb-3">
                         <div>
-                          <h4 className="font-semibold text-gray-900">🔄 Đổi câu hỏi</h4>
+                          <h4 className="font-semibold text-gray-900">{t('teacher.examEditor.replaceQuestions')}</h4>
                           <p className="text-xs text-gray-600">
-                            Chọn câu hỏi để thay thế bằng câu hỏi khác từ Question Bank
+                            {t('teacher.examEditor.replaceQuestionsDesc')}
                           </p>
                         </div>
                         {selectedQuestions.size > 0 && (
                           <span className="text-sm font-medium text-indigo-600">
-                            {selectedQuestions.size} đã chọn
+                            {t('teacher.examEditor.selectedCount', { count: selectedQuestions.size })}
                           </span>
                         )}
                       </div>
@@ -1625,7 +1625,7 @@ const ExamEditor = () => {
                               setSelectedQuestionIndices(Array.from(selectedQuestions));
                               setShowReplaceModal(true);
                             } else {
-                              setError('Vui lòng chọn ít nhất 1 câu hỏi để đổi');
+                              setError(t('teacher.examEditor.selectAtLeastOne'));
                             }
                           }}
                           disabled={selectedQuestions.size === 0}
@@ -1635,7 +1635,7 @@ const ExamEditor = () => {
                               : 'bg-gray-200 text-gray-500 cursor-not-allowed'
                           }`}
                         >
-                          Đổi câu đã chọn
+                          {t('teacher.examEditor.replaceSelected')}
                         </button>
 
                         <button
@@ -1645,7 +1645,7 @@ const ExamEditor = () => {
                           }}
                           className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-all"
                         >
-                          Đổi tất cả
+                          {t('teacher.examEditor.replaceAll')}
                         </button>
 
                         {selectedQuestions.size > 0 && (
@@ -1653,7 +1653,7 @@ const ExamEditor = () => {
                             onClick={() => setSelectedQuestions(new Set())}
                             className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-300 transition-all"
                           >
-                            Bỏ chọn
+                            {t('teacher.examEditor.deselect')}
                           </button>
                         )}
                       </div>
@@ -1706,14 +1706,14 @@ const ExamEditor = () => {
                               {getDifficultyBadge(question.difficulty)}
                               {question.verificationStatus === 'APPROVED' && (
                                 <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700 font-medium">
-                                  ✓ Đã duyệt
+                                  ✓ {t('teacher.examEditor.approved')}
                                 </span>
                               )}
                             </div>
                             <div className="text-sm text-gray-900 line-clamp-2" dangerouslySetInnerHTML={{ __html: question.content }} />
                             {question.imageUrl && (
                                 <div className="mt-1 text-xs text-blue-500 font-medium flex items-center gap-1">
-                                    🖼️ Có hình ảnh đính kèm
+                                    🖼️ {t('teacher.examEditor.hasImage')}
                                 </div>
                             )}
                           </div>
@@ -1753,9 +1753,9 @@ const ExamEditor = () => {
                   {questions.length === 0 && (
                     <div className="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
                       <FileText className="w-16 h-16 text-gray-300 mx-auto mb-3" />
-                      <p className="text-gray-500">Chưa có câu hỏi nào</p>
+                      <p className="text-gray-500">{t('teacher.examEditor.noQuestions')}</p>
                       <p className="text-sm text-gray-400 mt-1">
-                        Thêm câu hỏi mới hoặc chọn từ Question Bank
+                        {t('teacher.examEditor.noQuestionsDesc')}
                       </p>
                     </div>
                   )}
@@ -1773,7 +1773,7 @@ const ExamEditor = () => {
               <div className="p-6 space-y-4">
                 <div className="flex items-center gap-2 mb-4">
                   <BarChart className="w-5 h-5" />
-                  <h3 className="font-bold text-lg">Thống kê nhanh</h3>
+                  <h3 className="font-bold text-lg">{t('teacher.examEditor.quickStats')}</h3>
                 </div>
 
                 <div className="space-y-4">
@@ -1781,15 +1781,15 @@ const ExamEditor = () => {
                   <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-blue-100 text-sm">Số câu hỏi</p>
+                        <p className="text-blue-100 text-sm">{t('teacher.examEditor.questionCount')}</p>
                         <p className="text-3xl font-bold">{questions.length}</p>
                       </div>
                       <FileText className="w-10 h-10 text-white/30" />
                     </div>
                     {questions.length > 0 && (
                       <div className="mt-2 text-xs text-blue-100">
-                        {questions.filter(q => q.type === 'MULTIPLE_CHOICE').length} Trắc nghiệm,
-                        {' '}{questions.filter(q => q.type === 'WRITING').length} Tự luận
+                        {questions.filter(q => q.type === 'MULTIPLE_CHOICE').length} {t('teacher.examEditor.multipleChoice')},
+                        {' '}{questions.filter(q => q.type === 'WRITING').length} {t('teacher.examEditor.writing')}
                       </div>
                     )}
                   </div>
@@ -1798,19 +1798,19 @@ const ExamEditor = () => {
                   <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-blue-100 text-sm">Thời lượng</p>
+                        <p className="text-blue-100 text-sm">{t('teacher.examEditor.durationLabel')}</p>
                         <p className="text-3xl font-bold">{formData.duration}</p>
                       </div>
                       <Clock className="w-10 h-10 text-white/30" />
                     </div>
-                    <p className="mt-2 text-xs text-blue-100">phút</p>
+                    <p className="mt-2 text-xs text-blue-100">{t('teacher.examEditor.minutes')}</p>
                   </div>
 
                   {/* Total Points */}
                   <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-blue-100 text-sm">Điểm đạt</p>
+                        <p className="text-blue-100 text-sm">{t('teacher.examEditor.passingScoreLabel')}</p>
                         <p className="text-3xl font-bold">{formData.passingScore}%</p>
                       </div>
                       <CheckCircle2 className="w-10 h-10 text-white/30" />
@@ -1824,7 +1824,7 @@ const ExamEditor = () => {
                     ? 'bg-purple-500 text-white'
                     : 'bg-green-500 text-white'
                 }`}>
-                  {formData.examCategory === 'MOCK' ? '🎯 Mock Test' : '📚 Bài Luyện Tập'}
+                  {formData.examCategory === 'MOCK' ? '🎯 Mock Test' : `📚 ${t('teacher.examEditor.practiceExamLabel')}`}
                 </div>
               </div>
             </Card>
@@ -1832,20 +1832,20 @@ const ExamEditor = () => {
             {/* Exam Type Badge */}
             <Card className="shadow-md border-0">
               <div className="p-6">
-                <h4 className="text-sm font-semibold text-gray-700 mb-3">Hình thức thi</h4>
+                <h4 className="text-sm font-semibold text-gray-700 mb-3">{t('teacher.examEditor.examTypeLabel')}</h4>
                 <div className="flex flex-wrap gap-2">
                   {getQuestionTypeBadge(formData.examType)}
                 </div>
                 <div className="mt-4 pt-4 border-t border-gray-100">
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600">Trạng thái</span>
+                    <span className="text-gray-600">{t('teacher.examEditor.status')}</span>
                     {formData.published ? (
                       <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold">
-                        ✅ Đã đăng
+                        ✅ {t('teacher.examEditor.published')}
                       </span>
                     ) : (
                       <span className="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-semibold">
-                        ⏳ Nháp
+                        ⏳ {t('teacher.examEditor.draft')}
                       </span>
                     )}
                   </div>
@@ -1858,20 +1858,20 @@ const ExamEditor = () => {
               <div className="p-6">
                 <h4 className="font-semibold text-amber-900 mb-3 flex items-center gap-2">
                   <Lightbulb className="w-5 h-5" />
-                  Mẹo nhanh
+                  {t('teacher.examEditor.quickTips')}
                 </h4>
                 <ul className="space-y-2 text-sm text-amber-800">
                   <li className="flex items-start gap-2">
                     <span className="text-amber-600 mt-0.5">•</span>
-                    <span>Chọn "Tạo tự động" để random theo cấu trúc TOPIK</span>
+                    <span>{t('teacher.examEditor.tip1')}</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-amber-600 mt-0.5">•</span>
-                    <span>Bài Mock hiển thị cho Guest, Practice cho Student</span>
+                    <span>{t('teacher.examEditor.tip2')}</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-amber-600 mt-0.5">•</span>
-                    <span>Published exam không thể chỉnh sửa</span>
+                    <span>{t('teacher.examEditor.tip3')}</span>
                   </li>
                 </ul>
               </div>

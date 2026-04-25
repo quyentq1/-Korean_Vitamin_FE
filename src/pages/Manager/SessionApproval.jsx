@@ -48,11 +48,11 @@ const SessionApproval = () => {
     const handleApprove = async (sessionId) => {
         const result = await Swal.fire({
             icon: 'question',
-            title: 'Xác nhận duyệt',
-            text: t('manager.sessions.confirmApprove') || 'Bạn có chắc chắn muốn duyệt yêu cầu này?',
+            title: t('manager.sessions.confirmApproveTitle'),
+            text: t('manager.sessions.confirmApproveText'),
             showCancelButton: true,
-            confirmButtonText: 'Duyệt',
-            cancelButtonText: 'Hủy',
+            confirmButtonText: t('common.approve'),
+            cancelButtonText: t('common.cancel'),
             confirmButtonColor: '#22c55e',
             cancelButtonColor: '#6b7280',
             reverseButtons: true
@@ -68,9 +68,9 @@ const SessionApproval = () => {
             fetchRequests();
             Swal.fire({
                 icon: 'success',
-                title: 'Đã duyệt',
-                text: 'Yêu cầu đã được duyệt thành công.',
-                confirmButtonText: 'Đồng ý',
+                title: t('manager.sessions.approvedTitle'),
+                text: t('manager.sessions.approvedText'),
+                confirmButtonText: t('common.ok'),
                 confirmButtonColor: '#22c55e',
                 timer: 2000
             });
@@ -78,9 +78,9 @@ const SessionApproval = () => {
             console.error('Error approving reschedule:', error);
             Swal.fire({
                 icon: 'error',
-                title: 'Lỗi',
-                text: 'Không thể duyệt yêu cầu.',
-                confirmButtonText: 'Đồng ý',
+                title: t('common.error'),
+                text: t('manager.sessions.approveErrorText'),
+                confirmButtonText: t('common.ok'),
                 confirmButtonColor: '#ef4444'
             });
         } finally {
@@ -91,19 +91,19 @@ const SessionApproval = () => {
     const handleReject = async (sessionId) => {
         const { value: reason } = await Swal.fire({
             icon: 'question',
-            title: 'Từ chối yêu cầu',
-            text: t('manager.sessions.rejectReason') || 'Vui lòng nhập lý do từ chối',
+            title: t('manager.sessions.rejectTitle'),
+            text: t('manager.sessions.rejectText'),
             input: 'text',
-            inputPlaceholder: 'Nhập lý do...',
+            inputPlaceholder: t('manager.sessions.rejectPlaceholder'),
             showCancelButton: true,
-            confirmButtonText: 'Từ chối',
-            cancelButtonText: 'Bỏ qua',
+            confirmButtonText: t('common.reject'),
+            cancelButtonText: t('common.skip'),
             confirmButtonColor: '#ef4444',
             cancelButtonColor: '#6b7280',
             reverseButtons: true,
             inputValidator: (value) => {
                 if (!value || value.trim() === '') {
-                    return 'Vui lòng nhập lý do!'
+                    return t('manager.sessions.rejectReasonRequired');
                 }
                 return true
             }
@@ -119,9 +119,9 @@ const SessionApproval = () => {
             fetchRequests();
             Swal.fire({
                 icon: 'success',
-                title: 'Đã từ chối',
-                text: 'Yêu cầu đã bị từ chối.',
-                confirmButtonText: 'Đồng ý',
+                title: t('manager.sessions.rejectedTitle'),
+                text: t('manager.sessions.rejectedText'),
+                confirmButtonText: t('common.ok'),
                 confirmButtonColor: '#22c55e',
                 timer: 2000
             });
@@ -129,9 +129,9 @@ const SessionApproval = () => {
             console.error('Error rejecting reschedule:', error);
             Swal.fire({
                 icon: 'error',
-                title: 'Lỗi',
-                text: 'Không thể từ chối yêu cầu.',
-                confirmButtonText: 'Đồng ý',
+                title: t('common.error'),
+                text: t('manager.sessions.rejectErrorText'),
+                confirmButtonText: t('common.ok'),
                 confirmButtonColor: '#ef4444'
             });
         } finally {
@@ -243,7 +243,7 @@ const SessionApproval = () => {
                                                 <div className="flex items-center gap-1">
                                                     <User className="w-4 h-4" />
                                                     <span className="font-medium">{request.class.className}</span>
-                                                    <span className="mx-1">•</span>
+                                                    <span className="mx-1">-</span>
                                                     <span>{request.class.classCode}</span>
                                                 </div>
                                             )}

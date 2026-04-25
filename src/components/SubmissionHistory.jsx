@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { CheckCircle, Clock, AlertCircle, Filter, Download, Eye } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import axiosClient from '../api/axiosClient';
 
 /**
@@ -14,6 +15,7 @@ import axiosClient from '../api/axiosClient';
  * - Compare multiple attempts
  */
 const SubmissionHistory = ({ userId, assignmentType = 'all' }) => {
+    const { t } = useTranslation();
     const [submissions, setSubmissions] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState({
@@ -61,10 +63,10 @@ const SubmissionHistory = ({ userId, assignmentType = 'all' }) => {
 
     const getStatusBadge = (status) => {
         const statusConfig = {
-            GRADED: { color: 'green', icon: CheckCircle, label: 'Đã chấm' },
-            PENDING: { color: 'yellow', icon: Clock, label: 'Chờ chấm' },
-            REVIEWED: { color: 'blue', icon: Eye, label: 'Đã xem' },
-            RETURNED: { color: 'orange', icon: AlertCircle, label: 'Cần làm lại' }
+            GRADED: { color: 'green', icon: CheckCircle, label: t('component.submissionHistory.statusGraded') },
+            PENDING: { color: 'yellow', icon: Clock, label: t('component.submissionHistory.statusPending') },
+            REVIEWED: { color: 'blue', icon: Eye, label: t('component.submissionHistory.statusReviewed') },
+            RETURNED: { color: 'orange', icon: AlertCircle, label: t('component.submissionHistory.statusReturned') }
         };
         const config = statusConfig[status] || { color: 'gray', icon: Clock, label: status };
         const Icon = config.icon;
@@ -78,9 +80,9 @@ const SubmissionHistory = ({ userId, assignmentType = 'all' }) => {
 
     const getTypeLabel = (type) => {
         const types = {
-            WRITING: 'Viết',
-            SPEAKING: 'Nói',
-            PROJECT: 'Dự án'
+            WRITING: t('component.submissionHistory.typeWriting'),
+            SPEAKING: t('component.submissionHistory.typeSpeaking'),
+            PROJECT: t('component.submissionHistory.typeProject')
         };
         return types[type] || type;
     };
@@ -124,7 +126,7 @@ const SubmissionHistory = ({ userId, assignmentType = 'all' }) => {
             {/* Header */}
             <div className="p-6 border-b border-gray-200">
                 <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-lg font-semibold text-gray-900">Lịch sử nộp bài</h2>
+                    <h2 className="text-lg font-semibold text-gray-900">{t('component.submissionHistory.title')}</h2>
                     <Filter className="w-5 h-5 text-gray-500" />
                 </div>
 
@@ -135,11 +137,11 @@ const SubmissionHistory = ({ userId, assignmentType = 'all' }) => {
                         onChange={(e) => setFilter({ ...filter, status: e.target.value })}
                         className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                     >
-                        <option value="all">Tất cả trạng thái</option>
-                        <option value="GRADED">Đã chấm</option>
-                        <option value="PENDING">Chờ chấm</option>
-                        <option value="REVIEWED">Đã xem</option>
-                        <option value="RETURNED">Cần làm lại</option>
+                        <option value="all">{t('component.submissionHistory.allStatuses')}</option>
+                        <option value="GRADED">{t('component.submissionHistory.statusGraded')}</option>
+                        <option value="PENDING">{t('component.submissionHistory.statusPending')}</option>
+                        <option value="REVIEWED">{t('component.submissionHistory.statusReviewed')}</option>
+                        <option value="RETURNED">{t('component.submissionHistory.statusReturned')}</option>
                     </select>
 
                     {assignmentType === 'all' && (
@@ -148,10 +150,10 @@ const SubmissionHistory = ({ userId, assignmentType = 'all' }) => {
                             onChange={(e) => setFilter({ ...filter, type: e.target.value })}
                             className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                         >
-                            <option value="all">Tất cả loại</option>
-                            <option value="WRITING">Bài viết</option>
-                            <option value="SPEAKING">Bài nói</option>
-                            <option value="PROJECT">Dự án</option>
+                            <option value="all">{t('component.submissionHistory.allTypes')}</option>
+                            <option value="WRITING">{t('component.submissionHistory.filterWriting')}</option>
+                            <option value="SPEAKING">{t('component.submissionHistory.filterSpeaking')}</option>
+                            <option value="PROJECT">{t('component.submissionHistory.filterProject')}</option>
                         </select>
                     )}
 
@@ -160,9 +162,9 @@ const SubmissionHistory = ({ userId, assignmentType = 'all' }) => {
                         onChange={(e) => setFilter({ ...filter, dateRange: e.target.value })}
                         className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                     >
-                        <option value="all">Tất cả thời gian</option>
-                        <option value="week">7 ngày qua</option>
-                        <option value="month">30 ngày qua</option>
+                        <option value="all">{t('component.submissionHistory.allTime')}</option>
+                        <option value="week">{t('component.submissionHistory.last7Days')}</option>
+                        <option value="month">{t('component.submissionHistory.last30Days')}</option>
                     </select>
                 </div>
             </div>
@@ -176,7 +178,7 @@ const SubmissionHistory = ({ userId, assignmentType = 'all' }) => {
                 ) : filteredSubmissions.length === 0 ? (
                     <div className="p-12 text-center text-gray-500">
                         <CheckCircle className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                        <p>Không có bài nộp nào</p>
+                        <p>{t('component.submissionHistory.noSubmissions')}</p>
                     </div>
                 ) : (
                     filteredSubmissions.map((submission) => (
@@ -193,7 +195,7 @@ const SubmissionHistory = ({ userId, assignmentType = 'all' }) => {
                                         {getStatusBadge(submission.status)}
                                     </div>
                                     <p className="text-sm text-gray-600 mb-2">
-                                        Nộp lúc: {new Date(submission.submittedAt).toLocaleString('vi-VN')}
+                                        {t('component.submissionHistory.submittedAt')}: {new Date(submission.submittedAt).toLocaleString('vi-VN')}
                                     </p>
                                     {submission.status === 'GRADED' && (
                                         <div className="flex items-center gap-3">
@@ -201,11 +203,11 @@ const SubmissionHistory = ({ userId, assignmentType = 'all' }) => {
                                                 <span className={`text-lg font-bold ${getScoreColor(submission.score, submission.maxScore)}`}>
                                                     {submission.score}/{submission.maxScore}
                                                 </span>
-                                                <span className="text-sm text-gray-600">điểm</span>
+                                                <span className="text-sm text-gray-600">{t('component.submissionHistory.points')}</span>
                                             </div>
                                             {submission.feedback && (
                                                 <p className="text-sm text-gray-700 flex-1">
-                                                    <span className="font-medium">Nhận xét:</span> {submission.feedback}
+                                                    <span className="font-medium">{t('component.submissionHistory.feedback')}:</span> {submission.feedback}
                                                 </p>
                                             )}
                                         </div>
@@ -216,14 +218,14 @@ const SubmissionHistory = ({ userId, assignmentType = 'all' }) => {
                                     <button
                                         onClick={() => viewSubmissionDetail(submission.id)}
                                         className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                                        title="Xem chi tiết"
+                                        title={t('component.submissionHistory.viewDetail')}
                                     >
                                         <Eye className="w-4 h-4" />
                                     </button>
                                     <button
                                         onClick={() => downloadSubmission(submission)}
                                         className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-                                        title="Tải xuống"
+                                        title={t('component.submissionHistory.download')}
                                     >
                                         <Download className="w-4 h-4" />
                                     </button>
@@ -234,7 +236,7 @@ const SubmissionHistory = ({ userId, assignmentType = 'all' }) => {
                             {submission.attemptNumber && (
                                 <div className="mt-2">
                                     <span className="text-xs text-gray-500">
-                                        Lần nộp: {submission.attemptNumber}
+                                        {t('component.submissionHistory.attemptNumber')}: {submission.attemptNumber}
                                     </span>
                                 </div>
                             )}
@@ -250,7 +252,7 @@ const SubmissionHistory = ({ userId, assignmentType = 'all' }) => {
                         <div className="p-6 border-b border-gray-200">
                             <div className="flex items-center justify-between">
                                 <h3 className="text-xl font-semibold text-gray-900">
-                                    Chi tiết bài nộp
+                                    {t('component.submissionHistory.submissionDetail')}
                                 </h3>
                                 <button
                                     onClick={() => setShowDetailModal(false)}
@@ -267,23 +269,23 @@ const SubmissionHistory = ({ userId, assignmentType = 'all' }) => {
                                 <h4 className="font-medium text-gray-900 mb-2">{selectedSubmission.assignmentTitle}</h4>
                                 <div className="grid grid-cols-2 gap-4 text-sm">
                                     <div>
-                                        <span className="text-gray-600">Loại:</span>
+                                        <span className="text-gray-600">{t('component.submissionHistory.type')}:</span>
                                         <span className="ml-2 font-medium">{getTypeLabel(selectedSubmission.type)}</span>
                                     </div>
                                     <div>
-                                        <span className="text-gray-600">Ngày nộp:</span>
+                                        <span className="text-gray-600">{t('component.submissionHistory.submitDate')}:</span>
                                         <span className="ml-2 font-medium">
                                             {new Date(selectedSubmission.submittedAt).toLocaleString('vi-VN')}
                                         </span>
                                     </div>
                                     {selectedSubmission.attemptNumber && (
                                         <div>
-                                            <span className="text-gray-600">Lần nộp:</span>
+                                            <span className="text-gray-600">{t('component.submissionHistory.attemptNumber')}:</span>
                                             <span className="ml-2 font-medium">#{selectedSubmission.attemptNumber}</span>
                                         </div>
                                     )}
                                     <div>
-                                        <span className="text-gray-600">Trạng thái:</span>
+                                        <span className="text-gray-600">{t('component.submissionHistory.status')}:</span>
                                         <span className="ml-2">{getStatusBadge(selectedSubmission.status)}</span>
                                     </div>
                                 </div>
@@ -292,7 +294,7 @@ const SubmissionHistory = ({ userId, assignmentType = 'all' }) => {
                             {/* Content */}
                             {selectedSubmission.content && (
                                 <div>
-                                    <h5 className="font-medium text-gray-900 mb-2">Nội dung</h5>
+                                    <h5 className="font-medium text-gray-900 mb-2">{t('component.submissionHistory.content')}</h5>
                                     <div className="bg-gray-50 p-4 rounded-lg">
                                         <pre className="whitespace-pre-wrap font-sans text-sm text-gray-700">
                                             {selectedSubmission.content}
@@ -304,7 +306,7 @@ const SubmissionHistory = ({ userId, assignmentType = 'all' }) => {
                             {/* Audio Files (for speaking) */}
                             {selectedSubmission.audioFiles && selectedSubmission.audioFiles.length > 0 && (
                                 <div>
-                                    <h5 className="font-medium text-gray-900 mb-2">Bản ghi âm</h5>
+                                    <h5 className="font-medium text-gray-900 mb-2">{t('component.submissionHistory.audioRecordings')}</h5>
                                     <div className="space-y-2">
                                         {selectedSubmission.audioFiles.map((audio, idx) => (
                                             <div key={idx} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
@@ -325,7 +327,7 @@ const SubmissionHistory = ({ userId, assignmentType = 'all' }) => {
                             {/* Attached Files */}
                             {selectedSubmission.attachments && selectedSubmission.attachments.length > 0 && (
                                 <div>
-                                    <h5 className="font-medium text-gray-900 mb-2">Tài liệu đính kèm</h5>
+                                    <h5 className="font-medium text-gray-900 mb-2">{t('component.submissionHistory.attachments')}</h5>
                                     <div className="space-y-2">
                                         {selectedSubmission.attachments.map((file, idx) => (
                                             <a
@@ -349,17 +351,17 @@ const SubmissionHistory = ({ userId, assignmentType = 'all' }) => {
                                         <span className={`text-2xl font-bold ${getScoreColor(selectedSubmission.score, selectedSubmission.maxScore)}`}>
                                             {selectedSubmission.score}/{selectedSubmission.maxScore}
                                         </span>
-                                        <span className="text-green-700 font-medium">Điểm</span>
+                                        <span className="text-green-700 font-medium">{t('component.submissionHistory.score')}</span>
                                     </div>
                                     {selectedSubmission.feedback && (
                                         <div>
-                                            <p className="font-medium text-green-900 mb-1">Nhận xét:</p>
+                                            <p className="font-medium text-green-900 mb-1">{t('component.submissionHistory.feedback')}:</p>
                                             <p className="text-sm text-green-800">{selectedSubmission.feedback}</p>
                                         </div>
                                     )}
                                     {selectedSubmission.gradedAt && (
                                         <p className="text-xs text-green-600 mt-2">
-                                            Chấm lúc: {new Date(selectedSubmission.gradedAt).toLocaleString('vi-VN')}
+                                            {t('component.submissionHistory.gradedAt')}: {new Date(selectedSubmission.gradedAt).toLocaleString('vi-VN')}
                                         </p>
                                     )}
                                 </div>
@@ -368,7 +370,7 @@ const SubmissionHistory = ({ userId, assignmentType = 'all' }) => {
                             {/* AI Suggestions (if available) */}
                             {selectedSubmission.aiSuggestions && (
                                 <div className="bg-blue-50 p-4 rounded-lg">
-                                    <p className="font-medium text-blue-900 mb-2">💡 Gợi ý cải thiện (AI):</p>
+                                    <p className="font-medium text-blue-900 mb-2">💡 {t('component.submissionHistory.aiSuggestions')}:</p>
                                     <ul className="text-sm text-blue-800 space-y-1">
                                         {selectedSubmission.aiSuggestions.map((suggestion, idx) => (
                                             <li key={idx} className="flex items-start gap-2">
@@ -386,14 +388,14 @@ const SubmissionHistory = ({ userId, assignmentType = 'all' }) => {
                                 onClick={() => setShowDetailModal(false)}
                                 className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
                             >
-                                Đóng
+                                {t('component.submissionHistory.close')}
                             </button>
                             <button
                                 onClick={() => downloadSubmission(selectedSubmission)}
                                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
                             >
                                 <Download className="w-4 h-4" />
-                                Tải xuống
+                                {t('component.submissionHistory.download', 'Tải xuống')}
                             </button>
                         </div>
                     </div>

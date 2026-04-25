@@ -385,7 +385,7 @@ const SystemSettings = () => {
                                                     type="text"
                                                     value={paymentSettings.bankBranch}
                                                     onChange={(e) => setPaymentSettings({...paymentSettings, bankBranch: e.target.value})}
-                                                    placeholder="Hà Nội"
+                                                    placeholder={t('admin.systemSettings.bankBranchPlaceholder')}
                                                 />
                                             </div>
                                         </div>

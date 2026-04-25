@@ -36,28 +36,23 @@ import Swal from 'sweetalert2';
 import courseService from '../../services/courseService';
 
 const ClassManagement = () => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  // Kiểm tra quyền Education Manager
-  // Backend trả về role là "EDUCATION_MANAGER" (KHÔNG có prefix ROLE_)
   const isManager = user?.role === 'EDUCATION_MANAGER';
 
-  // Safe translation helper with fallback
   const ts = (key, fallback) => {
     const result = t(key);
     return result && typeof result === 'string' && result.trim() ? result : fallback;
   };
 
-  // Main States
-  const [view, setView] = useState('list'); // list | calendar
+  const [view, setView] = useState('list');
   const [classes, setClasses] = useState([]);
   const [filteredClasses, setFilteredClasses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Filter States
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [courseFilter, setCourseFilter] = useState('all');
@@ -66,7 +61,6 @@ const ClassManagement = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
-  // Modal States
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
@@ -79,7 +73,6 @@ const ClassManagement = () => {
   const [attendanceList, setAttendanceList] = useState([]);
   const [courses, setCourses] = useState([]);
 
-  // Form States
   const [newClass, setNewClass] = useState({
     courseId: '',
     classCode: '',
@@ -100,13 +93,7 @@ const ClassManagement = () => {
   const [alert, setAlert] = useState({ show: false, type: 'success', message: '' });
   const [actionLoading, setActionLoading] = useState(false);
 
-  // Fetch classes and courses
   useEffect(() => {
-    // Debug log
-    console.log('DEBUG ClassManagement: user =', user);
-    console.log('DEBUG ClassManagement: user.roles =', user?.roles);
-    console.log('DEBUG ClassManagement: isManager =', isManager);
-
     fetchClasses();
     fetchCourses();
   }, []);
@@ -114,14 +101,10 @@ const ClassManagement = () => {
   const fetchClasses = async () => {
     try {
       setLoading(true);
-      // Use appropriate service based on user role
-      console.log('DEBUG fetchClasses: isManager =', isManager);
       const response = isManager
         ? await educationManagerService.getAllClasses()
         : await staffService.getClasses();
-      console.log('Classes response:', response);
 
-      // Handle different response structures
       let classesData = [];
       if (response?.classes) {
         classesData = response.classes;
@@ -139,7 +122,7 @@ const ClassManagement = () => {
       setFilteredClasses(classesData);
     } catch (error) {
       console.error('Error fetching classes:', error);
-      setError(t('classManagement.fetchError') || 'Không thể tải danh sách lớp');
+      setError(t('classManagement.fetchError'));
     } finally {
       setLoading(false);
     }
@@ -147,11 +130,9 @@ const ClassManagement = () => {
 
   const fetchCourses = async () => {
     try {
-      // Education Manager uses getAllCourses, Staff uses getCourses
       const response = isManager
         ? await educationManagerService.getAllCourses()
         : await staffService.getCourses();
-      console.log('Courses response:', response);
 
       let coursesData = [];
       if (Array.isArray(response)) {
@@ -168,11 +149,9 @@ const ClassManagement = () => {
     }
   };
 
-  // Filter and sort classes
   useEffect(() => {
     let filtered = [...classes];
 
-    // Apply search
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       filtered = filtered.filter(cls =>
@@ -182,17 +161,14 @@ const ClassManagement = () => {
       );
     }
 
-    // Apply status filter
     if (statusFilter !== 'all') {
       filtered = filtered.filter(cls => cls.status === statusFilter);
     }
 
-    // Apply course filter
     if (courseFilter !== 'all') {
       filtered = filtered.filter(cls => cls.courseId === courseFilter);
     }
 
-    // Apply sorting
     filtered.sort((a, b) => {
       let aValue = a[sortField] || '';
       let bValue = b[sortField] || '';
@@ -213,13 +189,11 @@ const ClassManagement = () => {
     setCurrentPage(1);
   }, [classes, searchTerm, statusFilter, courseFilter, sortField, sortOrder]);
 
-  // Pagination
   const totalPages = Math.ceil(filteredClasses.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const paginatedClasses = filteredClasses.slice(startIndex, endIndex);
 
-  // Handle sorting
   const handleSort = (field) => {
     if (sortField === field) {
       setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
@@ -229,13 +203,12 @@ const ClassManagement = () => {
     }
   };
 
-  // Handle create class
   const handleCreateClass = async (e) => {
     e.preventDefault();
     setActionLoading(true);
     try {
       await staffService.createClass(newClass);
-      setAlert({ show: true, type: 'success', message: t('classManagement.createClassSuccess') || 'Tạo lớp thành công' });
+      setAlert({ show: true, type: 'success', message: t('classManagement.createClassSuccess') });
       setIsCreateModalOpen(false);
       setNewClass({
         courseId: '',
@@ -249,62 +222,54 @@ const ClassManagement = () => {
       fetchClasses();
     } catch (error) {
       console.error('Error creating class:', error);
-      setAlert({ show: true, type: 'error', message: t('classManagement.createClassError') || 'Không thể tạo lớp' });
+      setAlert({ show: true, type: 'error', message: t('classManagement.createClassError') });
     } finally {
       setActionLoading(false);
     }
   };
 
-  // Handle open detail page
   const handleOpenDetail = (cls) => {
-    // Education Manager uses /edu-manager/classes/:id, Staff uses /classes/:id
     const path = isManager ? `/edu-manager/classes/${cls.id}` : `/classes/${cls.id}`;
     navigate(path);
   };
 
-  // Handle add student to class
   const handleAddStudent = async (e) => {
     e.preventDefault();
     const studentId = e.target.studentId.value;
     try {
-      // BUG-16 FIX: Implemented actual API call
       const service = isManager ? educationManagerService : staffService;
       await service.addStudentToClass(selectedClass.id, { studentId: Number(studentId) });
-      setAlert({ show: true, type: 'success', message: t('classManagement.addStudentSuccess') || 'Thêm học viên thành công' });
+      setAlert({ show: true, type: 'success', message: t('classManagement.addStudentSuccess') });
       const students = await service.getClassStudents(selectedClass.id);
       setClassStudents(students || []);
       e.target.reset();
     } catch (error) {
       console.error('Error adding student:', error);
-      setAlert({ show: true, type: 'error', message: t('classManagement.addStudentError') || 'Không thể thêm học viên' });
+      setAlert({ show: true, type: 'error', message: t('classManagement.addStudentError') });
     }
   };
 
-  // Handle assign teacher
   const handleAssignTeacher = async (e) => {
     e.preventDefault();
     const teacherId = e.target.teacherId.value;
     const isPrimary = e.target.isPrimary.checked;
     try {
-      // Use appropriate service based on user role
       const service = isManager ? educationManagerService : staffService;
       await service.assignTeacherToClass(selectedClass.id, teacherId, isPrimary);
-      setAlert({ show: true, type: 'success', message: t('classManagement.assignTeacherSuccess') || 'Phân công giáo viên thành công' });
+      setAlert({ show: true, type: 'success', message: t('classManagement.assignTeacherSuccess') });
       const teachers = await service.getClassTeachers(selectedClass.id);
       setClassTeachers(teachers || []);
       e.target.reset();
     } catch (error) {
       console.error('Error assigning teacher:', error);
-      setAlert({ show: true, type: 'error', message: t('classManagement.assignTeacherError') || 'Không thể phân công giáo viên' });
+      setAlert({ show: true, type: 'error', message: t('classManagement.assignTeacherError') });
     }
   };
 
-  // Handle open schedule modal
   const handleOpenSchedule = async (cls) => {
     setSelectedClass(cls);
     setIsScheduleModalOpen(true);
     try {
-      // BUG-14 FIX: Implemented actual API call
       const data = await staffService.getSchedules(cls.id);
       setSchedules(data || []);
     } catch (error) {
@@ -313,14 +278,12 @@ const ClassManagement = () => {
     }
   };
 
-  // Handle create schedule
   const handleCreateSchedule = async (e) => {
     e.preventDefault();
     setActionLoading(true);
     try {
-      // BUG-14 FIX: Implemented actual API call
       await staffService.createSchedule(selectedClass.id, newSchedule);
-      setAlert({ show: true, type: 'success', message: t('classManagement.createScheduleSuccess') || 'Tạo lịch học thành công' });
+      setAlert({ show: true, type: 'success', message: t('classManagement.createScheduleSuccess') });
       setIsScheduleModalOpen(false);
       setNewSchedule({
         lessonNumber: '',
@@ -332,18 +295,16 @@ const ClassManagement = () => {
       });
     } catch (error) {
       console.error('Error creating schedule:', error);
-      setAlert({ show: true, type: 'error', message: t('classManagement.createScheduleError') || 'Không thể tạo lịch học' });
+      setAlert({ show: true, type: 'error', message: t('classManagement.createScheduleError') });
     } finally {
       setActionLoading(false);
     }
   };
 
-  // Handle open attendance modal
   const handleOpenAttendance = async (schedule) => {
     setSelectedSchedule(schedule);
     setIsAttendanceModalOpen(true);
     try {
-      // BUG-15 FIX: Implemented actual API call
       const atts = await staffService.getAttendanceForSchedule(schedule.id);
       if (atts && atts.length > 0) {
         setAttendanceList(atts.map(a => ({
@@ -353,7 +314,6 @@ const ClassManagement = () => {
           id: a.id
         })));
       } else {
-        // Auto-init attendance records for all students
         const students = await staffService.getClassStudents(selectedClass.id);
         setAttendanceList((students || []).map(s => ({
           studentId: s.id,
@@ -368,7 +328,6 @@ const ClassManagement = () => {
     }
   };
 
-  // Handle save attendance
   const handleSaveAttendance = async () => {
     setActionLoading(true);
     try {
@@ -377,27 +336,25 @@ const ClassManagement = () => {
         studentId: a.studentId,
         status: a.status
       }));
-      // BUG-15 FIX: Implemented actual API call
       await staffService.markAttendance(selectedSchedule.id, payload);
-      setAlert({ show: true, type: 'success', message: t('classManagement.saveAttendanceSuccess') || 'Lưu điểm danh thành công' });
+      setAlert({ show: true, type: 'success', message: t('classManagement.saveAttendanceSuccess') });
       setIsAttendanceModalOpen(false);
     } catch (error) {
       console.error('Error saving attendance:', error);
-      setAlert({ show: true, type: 'error', message: t('classManagement.saveAttendanceError') || 'Không thể lưu điểm danh' });
+      setAlert({ show: true, type: 'error', message: t('classManagement.saveAttendanceError') });
     } finally {
       setActionLoading(false);
     }
   };
 
-  // Handle delete schedule
   const handleDeleteSchedule = async (scheduleId) => {
     const result = await Swal.fire({
       icon: 'question',
-      title: 'Xác nhận xóa',
-      text: t('classManagement.deleteScheduleConfirmation') || 'Bạn có chắc chắn muốn xóa lịch học này?',
+      title: t('staff.classManagement.confirmDelete'),
+      text: t('classManagement.deleteScheduleConfirmation'),
       showCancelButton: true,
-      confirmButtonText: 'Xóa',
-      cancelButtonText: 'Hủy',
+      confirmButtonText: t('common.delete'),
+      cancelButtonText: t('common.cancel'),
       confirmButtonColor: '#ef4444',
       cancelButtonColor: '#6b7280',
       reverseButtons: true
@@ -410,29 +367,27 @@ const ClassManagement = () => {
     setActionLoading(true);
     try {
       await staffService.deleteSchedule(scheduleId);
-      setAlert({ show: true, type: 'success', message: t('classManagement.deleteScheduleSuccess') || 'Xóa lịch học thành công' });
+      setAlert({ show: true, type: 'success', message: t('classManagement.deleteScheduleSuccess') });
 
-      // Refresh schedules for the selected class
       if (selectedClass) {
         handleOpenSchedule(selectedClass);
       }
     } catch (error) {
       console.error('Error deleting schedule:', error);
-      setAlert({ show: true, type: 'error', message: t('classManagement.deleteScheduleError') || 'Không thể xóa lịch học' });
+      setAlert({ show: true, type: 'error', message: t('classManagement.deleteScheduleError') });
     } finally {
       setActionLoading(false);
     }
   };
 
-  // Handle delete class
   const handleDeleteClass = async (cls) => {
     const result = await Swal.fire({
       icon: 'question',
-      title: 'Xác nhận xóa',
-      text: t('classManagement.deleteConfirmation') || `Bạn có chắc chắn muốn xóa lớp ${cls.className}?`,
+      title: t('staff.classManagement.confirmDelete'),
+      text: t('classManagement.deleteConfirmation', { name: cls.className }),
       showCancelButton: true,
-      confirmButtonText: 'Xóa',
-      cancelButtonText: 'Hủy',
+      confirmButtonText: t('common.delete'),
+      cancelButtonText: t('common.cancel'),
       confirmButtonColor: '#ef4444',
       cancelButtonColor: '#6b7280',
       reverseButtons: true
@@ -440,18 +395,40 @@ const ClassManagement = () => {
 
     if (result.isConfirmed) {
       try {
-        // BUG-13 FIX: Implemented actual API call
         await staffService.deleteClass(cls.id);
-        setAlert({ show: true, type: 'success', message: t('classManagement.deleteSuccess') || 'Xóa lớp thành công' });
+        setAlert({ show: true, type: 'success', message: t('classManagement.deleteSuccess') });
         fetchClasses();
       } catch (error) {
         console.error('Error deleting class:', error);
-        setAlert({ show: true, type: 'error', message: t('classManagement.deleteError') || 'Không thể xóa lớp' });
+        setAlert({ show: true, type: 'error', message: t('classManagement.deleteError') });
       }
     }
   };
 
-  // Table columns - memoized to update when language changes
+  const getStatusLabel = (status) => {
+    const statusConfig = {
+      'PLANNED': t('staff.classManagement.statusPlanned'),
+      'ONGOING': t('staff.classManagement.statusOngoing'),
+      'ACTIVE': t('staff.classManagement.statusOngoing'),
+      'INACTIVE': t('staff.classManagement.statusInactive'),
+      'CANCELLED': t('staff.classManagement.statusCancelled'),
+      'COMPLETED': t('staff.classManagement.statusCompleted')
+    };
+    return statusConfig[status] || status;
+  };
+
+  const getStatusVariant = (status) => {
+    const variantConfig = {
+      'PLANNED': 'info',
+      'ONGOING': 'success',
+      'ACTIVE': 'success',
+      'INACTIVE': 'warning',
+      'CANCELLED': 'error',
+      'COMPLETED': 'neutral'
+    };
+    return variantConfig[status] || 'neutral';
+  };
+
   const columns = useMemo(() => [
     {
       key: 'className',
@@ -469,7 +446,7 @@ const ClassManagement = () => {
       label: ts('classManagement.course', 'Course'),
       render: (cls) => (
         <span className="text-gray-600">
-          {cls.courseName || cls.course?.name || <span className="text-gray-400 italic">Chưa có khóa học</span>}
+          {cls.courseName || cls.course?.name || <span className="text-gray-400 italic">{t('staff.classManagement.noCourse')}</span>}
         </span>
       ),
       sortable: true
@@ -478,33 +455,28 @@ const ClassManagement = () => {
       key: 'teacherName',
       label: ts('classManagement.teacher', 'Teacher'),
       render: (cls) => {
-        // Check multiple possible fields for teacher information
         let teacherNames = null;
 
-        // Method 1: Check direct teacherName field
         if (cls.teacherName) {
           teacherNames = cls.teacherName;
         }
-        // Method 2: Check teachers array on class object
         else if (cls.teachers && cls.teachers.length > 0) {
           teacherNames = cls.teachers
-            .map(t => t.teacher?.fullName || t.teacher?.name || t.fullName || t.name)
-            .filter(name => name) // Filter out null/undefined
+            .map(tc => tc.teacher?.fullName || tc.teacher?.name || tc.fullName || tc.name)
+            .filter(name => name)
             .join(', ');
         }
-        // Method 3: Check classEntity.teacher
         else if (cls.classEntity && cls.classEntity.teacher) {
-          const t = cls.classEntity.teacher;
-          teacherNames = t.fullName || t.name;
+          const tc = cls.classEntity.teacher;
+          teacherNames = tc.fullName || tc.name;
         }
-        // Method 4: Check if class has a teacher object directly
         else if (cls.teacher) {
           teacherNames = cls.teacher.fullName || cls.teacher.name;
         }
 
         return (
           <span className="text-gray-600">
-            {teacherNames || <span className="text-orange-600 italic">Chưa phân bổ giáo viên</span>}
+            {teacherNames || <span className="text-orange-600 italic">{t('staff.classManagement.noTeacherAssigned')}</span>}
           </span>
         );
       },
@@ -529,7 +501,6 @@ const ClassManagement = () => {
         const capacity = cls.capacity || 30;
         const isFull = currentEnrollment >= capacity;
         const isAlmostFull = currentEnrollment / capacity > 0.8 && !isFull;
-        const isExpired = cls.endDate ? new Date(cls.endDate) < new Date() : false;
 
         return (
           <div className="flex items-center gap-2">
@@ -543,10 +514,9 @@ const ClassManagement = () => {
               {currentEnrollment}/{capacity}
             </span>
 
-            {/* Status Badges */}
             {isFull && (
               <span className="px-2 py-0.5 bg-red-100 text-red-800 text-xs rounded-full font-medium">
-                Đầy
+                {t('staff.classManagement.full')}
               </span>
             )}
           </div>
@@ -578,21 +548,9 @@ const ClassManagement = () => {
       key: 'status',
       label: ts('classManagement.status', 'Status'),
       render: (cls) => {
-        // Status mapping for classes
-        const statusConfig = {
-          'PLANNED': { label: 'Đang lên kế hoạch', variant: 'info' },
-          'ONGOING': { label: 'Đang diễn ra', variant: 'success' },
-          'ACTIVE': { label: 'Đang diễn ra', variant: 'success' },
-          'INACTIVE': { label: 'Ngừng hoạt động', variant: 'warning' },
-          'CANCELLED': { label: 'Đã hủy', variant: 'error' },
-          'COMPLETED': { label: 'Đã kết thúc', variant: 'neutral' }
-        };
-
-        const config = statusConfig[cls.status] || { label: cls.status, variant: 'neutral' };
-
         return (
-          <Badge variant={config.variant}>
-            {config.label}
+          <Badge variant={getStatusVariant(cls.status)}>
+            {getStatusLabel(cls.status)}
           </Badge>
         );
       },
@@ -624,7 +582,7 @@ const ClassManagement = () => {
               ? 'text-gray-500 hover:text-red-600 hover:bg-red-50'
               : 'text-gray-300 cursor-not-allowed'
               }`}
-            title={!isManager ? 'Chỉ Education Manager được xóa' : ts('common.delete', 'Delete')}
+            title={!isManager ? t('staff.classManagement.managerOnlyDelete') : ts('common.delete', 'Delete')}
           >
             <Trash2 className="w-4 h-4" />
           </button>
@@ -632,7 +590,7 @@ const ClassManagement = () => {
       ),
       sortable: false
     }
-  ], [t, i18n.language, ts]);
+  ], [t]);
 
   if (loading) {
     return (
@@ -678,7 +636,7 @@ const ClassManagement = () => {
               variant="primary"
               onClick={() => isManager ? setIsCreateModalOpen(true) : null}
               disabled={!isManager}
-              title={!isManager ? 'Chỉ Education Manager được tạo' : ''}
+              title={!isManager ? t('staff.classManagement.managerOnlyCreate') : ''}
               className={!isManager ? 'opacity-50 cursor-not-allowed' : ''}
             >
               <Plus className="w-4 h-4 mr-2" />
@@ -808,7 +766,7 @@ const ClassManagement = () => {
 
       {/* Content */}
       {view === 'list' ? (
-        <div className="bg-white rounded-lg shadow-sm overflow-hidden" key={i18n.language}>
+        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
           {paginatedClasses.length === 0 ? (
             <div className="p-12 text-center">
               <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
@@ -863,20 +821,17 @@ const ClassManagement = () => {
                       onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                       disabled={currentPage === 1}
                     >
-                      ← {t('common.previous')}
+                      {'←'} {t('common.previous')}
                     </Button>
 
-                    {/* Page Numbers */}
                     <div className="flex items-center space-x-1">
                       {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
-                        // Show first page, last page, current page, and adjacent pages
                         const showPage =
                           page === 1 ||
                           page === totalPages ||
                           (page >= currentPage - 1 && page <= currentPage + 1);
 
                         if (!showPage) {
-                          // Show ellipsis for hidden pages
                           if (page === currentPage - 2 || page === currentPage + 2) {
                             return <span key={page} className="px-2 text-gray-400">...</span>;
                           }
@@ -905,7 +860,7 @@ const ClassManagement = () => {
                       onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                       disabled={currentPage === totalPages}
                     >
-                      {t('common.next')} →
+                      {t('common.next')} {'→'}
                     </Button>
                   </div>
                 </div>
@@ -914,7 +869,7 @@ const ClassManagement = () => {
           )}
         </div>
       ) : (
-        <div className="space-y-6" key={i18n.language}>
+        <div className="space-y-6">
           {paginatedClasses.map(cls => (
             <div key={cls.id} className="bg-white rounded-lg shadow-sm p-6">
               <div className="flex justify-between items-start mb-4">
@@ -922,21 +877,10 @@ const ClassManagement = () => {
                   <h3 className="text-xl font-semibold text-gray-900 mb-2">{cls.className}</h3>
                   <div className="flex items-center space-x-4">
                     <Badge
-                      variant={
-                        cls.status === 'ACTIVE' || cls.status === 'ONGOING' ? 'success' :
-                          cls.status === 'PLANNED' ? 'info' :
-                            cls.status === 'INACTIVE' ? 'warning' :
-                              cls.status === 'CANCELLED' ? 'error' : 'neutral'
-                      }
+                      variant={getStatusVariant(cls.status)}
                       className="text-xs font-semibold px-3 py-1.5 shadow-sm"
                     >
-                      {cls.status === 'PLANNED' ? 'Đang lên kế hoạch' :
-                       cls.status === 'ONGOING' ? 'Đang diễn ra' :
-                       cls.status === 'ACTIVE' ? 'Đang diễn ra' :
-                       cls.status === 'INACTIVE' ? 'Ngừng hoạt động' :
-                       cls.status === 'CANCELLED' ? 'Đã hủy' :
-                       cls.status === 'COMPLETED' ? 'Đã kết thúc' :
-                       cls.status || '-'}
+                      {getStatusLabel(cls.status)}
                     </Badge>
                     <span className="text-sm text-gray-500">
                       {cls.startDate} - {cls.endDate}
@@ -965,7 +909,7 @@ const ClassManagement = () => {
                       ? 'bg-red-600 text-white hover:bg-red-700'
                       : 'bg-red-300 text-white cursor-not-allowed'
                       }`}
-                    title={!isManager ? 'Chỉ Education Manager được xóa' : ''}
+                    title={!isManager ? t('staff.classManagement.managerOnlyDelete') : ''}
                   >
                     <Trash2 className="w-4 h-4 mr-2" />
                     {ts('common.delete', 'Delete')}
@@ -988,10 +932,9 @@ const ClassManagement = () => {
                   onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                   disabled={currentPage === 1}
                 >
-                  ← {t('common.previous')}
+                  {'←'} {t('common.previous')}
                 </Button>
 
-                {/* Page Numbers */}
                 <div className="flex items-center space-x-1">
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
                     const showPage =
@@ -1028,7 +971,7 @@ const ClassManagement = () => {
                   onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                   disabled={currentPage === totalPages}
                 >
-                  {t('common.next')} →
+                  {t('common.next')} {'→'}
                 </Button>
               </div>
             </div>
@@ -1043,7 +986,7 @@ const ClassManagement = () => {
           onSuccess={() => {
             setIsCreateModalOpen(false);
             fetchClasses();
-            setAlert({ show: true, type: 'success', message: t('classManagement.createClassSuccess', 'Tạo lớp thành công') });
+            setAlert({ show: true, type: 'success', message: t('classManagement.createClassSuccess') });
           }}
         />
       )}
@@ -1069,24 +1012,13 @@ const ClassManagement = () => {
               <div>
                 <h3 className="text-xl font-semibold text-gray-900">{selectedClass.className}</h3>
                 <p className="text-gray-500">
-                  {selectedClass.courseName || selectedClass.course?.name || <span className="text-orange-600">Chưa có khóa học</span>}
+                  {selectedClass.courseName || selectedClass.course?.name || <span className="text-orange-600">{t('staff.classManagement.noCourse')}</span>}
                 </p>
                 <Badge
-                  variant={
-                    selectedClass.status === 'ACTIVE' || selectedClass.status === 'ONGOING' ? 'success' :
-                      selectedClass.status === 'PLANNED' ? 'info' :
-                        selectedClass.status === 'INACTIVE' ? 'warning' :
-                          selectedClass.status === 'CANCELLED' ? 'error' : 'neutral'
-                  }
+                  variant={getStatusVariant(selectedClass.status)}
                   className="mt-2 text-xs font-semibold px-3 py-1.5 shadow-sm"
                 >
-                  {selectedClass.status === 'PLANNED' ? 'Đang lên kế hoạch' :
-                   selectedClass.status === 'ONGOING' ? 'Đang diễn ra' :
-                   selectedClass.status === 'ACTIVE' ? 'Đang diễn ra' :
-                   selectedClass.status === 'INACTIVE' ? 'Ngừng hoạt động' :
-                   selectedClass.status === 'CANCELLED' ? 'Đã hủy' :
-                   selectedClass.status === 'COMPLETED' ? 'Đã kết thúc' :
-                   selectedClass.status || '-'}
+                  {getStatusLabel(selectedClass.status)}
                 </Badge>
               </div>
             </div>
@@ -1155,7 +1087,7 @@ const ClassManagement = () => {
                 </h4>
               </div>
               {classTeachers.length === 0 ? (
-                <p className="text-orange-600 italic">Chưa phân bổ giáo viên</p>
+                <p className="text-orange-600 italic">{t('staff.classManagement.noTeacherAssigned')}</p>
               ) : (
                 <div className="space-y-2 max-h-60 overflow-y-auto">
                   {classTeachers.map(teacher => (
@@ -1229,7 +1161,7 @@ const ClassManagement = () => {
                         onClick={() => handleDeleteSchedule(sch.id)}
                         disabled={actionLoading}
                         className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                        title={t('common.delete') || 'Delete'}
+                        title={t('common.delete')}
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -1290,7 +1222,7 @@ const ClassManagement = () => {
                 <Button
                   variant="secondary"
                   disabled={!isManager}
-                  title={!isManager ? 'Chỉ Education Manager được thao tác' : ''}
+                  title={!isManager ? t('staff.classManagement.managerOnlyAction') : ''}
                   className={!isManager ? 'opacity-50 cursor-not-allowed' : ''}
                   onClick={() => {
                     const newStats = attendanceList.map(a => ({ ...a, status: 'PRESENT' }));
@@ -1302,7 +1234,7 @@ const ClassManagement = () => {
                 <Button
                   variant="secondary"
                   disabled={!isManager}
-                  title={!isManager ? 'Chỉ Education Manager được thao tác' : ''}
+                  title={!isManager ? t('staff.classManagement.managerOnlyAction') : ''}
                   className={!isManager ? 'opacity-50 cursor-not-allowed' : ''}
                   onClick={() => {
                     const newStats = attendanceList.map(a => ({ ...a, status: 'ABSENT' }));
@@ -1319,7 +1251,7 @@ const ClassManagement = () => {
                 variant="primary"
                 onClick={handleSaveAttendance}
                 disabled={actionLoading || !isManager}
-                title={!isManager ? 'Chỉ Education Manager được lưu' : ''}
+                title={!isManager ? t('staff.classManagement.managerOnlySave') : ''}
                 className={!isManager ? 'opacity-50 cursor-not-allowed' : ''}
               >
                 {actionLoading ? (

@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { AuthProvider } from './contexts/AuthContext';
 import { ProtectedRoute, AdminRoute, TeacherRoute, StaffRoute, StudentRoute, ManagerRoute, EducationManagerRoute } from './components/routing/ProtectedRoute';
 import EducationManagerLayout from './components/layouts/EducationManagerLayout';
@@ -90,6 +91,7 @@ import StudentCourseDetail from './pages/Student/StudentCourseDetail.jsx';
 import StudentClassDetail from './pages/Student/StudentClassDetail.jsx';
 import MySchedule from './pages/Student/MySchedule.jsx';
 import MyCourses from './pages/Student/MyCourses.jsx';
+import CertificateView from './pages/Student/CertificateView.jsx';
 import MyClasses from './pages/Student/MyClasses.jsx';
 import TestLibrary from './pages/Student/TestLibrary.jsx';
 import Profile from './pages/Profile.jsx';
@@ -103,6 +105,7 @@ import GuestKoreanChatbot from './components/AI/GuestKoreanChatbot';
  * Hiển thị khi người dùng không có quyền truy cập
  */
 const UnauthorizedPage = () => {
+  const { t } = useTranslation();
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 text-center">
@@ -111,13 +114,13 @@ const UnauthorizedPage = () => {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
           </svg>
         </div>
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Không có quyền truy cập</h1>
-        <p className="text-gray-600 mb-6">Bạn không có quyền truy cập trang này. Vui lòng liên hệ quản trị viên nếu bạn nghĩ đây là lỗi.</p>
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">{t('common.noAccess')}</h1>
+        <p className="text-gray-600 mb-6">{t('common.noAccessMessage')}</p>
         <button
           onClick={() => window.history.back()}
           className="w-full bg-primary-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-primary-700 transition-colors"
         >
-          Quay lại
+          {t('common.goBack')}
         </button>
       </div>
     </div>
@@ -176,6 +179,7 @@ function App() {
             <Route index element={<StudentDashboard />} />
             <Route path="dashboard" element={<StudentDashboard />} />
             <Route path="my-courses" element={<MyCourses />} />
+            <Route path="certificates" element={<CertificateView />} />
             <Route path="my-classes" element={<MyClasses />} />
             <Route path="courses/:courseId" element={<StudentCourseDetail />} />
             <Route path="class/:classId" element={<StudentClassDetail />} />

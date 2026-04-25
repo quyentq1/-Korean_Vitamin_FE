@@ -124,9 +124,9 @@ const Analytics = () => {
 
   const activitySegmentsData = useMemo(() =>
     data?.userSegments?.activitySegments ? [
-      { name: 'Hoạt động', value: data.userSegments.activitySegments.active || 0, color: PALETTE.primary.green },
-      { name: 'Nguy cơ', value: data.userSegments.activitySegments.atRisk || 0, color: PALETTE.primary.yellow },
-      { name: 'Ngưng hoạt động', value: data.userSegments.activitySegments.churned || 0, color: PALETTE.primary.red }
+      { name: t('analytics.active', 'Hoạt động'), value: data.userSegments.activitySegments.active || 0, color: PALETTE.primary.green },
+      { name: t('analytics.atRisk', 'Nguy cơ'), value: data.userSegments.activitySegments.atRisk || 0, color: PALETTE.primary.yellow },
+      { name: t('analytics.inactive', 'Ngưng hoạt động'), value: data.userSegments.activitySegments.churned || 0, color: PALETTE.primary.red }
     ] : [], [data?.userSegments?.activitySegments]);
 
   // Show toast notification
@@ -148,7 +148,7 @@ const Analytics = () => {
   // Export handler
   const handleExport = async (format) => {
     try {
-      showToast(`Đang xuất báo cáo ${format.toUpperCase()}...`, 'info');
+      showToast(t('analytics.exporting', 'Đang xuất báo cáo {{format}}...', { format: format.toUpperCase() }), 'info');
       const response = await adminService.exportAnalytics({
         type: format,
         dateRange: timeRange,
@@ -166,10 +166,10 @@ const Analytics = () => {
       link.remove();
       window.URL.revokeObjectURL(url);
       
-      showToast(`Xuất báo cáo ${format.toUpperCase()} thành công!`, 'success');
+      showToast(t('analytics.exportSuccess', 'Xuất báo cáo {{format}} thành công!', { format: format.toUpperCase() }), 'success');
     } catch (err) {
       console.error('Export failed:', err);
-      showToast('Xuất báo cáo thất bại', 'error');
+      showToast(t('analytics.exportFail', 'Xuất báo cáo thất bại'), 'error');
     }
   };
 
@@ -203,7 +203,7 @@ const Analytics = () => {
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="text-center">
             <Loading size="lg" />
-            <p className="text-gray-500 mt-4 text-sm">Đang tải dữ liệu phân tích...</p>
+            <p className="text-gray-500 mt-4 text-sm">{t('analytics.loading', 'Đang tải dữ liệu phân tích...')}</p>
           </div>
         </div>
       </PageContainer>
@@ -218,7 +218,7 @@ const Analytics = () => {
           <div className="flex items-center gap-3">
             <AlertCircle className="w-5 h-5 shrink-0" />
             <div>
-              <p className="font-semibold">Không thể tải dữ liệu</p>
+              <p className="font-semibold">{t('analytics.cannotLoadData', 'Không thể tải dữ liệu')}</p>
               <p className="text-sm text-red-600">{error}</p>
             </div>
           </div>
@@ -245,11 +245,11 @@ const Analytics = () => {
     <PageContainer>
       {/* Header */}
       <PageHeader
-        title="Phân tích dữ liệu"
-        subtitle="Thống kê toàn diện về hoạt động nền tảng"
+        title={t('analytics.title', 'Phân tích dữ liệu')}
+        subtitle={t('analytics.subtitle', 'Thống kê toàn diện về hoạt động nền tảng')}
         breadcrumbs={[
           { label: 'Admin', path: '/admin' },
-          { label: 'Phân tích' }
+          { label: t('analytics.breadcrumb', 'Phân tích') }
         ]}
         actions={
           <div className="flex items-center gap-3">
@@ -258,14 +258,14 @@ const Analytics = () => {
               onChange={(e) => setTimeRange(Number(e.target.value))}
               className="px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm hover:shadow-md"
             >
-              <option value={7}>7 ngày qua</option>
-              <option value={30}>30 ngày qua</option>
-              <option value={90}>90 ngày qua</option>
+              <option value={7}>{t('analytics.last7Days', '7 ngày qua')}</option>
+              <option value={30}>{t('analytics.last30Days', '30 ngày qua')}</option>
+              <option value={90}>{t('analytics.last90Days', '90 ngày qua')}</option>
             </select>
             <button
               onClick={refresh}
               className="p-2.5 bg-white border border-gray-200 rounded-xl text-gray-600 hover:text-blue-600 hover:bg-blue-50 hover:border-blue-200 transition-all shadow-sm hover:shadow-md"
-              title="Làm mới dữ liệu"
+              title={t('common.refresh', 'Làm mới dữ liệu')}
             >
               <RefreshCw className="w-5 h-5" />
             </button>
@@ -298,7 +298,7 @@ const Analytics = () => {
             </div>
             <div>
               <h3 className="text-lg font-bold text-gray-900">AI Insights</h3>
-              <p className="text-sm text-gray-500">Đề xuất dựa trên dữ liệu thực tế</p>
+              <p className="text-sm text-gray-500">{t('analytics.aiInsightsSubtitle', 'Đề xuất dựa trên dữ liệu thực tế')}</p>
             </div>
           </div>
 
@@ -310,15 +310,15 @@ const Analytics = () => {
                     <AlertTriangle className="w-5 h-5 text-red-600" />
                   </div>
                   <div className="flex-1">
-                    <h4 className="font-semibold text-red-900 mb-1">Nguy cơ rời bỏ cao</h4>
+                    <h4 className="font-semibold text-red-900 mb-1">{t('analytics.highChurnRisk', 'Nguy cơ rời bỏ cao')}</h4>
                     <p className="text-sm text-red-700 mb-3">
-                      {churnRisk.highRiskUsers} người dùng có nguy cơ rời bỏ ({churnRisk.overallChurnRate?.toFixed(1)}%)
+                      {t('analytics.usersAtRisk', '{{count}} người dùng có nguy cơ rời bỏ ({{rate}}%)', { count: churnRisk.highRiskUsers, rate: churnRisk.overallChurnRate?.toFixed(1) })}
                     </p>
                     <button
                       className="text-xs bg-red-600 text-white px-3 py-1.5 rounded-lg hover:bg-red-700 transition-colors font-medium"
                       onClick={() => {/* Navigate */}}
                     >
-                      Xem chi tiết
+                      {t('common.viewDetails', 'Xem chi tiết')}
                     </button>
                   </div>
                 </div>
@@ -332,12 +332,12 @@ const Analytics = () => {
                     <AlertCircle className="w-5 h-5 text-yellow-600" />
                   </div>
                   <div className="flex-1">
-                    <h4 className="font-semibold text-yellow-900 mb-1">Tỷ lệ hoàn thành thấp</h4>
+                    <h4 className="font-semibold text-yellow-900 mb-1">{t('analytics.lowCompletionRate', 'Tỷ lệ hoàn thành thấp')}</h4>
                     <p className="text-sm text-yellow-700 mb-3">
-                      Chỉ {courseStats.completionRate?.toFixed(1)}% học viên hoàn thành khóa học
+                      {t('analytics.onlyCompleted', 'Chỉ {{rate}}% học viên hoàn thành khóa học', { rate: courseStats.completionRate?.toFixed(1) })}
                     </p>
                     <button className="text-xs bg-yellow-600 text-white px-3 py-1.5 rounded-lg hover:bg-yellow-700 transition-colors font-medium">
-                      Xem khóa học
+                      {t('analytics.viewCourses', 'Xem khóa học')}
                     </button>
                   </div>
                 </div>
@@ -351,9 +351,9 @@ const Analytics = () => {
                     <CheckCircle className="w-5 h-5 text-green-600" />
                   </div>
                   <div className="flex-1">
-                    <h4 className="font-semibold text-green-900 mb-1">Tương tác tốt</h4>
+                    <h4 className="font-semibold text-green-900 mb-1">{t('analytics.goodEngagement', 'Tương tác tốt')}</h4>
                     <p className="text-sm text-green-700">
-                      {userSegments.activitySegments.activeRate?.toFixed(1)}% người dùng đang hoạt động
+                      {t('analytics.usersActiveRate', '{{rate}}% người dùng đang hoạt động', { rate: userSegments.activitySegments.activeRate?.toFixed(1) })}
                     </p>
                   </div>
                 </div>
@@ -376,13 +376,13 @@ const Analytics = () => {
               </div>
               {comparative?.userTrend && <TrendBadge trend={comparative.userTrend} />}
             </div>
-            <p className="text-blue-100 text-sm font-medium mb-1">Tổng người dùng</p>
+            <p className="text-blue-100 text-sm font-medium mb-1">{t('admin.dashboard.totalUsers', 'Tổng người dùng')}</p>
             <p className="text-4xl font-bold text-white mb-2">
               {platformStats?.totalUsers?.toLocaleString() || '0'}
             </p>
             <div className="flex items-center gap-2 text-blue-100 text-sm">
               <Clock className="w-4 h-4" />
-              <span>+{platformStats?.newUsersThisMonth || 0} tháng này</span>
+              <span>+{platformStats?.newUsersThisMonth || 0} {t('admin.dashboard.thisMonth', 'tháng này')}</span>
             </div>
           </div>
         </Card>
@@ -398,13 +398,13 @@ const Analytics = () => {
               </div>
               {comparative?.courseTrend && <TrendBadge trend={comparative.courseTrend} />}
             </div>
-            <p className="text-green-100 text-sm font-medium mb-1">Khóa học hoạt động</p>
+            <p className="text-green-100 text-sm font-medium mb-1">{t('analytics.activeCourses', 'Khóa học hoạt động')}</p>
             <p className="text-4xl font-bold text-white mb-2">
               {courseStats?.activeCourses || 0}
             </p>
             <div className="flex items-center gap-2 text-green-100 text-sm">
               <BookOpen className="w-4 h-4" />
-              <span>{courseStats?.totalCourses || 0} tổng khóa</span>
+              <span>{courseStats?.totalCourses || 0} {t('analytics.totalCourses', 'tổng khóa')}</span>
             </div>
           </div>
         </Card>
@@ -420,13 +420,13 @@ const Analytics = () => {
               </div>
               {comparative?.examTrend && <TrendBadge trend={comparative.examTrend} />}
             </div>
-            <p className="text-purple-100 text-sm font-medium mb-1">Lần thi</p>
+            <p className="text-purple-100 text-sm font-medium mb-1">{t('analytics.examAttempts', 'Lần thi')}</p>
             <p className="text-4xl font-bold text-white mb-2">
               {examStats?.totalAttempts?.toLocaleString() || '0'}
             </p>
             <div className="flex items-center gap-2 text-purple-100 text-sm">
               <Activity className="w-4 h-4" />
-              <span>Trung bình {examStats?.averageScore?.toFixed(1) || '0'} điểm</span>
+              <span>{t('analytics.avgScore', 'Trung bình')} {examStats?.averageScore?.toFixed(1) || '0'} {t('analytics.points', 'điểm')}</span>
             </div>
           </div>
         </Card>
@@ -441,13 +441,13 @@ const Analytics = () => {
                 <GraduationCap className="w-6 h-6 text-white" />
               </div>
             </div>
-            <p className="text-orange-100 text-sm font-medium mb-1">Lớp học hoạt động</p>
+            <p className="text-orange-100 text-sm font-medium mb-1">{t('analytics.activeClasses', 'Lớp học hoạt động')}</p>
             <p className="text-4xl font-bold text-white mb-2">
               {classStats?.activeClasses || 0}
             </p>
             <div className="flex items-center gap-2 text-orange-100 text-sm">
               <Users className="w-4 h-4" />
-              <span>Trung bình {classStats?.averageClassSize?.toFixed(1) || '0'} HV/lớp</span>
+              <span>{t('analytics.avgPerClass', 'Trung bình')} {classStats?.averageClassSize?.toFixed(1) || '0'} {t('analytics.studentsPerClass', 'HV/lớp')}</span>
             </div>
           </div>
         </Card>
@@ -459,8 +459,8 @@ const Analytics = () => {
         <Card className="p-6 hover:shadow-lg transition-shadow">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h3 className="text-lg font-bold text-gray-900">Xu hướng người dùng</h3>
-              <p className="text-sm text-gray-500">Đăng ký mới theo thời gian</p>
+              <h3 className="text-lg font-bold text-gray-900">{t('analytics.userTrend', 'Xu hướng người dùng')}</h3>
+              <p className="text-sm text-gray-500">{t('analytics.newRegistrationsOverTime', 'Đăng ký mới theo thời gian')}</p>
             </div>
             <div className="p-2 bg-blue-100 rounded-lg">
               <TrendingUp className="w-5 h-5 text-blue-600" />
@@ -512,8 +512,8 @@ const Analytics = () => {
         <Card className="p-6 hover:shadow-lg transition-shadow">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h3 className="text-lg font-bold text-gray-900">Phân bố điểm thi</h3>
-              <p className="text-sm text-gray-500">Thống kê điểm số thực tế</p>
+              <h3 className="text-lg font-bold text-gray-900">{t('analytics.scoreDistribution', 'Phân bố điểm thi')}</h3>
+              <p className="text-sm text-gray-500">{t('analytics.actualScoreStats', 'Thống kê điểm số thực tế')}</p>
             </div>
             <div className="p-2 bg-purple-100 rounded-lg">
               <BarChart3 className="w-5 h-5 text-purple-600" />
@@ -540,8 +540,8 @@ const Analytics = () => {
                   boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
                 }}
                 formatter={(value, name) => [
-                  name === 'count' ? `${value} lần` : `${value?.toFixed(1)}%`,
-                  name === 'count' ? 'Số lần' : 'Tỷ lệ'
+                  name === 'count' ? `${value} ${t('common.times', 'lần')}` : `${value?.toFixed(1)}%`,
+                  name === 'count' ? t('analytics.count', 'Số lần') : t('analytics.ratio', 'Tỷ lệ')
                 ]}
               />
               <Bar dataKey="count" radius={[0, 8, 8, 0]} barSize={40}>
@@ -561,13 +561,13 @@ const Analytics = () => {
               <p className="text-2xl font-bold text-purple-700">
                 {examStats?.averageScore?.toFixed(1) || '0'}
               </p>
-              <p className="text-xs text-purple-600 font-medium">Điểm trung bình</p>
+              <p className="text-xs text-purple-600 font-medium">{t('analytics.avgScore', 'Điểm trung bình')}</p>
             </div>
             <div className="text-center p-3 bg-green-50 rounded-xl">
               <p className="text-2xl font-bold text-green-700">
                 {examStats?.passRate?.toFixed(1) || '0'}%
               </p>
-              <p className="text-xs text-green-600 font-medium">Tỷ lệ đạt</p>
+              <p className="text-xs text-green-600 font-medium">{t('analytics.passRate', 'Tỷ lệ đạt')}</p>
             </div>
           </div>
         </Card>
@@ -579,8 +579,8 @@ const Analytics = () => {
         <Card className="p-6 hover:shadow-lg transition-shadow">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h3 className="text-lg font-bold text-gray-900">Phân bố trình độ</h3>
-              <p className="text-sm text-gray-500">Theo cấp độ học vấn</p>
+              <h3 className="text-lg font-bold text-gray-900">{t('analytics.levelDistribution', 'Phân bố trình độ')}</h3>
+              <p className="text-sm text-gray-500">{t('analytics.byEducationLevel', 'Theo cấp độ học vấn')}</p>
             </div>
             <div className="p-2 bg-cyan-100 rounded-lg">
               <Users className="w-5 h-5 text-cyan-600" />
@@ -626,7 +626,7 @@ const Analytics = () => {
           ) : (
             <div className="text-center py-12 text-gray-400">
               <Users className="w-12 h-12 mx-auto mb-3 opacity-50" />
-              <p>Chưa có dữ liệu phân bố trình độ</p>
+              <p>{t('analytics.noLevelData', 'Chưa có dữ liệu phân bố trình độ')}</p>
             </div>
           )}
         </Card>
@@ -635,8 +635,8 @@ const Analytics = () => {
         <Card className="p-6 hover:shadow-lg transition-shadow">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h3 className="text-lg font-bold text-gray-900">Trạng thái hoạt động</h3>
-              <p className="text-sm text-gray-500">Theo mức độ tương tác</p>
+              <h3 className="text-lg font-bold text-gray-900">{t('analytics.activityStatus', 'Trạng thái hoạt động')}</h3>
+              <p className="text-sm text-gray-500">{t('analytics.byEngagementLevel', 'Theo mức độ tương tác')}</p>
             </div>
             <div className="p-2 bg-green-100 rounded-lg">
               <Activity className="w-5 h-5 text-green-600" />
@@ -683,7 +683,7 @@ const Analytics = () => {
           ) : (
             <div className="text-center py-12 text-gray-400">
               <Activity className="w-12 h-12 mx-auto mb-3 opacity-50" />
-              <p>Chưa có dữ liệu hoạt động</p>
+              <p>{t('analytics.noActivityData', 'Chưa có dữ liệu hoạt động')}</p>
             </div>
           )}
         </Card>
@@ -693,8 +693,8 @@ const Analytics = () => {
       <Card className="p-6 mb-6 hover:shadow-lg transition-shadow">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h3 className="text-lg font-bold text-gray-900">Xu hướng thi</h3>
-            <p className="text-sm text-gray-500">Hoạt động thi hàng ngày</p>
+            <h3 className="text-lg font-bold text-gray-900">{t('analytics.examTrend', 'Xu hướng thi')}</h3>
+            <p className="text-sm text-gray-500">{t('analytics.dailyExamActivity', 'Hoạt động thi hàng ngày')}</p>
           </div>
           <div className="p-2 bg-orange-100 rounded-lg">
             <Calendar className="w-5 h-5 text-orange-600" />
@@ -741,8 +741,8 @@ const Analytics = () => {
         <Card className="p-6 mb-6 hover:shadow-lg transition-shadow overflow-hidden">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h3 className="text-lg font-bold text-gray-900">Phân tích Cohort</h3>
-              <p className="text-sm text-gray-500">Tỷ lệ giữ chân theo đợt đăng ký</p>
+              <h3 className="text-lg font-bold text-gray-900">{t('analytics.cohortAnalysis', 'Phân tích Cohort')}</h3>
+              <p className="text-sm text-gray-500">{t('analytics.retentionByCohort', 'Tỷ lệ giữ chân theo đợt đăng ký')}</p>
             </div>
             <div className="p-2 bg-pink-100 rounded-lg">
               <Calendar className="w-5 h-5 text-pink-600" />
@@ -752,12 +752,12 @@ const Analytics = () => {
             <table className="w-full">
               <thead>
                 <tr className="border-b-2 border-gray-200">
-                  <th className="text-left py-4 px-4 font-bold text-gray-700 text-sm">Đợt</th>
-                  <th className="text-center py-4 px-4 font-bold text-gray-700 text-sm">Số lượng</th>
-                  <th className="text-center py-4 px-4 font-bold text-gray-700 text-sm">Tuần 1</th>
-                  <th className="text-center py-4 px-4 font-bold text-gray-700 text-sm">Tuần 2</th>
-                  <th className="text-center py-4 px-4 font-bold text-gray-700 text-sm">Tuần 4</th>
-                  <th className="text-center py-4 px-4 font-bold text-gray-700 text-sm">Tuần 8</th>
+                  <th className="text-left py-4 px-4 font-bold text-gray-700 text-sm">{t('analytics.cohort', 'Đợt')}</th>
+                  <th className="text-center py-4 px-4 font-bold text-gray-700 text-sm">{t('analytics.quantity', 'Số lượng')}</th>
+                  <th className="text-center py-4 px-4 font-bold text-gray-700 text-sm">{t('analytics.week', 'Tuần')} 1</th>
+                  <th className="text-center py-4 px-4 font-bold text-gray-700 text-sm">{t('analytics.week', 'Tuần')} 2</th>
+                  <th className="text-center py-4 px-4 font-bold text-gray-700 text-sm">{t('analytics.week', 'Tuần')} 4</th>
+                  <th className="text-center py-4 px-4 font-bold text-gray-700 text-sm">{t('analytics.week', 'Tuần')} 8</th>
                 </tr>
               </thead>
               <tbody>
@@ -814,8 +814,8 @@ const Analytics = () => {
         <Card className="p-6 hover:shadow-lg transition-shadow">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h3 className="text-lg font-bold text-gray-900">Phân tích rời bỏ</h3>
-              <p className="text-sm text-gray-500">Dự đoán nguy cơ người dùng rời bỏ</p>
+              <h3 className="text-lg font-bold text-gray-900">{t('analytics.churnAnalysis', 'Phân tích rời bỏ')}</h3>
+              <p className="text-sm text-gray-500">{t('analytics.churnPrediction', 'Dự đoán nguy cơ người dùng rời bỏ')}</p>
             </div>
             <div className="p-2 bg-red-100 rounded-lg">
               <AlertTriangle className="w-5 h-5 text-red-600" />
@@ -826,22 +826,22 @@ const Analytics = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             <div className="text-center p-5 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl">
               <p className="text-3xl font-bold text-blue-900">{churnRisk.totalUsers}</p>
-              <p className="text-sm text-blue-700 font-medium">Tổng người dùng</p>
+              <p className="text-sm text-blue-700 font-medium">{t('admin.dashboard.totalUsers', 'Tổng người dùng')}</p>
             </div>
             <div className="text-center p-5 bg-gradient-to-br from-red-50 to-red-100 rounded-xl">
               <p className="text-3xl font-bold text-red-700">{churnRisk.overallChurnRate?.toFixed(1)}%</p>
-              <p className="text-sm text-red-600 font-medium">Tỷ lệ rời bỏ hiện tại</p>
+              <p className="text-sm text-red-600 font-medium">{t('analytics.currentChurnRate', 'Tỷ lệ rời bỏ hiện tại')}</p>
             </div>
             <div className="text-center p-5 bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl">
               <p className="text-3xl font-bold text-orange-700">{churnRisk.predictedChurnRate?.toFixed(1)}%</p>
-              <p className="text-sm text-orange-600 font-medium">Dự đoán 30 ngày</p>
+              <p className="text-sm text-orange-600 font-medium">{t('analytics.predicted30Days', 'Dự đoán 30 ngày')}</p>
             </div>
           </div>
 
           {/* Risk Segments */}
           {churnRisk.riskSegments && churnRisk.riskSegments.length > 0 && (
             <div className="mb-6">
-              <h4 className="font-bold text-gray-800 mb-4">Phân khúc rủi ro</h4>
+              <h4 className="font-bold text-gray-800 mb-4">{t('analytics.riskSegments', 'Phân khúc rủi ro')}</h4>
               <div className="grid grid-cols-3 gap-4">
                 {churnRisk.riskSegments.map((segment, index) => (
                   <div key={index} className={`p-5 rounded-xl border-2 ${
@@ -851,7 +851,7 @@ const Analytics = () => {
                   }`}>
                     <div className="flex justify-between items-start mb-3">
                       <span className="font-bold capitalize text-gray-900">
-                        {segment.segment === 'high' ? 'Cao' : segment.segment === 'medium' ? 'Trung bình' : 'Thấp'}
+                        {segment.segment === 'high' ? t('common.high', 'Cao') : segment.segment === 'medium' ? t('common.medium', 'Trung bình') : t('common.low', 'Thấp')}
                       </span>
                       <span className="text-2xl font-bold">{segment.count}</span>
                     </div>
@@ -866,7 +866,7 @@ const Analytics = () => {
                         }}
                       />
                     </div>
-                    <p className="text-xs text-gray-600 mt-2">{segment.percentage?.toFixed(1)}% người dùng</p>
+                    <p className="text-xs text-gray-600 mt-2">{segment.percentage?.toFixed(1)}% {t('analytics.ofUsers', 'người dùng')}</p>
                   </div>
                 ))}
               </div>
@@ -876,15 +876,15 @@ const Analytics = () => {
           {/* At-Risk Users */}
           {churnRisk.atRiskUsers && churnRisk.atRiskUsers.length > 0 && (
             <div>
-              <h4 className="font-bold text-gray-800 mb-4">Top người dùng nguy cơ cao</h4>
+              <h4 className="font-bold text-gray-800 mb-4">{t('analytics.topAtRiskUsers', 'Top người dùng nguy cơ cao')}</h4>
               <div className="overflow-x-auto rounded-xl border border-gray-200">
                 <table className="w-full">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="text-left py-3 px-4 font-bold text-gray-700 text-xs uppercase tracking-wider">Người dùng</th>
-                      <th className="text-center py-3 px-4 font-bold text-gray-700 text-xs uppercase tracking-wider">Rủi ro</th>
-                      <th className="text-center py-3 px-4 font-bold text-gray-700 text-xs uppercase tracking-wider">Điểm</th>
-                      <th className="text-center py-3 px-4 font-bold text-gray-700 text-xs uppercase tracking-wider">Ngày không hoạt động</th>
+                      <th className="text-left py-3 px-4 font-bold text-gray-700 text-xs uppercase tracking-wider">{t('analytics.user', 'Người dùng')}</th>
+                      <th className="text-center py-3 px-4 font-bold text-gray-700 text-xs uppercase tracking-wider">{t('analytics.risk', 'Rủi ro')}</th>
+                      <th className="text-center py-3 px-4 font-bold text-gray-700 text-xs uppercase tracking-wider">{t('analytics.score', 'Điểm')}</th>
+                      <th className="text-center py-3 px-4 font-bold text-gray-700 text-xs uppercase tracking-wider">{t('analytics.daysInactive', 'Ngày không hoạt động')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -905,7 +905,7 @@ const Analytics = () => {
                           <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold ${
                             user.riskLevel === 'high' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'
                           }`}>
-                            {user.riskLevel === 'high' ? 'Cao' : 'Trung bình'}
+                            {user.riskLevel === 'high' ? t('common.high', 'Cao') : t('common.medium', 'Trung bình')}
                           </span>
                         </td>
                         <td className="py-3 px-4 text-center">

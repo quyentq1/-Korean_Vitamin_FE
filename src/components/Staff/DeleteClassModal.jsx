@@ -29,7 +29,7 @@ const DeleteClassModal = ({ classData, onClose, onSuccess }) => {
     const handleDelete = async () => {
         // Validate confirmation text
         if (confirmText !== 'DELETE') {
-            setError('Bạn phải nhập "DELETE" để xác nhận xóa lớp học này.');
+            setError(t('staff.deleteClass.confirmRequired'));
             return;
         }
 
@@ -71,7 +71,7 @@ const DeleteClassModal = ({ classData, onClose, onSuccess }) => {
                             <Trash2 className="w-5 h-5 text-red-600" />
                         </div>
                         <div>
-                            <h3 className="text-lg font-semibold text-gray-900">Xóa Lớp Học</h3>
+                            <h3 className="text-lg font-semibold text-gray-900">{t('staff.deleteClass.title')}</h3>
                             <p className="text-sm text-gray-600">
                                 {classData?.className || classData?.name}
                             </p>
@@ -87,17 +87,16 @@ const DeleteClassModal = ({ classData, onClose, onSuccess }) => {
                             <div className="flex items-start gap-2">
                                 <AlertTriangle className="w-5 h-5 text-yellow-600 shrink-0 mt-0.5" />
                                 <div className="text-sm text-yellow-800">
-                                    <p className="font-semibold mb-1">⚠️ Cảnh báo: Lớp học đang có học viên</p>
+                                    <p className="font-semibold mb-1">{t('staff.deleteClass.hasStudentsWarning')}</p>
                                     <p className="text-yellow-700">
-                                        Lớp này hiện tại có <strong>{activeStudentCount} học viên</strong> đang học.
-                                        Bạn cần xóa hoặc chuyển tất cả học viên sang lớp khác trước khi xóa lớp học này.
+                                        {t('staff.deleteClass.hasStudentsDetail', 'Lớp này hiện tại có {{count}} học viên đang học.', { count: activeStudentCount })}
                                     </p>
                                     <div className="mt-2 p-2 bg-yellow-100 rounded text-xs text-yellow-800">
-                                        <p className="font-medium">Các bước cần thực hiện:</p>
+                                        <p className="font-medium">{t('staff.deleteClass.stepsTitle')}</p>
                                         <ol className="list-decimal list-inside mt-1 space-y-1">
-                                            <li>Chuyển học viên sang lớp khác (nếu cần)</li>
-                                            <li>Xóa hết học viên khỏi lớp hiện tại</li>
-                                            <li>Sau đó mới có thể xóa lớp học</li>
+                                            <li>{t('staff.deleteClass.step1')}</li>
+                                            <li>{t('staff.deleteClass.step2')}</li>
+                                            <li>{t('staff.deleteClass.step3')}</li>
                                         </ol>
                                     </div>
                                 </div>
@@ -110,16 +109,16 @@ const DeleteClassModal = ({ classData, onClose, onSuccess }) => {
                         <div className="flex items-start gap-2">
                             <AlertOctagon className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
                             <div className="text-sm text-red-800">
-                                <p className="font-semibold mb-1">Cảnh báo quan trọng</p>
+                                <p className="font-semibold mb-1">{t('staff.deleteClass.importantWarning')}</p>
                                 <p className="text-red-700">
-                                    Hành động này <strong>không thể hoàn tác</strong>. Tất cả dữ liệu liên quan đến lớp học này sẽ bị xóa vĩnh viễn, bao gồm:
+                                    {t('staff.deleteClass.irreversibleAction')}
                                 </p>
                                 <ul className="list-disc list-inside mt-2 text-red-700 space-y-1">
-                                    <li>Danh sách học viên và thông tin ghi danh</li>
-                                    <li>Giáo viên được phân công</li>
-                                    <li>Lịch học và các buổi học</li>
-                                    <li>Lịch sử điểm danh</li>
-                                    <li>Bài kiểm tra và kết quả</li>
+                                    <li>{t('staff.deleteClass.willDeleteStudentList')}</li>
+                                    <li>{t('staff.deleteClass.willDeleteTeachers')}</li>
+                                    <li>{t('staff.deleteClass.willDeleteSchedules')}</li>
+                                    <li>{t('staff.deleteClass.willDeleteAttendance')}</li>
+                                    <li>{t('staff.deleteClass.willDeleteExams')}</li>
                                 </ul>
                             </div>
                         </div>
@@ -128,7 +127,7 @@ const DeleteClassModal = ({ classData, onClose, onSuccess }) => {
                     {/* Confirmation Input */}
                     <div className="mb-4">
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Nhập <span className="font-mono font-bold text-red-600">DELETE</span> để xác nhận
+                            {t('staff.deleteClass.typeToDelete')} <span className="font-mono font-bold text-red-600">DELETE</span> {t('staff.deleteClass.toConfirm')}
                         </label>
                         <input
                             type="text"
@@ -137,12 +136,12 @@ const DeleteClassModal = ({ classData, onClose, onSuccess }) => {
                                 setConfirmText(e.target.value);
                                 if (error) setError('');
                             }}
-                            placeholder="Nhập DELETE để xác nhận"
+                            placeholder={t('staff.deleteClass.typeDeletePlaceholder')}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 uppercase"
                             disabled={deleting}
                         />
                         <p className="mt-1 text-xs text-gray-500">
-                            Hành động này sẽ ảnh hưởng đến {classData?.studentCount || 0} học viên.
+                            {t('staff.deleteClass.affectStudents', 'Hành động này sẽ ảnh hưởng đến {{count}} học viên.', { count: classData?.studentCount || 0 })}
                         </p>
                     </div>
 
@@ -159,9 +158,9 @@ const DeleteClassModal = ({ classData, onClose, onSuccess }) => {
                     {/* Class Info */}
                     <div className="mt-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
                         <div className="text-sm space-y-1">
-                            <p><span className="font-medium">Mã lớp:</span> {classData?.classCode || classData?.code}</p>
-                            <p><span className="font-medium">Khóa học:</span> {classData?.courseName || classData?.course?.name}</p>
-                            <p><span className="font-medium">Giáo viên:</span> {classData?.teacherName || classData?.teacher?.fullName || 'Chưa gán'}</p>
+                            <p><span className="font-medium">{t('staff.deleteClass.classCode')}:</span> {classData?.classCode || classData?.code}</p>
+                            <p><span className="font-medium">{t('staff.deleteClass.course')}:</span> {classData?.courseName || classData?.course?.name}</p>
+                            <p><span className="font-medium">{t('staff.deleteClass.teacher')}:</span> {classData?.teacherName || classData?.teacher?.fullName || t('staff.deleteClass.notAssigned')}</p>
                         </div>
                     </div>
 
@@ -173,24 +172,24 @@ const DeleteClassModal = ({ classData, onClose, onSuccess }) => {
                             disabled={deleting}
                             className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            Hủy
+                            {t('staff.deleteClass.cancel')}
                         </button>
                         <button
                             type="button"
                             onClick={handleDelete}
                             disabled={deleting || confirmText !== 'DELETE' || activeStudentCount > 0}
                             className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                            title={activeStudentCount > 0 ? 'Không thể xóa lớp khi đang có học viên' : ''}
+                            title={activeStudentCount > 0 ? t('staff.deleteClass.cannotDeleteWithStudents') : ''}
                         >
                             {deleting ? (
                                 <>
                                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                                    Đang xóa...
+                                    {t('staff.deleteClass.deleting')}
                                 </>
                             ) : (
                                 <>
                                     <Trash2 className="w-4 h-4" />
-                                    Xóa Lớp Học
+                                    {t('staff.deleteClass.submit')}
                                 </>
                             )}
                         </button>

@@ -1,22 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { ArrowRight, Play, Users, Award, BookOpen, CheckCircle, Star, ChevronRight } from 'lucide-react';
 
-/**
- * LandingPage - Trang marketing chính cho FPT K Vitamin
- * Phase 7: Marketing
- *
- * Features:
- * - Hero section với CTA
- * - Features highlights
- * - Course showcase
- * - Testimonials
- * - Statistics
- * - Pricing plans
- * - Final CTA
- */
 const LandingPage = () => {
     const navigate = useNavigate();
+    const { t } = useTranslation();
     const [stats, setStats] = useState({
         students: 1500,
         courses: 25,
@@ -34,26 +23,26 @@ const LandingPage = () => {
                             <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
                                 <span className="text-white font-bold text-xl">K</span>
                             </div>
-                            <span className="font-bold text-xl text-gray-900">K Vitamin</span>
+                            <span className="font-bold text-xl text-gray-900">{t('landing.brand', 'K Vitamin')}</span>
                         </div>
                         <div className="hidden md:flex items-center gap-8">
-                            <a href="#features" className="text-gray-600 hover:text-gray-900">Tính năng</a>
-                            <a href="#courses" className="text-gray-600 hover:text-gray-900">Khóa học</a>
-                            <a href="#testimonials" className="text-gray-600 hover:text-gray-900">Đánh giá</a>
-                            <a href="#pricing" className="text-gray-600 hover:text-gray-900">Học phí</a>
+                            <a href="#features" className="text-gray-600 hover:text-gray-900">{t('landing.nav.features', 'Tính năng')}</a>
+                            <a href="#courses" className="text-gray-600 hover:text-gray-900">{t('landing.nav.courses', 'Khóa học')}</a>
+                            <a href="#testimonials" className="text-gray-600 hover:text-gray-900">{t('landing.nav.testimonials', 'Đánh giá')}</a>
+                            <a href="#pricing" className="text-gray-600 hover:text-gray-900">{t('landing.nav.pricing', 'Học phí')}</a>
                         </div>
                         <div className="flex items-center gap-3">
                             <button
                                 onClick={() => navigate('/login')}
                                 className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
                             >
-                                Đăng nhập
+                                {t('common.login', 'Đăng nhập')}
                             </button>
                             <button
                                 onClick={() => navigate('/signup')}
                                 className="px-6 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 font-medium"
                             >
-                                Đăng ký
+                                {t('landing.signup', 'Đăng ký')}
                             </button>
                         </div>
                     </div>
@@ -67,17 +56,16 @@ const LandingPage = () => {
                         <div>
                             <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-full text-sm font-medium mb-6">
                                 <Star className="w-4 h-4 fill-current" />
-                                Nền tảng học tiếng Hàn số 1 Việt Nam
+                                {t('landing.hero.badge', 'Nền tảng học tiếng Hàn số 1 Việt Nam')}
                             </div>
                             <h1 className="text-5xl font-bold text-gray-900 leading-tight mb-6">
-                                Học tiếng Hàn
+                                {t('landing.hero.title', 'Học tiếng Hàn')}
                                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">
-                                    {' '}hiệu quả nhất
+                                    {' '}{t('landing.hero.titleHighlight', 'hiệu quả nhất')}
                                 </span>
                             </h1>
                             <p className="text-xl text-gray-600 mb-8 leading-relaxed">
-                                Công nghệ AI tiên tiến, giáo viên bản ngữ, lộ trình cá nhân hóa.
-                                Đạt TOPIK nhanh chóng với phương pháp học tập hiện đại.
+                                {t('landing.hero.subtitle', 'Công nghệ AI tiên tiến, giáo viên bản ngữ, lộ trình cá nhân hóa. Đạt TOPIK nhanh chóng với phương pháp học tập hiện đại.')}
                             </p>
                             <div className="flex flex-col sm:flex-row gap-4">
                                 <button
@@ -85,24 +73,24 @@ const LandingPage = () => {
                                     className="px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-indigo-700 shadow-lg flex items-center justify-center gap-2 text-lg"
                                 >
                                     <Play className="w-5 h-5" />
-                                    Học thử miễn phí
+                                    {t('landing.hero.cta1', 'Học thử miễn phí')}
                                 </button>
                                 <button
                                     onClick={() => navigate('/courses')}
                                     className="px-8 py-4 bg-white text-gray-700 rounded-xl font-semibold hover:bg-gray-50 border border-gray-300 flex items-center justify-center gap-2 text-lg"
                                 >
-                                    Xem khóa học
+                                    {t('landing.hero.cta2', 'Xem khóa học')}
                                     <ArrowRight className="w-5 h-5" />
                                 </button>
                             </div>
                             <div className="flex items-center gap-6 mt-8">
                                 <div className="flex items-center gap-2">
                                     <CheckCircle className="w-5 h-5 text-green-600" />
-                                    <span className="text-gray-700">2 bài test miễn phí</span>
+                                    <span className="text-gray-700">{t('landing.hero.check1', '2 bài test miễn phí')}</span>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <CheckCircle className="w-5 h-5 text-green-600" />
-                                    <span className="text-gray-700">Không cần đăng ký</span>
+                                    <span className="text-gray-700">{t('landing.hero.check2', 'Không cần đăng ký')}</span>
                                 </div>
                             </div>
                         </div>
@@ -122,7 +110,7 @@ const LandingPage = () => {
                                     </div>
                                     <div>
                                         <p className="text-2xl font-bold text-gray-900">1,500+</p>
-                                        <p className="text-sm text-gray-600">Học viên</p>
+                                        <p className="text-sm text-gray-600">{t('landing.hero.stat1', 'Học viên')}</p>
                                     </div>
                                 </div>
                             </div>
@@ -133,7 +121,7 @@ const LandingPage = () => {
                                     </div>
                                     <div>
                                         <p className="text-2xl font-bold text-gray-900">98%</p>
-                                        <p className="text-sm text-gray-600">Hài lòng</p>
+                                        <p className="text-sm text-gray-600">{t('landing.hero.satisfaction', 'Hài lòng')}</p>
                                     </div>
                                 </div>
                             </div>
@@ -147,10 +135,10 @@ const LandingPage = () => {
                 <div className="max-w-7xl mx-auto px-4">
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
                         {[
-                            { value: '1,500+', label: 'Học viên', icon: Users },
-                            { value: '25+', label: 'Khóa học', icon: BookOpen },
-                            { value: '30+', label: 'Giáo viên', icon: Award },
-                            { value: '98%', label: 'Hài lòng', icon: Star }
+                            { value: '1,500+', label: t('landing.stats.students', 'Học viên'), icon: Users },
+                            { value: '25+', label: t('landing.stats.courses', 'Khóa học'), icon: BookOpen },
+                            { value: '30+', label: t('landing.stats.teachers', 'Giáo viên'), icon: Award },
+                            { value: '98%', label: t('landing.stats.satisfaction', 'Hài lòng'), icon: Star }
                         ].map((stat, idx) => (
                             <div key={idx} className="text-center">
                                 <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -169,47 +157,47 @@ const LandingPage = () => {
                 <div className="max-w-7xl mx-auto px-4">
                     <div className="text-center mb-16">
                         <h2 className="text-4xl font-bold text-gray-900 mb-4">
-                            Tại sao chọn K Vitamin?
+                            {t('landing.featuresTitle', 'Tại sao chọn K Vitamin?')}
                         </h2>
                         <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-                            Nền tảng học tiếng Hàn toàn diện với công nghệ AI tiên tiến nhất
+                            {t('landing.featuresSubtitle', 'Nền tảng học tiếng Hàn toàn diện với công nghệ AI tiên tiến nhất')}
                         </p>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                         {[
                             {
-                                title: 'AI Chấm & sửa bài',
-                                description: 'Công nghệ AI tự động chấm bài viết và bài nói, phản hồi ngay lập tức',
+                                title: t('landing.feature.aiGrading.title', 'AI Chấm & sửa bài'),
+                                description: t('landing.feature.aiGrading.desc', 'Công nghệ AI tự động chấm bài viết và bài nói, phản hồi ngay lập tức'),
                                 icon: '🤖',
                                 color: 'from-blue-600 to-indigo-600'
                             },
                             {
-                                title: 'Lộ trình cá nhân hóa',
-                                description: 'AI phân tích trình độ và tạo lộ trình học tập phù hợp với từng học viên',
+                                title: t('landing.feature.personalized.title', 'Lộ trình cá nhân hóa'),
+                                description: t('landing.feature.personalized.desc', 'AI phân tích trình độ và tạo lộ trình học tập phù hợp với từng học viên'),
                                 icon: '📊',
                                 color: 'from-green-600 to-emerald-600'
                             },
                             {
-                                title: 'Giáo viên bản ngữ',
-                                description: 'Đội ngũ giáo viên Hàn Quốc giàu kinh nghiệm, phương pháp giảng dạy hiện đại',
+                                title: t('landing.feature.nativeTeacher.title', 'Giáo viên bản ngữ'),
+                                description: t('landing.feature.nativeTeacher.desc', 'Đội ngũ giáo viên Hàn Quốc giàu kinh nghiệm, phương pháp giảng dạy hiện đại'),
                                 icon: '👨‍🏫',
                                 color: 'from-purple-600 to-pink-600'
                             },
                             {
-                                title: 'Luyện thi TOPIK',
-                                description: 'Đề thi thử sát với đề thật, ngân hàng đề lớn, cam kết đầu ra',
+                                title: t('landing.feature.topikPrep.title', 'Luyện thi TOPIK'),
+                                description: t('landing.feature.topikPrep.desc', 'Đề thi thử sát với đề thật, ngân hàng đề lớn, cam kết đầu ra'),
                                 icon: '📝',
                                 color: 'from-orange-600 to-red-600'
                             },
                             {
-                                title: 'Học mọi lúc mọi nơi',
-                                description: 'Học online trên điện thoại, máy tính, linh hoạt thời gian',
+                                title: t('landing.feature.anytime.title', 'Học mọi lúc mọi nơi'),
+                                description: t('landing.feature.anytime.desc', 'Học online trên điện thoại, máy tính, linh hoạt thời gian'),
                                 icon: '💻',
                                 color: 'from-cyan-600 to-blue-600'
                             },
                             {
-                                title: 'Theo dõi tiến độ',
-                                description: 'Báo cáo chi tiết tiến độ học tập, điểm số, và chỉ số cải thiện',
+                                title: t('landing.feature.progress.title', 'Theo dõi tiến độ'),
+                                description: t('landing.feature.progress.desc', 'Báo cáo chi tiết tiến độ học tập, điểm số, và chỉ số cải thiện'),
                                 icon: '📈',
                                 color: 'from-yellow-600 to-orange-600'
                             }
@@ -231,36 +219,36 @@ const LandingPage = () => {
                 <div className="max-w-7xl mx-auto px-4">
                     <div className="text-center mb-16">
                         <h2 className="text-4xl font-bold text-gray-900 mb-4">
-                            Khóa học nổi bật
+                            {t('landing.coursesHighlight.title', 'Khóa học nổi bật')}
                         </h2>
                         <p className="text-xl text-gray-600">
-                            Lộ trình học từ cơ bản đến nâng cao, đáp ứng mọi trình độ
+                            {t('landing.coursesHighlight.subtitle', 'Lộ trình học từ cơ bản đến nâng cao, đáp ứng mọi trình độ')}
                         </p>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                         {[
                             {
-                                title: 'Tiếng Hàn Sơ Cấp 1',
+                                title: t('landing.course.beginner.title', 'Tiếng Hàn Sơ Cấp 1'),
                                 level: 'TOPIK I',
-                                duration: '3 tháng',
+                                duration: t('landing.course.beginner.duration', '3 tháng'),
                                 price: '3.000.000 VNĐ',
                                 students: 450,
                                 rating: 4.8,
                                 image: '/courses/beginner-1.jpg'
                             },
                             {
-                                title: 'Tiếng Hàn Trung Cấp',
+                                title: t('landing.course.intermediate.title', 'Tiếng Hàn Trung Cấp'),
                                 level: 'TOPIK II',
-                                duration: '6 tháng',
+                                duration: t('landing.course.intermediate.duration', '6 tháng'),
                                 price: '5.500.000 VNĐ',
                                 students: 320,
                                 rating: 4.9,
                                 image: '/courses/intermediate.jpg'
                             },
                             {
-                                title: 'Luyện Thi TOPIK II',
+                                title: t('landing.course.topikPrep.title', 'Luyện Thi TOPIK II'),
                                 level: 'ESP',
-                                duration: '4 tháng',
+                                duration: t('landing.course.topikPrep.duration', '4 tháng'),
                                 price: '6.000.000 VNĐ',
                                 students: 280,
                                 rating: 5.0,
@@ -282,12 +270,12 @@ const LandingPage = () => {
                                     <div className="flex items-center gap-2 mb-4">
                                         <Star className="w-4 h-4 text-yellow-400 fill-current" />
                                         <span className="font-medium">{course.rating}</span>
-                                        <span className="text-gray-500">({course.students} học viên)</span>
+                                        <span className="text-gray-500">({course.students} {t('landing.course.students', 'học viên')})</span>
                                     </div>
                                     <div className="flex items-center justify-between">
                                         <span className="text-2xl font-bold text-blue-600">{course.price}</span>
                                         <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium">
-                                            Đăng ký
+                                            {t('landing.course.register', 'Đăng ký')}
                                         </button>
                                     </div>
                                 </div>
@@ -299,7 +287,7 @@ const LandingPage = () => {
                             onClick={() => navigate('/courses')}
                             className="px-8 py-3 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 font-medium flex items-center gap-2 mx-auto"
                         >
-                            Xem tất cả khóa học
+                            {t('landing.course.viewAll', 'Xem tất cả khóa học')}
                             <ChevronRight className="w-4 h-4" />
                         </button>
                     </div>
@@ -311,33 +299,33 @@ const LandingPage = () => {
                 <div className="max-w-7xl mx-auto px-4">
                     <div className="text-center mb-16">
                         <h2 className="text-4xl font-bold text-gray-900 mb-4">
-                            Học viên nói gì?
+                            {t('landing.testimonialsHighlight.title', 'Học viên nói gì?')}
                         </h2>
                         <p className="text-xl text-gray-600">
-                            Hơn 1,500 học viên đã đạt kết quả xuất sắc
+                            {t('landing.testimonialsHighlight.subtitle', 'Hơn 1,500 học viên đã đạt kết quả xuất sắc')}
                         </p>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                         {[
                             {
-                                name: 'Nguyễn Thị Lan',
-                                course: 'TOPIK II - 2024',
-                                score: 'TOPIK II - Level 6',
-                                content: 'Nhờ K Vitamin mà mình đã đạt Level 6 TOPIK II. AI chấm bài rất hữu ích, giáo viên nhiệt tình.',
+                                name: t('landing.testimonial1.name', 'Nguyễn Thị Lan'),
+                                course: t('landing.testimonial1.course', 'TOPIK II - 2024'),
+                                score: t('landing.testimonial1.score', 'TOPIK II - Level 6'),
+                                content: t('landing.testimonial1.content', 'Nhờ K Vitamin mà mình đã đạt Level 6 TOPIK II. AI chấm bài rất hữu ích, giáo viên nhiệt tình.'),
                                 avatar: '/avatars/student1.jpg'
                             },
                             {
-                                name: 'Trần Văn Minh',
-                                course: 'Tiếng Hàn Trung Cấp',
-                                score: 'TOPIK I - Level 4',
-                                content: 'Lộ trình học rõ ràng, bài tập đa dạng. Đặc biệt tính năng luyện thi rất hiệu quả.',
+                                name: t('landing.testimonial2.name', 'Trần Văn Minh'),
+                                course: t('landing.testimonial2.course', 'Tiếng Hàn Trung Cấp'),
+                                score: t('landing.testimonial2.score', 'TOPIK I - Level 4'),
+                                content: t('landing.testimonial2.content', 'Lộ trình học rõ ràng, bài tập đa dạng. Đặc biệt tính năng luyện thi rất hiệu quả.'),
                                 avatar: '/avatars/student2.jpg'
                             },
                             {
-                                name: 'Phạm Thu Hương',
-                                course: 'Sơ Cấp 1',
-                                score: 'TOPIK I - Level 2',
-                                content: 'Mình bắt đầu từ con số 0, sau 3 tháng đã đạt Level 2. Giáo viên rất dễ thương và kiên nhẫn.',
+                                name: t('landing.testimonial3.name', 'Phạm Thu Hương'),
+                                course: t('landing.testimonial3.course', 'Sơ Cấp 1'),
+                                score: t('landing.testimonial3.score', 'TOPIK I - Level 2'),
+                                content: t('landing.testimonial3.content', 'Mình bắt đầu từ con số 0, sau 3 tháng đã đạt Level 2. Giáo viên rất dễ thương và kiên nhẫn.'),
                                 avatar: '/avatars/student3.jpg'
                             }
                         ].map((testimonial, idx) => (
@@ -367,10 +355,10 @@ const LandingPage = () => {
             <section className="py-20 bg-gradient-to-r from-blue-600 to-indigo-600">
                 <div className="max-w-4xl mx-auto px-4 text-center">
                     <h2 className="text-4xl font-bold text-white mb-6">
-                        Bắt đầu học tiếng Hàn ngay hôm nay
+                        {t('landing.cta.title', 'Bắt đầu học tiếng Hàn ngay hôm nay')}
                     </h2>
                     <p className="text-xl text-blue-100 mb-8">
-                        2 bài test miễn phí. Không cần đăng ký. Học thử ngay!
+                        {t('landing.cta.subtitle', '2 bài test miễn phí. Không cần đăng ký. Học thử ngay!')}
                     </p>
                     <div className="flex flex-col sm:flex-row gap-4 justify-center">
                         <button
@@ -378,13 +366,13 @@ const LandingPage = () => {
                             className="px-8 py-4 bg-white text-blue-600 rounded-xl font-semibold hover:bg-gray-100 shadow-lg flex items-center justify-center gap-2 text-lg"
                         >
                             <Play className="w-5 h-5" />
-                            Học thử miễn phí
+                            {t('landing.cta.cta1', 'Học thử miễn phí')}
                         </button>
                         <button
                             onClick={() => navigate('/signup')}
                             className="px-8 py-4 bg-blue-700 text-white rounded-xl font-semibold hover:bg-blue-800 border border-blue-400 flex items-center justify-center gap-2 text-lg"
                         >
-                            Đăng ký tài khoản
+                            {t('landing.cta.cta2', 'Đăng ký tài khoản')}
                             <ArrowRight className="w-5 h-5" />
                         </button>
                     </div>
@@ -400,36 +388,36 @@ const LandingPage = () => {
                                 <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
                                     <span className="text-white font-bold text-xl">K</span>
                                 </div>
-                                <span className="font-bold text-xl">K Vitamin</span>
+                                <span className="font-bold text-xl">{t('landing.brand', 'K Vitamin')}</span>
                             </div>
                             <p className="text-gray-400">
-                                Nền tảng học tiếng Hàn trực tuyến hàng đầu Việt Nam
+                                {t('landing.footer.tagline', 'Nền tảng học tiếng Hàn trực tuyến hàng đầu Việt Nam')}
                             </p>
                         </div>
                         <div>
-                            <h4 className="font-semibold mb-4">Khóa học</h4>
+                            <h4 className="font-semibold mb-4">{t('landing.footer.courses', 'Khóa học')}</h4>
                             <ul className="space-y-2 text-gray-400">
-                                <li><a href="#" className="hover:text-white">Tiếng Hàn Sơ Cấp</a></li>
-                                <li><a href="#" className="hover:text-white">Tiếng Hàn Trung Cấp</a></li>
-                                <li><a href="#" className="hover:text-white">Luyện Thi TOPIK</a></li>
-                                <li><a href="#" className="hover:text-white">Tiếng Hàn Giao Tiếp</a></li>
+                                <li><a href="#" className="hover:text-white">{t('landing.footer.beginner', 'Tiếng Hàn Sơ Cấp')}</a></li>
+                                <li><a href="#" className="hover:text-white">{t('landing.footer.intermediate', 'Tiếng Hàn Trung Cấp')}</a></li>
+                                <li><a href="#" className="hover:text-white">{t('landing.footer.topikPrep', 'Luyện Thi TOPIK')}</a></li>
+                                <li><a href="#" className="hover:text-white">{t('landing.footer.conversation', 'Tiếng Hàn Giao Tiếp')}</a></li>
                             </ul>
                         </div>
                         <div>
-                            <h4 className="font-semibold mb-4">Hỗ trợ</h4>
+                            <h4 className="font-semibold mb-4">{t('landing.footer.support', 'Hỗ trợ')}</h4>
                             <ul className="space-y-2 text-gray-400">
-                                <li><a href="#" className="hover:text-white">Trung tâm trợ giúp</a></li>
-                                <li><a href="#" className="hover:text-white">Liên hệ</a></li>
-                                <li><a href="#" className="hover:text-white">FAQ</a></li>
-                                <li><a href="#" className="hover:text-white">Điều khoản</a></li>
+                                <li><a href="#" className="hover:text-white">{t('landing.footer.helpCenter', 'Trung tâm trợ giúp')}</a></li>
+                                <li><a href="#" className="hover:text-white">{t('landing.footer.contactUs', 'Liên hệ')}</a></li>
+                                <li><a href="#" className="hover:text-white">{t('landing.footer.faq', 'FAQ')}</a></li>
+                                <li><a href="#" className="hover:text-white">{t('landing.footer.terms', 'Điều khoản')}</a></li>
                             </ul>
                         </div>
                         <div>
-                            <h4 className="font-semibold mb-4">Liên hệ</h4>
+                            <h4 className="font-semibold mb-4">{t('landing.footer.contact', 'Liên hệ')}</h4>
                             <ul className="space-y-2 text-gray-400">
-                                <li>Hotline: 1900 xxxx</li>
-                                <li>Email: support@k-vitamin.com</li>
-                                <li>Địa chỉ: Hà Nội, Việt Nam</li>
+                                <li>{t('landing.footer.hotline', 'Hotline: 1900 xxxx')}</li>
+                                <li>{t('landing.footer.emailContact', 'Email: support@k-vitamin.com')}</li>
+                                <li>{t('landing.footer.address', 'Địa chỉ: Hà Nội, Việt Nam')}</li>
                             </ul>
                         </div>
                     </div>

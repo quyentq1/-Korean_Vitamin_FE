@@ -275,7 +275,7 @@ const ExamManagement = () => {
       await navigator.clipboard.writeText(link);
       Swal.fire({
         icon: 'success',
-        title: 'Đã sao chép!',
+        title: t('exam.copied'),
         html: `<div class="text-sm text-gray-600 break-all">${link}</div>`,
         timer: 2000,
         timerProgressBar: true,
@@ -291,7 +291,7 @@ const ExamManagement = () => {
       document.body.removeChild(textarea);
       Swal.fire({
         icon: 'success',
-        title: 'Đã sao chép!',
+        title: t('exam.copied'),
         html: `<div class="text-sm text-gray-600 break-all">${link}</div>`,
         timer: 2000,
         timerProgressBar: true,
@@ -322,14 +322,14 @@ const ExamManagement = () => {
     <PageContainer>
       {/* Page Header */}
       <PageHeader
-        title={activeTab === 'MOCK' ? 'Quản Lý FreeTest' : 'Quản Lý Đề Luyện Thi'}
+        title={activeTab === 'MOCK' ? t('exam.freeTestManagement') : t('exam.practiceExamManagement')}
         subtitle={activeTab === 'MOCK'
-          ? 'Tạo và quản lý các đề thi thử miễn phí (FreeTest)'
-          : 'Tạo, chỉnh sửa và quản lý các đề luyện thi cho học viên'}
+          ? t('exam.freeTestSubtitle')
+          : t('exam.practiceExamSubtitle')}
         breadcrumbs={[
           { label: t('nav.home', 'Trang chủ'), href: '/' },
           { label: t('nav.teacher', 'Giáo viên'), href: '/teacher' },
-          { label: activeTab === 'MOCK' ? 'Quản Lý FreeTest' : 'Quản Lý Đề Luyện Thi' }
+          { label: activeTab === 'MOCK' ? t('exam.freeTestManagement') : t('exam.practiceExamManagement') }
         ]}
         actions={
           <Button
@@ -341,7 +341,8 @@ const ExamManagement = () => {
                 : `/teacher/exam-management/create?examCategory=${activeTab}`
             )}
           >
-            {t('exam.create', `Tạo ${activeTab === 'MOCK' ? 'FreeTest' : 'Đề Luyện Thi'} Mới`)}
+            {activeTab === 'MOCK' ? t('exam.createNewFreeTest') : t('exam.createNewPractice')}
+          </Button>
           </Button>
         }
       />
@@ -349,25 +350,25 @@ const ExamManagement = () => {
       {/* Info Alert - Approval Workflow Notice */}
       <Alert variant="info" icon={<AlertCircle className="w-5 h-5" />} className="mb-6">
         <div className="font-medium mb-1">
-          {activeTab === 'MOCK' ? 'Quy trình phê duyệt FreeTest' :
-           activeTab === 'CLASS_PRACTICE' ? 'Quy trình phê duyệt đề luyện thi cho Lớp học' :
-           'Quy trình phê duyệt đề luyện thi cho Khóa học'}
+          {activeTab === 'MOCK' ? t('exam.approvalWorkflowFreeTest') :
+           activeTab === 'CLASS_PRACTICE' ? t('exam.approvalWorkflowClass') :
+           t('exam.approvalWorkflowCourse')}
         </div>
         <div className="text-sm">
           {activeTab === 'MOCK' ? (
             <>
-              FreeTest là <strong>đề thi thử miễn phí</strong> dành cho tất cả người dùng (không cần đăng ký).
-              Khi tạo FreeTest mới, nó sẽ ở trạng thái <strong>Chờ duyệt</strong>. Education Manager sẽ xem xét và phê duyệt.
+              {t('exam.freeTestDescription')}
+              {t('exam.pendingApprovalDescription')}
             </>
           ) : activeTab === 'CLASS_PRACTICE' ? (
             <>
-              Đề luyện thi cho <strong>lớp học</strong> dành cho học viên trong lớp cụ thể.
-              Khi tạo đề mới, nó sẽ ở trạng thái <strong>Chờ duyệt</strong>. Education Manager sẽ xem xét và phê duyệt.
+              {t('exam.classExamDescription')}
+              {t('exam.pendingApprovalDescription')}
             </>
           ) : (
             <>
-              Đề luyện thi cho <strong>khóa học</strong> dành cho học viên đã đăng ký khóa học.
-              Khi tạo đề mới, nó sẽ ở trạng thái <strong>Chờ duyệt</strong>. Education Manager sẽ xem xét và phê duyệt.
+              {t('exam.courseExamDescription')}
+              {t('exam.pendingApprovalDescription')}
             </>
           )}
         </div>
@@ -379,7 +380,7 @@ const ExamManagement = () => {
           <div className="flex items-center gap-2">
             <FileText className="w-5 h-5 text-blue-600" />
             <span className="font-medium text-blue-900">
-              Đang lọc theo khóa học (Course ID: {courseIdFromUrl})
+              {t('exam.filteringByCourse')} (Course ID: {courseIdFromUrl})
             </span>
           </div>
           <Button
@@ -387,7 +388,7 @@ const ExamManagement = () => {
             size="sm"
             onClick={() => navigate('/teacher/exam-management')}
           >
-            Xóa bộ lọc
+            {t('exam.clearFilter')}
           </Button>
         </div>
       )}
@@ -406,7 +407,7 @@ const ExamManagement = () => {
             >
               <div className="flex items-center gap-2">
                 <FileText className="w-4 h-4" />
-                <span>📚 Khóa Học</span>
+                <span>{t('exam.tabCourse')}</span>
               </div>
             </button>
             <button
@@ -419,7 +420,7 @@ const ExamManagement = () => {
             >
               <div className="flex items-center gap-2">
                 <Users className="w-4 h-4" />
-                <span>👥 Lớp Học</span>
+                <span>{t('exam.tabClass')}</span>
               </div>
             </button>
             <button
@@ -432,18 +433,18 @@ const ExamManagement = () => {
             >
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4" />
-                <span>🆓 FreeTest</span>
+                <span>{t('exam.tabFreeTest')}</span>
               </div>
             </button>
           </nav>
         </div>
         <div className="mt-3 text-sm text-gray-600">
           {activeTab === 'COURSE_PRACTICE' ? (
-            <p>Đề thi luyện thi cho <strong>khóa học</strong> - học viên đã đăng ký khóa học</p>
+            <p>{t('exam.coursePracticeDesc')}</p>
           ) : activeTab === 'CLASS_PRACTICE' ? (
-            <p>Đề thi luyện thi cho <strong>lớp học</strong> - học viên trong lớp cụ thể</p>
+            <p>{t('exam.classPracticeDesc')}</p>
           ) : (
-            <p>Đề thi thử miễn phí cho tất cả người dùng (FreeTest)</p>
+            <p>{t('exam.freeTestDesc')}</p>
           )}
         </div>
       </div>
@@ -488,7 +489,7 @@ const ExamManagement = () => {
               )}
               {statusFilter !== 'all' && (
                 <div className="inline-flex items-center gap-1 px-3 py-1 bg-green-50 text-green-700 rounded-full text-sm">
-                  <span>{statusFilter === 'published' ? 'Đã xuất bản' : 'Nháp'}</span>
+                  <span>{statusFilter === 'published' ? t('exam.published') : t('exam.draft')}</span>
                   <button
                     onClick={() => setStatusFilter('all')}
                     className="hover:text-green-900"
@@ -565,7 +566,7 @@ const ExamManagement = () => {
           {/* Results Count */}
           <div className="mt-4 pt-4 border-t border-gray-200">
             <p className="text-sm text-gray-600">
-              Hiển thị <span className="font-semibold text-gray-900">{sortedExams.length}</span> / <span className="font-semibold text-gray-900">{exams.length}</span> bài kiểm tra
+              {t('exam.showing')} <span className="font-semibold text-gray-900">{sortedExams.length}</span> / <span className="font-semibold text-gray-900">{exams.length}</span> {t('exam.exams')}
             </p>
           </div>
         </div>
@@ -582,10 +583,10 @@ const ExamManagement = () => {
             <FileText className="w-16 h-16 mx-auto mb-4 text-gray-300" />
             <p className="text-gray-500 mb-4">
               {activeTab === 'MOCK'
-                ? 'Không tìm thấy đề FreeTest nào'
+                ? t('exam.noFreeTests')
                 : activeTab === 'CLASS_PRACTICE'
-                ? 'Không tìm thấy đề luyện thi cho lớp học nào'
-                : 'Không tìm thấy đề luyện thi cho khóa học nào'}
+                ? t('exam.noClassExams')
+                : t('exam.noCourseExams')}
             </p>
             <Button
               variant="primary"
@@ -596,9 +597,9 @@ const ExamManagement = () => {
                   : `/teacher/exam-management/create?examCategory=${activeTab === 'MOCK' ? 'MOCK' : 'PRACTICE'}`
               )}
             >
-              {activeTab === 'MOCK' ? 'Tạo FreeTest Đầu Tiên' :
-               activeTab === 'CLASS_PRACTICE' ? 'Tạo Đề Lớp Học Đầu Tiên' :
-               'Tạo Đề Khóa Học Đầu Tiên'}
+              {activeTab === 'MOCK' ? t('exam.createFirstFreeTest') :
+               activeTab === 'CLASS_PRACTICE' ? t('exam.createFirstClassExam') :
+               t('exam.createFirstCourseExam')}
             </Button>
           </div>
         ) : (
@@ -616,7 +617,7 @@ const ExamManagement = () => {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-3 mb-2 flex-wrap">
                         <h3 className="font-semibold text-gray-900 text-lg">
-                          {exam.title || 'Không có tiêu đề'}
+                          {exam.title || t('exam.noTitle')}
                         </h3>
                         {exam.code && (
                           <span className="text-sm text-gray-500">({exam.code})</span>
@@ -629,12 +630,12 @@ const ExamManagement = () => {
                         )}
                         {exam.examCategory === 'PRACTICE' && (exam.classEntity || exam.classId) && (
                           <Badge variant="warning" size="sm" className="bg-orange-100 text-orange-700">
-                            👥 Lớp học
+                            👥 {t('examManagement.classExam', 'Lớp học')}
                           </Badge>
                         )}
                         {exam.examCategory === 'PRACTICE' && !(exam.classEntity || exam.classId) && (
                           <Badge variant="success" size="sm" className="bg-green-100 text-green-700">
-                            📚 Khóa học
+                            📚 {t('examManagement.courseExam', 'Khóa học')}
                           </Badge>
                         )}
                         {exam.examType && getTypeBadge(exam.examType)}
@@ -673,7 +674,7 @@ const ExamManagement = () => {
                         {exam.passingScore && (
                           <div className="flex items-center gap-2">
                             <CheckCircle2 className="w-4 h-4" />
-                            <span>Đạt: {exam.passingScore}%</span>
+                            <span>{t('exam.pass')}: {exam.passingScore}%</span>
                           </div>
                         )}
                       </div>
@@ -693,7 +694,7 @@ const ExamManagement = () => {
                         size="sm"
                         icon={<Edit className="w-4 h-4" />}
                         onClick={() => navigate(`/teacher/exam-editor/${exam.id}`)}
-                        title={isLocked(exam) ? 'Không thể chỉnh sửa (đã duyệt/xuất bản)' : t('exam.edit', 'Chỉnh sửa')}
+                        title={isLocked(exam) ? t('exam.cannotEdit') : t('exam.edit')}
                         disabled={isLocked(exam)}
                       />
                       <Button
@@ -701,7 +702,7 @@ const ExamManagement = () => {
                         size="sm"
                         icon={<Copy className="w-4 h-4" />}
                         onClick={() => handleCopyLink(exam)}
-                        title="Sao chép link gửi cho học viên"
+                        title={t('exam.copyLink')}
                       />
                     </div>
                   </div>

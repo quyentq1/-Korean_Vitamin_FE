@@ -213,7 +213,7 @@ const TestResult = () => {
                                                 ></div>
                                             </div>
                                             <p className="text-sm text-gray-400 mt-1 text-right">
-                                                {section.correct}/{section.total} câu đúng
+                                                {section.correct}/{section.total} {t('testResult.correctAnswers', 'câu đúng')}
                                             </p>
                                         </div>
                                     ))}

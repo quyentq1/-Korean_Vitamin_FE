@@ -246,7 +246,7 @@ const TeacherAttendance = () => {
                                     >
                                         <div className="font-semibold text-gray-800">{schedule.className}</div>
                                         <div className="text-sm text-gray-600 mt-1">
-                                            Buổi {schedule.lessonNumber} | {schedule.startTime?.substring(0, 5)} - {schedule.endTime?.substring(0, 5)}
+                                            {t('teacher.attendance.session', 'Buổi')} {schedule.lessonNumber} | {schedule.startTime?.substring(0, 5)} - {schedule.endTime?.substring(0, 5)}
                                         </div>
                                         {schedule.topic && (
                                             <div className="text-sm text-gray-500 mt-1">{schedule.topic}</div>
@@ -275,7 +275,7 @@ const TeacherAttendance = () => {
                                 <div className="flex items-center justify-between mb-4">
                                     <div>
                                         <h2 className="text-lg font-semibold text-gray-700">
-                                            {selectedSchedule.className} - Buổi {selectedSchedule.lessonNumber}
+                                            {selectedSchedule.className} - {t('teacher.attendance.session', 'Buổi')} {selectedSchedule.lessonNumber}
                                         </h2>
                                         <p className="text-sm text-gray-500">
                                             {selectedSchedule.startTime?.substring(0, 5)} - {selectedSchedule.endTime?.substring(0, 5)}
@@ -461,7 +461,7 @@ const TeacherAttendance = () => {
                                 <div className="flex items-center justify-between mb-4">
                                     <div>
                                         <h2 className="text-lg font-semibold text-gray-700">
-                                            {classResults?.className} - Buổi {selectedHistorySession.lessonNumber}
+                                            {classResults?.className} - {t('teacher.attendance.session', 'Buổi')} {selectedHistorySession.lessonNumber}
                                         </h2>
                                         <p className="text-sm text-gray-500">{selectedHistorySession.lessonDate}</p>
                                     </div>
@@ -480,9 +480,9 @@ const TeacherAttendance = () => {
                                         <table className="min-w-full divide-y divide-gray-200">
                                             <thead className="bg-gray-50">
                                                 <tr>
-                                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">STT</th>
-                                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Học viên</th>
-                                                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Trạng thái</th>
+                                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t('teacher.attendance.index')}</th>
+                                                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t('teacher.attendance.student')}</th>
+                                                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">{t('common.status')}</th>
                                                 </tr>
                                             </thead>
                                             <tbody className="divide-y divide-gray-200">

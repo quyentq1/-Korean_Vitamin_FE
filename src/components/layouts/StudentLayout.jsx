@@ -86,12 +86,12 @@ const StudentLayout = () => {
 
   // Sidebar navigation items
   const navItems = useMemo(() => [
-    { icon: <Home className="w-5 h-5" />, label: 'Trang chủ', path: '/student' },
-    { icon: <BookOpen className="w-5 h-5" />, label: 'Khóa học', path: '/student/my-courses' },
-    { icon: <Users className="w-5 h-5" />, label: 'Lớp học', path: '/student/my-classes' },
-    { icon: <FileText className="w-5 h-5" />, label: 'Bài kiểm tra', path: '/student/exams' },
-    { icon: <ClipboardCheck className="w-5 h-5" />, label: 'Lịch sử thi', path: '/student/attempts/history' },
-  ], []);
+    { icon: <Home className="w-5 h-5" />, label: t('layout.student.home'), path: '/student' },
+    { icon: <BookOpen className="w-5 h-5" />, label: t('layout.student.courses'), path: '/student/my-courses' },
+    { icon: <Users className="w-5 h-5" />, label: t('layout.student.classes'), path: '/student/my-classes' },
+    { icon: <FileText className="w-5 h-5" />, label: t('layout.student.exams'), path: '/student/exams' },
+    { icon: <ClipboardCheck className="w-5 h-5" />, label: t('layout.student.examHistory'), path: '/student/attempts/history' },
+  ], [t]);
 
   // Check if current path is active
   const isActive = (path) => {
@@ -133,25 +133,25 @@ const StudentLayout = () => {
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-bold text-gray-900 truncate">
-                {user?.fullName || user?.username || 'Học viên'}
+                {user?.fullName || user?.username || t('layout.student.fallbackName')}
               </p>
               <p className="text-xs text-indigo-600 truncate">
-                Học viên
+                {t('layout.student.role')}
               </p>
             </div>
           </div>
           {/* Stats */}
           <div className="grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-indigo-200">
             <div className="text-center">
-              <p className="text-xs text-gray-500">Khóa học</p>
+              <p className="text-xs text-gray-500">{t('layout.student.statCourses')}</p>
               <p className="text-sm font-bold text-indigo-600">{stats.totalCourses}</p>
             </div>
             <div className="text-center">
-              <p className="text-xs text-gray-500">Bài kiểm tra</p>
+              <p className="text-xs text-gray-500">{t('layout.student.statExams')}</p>
               <p className="text-sm font-bold text-purple-600">{stats.completedExams}</p>
             </div>
             <div className="text-center">
-              <p className="text-xs text-gray-500">Điểm TB</p>
+              <p className="text-xs text-gray-500">{t('layout.student.statAvgScore')}</p>
               <p className="text-sm font-bold text-pink-600">{stats.averageScore}%</p>
             </div>
           </div>

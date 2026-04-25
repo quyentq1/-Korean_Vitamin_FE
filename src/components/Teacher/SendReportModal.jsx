@@ -35,7 +35,7 @@ const SendReportModal = ({ reportData, onClose, onSuccess }) => {
         e.preventDefault();
 
         if (!message.trim()) {
-            setError('Vui lòng nhập nội dung tin nhắn');
+            setError(t('teacher.sendReport.messageRequired'));
             return;
         }
 
@@ -54,10 +54,10 @@ const SendReportModal = ({ reportData, onClose, onSuccess }) => {
 
             Swal.fire({
                 icon: 'success',
-                title: 'Đã Gửi Báo Cáo!',
+                title: t('teacher.sendReport.successTitle'),
                 text: selectedStaff === 'all'
-                    ? 'Báo cáo đã được gửi cho tất cả Staff.'
-                    : 'Báo cáo đã được gửi cho Staff.',
+                    ? t('teacher.sendReport.successAllStaff')
+                    : t('teacher.sendReport.successStaff'),
                 timer: 2000,
                 showConfirmButton: false
             });
@@ -66,7 +66,7 @@ const SendReportModal = ({ reportData, onClose, onSuccess }) => {
             onClose();
         } catch (err) {
             console.error('Error sending report:', err);
-            setError(err.response?.data?.message || 'Không thể gửi báo cáo. Vui lòng thử lại.');
+            setError(err.response?.data?.message || t('teacher.sendReport.sendError'));
         } finally {
             setLoading(false);
         }
@@ -82,9 +82,9 @@ const SendReportModal = ({ reportData, onClose, onSuccess }) => {
                             <Send className="w-5 h-5 text-blue-600" />
                         </div>
                         <div>
-                            <h3 className="text-lg font-semibold text-white">Gửi Báo Cáo Cho Staff</h3>
+                            <h3 className="text-lg font-semibold text-white">{t('teacher.sendReport.title')}</h3>
                             <p className="text-sm text-blue-100">
-                                {reportData?.title || 'Báo cáo học tập'}
+                                {reportData?.title || t('teacher.sendReport.defaultTitle')}
                             </p>
                         </div>
                     </div>
@@ -105,15 +105,15 @@ const SendReportModal = ({ reportData, onClose, onSuccess }) => {
                         <div className="flex items-start gap-2">
                             <FileText className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
                             <div className="text-sm text-blue-800">
-                                <p className="font-medium">{reportData?.title || 'Báo cáo'}</p>
+                                <p className="font-medium">{reportData?.title || t('teacher.sendReport.report')}</p>
                                 {reportData?.classId && (
                                     <p className="text-xs text-blue-600 mt-1">
-                                        Lớp: {reportData.className}
+                                        {t('teacher.sendReport.class')}: {reportData.className}
                                     </p>
                                 )}
                                 {reportData?.dateRange && (
                                     <p className="text-xs text-blue-600 mt-1">
-                                        Thời gian: {reportData.dateRange}
+                                        {t('teacher.sendReport.dateRange')}: {reportData.dateRange}
                                     </p>
                                 )}
                             </div>
@@ -124,7 +124,7 @@ const SendReportModal = ({ reportData, onClose, onSuccess }) => {
                     <div className="mb-4">
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                             <Users className="w-4 h-4 inline mr-1" />
-                            Người Nhận
+                            {t('teacher.sendReport.recipient')}
                         </label>
                         <select
                             value={selectedStaff}
@@ -134,7 +134,7 @@ const SendReportModal = ({ reportData, onClose, onSuccess }) => {
                             }}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         >
-                            <option value="all">Tất cả Staff</option>
+                            <option value="all">{t('teacher.sendReport.allStaff')}</option>
                             {staffList.map(staff => (
                                 <option key={staff.id} value={staff.id}>
                                     {staff.fullName || staff.username} - {staff.email}
@@ -143,8 +143,8 @@ const SendReportModal = ({ reportData, onClose, onSuccess }) => {
                         </select>
                         <p className="mt-1 text-xs text-gray-500">
                             {selectedStaff === 'all'
-                                ? 'Báo cáo sẽ được gửi cho tất cả Staff đang hoạt động'
-                                : 'Chỉ Staff được chọn sẽ nhận báo cáo'
+                                ? t('teacher.sendReport.sendToAllInfo')
+                                : t('teacher.sendReport.sendToSelectedInfo')
                             }
                         </p>
                     </div>
@@ -152,7 +152,7 @@ const SendReportModal = ({ reportData, onClose, onSuccess }) => {
                     {/* Message */}
                     <div className="mb-4">
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Nội Dung Tin Nhắn <span className="text-red-500">*</span>
+                            {t('teacher.sendReport.messageLabel')} <span className="text-red-500">*</span>
                         </label>
                         <textarea
                             value={message}
@@ -160,13 +160,13 @@ const SendReportModal = ({ reportData, onClose, onSuccess }) => {
                                 setMessage(e.target.value);
                                 if (error) setError('');
                             }}
-                            placeholder="Nhập nội dung tin nhắn hoặc ghi chú cho Staff..."
+                            placeholder={t('teacher.sendReport.messagePlaceholder')}
                             rows={4}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                             required
                         />
                         <p className="mt-1 text-xs text-gray-500">
-                            {message.length}/500 ký tự
+                            {message.length}/500 {t('teacher.sendReport.characters')}
                         </p>
                     </div>
 
@@ -175,8 +175,8 @@ const SendReportModal = ({ reportData, onClose, onSuccess }) => {
                         <div className="flex items-start gap-2">
                             <CheckCircle className="w-5 h-5 text-yellow-600 shrink-0 mt-0.5" />
                             <div className="text-sm text-yellow-800">
-                                <p className="font-medium mb-1">Thông báo sẽ được gửi</p>
-                                <p className="text-xs">Staff sẽ nhận thông báo báo cáo mới và có thể xem chi tiết.</p>
+                                <p className="font-medium mb-1">{t('teacher.sendReport.notificationInfo')}</p>
+                                <p className="text-xs">{t('teacher.sendReport.notificationDesc')}</p>
                             </div>
                         </div>
                     </div>
@@ -199,7 +199,7 @@ const SendReportModal = ({ reportData, onClose, onSuccess }) => {
                             disabled={loading}
                             className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
                         >
-                            Hủy
+                            {t('common.cancel')}
                         </button>
                         <button
                             type="submit"
@@ -209,12 +209,12 @@ const SendReportModal = ({ reportData, onClose, onSuccess }) => {
                             {loading ? (
                                 <>
                                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                                    Đang gửi...
+                                    {t('teacher.sendReport.sending')}
                                 </>
                             ) : (
                                 <>
                                     <Send className="w-4 h-4" />
-                                    Gửi Báo Cáo
+                                    {t('teacher.sendReport.sendReport')}
                                 </>
                             )}
                         </button>

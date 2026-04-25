@@ -68,11 +68,11 @@ const TeacherSessions = () => {
         // Show confirmation first
         const confirmResult = await Swal.fire({
             icon: 'question',
-            title: 'Hủy buổi học',
-            text: t('teacher.sessions.confirmCancel') || 'Bạn có chắc muốn hủy buổi học này?',
+            title: t('teacher.sessions.cancelSessionTitle'),
+            text: t('teacher.sessions.confirmCancel'),
             showCancelButton: true,
-            confirmButtonText: 'Hủy',
-            cancelButtonText: 'Không',
+            confirmButtonText: t('teacher.sessions.cancelBtn'),
+            cancelButtonText: t('teacher.sessions.noBtn'),
             confirmButtonColor: '#ef4444',
             cancelButtonColor: '#6b7280',
             reverseButtons: true
@@ -85,19 +85,19 @@ const TeacherSessions = () => {
         // Show input for reason
         const { value: reason } = await Swal.fire({
             icon: 'question',
-            title: 'Lý do hủy',
-            text: t('teacher.sessions.cancelReason') || 'Vui lòng nhập lý do hủy buổi học',
+            title: t('teacher.sessions.cancelReasonTitle'),
+            text: t('teacher.sessions.cancelReason'),
             input: 'text',
-            inputPlaceholder: 'Nhập lý do...',
+            inputPlaceholder: t('teacher.sessions.enterReason'),
             showCancelButton: true,
-            confirmButtonText: 'Hủy buổi',
-            cancelButtonText: 'Bỏ qua',
+            confirmButtonText: t('teacher.sessions.cancelSessionBtn'),
+            cancelButtonText: t('teacher.sessions.skipBtn'),
             confirmButtonColor: '#ef4444',
             cancelButtonColor: '#6b7280',
             reverseButtons: true,
             inputValidator: (value) => {
                 if (!value || value.trim() === '') {
-                    return 'Vui lòng nhập lý do!'
+                    return t('teacher.sessions.reasonRequired');
                 }
                 return true
             }
@@ -112,9 +112,9 @@ const TeacherSessions = () => {
             fetchSessions();
             Swal.fire({
                 icon: 'success',
-                title: 'Đã hủy',
-                text: 'Buổi học đã được hủy thành công.',
-                confirmButtonText: 'Đồng ý',
+                title: t('teacher.sessions.cancelled'),
+                text: t('teacher.sessions.cancelSuccess'),
+                confirmButtonText: t('common.ok'),
                 confirmButtonColor: '#22c55e',
                 timer: 2000
             });
@@ -122,9 +122,9 @@ const TeacherSessions = () => {
             console.error('Error cancelling session:', error);
             Swal.fire({
                 icon: 'error',
-                title: 'Lỗi',
-                text: 'Không thể hủy buổi học. Vui lòng thử lại.',
-                confirmButtonText: 'Đồng ý',
+                title: t('common.error'),
+                text: t('teacher.sessions.cancelError'),
+                confirmButtonText: t('common.ok'),
                 confirmButtonColor: '#ef4444'
             });
         }
@@ -379,7 +379,7 @@ const TeacherSessions = () => {
                                                     onClick={() => handleRescheduleSession(session)}
                                                     disabled={!session.sessionDate || (() => { const d=new Date(); return session.sessionDate.split('T')[0] <= `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; })()}
                                                     className="inline-flex items-center gap-2 px-3 py-2 text-sm bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-blue-100"
-                                                    title={!session.sessionDate || (() => { const d=new Date(); return session.sessionDate.split('T')[0] <= `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; })() ? 'Chỉ có thể dời lịch trước ít nhất 1 ngày' : ''}
+                                                    title={!session.sessionDate || (() => { const d=new Date(); return session.sessionDate.split('T')[0] <= `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; })() ? t('teacher.sessions.rescheduleRestriction') : ''}
                                                 >
                                                     <RefreshCw className="w-4 h-4" />
                                                     {t('teacher.sessions.reschedule')}

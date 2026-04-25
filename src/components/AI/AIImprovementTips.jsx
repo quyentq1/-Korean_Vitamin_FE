@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Lightbulb, BookOpen, Target, TrendingUp, Video, FileText, Headphones, Sparkles, ChevronRight } from 'lucide-react';
 import axiosClient from '../../api/axiosClient';
 
@@ -15,6 +16,7 @@ import axiosClient from '../../api/axiosClient';
  * - Weak point identification
  */
 const AIImprovementTips = ({ userId, subject = 'all' }) => {
+    const { t } = useTranslation();
     const [loading, setLoading] = useState(true);
     const [tips, setTips] = useState(null);
     const [selectedCategory, setSelectedCategory] = useState('all');
@@ -75,8 +77,8 @@ const AIImprovementTips = ({ userId, subject = 'all' }) => {
         return (
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-500 mx-auto mb-4"></div>
-                <p className="text-gray-700 font-medium mb-2">Đang phân tích và tạo gợi ý...</p>
-                <p className="text-sm text-gray-500">AI đang phân tích tiến độ học tập của bạn</p>
+                <p className="text-gray-700 font-medium mb-2">{t('ai.aiImprovementTips.analyzing')}</p>
+                <p className="text-sm text-gray-500">{t('ai.aiImprovementTips.analyzingSubtitle')}</p>
             </div>
         );
     }
@@ -87,10 +89,10 @@ const AIImprovementTips = ({ userId, subject = 'all' }) => {
                 <div className="text-center py-8">
                     <Sparkles className="w-16 h-16 text-yellow-300 mx-auto mb-4" />
                     <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                        Không có gợi ý nào
+                        {t('ai.aiImprovementTips.noTips')}
                     </h3>
                     <p className="text-sm text-gray-600">
-                        Hãy làm thêm bài tập để nhận được gợi ý cải thiện cá nhân hóa
+                        {t('ai.aiImprovementTips.noTipsSubtitle')}
                     </p>
                 </div>
             </div>
@@ -108,8 +110,8 @@ const AIImprovementTips = ({ userId, subject = 'all' }) => {
                 <div className="flex items-center gap-3 mb-3">
                     <Lightbulb className="w-8 h-8" />
                     <div>
-                        <h2 className="text-2xl font-bold">Gợi ý cải thiện từ AI</h2>
-                        <p className="text-yellow-100 text-sm">Dựa trên tiến độ học tập của bạn</p>
+                        <h2 className="text-2xl font-bold">{t('ai.aiImprovementTips.title')}</h2>
+                        <p className="text-yellow-100 text-sm">{t('ai.aiImprovementTips.subtitle')}</p>
                     </div>
                 </div>
                 {tips.summary && (
@@ -124,7 +126,7 @@ const AIImprovementTips = ({ userId, subject = 'all' }) => {
                 <div className="bg-red-50 border border-red-200 rounded-xl p-4">
                     <h3 className="font-semibold text-red-900 mb-3 flex items-center gap-2">
                         <Target className="w-5 h-5" />
-                        Cần tập trung cải thiện:
+                        {t('ai.aiImprovementTips.needToImprove')}:
                     </h3>
                     <div className="flex flex-wrap gap-2">
                         {tips.weakPoints.map((point, idx) => (
@@ -149,7 +151,7 @@ const AIImprovementTips = ({ userId, subject = 'all' }) => {
                             : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                 >
-                    Tất cả ({tips.tips.length})
+                    {t('ai.aiImprovementTips.all')} ({tips.tips.length})
                 </button>
                 {['grammar', 'vocabulary', 'speaking', 'listening', 'writing'].map(category => (
                     <button
@@ -187,8 +189,8 @@ const AIImprovementTips = ({ userId, subject = 'all' }) => {
                                     <div className="flex items-center gap-3 mb-2">
                                         <h3 className="font-semibold text-gray-900">{tip.title}</h3>
                                         <span className={`px-2 py-1 text-xs font-medium rounded-full border ${getPriorityColor(tip.priority)}`}>
-                                            {tip.priority === 'high' ? 'Ưu tiên cao' :
-                                             tip.priority === 'medium' ? 'Trung bình' : 'Thấp'}
+                                            {tip.priority === 'high' ? t('ai.aiImprovementTips.priorityHigh') :
+                                             tip.priority === 'medium' ? t('ai.aiImprovementTips.priorityMedium') : t('ai.aiImprovementTips.priorityLow')}
                                         </span>
                                         <span className="text-xs text-gray-500 capitalize">{tip.category}</span>
                                     </div>
@@ -204,7 +206,7 @@ const AIImprovementTips = ({ userId, subject = 'all' }) => {
                             <div className="px-6 pb-4 pt-2 border-t border-gray-100">
                                 {/* Detailed Explanation */}
                                 <div className="mb-4">
-                                    <h4 className="font-medium text-gray-900 mb-2 text-sm">Giải thích chi tiết:</h4>
+                                    <h4 className="font-medium text-gray-900 mb-2 text-sm">{t('ai.aiImprovementTips.detailedExplanation')}:</h4>
                                     <p className="text-sm text-gray-700">{tip.detailedExplanation}</p>
                                 </div>
 
@@ -213,7 +215,7 @@ const AIImprovementTips = ({ userId, subject = 'all' }) => {
                                     <div className="mb-4">
                                         <h4 className="font-medium text-gray-900 mb-2 text-sm flex items-center gap-2">
                                             <Target className="w-4 h-4 text-blue-500" />
-                                            Các bước thực hiện:
+                                            {t('ai.aiImprovementTips.actionSteps')}:
                                         </h4>
                                         <ol className="space-y-2">
                                             {tip.actionSteps.map((step, stepIdx) => (
@@ -231,7 +233,7 @@ const AIImprovementTips = ({ userId, subject = 'all' }) => {
                                     <div className="mb-4">
                                         <h4 className="font-medium text-gray-900 mb-2 text-sm flex items-center gap-2">
                                             <TrendingUp className="w-4 h-4 text-green-500" />
-                                            Bài tập luyện tập:
+                                            {t('ai.aiImprovementTips.practiceExercises')}:
                                         </h4>
                                         <div className="space-y-2">
                                             {tip.practiceExercises.map((exercise, exIdx) => (
@@ -240,7 +242,7 @@ const AIImprovementTips = ({ userId, subject = 'all' }) => {
                                                     <p className="text-xs text-green-700">{exercise.description}</p>
                                                     {exercise.duration && (
                                                         <p className="text-xs text-green-600 mt-1">
-                                                            Thời gian: {exercise.duration}
+                                                            {t('ai.aiImprovementTips.duration')}: {exercise.duration}
                                                         </p>
                                                     )}
                                                 </div>
@@ -254,7 +256,7 @@ const AIImprovementTips = ({ userId, subject = 'all' }) => {
                                     <div className="mb-4">
                                         <h4 className="font-medium text-gray-900 mb-2 text-sm flex items-center gap-2">
                                             <BookOpen className="w-4 h-4 text-purple-500" />
-                                            Tài liệu tham khảo:
+                                            {t('ai.aiImprovementTips.resources')}:
                                         </h4>
                                         <div className="space-y-2">
                                             {tip.resources.map((resource, resIdx) => (
@@ -285,7 +287,7 @@ const AIImprovementTips = ({ userId, subject = 'all' }) => {
                                 {tip.estimatedTime && (
                                     <div className="p-3 bg-blue-50 rounded-lg">
                                         <p className="text-sm text-blue-900">
-                                            <strong>Thời gian ước tính:</strong> {tip.estimatedTime}
+                                            <strong>{t('ai.aiImprovementTips.estimatedTime')}:</strong> {tip.estimatedTime}
                                         </p>
                                     </div>
                                 )}
@@ -314,7 +316,7 @@ const AIImprovementTips = ({ userId, subject = 'all' }) => {
                 <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6 border border-blue-200">
                     <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
                         <Target className="w-5 h-5 text-blue-600" />
-                        Kế hoạch học tập đề xuất
+                        {t('ai.aiImprovementTips.studyPlan')}
                     </h3>
                     <div className="space-y-3">
                         {tips.studyPlan.map((plan, idx) => (
@@ -340,7 +342,7 @@ const AIImprovementTips = ({ userId, subject = 'all' }) => {
                 <div className="bg-green-50 border border-green-200 rounded-xl p-6">
                     <h3 className="font-semibold text-green-900 mb-3 flex items-center gap-2">
                         <TrendingUp className="w-5 h-5" />
-                        Tiến độ học tập
+                        {t('ai.aiImprovementTips.progress')}
                     </h3>
                     <p className="text-sm text-green-800 mb-4">{tips.progressInsight.overall}</p>
 
@@ -372,7 +374,7 @@ const AIImprovementTips = ({ userId, subject = 'all' }) => {
                     className="px-6 py-3 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-2 text-gray-700"
                 >
                     <Sparkles className="w-4 h-4" />
-                    Làm mới gợi ý
+                    {t('ai.aiImprovementTips.refreshTips')}
                 </button>
             </div>
         </div>

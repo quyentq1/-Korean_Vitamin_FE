@@ -42,7 +42,7 @@ const StaffLayout = ({ children }) => {
         { icon: <Home className="w-5 h-5" />, label: t('staff.dashboard.title'), path: '/staff' },
         { icon: <Users className="w-5 h-5" />, label: t('staff.dashboard.studentManagement'), path: '/student-management' },
         { icon: <ClipboardList className="w-5 h-5" />, label: t('staff.dashboard.registrationManagement'), path: '/registrations' },
-        { icon: <Mail className="w-5 h-5" />, label: 'Quản lý Email', path: '/staff/mail' },
+        { icon: <Mail className="w-5 h-5" />, label: t('layout.staff.email'), path: '/staff/mail' },
     ];
 
     // Check if current path is active

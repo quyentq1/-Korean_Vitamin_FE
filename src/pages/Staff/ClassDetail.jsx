@@ -47,31 +47,24 @@ const ClassDetail = () => {
   const { id } = useParams();
   const { user } = useAuth();
 
-    // Main States
   const [classData, setClassData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('overview');
-  
-  // Check if class has teacher and students for attendance tab
+
   const hasTeacher = classData?.teacherName != null && classData?.teacherName !== '-' && classData.teacherName !== '-';
   const hasStudents = classData?.students && classData.students.length > 0;
   const canViewAttendance = hasTeacher && hasStudents;
 
-  // Backend trả về role là "EDUCATION_MANAGER" (KHÔNG có prefix ROLE_)
   const isManager = user?.role === 'EDUCATION_MANAGER';
   const isTeacher = user?.role === 'TEACHER';
 
-
-
-  // Students Tab States
   const [studentSearch, setStudentSearch] = useState('');
   const [showAddStudentModal, setShowAddStudentModal] = useState(false);
   const [availableStudents, setAvailableStudents] = useState([]);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [classAvailability, setClassAvailability] = useState(null);
 
-  // Edit and Assign Teacher Modal States
   const [showEditModal, setShowEditModal] = useState(false);
   const [showAssignTeacherModal, setShowAssignTeacherModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -84,7 +77,6 @@ const ClassDetail = () => {
   }, [id]);
 
   useEffect(() => {
-    // Fetch available students and class availability when opening the modal
     if (showAddStudentModal) {
       fetchAvailableStudents();
       checkClassAvailability();
@@ -93,15 +85,13 @@ const ClassDetail = () => {
 
   const fetchAvailableStudents = async () => {
     try {
-      // Use appropriate service based on user role
       const response = isManager
         ? await educationManagerService.getAvailableStudents()
         : await staffService.getStudents();
 
-      // Additional filter for non-manager (staffService returns all students)
       const enrolledStudentIds = classData?.students?.map(s => s.studentId) || [];
       const available = isManager
-        ? response // Backend already filtered for Education Manager
+        ? response
         : response.filter(student => !enrolledStudentIds.includes(student.id));
 
       setAvailableStudents(available);
@@ -124,7 +114,6 @@ const ClassDetail = () => {
   const fetchClassDetails = async () => {
     try {
       setLoading(true);
-      // Use appropriate service based on user role
       const response = isManager
         ? await educationManagerService.getClassDetails(id)
         : await staffService.getClassDetails(id);
@@ -135,7 +124,7 @@ const ClassDetail = () => {
       setError(err.message || 'Failed to load class details');
       Swal.fire({
         icon: 'error',
-        title: t('staff.class.detail.error.loadFailed') || 'Failed to load',
+        title: t('staff.class.detail.error.loadFailed'),
         text: err.message || 'Failed to load class details',
         confirmButtonColor: '#667eea'
       });
@@ -158,7 +147,6 @@ const ClassDetail = () => {
 
     if (result.isConfirmed) {
       try {
-        // Use appropriate service based on user role
         const service = isManager ? educationManagerService : staffService;
         await service.removeStudentFromClass(id, studentId);
         Swal.fire({
@@ -189,7 +177,6 @@ const ClassDetail = () => {
     }
 
     try {
-      // Use appropriate service based on user role
       const service = isManager ? educationManagerService : staffService;
       await service.addStudentToClass(id, {
         studentId: selectedStudent,
@@ -213,7 +200,6 @@ const ClassDetail = () => {
     }
   };
 
-  // Filter students
   const filteredStudents = classData?.students?.filter(student =>
     student.studentName.toLowerCase().includes(studentSearch.toLowerCase()) ||
     student.email.toLowerCase().includes(studentSearch.toLowerCase())
@@ -237,7 +223,6 @@ const ClassDetail = () => {
     );
   }
 
-  // Get status badge color
   const getStatusColor = (status) => {
     switch (status) {
       case 'PLANNED': return 'bg-yellow-100 text-yellow-800';
@@ -248,7 +233,6 @@ const ClassDetail = () => {
     }
   };
 
-  // Get enrollment status color
   const getEnrollmentStatusColor = (status) => {
     switch (status) {
       case 'ACTIVE': return 'bg-green-100 text-green-800';
@@ -258,13 +242,12 @@ const ClassDetail = () => {
     }
   };
 
-  // Get enrollment status label
   const getEnrollmentStatusLabel = (status) => {
     switch (status) {
-      case 'ACTIVE': return 'Đang học';
-      case 'DROPPED': return 'Đã nghỉ';
-      case 'COMPLETED': return 'Hoàn thành';
-      default: return status || 'Đang học';
+      case 'ACTIVE': return t('staff.classDetail.enrollmentActive');
+      case 'DROPPED': return t('staff.classDetail.enrollmentDropped');
+      case 'COMPLETED': return t('staff.classDetail.enrollmentCompleted');
+      default: return status || t('staff.classDetail.enrollmentActive');
     }
   };
 
@@ -290,20 +273,20 @@ const ClassDetail = () => {
                 icon={<Trash2 className="w-4 h-4" />}
                 onClick={() => isManager ? setShowDeleteModal(true) : null}
                 disabled={!isManager}
-                title={!isManager ? 'Chỉ Education Manager được xóa' : ''}
+                title={!isManager ? t('staff.classDetail.managerOnlyDelete') : ''}
                 className={isManager ? "text-red-600 hover:text-red-700 hover:bg-red-50" : "text-gray-400 cursor-not-allowed"}
               >
-                {t('common.delete', 'Xóa')}
+                {t('common.delete')}
               </Button>
               <Button
                 variant="primary"
                 icon={<Edit className="w-4 h-4" />}
                 onClick={() => isManager ? setShowEditModal(true) : null}
                 disabled={!isManager}
-                title={!isManager ? 'Chỉ Education Manager được sửa' : ''}
+                title={!isManager ? t('staff.classDetail.managerOnlyEdit') : ''}
                 className={!isManager ? 'opacity-50 cursor-not-allowed' : ''}
               >
-                {t('common.edit', 'Chỉnh sửa')}
+                {t('common.edit')}
               </Button>
             </div>
           }
@@ -337,8 +320,8 @@ const ClassDetail = () => {
                 if (tab.key === 'attendance' && !canViewAttendance) {
                   Swal.fire({
                     icon: 'info',
-                    title: 'Chưa có thể xem điểm danh',
-                    text: !hasTeacher ? 'Lớp học chưa có giáo viên' : 'Lớp học chưa có học viên',
+                    title: t('staff.classDetail.cannotViewAttendance'),
+                    text: !hasTeacher ? t('staff.classDetail.noTeacher') : t('staff.classDetail.noStudents'),
                     confirmButtonColor: '#667eea'
                   });
                 } else {
@@ -436,8 +419,8 @@ const ClassDetail = () => {
                       onClick={() => setShowAssignTeacherModal(true)}
                     >
                       {classData?.teacherName && classData.teacherName !== '-'
-                        ? t('class.assignTeacher.changeButton', 'Đổi giáo viên')
-                        : t('class.assignTeacher.button', 'Gán giáo viên')}
+                        ? t('class.assignTeacher.changeButton', 'Change Teacher')
+                        : t('class.assignTeacher.button', 'Assign Teacher')}
                     </Button>
                   )}
                 </div>
@@ -529,22 +512,22 @@ const ClassDetail = () => {
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('staff.class.detail.students.name', 'Họ và tên')}
+                      {t('staff.class.detail.students.name')}
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('staff.class.detail.students.email', 'Email')}
+                      {t('staff.class.detail.students.email')}
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('staff.class.detail.students.phone', 'Số điện thoại')}
+                      {t('staff.class.detail.students.phone')}
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('staff.class.detail.students.enrollmentDate', 'Ngày tham gia')}
+                      {t('staff.class.detail.students.enrollmentDate')}
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('staff.class.detail.students.status', 'Trạng thái')}
+                      {t('staff.class.detail.students.status')}
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('common.actions', 'Thao tác')}
+                      {t('common.actions')}
                     </th>
                   </tr>
                 </thead>
@@ -614,26 +597,26 @@ const ClassDetail = () => {
               <div className="text-center py-16">
                 <CheckCircle className="w-20 h-20 mx-auto mb-6 text-gray-300" />
                 <h3 className="text-lg font-semibold text-gray-700 mb-3">
-                  Chưa có thể xem điểm danh
+                  {t('staff.classDetail.cannotViewAttendance')}
                 </h3>
                 <p className="text-gray-500 mb-6">
                   {!hasTeacher && !hasStudents
-                    ? 'Lớp học chưa có giáo viên và học viên'
+                    ? t('staff.classDetail.noTeacherAndStudents')
                     : !hasTeacher
-                      ? 'Lớp học chưa có giáo viên'
-                      : 'Lớp học chưa có học viên'}
+                      ? t('staff.classDetail.noTeacher')
+                      : t('staff.classDetail.noStudents')}
                 </p>
                 <div className="flex items-center justify-center gap-6 text-sm">
                   {!hasTeacher && (
                     <div className="flex items-center text-gray-500">
                       <User className="w-5 h-5 mr-2" />
-                      <span>Chưa gán giáo viên</span>
+                      <span>{t('staff.classDetail.noTeacherAssigned')}</span>
                     </div>
                   )}
                   {!hasStudents && (
                     <div className="flex items-center text-gray-500">
                       <Users className="w-5 h-5 mr-2" />
-                      <span>Chưa có học viên</span>
+                      <span>{t('staff.classDetail.noStudentsYet')}</span>
                     </div>
                   )}
                 </div>
@@ -644,24 +627,13 @@ const ClassDetail = () => {
                   <h3 className="text-lg font-semibold text-gray-900">
                     {t('staff.class.detail.attendance.title')}
                   </h3>
-                  {/* BUG-28 FIX: Commented out attendance detail button - route /classes/:id/attendance doesn't exist yet */}
-                  {/* {isTeacher && (
-                    <Button
-                      variant="primary"
-                      onClick={() => navigate(`/classes/${id}/attendance`)}
-                      className="flex items-center"
-                    >
-                      <CheckCircle className="w-4 h-4 mr-2" />
-                      {t('staff.class.detail.attendance.viewFullAttendance')}
-                    </Button>
-                  )} */}
                 </div>
 
             {/* Attendance Statistics Preview */}
             {classData.statistics && (
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                 <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg p-4">
-                  <p className="text-sm text-gray-600">{t('staff.attendance.average', 'Tỷ lệ đi học trung bình')}</p>
+                  <p className="text-sm text-gray-600">{t('staff.attendance.average')}</p>
                   <p className="text-2xl font-bold text-green-600">
                     {classData.statistics.averageAttendanceRate?.toFixed(1) || 0}%
                   </p>
@@ -691,20 +663,9 @@ const ClassDetail = () => {
               <CheckCircle className="w-16 h-16 mx-auto mb-4 text-gray-300" />
               <p className="text-gray-500 mb-4">
                 {isTeacher
-                  ? t('staff.attendance.selectSchedule', 'Chọn buổi học để điểm danh')
-                  : 'Chọn buổi học để xem chi tiết điểm danh'}
+                  ? t('staff.attendance.selectSchedule')
+                  : t('staff.classDetail.selectScheduleToView')}
               </p>
-              {/* BUG-28 FIX: Commented out attendance detail button - route doesn't exist */}
-              {/* {isTeacher && (
-                <Button
-                  variant="primary"
-                  onClick={() => navigate(`/classes/${id}/attendance`)}
-                  className="inline-flex items-center"
-                >
-                  <CheckCircle className="w-4 h-4 mr-2" />
-                  {t('staff.class.detail.attendance.viewFullAttendance', 'Xem chi tiết điểm danh')}
-                </Button>
-              )} */}
             </div>
               </>
             )}
@@ -725,7 +686,7 @@ const ClassDetail = () => {
                   className="flex items-center"
                 >
                   <Plus className="w-4 h-4 mr-2" />
-                  {t('staff.class.detail.schedule.addSchedule', 'Thêm lịch học')}
+                  {t('staff.class.detail.schedule.addSchedule', 'Add Schedule')}
                 </Button>
               )}
             </div>
@@ -743,7 +704,7 @@ const ClassDetail = () => {
                         </div>
                         <div>
                           <h4 className="text-sm font-medium text-gray-900">
-                            {t('staff.class.detail.schedule.lesson', 'Buổi')} {schedule.lessonNumber}
+                            {t('staff.class.detail.schedule.lesson')} {schedule.lessonNumber}
                           </h4>
                           <p className="text-sm text-gray-500">
                             {new Date(schedule.lessonDate).toLocaleDateString()}
@@ -761,7 +722,7 @@ const ClassDetail = () => {
                           schedule.status === 'SCHEDULED' ? 'bg-blue-100 text-blue-800' :
                             'bg-gray-100 text-gray-800'
                       }>
-                        {t(`staff.class.detail.schedule.status.${schedule.status.toLowerCase()}`, schedule.status === 'COMPLETED' ? 'Đã hoàn thành' : schedule.status === 'SCHEDULED' ? 'Đã lên lịch' : schedule.status)}
+                        {t(`staff.class.detail.schedule.status.${schedule.status.toLowerCase()}`, schedule.status === 'COMPLETED' ? 'Completed' : schedule.status === 'SCHEDULED' ? 'Scheduled' : schedule.status)}
                       </Badge>
                       {isManager && (
                         <button
@@ -770,7 +731,7 @@ const ClassDetail = () => {
                             setShowEditScheduleModal(true);
                           }}
                           className="ml-4 p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                          title="Chỉnh sửa lịch học"
+                          title={t('staff.classDetail.editSchedule')}
                         >
                           <Edit className="w-4 h-4" />
                         </button>
@@ -822,19 +783,19 @@ const ClassDetail = () => {
                 <div className="flex-1">
                   <p className="text-sm font-medium text-gray-900 mb-1">
                     {!classAvailability.canEnroll
-                      ? (classAvailability.isExpired ? 'Lớp học đã hết hạn' : 'Không thể thêm học viên')
+                      ? (classAvailability.isExpired ? t('staff.classDetail.classExpired') : t('staff.classDetail.cannotAddStudent'))
                       : classAvailability.isFull
-                        ? 'Lớp học đã đầy'
-                        : 'Có thể thêm học viên'}
+                        ? t('staff.classDetail.classFull')
+                        : t('staff.classDetail.canAddStudent')}
                   </p>
                   <p className="text-sm text-gray-600">
-                    Sĩ số: <strong>{classAvailability.currentEnrollment}/{classAvailability.capacity}</strong>
+                    {t('staff.classDetail.capacityLabel')}: <strong>{classAvailability.currentEnrollment}/{classAvailability.capacity}</strong>
                     {classAvailability.availableSlots > 0 && (
-                      <span> (Còn lại: {classAvailability.availableSlots})</span>
+                      <span> ({t('staff.classDetail.remaining')}: {classAvailability.availableSlots})</span>
                     )}
                     {classAvailability.isExpired && classAvailability.endDate && (
                       <span className="ml-2 text-red-600">
-                        - Hết hạn vào {new Date(classAvailability.endDate).toLocaleDateString('vi-VN')}
+                        - {t('staff.classDetail.expiredOn')} {new Date(classAvailability.endDate).toLocaleDateString('vi-VN')}
                       </span>
                     )}
                   </p>
@@ -867,8 +828,8 @@ const ClassDetail = () => {
             {!classAvailability?.canEnroll && classAvailability && (
               <p className="mt-2 text-sm text-red-600">
                 {classAvailability.isExpired
-                  ? 'Không thể thêm học viên vào lớp đã hết hạn'
-                  : 'Lớp học đã đạt sĩ số tối đa'}
+                  ? t('staff.classDetail.cannotAddExpired')
+                  : t('staff.classDetail.classMaxReached')}
               </p>
             )}
           </div>
@@ -890,7 +851,7 @@ const ClassDetail = () => {
               disabled={!classAvailability?.canEnroll || !selectedStudent}
               className={!classAvailability?.canEnroll ? 'opacity-50 cursor-not-allowed' : ''}
             >
-              {t('common.add', 'Thêm')}
+              {t('common.add', 'Add')}
             </Button>
           </div>
         </div>
@@ -906,7 +867,7 @@ const ClassDetail = () => {
             fetchClassDetails();
             Swal.fire({
               icon: 'success',
-              title: t('class.edit.success', 'Cập nhật thành công'),
+              title: t('class.edit.success', 'Update successful'),
               timer: 1500,
               showConfirmButton: false
             });
@@ -928,8 +889,8 @@ const ClassDetail = () => {
             Swal.fire({
               icon: 'success',
               title: hasTeacher
-                ? t('class.assignTeacher.changeSuccess', 'Đổi giáo viên thành công')
-                : t('class.assignTeacher.success', 'Gán giáo viên thành công'),
+                ? t('class.assignTeacher.changeSuccess', 'Teacher changed successfully')
+                : t('class.assignTeacher.success', 'Teacher assigned successfully'),
               timer: 1500,
               showConfirmButton: false
             });

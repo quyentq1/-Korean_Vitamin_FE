@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Plus, BookOpen, Clock, Loader2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import lessonService from '../../services/lessonService';
 import LessonCard from './LessonCard';
 import LessonEditorModal from './LessonEditorModal';
 import Swal from 'sweetalert2';
 
 const CurriculumSection = ({ courseId, onLessonsChange }) => {
+    const { t } = useTranslation();
     const [lessons, setLessons] = useState([]);
     const [loading, setLoading] = useState(true);
     const [editorOpen, setEditorOpen] = useState(false);
@@ -45,12 +47,12 @@ const CurriculumSection = ({ courseId, onLessonsChange }) => {
     const handleDelete = async (lesson) => {
         const result = await Swal.fire({
             icon: 'warning',
-            title: `Xóa "${lesson.title}"?`,
-            text: 'Hành động này không thể hoàn tác.',
+            title: t('eduManager.curriculum.deleteConfirm', { title: lesson.title }),
+            text: t('common.irreversible'),
             showCancelButton: true,
             confirmButtonColor: '#ef4444',
-            confirmButtonText: 'Xóa',
-            cancelButtonText: 'Hủy',
+            confirmButtonText: t('common.delete'),
+            cancelButtonText: t('common.cancel'),
         });
         if (!result.isConfirmed) return;
 
@@ -58,7 +60,7 @@ const CurriculumSection = ({ courseId, onLessonsChange }) => {
             await lessonService.deleteLesson(lesson.id);
             await fetchLessons();
         } catch (err) {
-            Swal.fire('Lỗi', 'Không thể xóa bài học', 'error');
+            Swal.fire(t('common.error'), t('eduManager.curriculum.deleteError'), 'error');
         }
     };
 
@@ -71,7 +73,7 @@ const CurriculumSection = ({ courseId, onLessonsChange }) => {
             });
             await fetchLessons();
         } catch (err) {
-            Swal.fire('Lỗi', 'Không thể cập nhật', 'error');
+            Swal.fire(t('common.error'), t('eduManager.curriculum.updateError'), 'error');
         }
     };
 
@@ -84,7 +86,7 @@ const CurriculumSection = ({ courseId, onLessonsChange }) => {
             });
             await fetchLessons();
         } catch (err) {
-            Swal.fire('Lỗi', 'Không thể cập nhật', 'error');
+            Swal.fire(t('common.error'), t('eduManager.curriculum.updateError'), 'error');
         }
     };
 
@@ -123,12 +125,12 @@ const CurriculumSection = ({ courseId, onLessonsChange }) => {
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                     <BookOpen className="w-5 h-5 text-violet-600" />
-                    <h3 className="text-base font-semibold text-gray-900">Giáo trình</h3>
+                    <h3 className="text-base font-semibold text-gray-900">{t('eduManager.curriculum.title')}</h3>
                     <span className="text-xs text-gray-400">
-                        {lessons.length} bài học
+                        {lessons.length} {t('eduManager.curriculum.lessons')}
                         {totalDuration > 0 && (
                             <span className="ml-2 flex items-center gap-1 inline-flex">
-                                <Clock className="w-3 h-3" /> {totalDuration} phút
+                                <Clock className="w-3 h-3" /> {totalDuration} {t('common.minutes')}
                             </span>
                         )}
                     </span>
@@ -138,7 +140,7 @@ const CurriculumSection = ({ courseId, onLessonsChange }) => {
                     onClick={handleAdd}
                     className="flex items-center gap-1.5 px-3 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 text-sm font-medium transition-colors"
                 >
-                    <Plus className="w-4 h-4" /> Thêm bài học
+                    <Plus className="w-4 h-4" /> {t('eduManager.curriculum.addLesson')}
                 </button>
             </div>
 
@@ -146,8 +148,8 @@ const CurriculumSection = ({ courseId, onLessonsChange }) => {
             {lessons.length === 0 ? (
                 <div className="text-center py-10 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
                     <BookOpen className="w-10 h-10 text-gray-300 mx-auto mb-2" />
-                    <p className="text-sm text-gray-500">Chưa có bài học nào</p>
-                    <p className="text-xs text-gray-400 mt-1">Nhấn "Thêm bài học" để bắt đầu xây dựng giáo trình</p>
+                    <p className="text-sm text-gray-500">{t('eduManager.curriculum.noLessons')}</p>
+                    <p className="text-xs text-gray-400 mt-1">{t('eduManager.curriculum.addLessonHint')}</p>
                 </div>
             ) : (
                 <div className="space-y-2">

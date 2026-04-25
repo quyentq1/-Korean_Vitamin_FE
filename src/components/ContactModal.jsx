@@ -27,9 +27,9 @@ const ContactModal = ({ isOpen, onClose }) => {
         console.log('Form submitted:', formData);
         Swal.fire({
             icon: 'success',
-            title: 'Gửi thành công!',
+            title: t('component.contact.sendSuccess', 'Gửi thành công!'),
             text: t('contactModal.successMessage', 'Chúng tôi sẽ liên hệ lại sớm.'),
-            confirmButtonText: 'Đồng ý',
+            confirmButtonText: t('component.contact.agree', 'Đồng ý'),
             confirmButtonColor: '#22c55e',
             timer: 2000,
             timerProgressBar: true

@@ -95,8 +95,9 @@ const MyCourses = () => {
               description: classInfo.courseDescription || '',
               thumbnail: classInfo.courseThumbnail || null,
               teacher: classInfo.teacherName || t('student.myCourses.defaultTeacher'),
-              progress: classEnrollment?.progress || 0,
-              status: (classEnrollment?.status || 'ACTIVE').toUpperCase(),
+             progress: classEnrollment?.progress || 0,
+               // Use classStatus (from ClassEntity) for display if available, otherwise use enrollment status
+               status: (classEnrollment?.classStatus || classEnrollment?.status || 'ACTIVE').toUpperCase(),
               enrolledDate: classEnrollment?.enrollmentDate,
               classes: []
             };
@@ -136,19 +137,24 @@ const MyCourses = () => {
     }
   };
 
-  const getStatusBadge = (status) => {
-    const badges = {
-      'ACTIVE': { text: t('student.myCourses.statusActive'), className: 'bg-green-100 text-green-700 border-green-300' },
-      'COMPLETED': { text: t('student.myCourses.statusCompleted'), className: 'bg-blue-100 text-blue-700 border-blue-300' },
-      'DROPPED': { text: t('student.myCourses.statusDropped'), className: 'bg-red-100 text-red-700 border-red-300' },
-    };
-    const badge = badges[status] || badges['ACTIVE'];
-    return (
-      <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${badge.className}`}>
-        {badge.text}
-      </span>
-    );
-  };
+   const getStatusBadge = (status, classStatus) => {
+     // Prefer classStatus (ClassEntity.ClassStatus) for display, fallback to enrollment status
+     const displayStatus = classStatus || status;
+     const badges = {
+       'ONGOING': { text: t('student.myCourses.statusActive'), className: 'bg-green-100 text-green-700 border-green-300' },
+       'COMPLETED': { text: t('student.myCourses.statusCompleted'), className: 'bg-blue-100 text-blue-700 border-blue-300' },
+       'ACTIVE': { text: t('student.myCourses.statusActive'), className: 'bg-green-100 text-green-700 border-green-300' },
+       'DROPPED': { text: t('student.myCourses.statusDropped'), className: 'bg-red-100 text-red-700 border-red-300' },
+       'CANCELLED': { text: t('student.myCourses.statusDropped'), className: 'bg-red-100 text-red-700 border-red-300' },
+       'PLANNED': { text: t('student.myCourses.statusActive'), className: 'bg-yellow-100 text-yellow-700 border-yellow-300' },
+     };
+     const badge = badges[displayStatus] || badges['ONGOING'];
+     return (
+       <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${badge.className}`}>
+         {badge.text}
+       </span>
+     );
+   };
 
   const getProgressColor = (progress) => {
     if (progress >= 80) return 'from-green-500 to-emerald-600';
@@ -231,8 +237,8 @@ const MyCourses = () => {
                 <Play className="w-6 h-6 text-white" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-gray-900">{courses.filter(c => c.status === 'ACTIVE').length}</p>
-                <p className="text-xs text-gray-500">{t('student.myCourses.activeCourses')}</p>
+                 <p className="text-2xl font-bold text-gray-900">{courses.filter(c => c.status === 'ONGOING' || c.status === 'ACTIVE' || c.status === 'PLANNED').length}</p>
+                 <p className="text-xs text-gray-500">{t('student.myCourses.activeCourses')}</p>
               </div>
             </div>
           </div>
@@ -360,13 +366,24 @@ const MyCourses = () => {
                     </div>
                   )}
 
-                  <button
-                    onClick={() => navigate(`/student/courses/${course.id}`)}
-                    className="w-full py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-semibold hover:from-indigo-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2 group-hover:gap-3"
-                  >
-                    <Play className="w-4 h-4" />
-                    {t('student.myCourses.continueLearning')}
-                  </button>
+                  {(course.status === 'ONGOING' || course.status === 'ACTIVE' || course.status === 'PLANNED') && (
+                    <button
+                      onClick={() => navigate(`/student/courses/${course.id}`)}
+                      className="w-full py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-semibold hover:from-indigo-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2 group-hover:gap-3"
+                    >
+                      <Play className="w-4 h-4" />
+                      {t('student.myCourses.continueLearning')}
+                    </button>
+                  )}
+                  {course.status === 'COMPLETED' && (
+                    <button
+                      onClick={() => navigate(`/student/certificates`)}
+                      className="w-full py-3 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl font-semibold hover:from-emerald-700 hover:to-teal-700 transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2 group-hover:gap-3"
+                    >
+                      <Award className="w-4 h-4" />
+                      {t('student.myCourses.viewCertificate')}
+                    </button>
+                  )}
                   {course.status === 'ACTIVE' && eligibleCourses.some(e => e.courseId == course.id) && (
                     <button
                       onClick={() => setShowCertModal(true)}
@@ -443,13 +460,24 @@ const MyCourses = () => {
                           />
                         </div>
                       </div>
-                      <button
-                        onClick={() => navigate(`/student/courses/${course.id}`)}
-                        className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-semibold hover:from-indigo-700 hover:to-purple-700 transition-all shadow-lg flex items-center gap-2"
-                      >
-                        <Play className="w-4 h-4" />
-                        {t('student.myCourses.continue')}
-                      </button>
+                      {(course.status === 'ONGOING' || course.status === 'ACTIVE' || course.status === 'PLANNED') && (
+                        <button
+                          onClick={() => navigate(`/student/courses/${course.id}`)}
+                          className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-semibold hover:from-indigo-700 hover:to-purple-700 transition-all shadow-lg flex items-center gap-2"
+                        >
+                          <Play className="w-4 h-4" />
+                          {t('student.myCourses.continue')}
+                        </button>
+                      )}
+                      {course.status === 'COMPLETED' && (
+                        <button
+                          onClick={() => navigate(`/student/certificates`)}
+                          className="px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl font-semibold hover:from-emerald-700 hover:to-teal-700 transition-all shadow-lg flex items-center gap-2"
+                        >
+                          <Award className="w-4 h-4" />
+                          {t('student.myCourses.viewCertificate')}
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>

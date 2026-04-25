@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import aiService from '../../services/aiService';
 
 /**
@@ -6,6 +7,7 @@ import aiService from '../../services/aiService';
  * Provides AI-powered grading and feedback for TOPIK writing tasks
  */
 const AIGradingAssistant = ({ examAttempt, writingQuestion, onGradeReceived }) => {
+  const { t } = useTranslation();
   const [grading, setGrading] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -50,7 +52,7 @@ const AIGradingAssistant = ({ examAttempt, writingQuestion, onGradeReceived }) =
 
     } catch (error) {
       console.error('AI grading error:', error);
-      setError('Chấm điểm AI thất bại. Vui lòng thử lại sau.');
+      setError(t('ai.aiGradingAssistant.errorGrading'));
     } finally {
       setLoading(false);
     }
@@ -69,10 +71,10 @@ const AIGradingAssistant = ({ examAttempt, writingQuestion, onGradeReceived }) =
   };
 
   const getGradeLabel = (percentage) => {
-    if (percentage >= 80) return 'Giỏi';
-    if (percentage >= 60) return 'Khá';
-    if (percentage >= 40) return 'Trung bình';
-    return 'Cần cải thiện';
+    if (percentage >= 80) return t('ai.aiGradingAssistant.gradeExcellent');
+    if (percentage >= 60) return t('ai.aiGradingAssistant.gradeGood');
+    if (percentage >= 40) return t('ai.aiGradingAssistant.gradeAverage');
+    return t('ai.aiGradingAssistant.gradeNeedsImprovement');
   };
 
   return (
@@ -88,17 +90,17 @@ const AIGradingAssistant = ({ examAttempt, writingQuestion, onGradeReceived }) =
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
-            AI đang chấm...
+            {t('ai.aiGradingAssistant.grading')}
           </>
         ) : grading ? (
           <>
             <span>✨</span>
-            {showGrading ? 'Ẩn điểm AI' : 'Hiện điểm AI'}
+            {showGrading ? t('ai.aiGradingAssistant.hideGrade') : t('ai.aiGradingAssistant.showGrade')}
           </>
         ) : (
           <>
             <span>✨</span>
-            Gợi ý chấm điểm AI
+            {t('ai.aiGradingAssistant.suggestGrade')}
           </>
         )}
       </button>
@@ -115,11 +117,11 @@ const AIGradingAssistant = ({ examAttempt, writingQuestion, onGradeReceived }) =
           <div className="flex items-center justify-between mb-4 pb-3 border-b border-emerald-200">
             <div className="flex items-center gap-2">
               <span className="text-2xl">📊</span>
-              <strong className="text-emerald-900 text-base">Đánh giá từ AI</strong>
+              <strong className="text-emerald-900 text-base">{t('ai.aiGradingAssistant.aiEvaluation')}</strong>
             </div>
             {grading.confidence && (
               <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full font-medium">
-                Độ tin cậy: {Math.round(grading.confidence * 100)}%
+                {t('ai.aiGradingAssistant.confidence')}: {Math.round(grading.confidence * 100)}%
               </span>
             )}
           </div>
@@ -166,12 +168,12 @@ const AIGradingAssistant = ({ examAttempt, writingQuestion, onGradeReceived }) =
           {/* Score Breakdown */}
           {grading.breakdown && (
             <div className="mb-5 p-4 bg-white rounded-lg shadow-sm">
-              <h4 className="text-base font-semibold text-gray-900 mb-3">Chi tiết điểm số:</h4>
+              <h4 className="text-base font-semibold text-gray-900 mb-3">{t('ai.aiGradingAssistant.scoreBreakdown')}:</h4>
               <div className="space-y-3">
-                {grading.breakdown.content && renderScoreBar('Nội dung', grading.breakdown.content)}
-                {grading.breakdown.structure && renderScoreBar('Cấu trúc', grading.breakdown.structure)}
-                {grading.breakdown.grammar && renderScoreBar('Ngữ pháp', grading.breakdown.grammar)}
-                {grading.breakdown.vocabulary && renderScoreBar('Từ vựng', grading.breakdown.vocabulary)}
+                {grading.breakdown.content && renderScoreBar(t('ai.aiGradingAssistant.content'), grading.breakdown.content)}
+                {grading.breakdown.structure && renderScoreBar(t('ai.aiGradingAssistant.structure'), grading.breakdown.structure)}
+                {grading.breakdown.grammar && renderScoreBar(t('ai.aiGradingAssistant.grammar'), grading.breakdown.grammar)}
+                {grading.breakdown.vocabulary && renderScoreBar(t('ai.aiGradingAssistant.vocabulary'), grading.breakdown.vocabulary)}
               </div>
             </div>
           )}
@@ -179,7 +181,7 @@ const AIGradingAssistant = ({ examAttempt, writingQuestion, onGradeReceived }) =
           {/* Overall Feedback */}
           {grading.overallFeedback && (
             <div className="mb-5 p-4 bg-blue-50 rounded-lg border border-blue-200">
-              <h4 className="text-sm font-semibold text-blue-900 mb-2">📝 Nhận xét chung:</h4>
+              <h4 className="text-sm font-semibold text-blue-900 mb-2">{t('ai.aiGradingAssistant.overallFeedback')}:</h4>
               <p className="text-sm text-blue-800 leading-relaxed">{grading.overallFeedback}</p>
             </div>
           )}
@@ -187,7 +189,7 @@ const AIGradingAssistant = ({ examAttempt, writingQuestion, onGradeReceived }) =
           {/* Corrections */}
           {grading.corrections && grading.corrections.length > 0 && (
             <div className="mb-5 p-4 bg-white rounded-lg shadow-sm">
-              <h4 className="text-base font-semibold text-gray-900 mb-3">✏️ Gợi ý sửa đổi:</h4>
+              <h4 className="text-base font-semibold text-gray-900 mb-3">{t('ai.aiGradingAssistant.corrections')}:</h4>
               <div className="space-y-3">
                 {grading.corrections.map((correction, index) => (
                   <div key={index} className="p-3 bg-gray-50 rounded-lg border border-gray-200">
@@ -209,13 +211,13 @@ const AIGradingAssistant = ({ examAttempt, writingQuestion, onGradeReceived }) =
               className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium text-sm transition-colors shadow-sm hover:shadow"
               onClick={() => onGradeReceived && onGradeReceived(grading)}
             >
-              ✓ Chấp nhận điểm AI
+              ✓ {t('ai.aiGradingAssistant.acceptGrade')}
             </button>
             <button
               className="flex-1 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-medium text-sm transition-colors shadow-sm hover:shadow"
               onClick={() => setShowGrading(false)}
             >
-              ✎️ Chấm lại thủ công
+              {t('ai.aiGradingAssistant.manualGrade')}
             </button>
           </div>
         </div>

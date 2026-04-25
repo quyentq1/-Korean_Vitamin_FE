@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Badge } from './ui';
 import StatusBadge from './ui/StatusBadge';
 
@@ -9,6 +10,7 @@ import StatusBadge from './ui/StatusBadge';
  * Displays course information in a card format
  */
 const CourseCard = ({ course, onConsultationClick, status }) => {
+    const { t } = useTranslation();
     const navigate = useNavigate();
 
     const handleClick = () => {
@@ -87,7 +89,7 @@ const CourseCard = ({ course, onConsultationClick, status }) => {
 
                 {/* Course Description */}
                 <p className="text-sm text-gray-600 mb-4 flex-1 line-clamp-3">
-                    {course.description || 'Khóa học tiếng Hàn chất lượng cao với đội ngũ giảng viên giàu kinh nghiệm.'}
+                    {course.description || t('component.courseCard.defaultDescription')}
                 </p>
 
                 {/* Meta Info */}
@@ -97,7 +99,7 @@ const CourseCard = ({ course, onConsultationClick, status }) => {
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
-                            <span>{course.duration} giờ</span>
+                            <span>{course.duration} {t('component.courseCard.hours')}</span>
                         </div>
                     )}
                     {course.schedule && (
@@ -135,7 +137,7 @@ const CourseCard = ({ course, onConsultationClick, status }) => {
                             className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-secondary-500 to-secondary-600 text-white rounded-xl font-bold hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 active:scale-95"
                         >
                             <span className="text-xl">💬</span>
-                            <span className="hidden sm:inline">Nhận Tư Vấn Ngay</span>
+                            <span className="hidden sm:inline">{t('component.courseCard.getConsultation')}</span>
                         </button>
                     </div>
                 </div>

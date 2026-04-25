@@ -1,10 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { X, Save, Loader2, Link, Upload, Film } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import lessonService from '../../services/lessonService';
 import TipTapEditor from './TipTapEditor';
 import Swal from 'sweetalert2';
 
 const LessonEditorModal = ({ courseId, lesson, onClose, onSuccess }) => {
+    const { t } = useTranslation();
     const isEdit = Boolean(lesson?.id);
     const [saving, setSaving] = useState(false);
     const [videoMode, setVideoMode] = useState('none'); // 'none' | 'url' | 'upload'
@@ -51,11 +53,11 @@ const LessonEditorModal = ({ courseId, lesson, onClose, onSuccess }) => {
         if (!file) return;
 
         if (!file.type.startsWith('video/')) {
-            Swal.fire('Lỗi', 'Chỉ chấp nhận file video', 'error');
+            Swal.fire(t('common.error'), t('eduManager.lessonEditor.videoOnlyError'), 'error');
             return;
         }
         if (file.size > 100 * 1024 * 1024) {
-            Swal.fire('Lỗi', 'Video không được vượt quá 100MB', 'error');
+            Swal.fire(t('common.error'), t('eduManager.lessonEditor.videoSizeError'), 'error');
             return;
         }
 
@@ -64,7 +66,7 @@ const LessonEditorModal = ({ courseId, lesson, onClose, onSuccess }) => {
             const data = await lessonService.uploadLessonVideo(file);
             setForm(prev => ({ ...prev, videoUrl: data.url }));
         } catch (err) {
-            Swal.fire('Lỗi', 'Không thể upload video', 'error');
+            Swal.fire(t('common.error'), t('eduManager.lessonEditor.videoUploadError'), 'error');
         } finally {
             setUploading(false);
             e.target.value = '';
@@ -80,7 +82,7 @@ const LessonEditorModal = ({ courseId, lesson, onClose, onSuccess }) => {
         e.preventDefault();
 
         if (!form.title.trim()) {
-            Swal.fire('Thiếu thông tin', 'Vui lòng nhập tiêu đề bài học', 'warning');
+            Swal.fire(t('eduManager.lessonEditor.missingInfo'), t('eduManager.lessonEditor.titleRequired'), 'warning');
             return;
         }
 
@@ -107,13 +109,13 @@ const LessonEditorModal = ({ courseId, lesson, onClose, onSuccess }) => {
 
             Swal.fire({
                 icon: 'success',
-                title: isEdit ? 'Đã cập nhật bài học' : 'Đã thêm bài học',
+                title: isEdit ? t('eduManager.lessonEditor.lessonUpdated') : t('eduManager.lessonEditor.lessonAdded'),
                 timer: 1500,
                 showConfirmButton: false,
             });
             onSuccess?.();
         } catch (err) {
-            Swal.fire('Lỗi', err?.response?.data?.message || 'Không thể lưu bài học', 'error');
+            Swal.fire(t('common.error'), err?.response?.data?.message || t('eduManager.lessonEditor.saveError'), 'error');
         } finally {
             setSaving(false);
         }
@@ -125,7 +127,7 @@ const LessonEditorModal = ({ courseId, lesson, onClose, onSuccess }) => {
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
                     <h2 className="text-lg font-bold text-gray-900">
-                        {isEdit ? 'Chỉnh sửa bài học' : 'Thêm bài học mới'}
+                        {isEdit ? t('eduManager.lessonEditor.editTitle') : t('eduManager.lessonEditor.addTitle')}
                     </h2>
                     <button onClick={onClose} disabled={saving}
                         className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
@@ -138,25 +140,25 @@ const LessonEditorModal = ({ courseId, lesson, onClose, onSuccess }) => {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Tiêu đề <span className="text-red-500">*</span>
+                                {t('eduManager.lessonEditor.titleLabel')} <span className="text-red-500">*</span>
                             </label>
                             <input
                                 type="text"
                                 name="title"
                                 value={form.title}
                                 onChange={handleChange}
-                                placeholder="VD: Bài 1 - Nguyên âm cơ bản"
+                                placeholder={t('eduManager.lessonEditor.titlePlaceholder')}
                                 className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-violet-400 outline-none"
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Mô tả ngắn</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">{t('eduManager.lessonEditor.shortDescLabel')}</label>
                             <input
                                 type="text"
                                 name="description"
                                 value={form.description}
                                 onChange={handleChange}
-                                placeholder="Tóm tắt nội dung bài học..."
+                                placeholder={t('eduManager.lessonEditor.descPlaceholder')}
                                 className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-violet-400 outline-none"
                             />
                         </div>
@@ -164,7 +166,7 @@ const LessonEditorModal = ({ courseId, lesson, onClose, onSuccess }) => {
 
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Thời lượng (phút)</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">{t('eduManager.lessonEditor.durationLabel')}</label>
                             <input
                                 type="number"
                                 name="durationMinutes"
@@ -180,7 +182,7 @@ const LessonEditorModal = ({ courseId, lesson, onClose, onSuccess }) => {
                     {/* Video Section */}
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-1.5">
-                            <Film className="w-4 h-4" /> Video bài học
+                            <Film className="w-4 h-4" /> {t('eduManager.lessonEditor.videoLabel')}
                         </label>
 
                         {form.videoUrl ? (
@@ -189,7 +191,7 @@ const LessonEditorModal = ({ courseId, lesson, onClose, onSuccess }) => {
                                 <div className="flex items-center justify-between">
                                     <span className="text-sm text-gray-600 truncate max-w-[80%]">{form.videoUrl}</span>
                                     <button type="button" onClick={removeVideo}
-                                        className="text-xs text-red-500 hover:text-red-700 shrink-0">Xóa video</button>
+                                        className="text-xs text-red-500 hover:text-red-700 shrink-0">{t('eduManager.lessonEditor.removeVideo')}</button>
                                 </div>
                                 {form.videoUrl.match(/\.(mp4|webm|ogg)($|\?)/i) && (
                                     <video src={form.videoUrl} controls className="w-full max-h-48 rounded-lg" />
@@ -204,14 +206,14 @@ const LessonEditorModal = ({ courseId, lesson, onClose, onSuccess }) => {
                                         className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border text-sm transition-colors ${
                                             videoMode === 'url' ? 'border-violet-400 bg-violet-50 text-violet-700' : 'border-gray-200 text-gray-500 hover:bg-gray-50'
                                         }`}>
-                                        <Link className="w-4 h-4" /> Dán link
+                                        <Link className="w-4 h-4" /> {t('eduManager.lessonEditor.pasteLink')}
                                     </button>
                                     <button type="button"
                                         onClick={() => setVideoMode('upload')}
                                         className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border text-sm transition-colors ${
                                             videoMode === 'upload' ? 'border-violet-400 bg-violet-50 text-violet-700' : 'border-gray-200 text-gray-500 hover:bg-gray-50'
                                         }`}>
-                                        <Upload className="w-4 h-4" /> Upload file
+                                        <Upload className="w-4 h-4" /> {t('eduManager.lessonEditor.uploadFile')}
                                     </button>
                                 </div>
 
@@ -221,7 +223,7 @@ const LessonEditorModal = ({ courseId, lesson, onClose, onSuccess }) => {
                                         name="videoUrl"
                                         value={form.videoUrl}
                                         onChange={handleChange}
-                                        placeholder="https://youtube.com/watch?v=... hoặc link video mp4"
+                                        placeholder={t('eduManager.lessonEditor.videoUrlPlaceholder')}
                                         className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-violet-400 outline-none"
                                     />
                                 )}
@@ -238,10 +240,10 @@ const LessonEditorModal = ({ courseId, lesson, onClose, onSuccess }) => {
                                         />
                                         {uploading && (
                                             <div className="flex items-center gap-2 text-sm text-violet-600">
-                                                <Loader2 className="w-4 h-4 animate-spin" /> Đang upload video...
+                                                <Loader2 className="w-4 h-4 animate-spin" /> {t('eduManager.lessonEditor.uploadingVideo')}
                                             </div>
                                         )}
-                                        <p className="text-xs text-gray-400">MP4, WebM, OGG. Tối đa 100MB</p>
+                                        <p className="text-xs text-gray-400">{t('eduManager.lessonEditor.videoFormatHint')}</p>
                                     </div>
                                 )}
                             </div>
@@ -259,7 +261,7 @@ const LessonEditorModal = ({ courseId, lesson, onClose, onSuccess }) => {
                                 className="w-4 h-4 accent-blue-600"
                             />
                             <label htmlFor="published" className="text-sm text-gray-700">
-                                Xuất bản bài học
+                                {t('eduManager.lessonEditor.publishLabel')}
                             </label>
                         </div>
                         <div className="flex items-center gap-2">
@@ -272,7 +274,7 @@ const LessonEditorModal = ({ courseId, lesson, onClose, onSuccess }) => {
                                 className="w-4 h-4 accent-violet-600"
                             />
                             <label htmlFor="isPreview" className="text-sm text-gray-700">
-                                Cho phép xem trước (hiện cho khách)
+                                {t('eduManager.lessonEditor.previewLabel')}
                             </label>
                         </div>
                     </div>
@@ -280,12 +282,12 @@ const LessonEditorModal = ({ courseId, lesson, onClose, onSuccess }) => {
                     {/* TipTap Editor */}
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Nội dung bài học
+                            {t('eduManager.lessonEditor.contentLabel')}
                         </label>
                         <TipTapEditor
                             content={form.content}
                             onChange={(html) => setForm(prev => ({ ...prev, content: html }))}
-                            placeholder="Nhập nội dung bài học. Hỗ trợ văn bản, hình ảnh, video, danh sách..."
+                            placeholder={t('eduManager.lessonEditor.contentPlaceholder')}
                         />
                     </div>
                 </form>
@@ -298,7 +300,7 @@ const LessonEditorModal = ({ courseId, lesson, onClose, onSuccess }) => {
                         disabled={saving}
                         className="px-5 py-2.5 border border-gray-200 rounded-xl text-gray-700 hover:bg-gray-50 text-sm font-medium"
                     >
-                        Hủy
+                        {t('common.cancel')}
                     </button>
                     <button
                         onClick={handleSubmit}
@@ -306,7 +308,7 @@ const LessonEditorModal = ({ courseId, lesson, onClose, onSuccess }) => {
                         className="flex items-center gap-2 px-5 py-2.5 bg-violet-600 text-white rounded-xl hover:bg-violet-700 disabled:opacity-60 text-sm font-medium"
                     >
                         {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                        {saving ? 'Đang lưu...' : (isEdit ? 'Cập nhật' : 'Thêm bài học')}
+                        {saving ? t('eduManager.lessonEditor.saving') : (isEdit ? t('eduManager.lessonEditor.update') : t('eduManager.lessonEditor.addLesson'))}
                     </button>
                 </div>
             </div>

@@ -9,10 +9,6 @@ import {
 import Swal from 'sweetalert2';
 import staffService from '../../services/staffService';
 
-/**
- * Student Detail Page
- * Tabs: Overview, Classes, Attendance, Notes, Activity
- */
 const StudentDetail = () => {
     const { t } = useTranslation();
     const navigate = useNavigate();
@@ -24,7 +20,6 @@ const StudentDetail = () => {
     const [notes, setNotes] = useState([]);
     const [attendanceData, setAttendanceData] = useState([]);
 
-    // Fetch student details
     useEffect(() => {
         const fetchStudentDetails = async () => {
             try {
@@ -35,8 +30,8 @@ const StudentDetail = () => {
                 console.error('Error fetching student details:', error);
                 Swal.fire({
                     icon: 'error',
-                    title: 'Lỗi',
-                    text: 'Không thể tải thông tin học viên',
+                    title: t('errors.error'),
+                    text: t('staff.studentDetail.errorLoadText'),
                     confirmButtonColor: '#667eea',
                 });
             } finally {
@@ -49,7 +44,6 @@ const StudentDetail = () => {
         }
     }, [studentId]);
 
-    // Fetch notes when notes tab is active
     useEffect(() => {
         if (activeTab === 'notes' && studentId) {
             const fetchNotes = async () => {
@@ -64,36 +58,34 @@ const StudentDetail = () => {
         }
     }, [activeTab, studentId]);
 
-    // Toggle student status
     const handleToggleStatus = async () => {
-        const action = student.active ? 'Vô hiệu hóa' : 'Kích hoạt';
+        const action = student.active ? t('staff.studentDetail.deactivate') : t('staff.studentDetail.activate');
         const result = await Swal.fire({
             icon: 'question',
             title: action,
-            text: `${action} tài khoản của ${student.fullName}?`,
+            text: t('staff.studentDetail.toggleStatusConfirm', { action, name: student.fullName }),
             showCancelButton: true,
-            confirmButtonText: 'Xác nhận',
-            cancelButtonText: 'Hủy',
+            confirmButtonText: t('common.confirm'),
+            cancelButtonText: t('common.cancel'),
             confirmButtonColor: '#667eea',
         });
 
         if (result.isConfirmed) {
             try {
                 await staffService.updateStudentStatus(studentId, !student.active);
-                // Refresh student data
                 const response = await staffService.getStudentDetails(studentId);
                 setStudent(response);
                 Swal.fire({
                     icon: 'success',
-                    title: 'Thành công',
-                    text: `Đã ${action.toLowerCase()} tài khoản`,
+                    title: t('staff.studentDetail.successTitle'),
+                    text: t('staff.studentDetail.toggleStatusSuccess', { action: action.toLowerCase() }),
                     timer: 1500,
                     showConfirmButton: false,
                 });
             } catch (error) {
                 Swal.fire({
                     icon: 'error',
-                    title: 'Lỗi',
+                    title: t('errors.error'),
                     text: error.message,
                     confirmButtonColor: '#667eea',
                 });
@@ -101,14 +93,12 @@ const StudentDetail = () => {
         }
     };
 
-    // Format date
     const formatDate = (dateString) => {
         if (!dateString) return '-';
         const date = new Date(dateString);
         return date.toLocaleDateString('vi-VN');
     };
 
-    // Calculate age from date of birth
     const calculateAge = (dateOfBirth) => {
         if (!dateOfBirth) return '-';
         const today = new Date();
@@ -134,25 +124,24 @@ const StudentDetail = () => {
             <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 p-6 flex items-center justify-center">
                 <div className="text-center">
                     <User className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                    <h2 className="text-xl font-semibold text-gray-900 mb-2">Không tìm thấy học viên</h2>
+                    <h2 className="text-xl font-semibold text-gray-900 mb-2">{t('staff.studentDetail.notFound')}</h2>
                     <button
                         onClick={() => navigate('/student-management')}
                         className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
                     >
-                        Quay lại danh sách
+                        {t('staff.studentDetail.backToList')}
                     </button>
                 </div>
             </div>
         );
     }
 
-    // Tab content
     const tabs = [
-        { id: 'overview', label: 'Tổng quan', icon: User },
-        { id: 'classes', label: 'Lớp học', icon: GraduationCap },
-        { id: 'attendance', label: 'Điểm danh', icon: CheckCircle },
-        { id: 'notes', label: 'Ghi chú', icon: StickyNote },
-        { id: 'activity', label: 'Hoạt động', icon: Activity },
+        { id: 'overview', label: t('staff.studentDetail.tabOverview'), icon: User },
+        { id: 'classes', label: t('staff.studentDetail.tabClasses'), icon: GraduationCap },
+        { id: 'attendance', label: t('staff.studentDetail.tabAttendance'), icon: CheckCircle },
+        { id: 'notes', label: t('staff.studentDetail.tabNotes'), icon: StickyNote },
+        { id: 'activity', label: t('staff.studentDetail.tabActivity'), icon: Activity },
     ];
 
     return (
@@ -164,7 +153,7 @@ const StudentDetail = () => {
                     className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4 transition-colors"
                 >
                     <ArrowLeft className="w-5 h-5" />
-                    {t('common.back') || 'Quay lại'}
+                    {t('common.back')}
                 </button>
 
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
@@ -185,7 +174,7 @@ const StudentDetail = () => {
                             <div>
                                 <h1 className="text-2xl font-bold text-gray-900">{student.fullName}</h1>
                                 <div className="flex items-center gap-3 mt-1 text-sm text-gray-600">
-                                    <span className="text-gray-500">Mã HV: {student.studentCode || 'N/A'}</span>
+                                    <span className="text-gray-500">{t('staff.studentDetail.studentCode')}: {student.studentCode || 'N/A'}</span>
                                     <span>•</span>
                                     <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${student.isActive
                                             ? 'bg-green-100 text-green-700'
@@ -194,12 +183,12 @@ const StudentDetail = () => {
                                         {student.isActive ? (
                                             <>
                                                 <CheckCircle className="w-3 h-3" />
-                                                Đang hoạt động
+                                                {t('staff.studentDetail.activeStatus')}
                                             </>
                                         ) : (
                                             <>
                                                 <Ban className="w-3 h-3" />
-                                                Đã vô hiệu hóa
+                                                {t('staff.studentDetail.disabledStatus')}
                                             </>
                                         )}
                                     </span>
@@ -214,7 +203,7 @@ const StudentDetail = () => {
                                 className="flex items-center gap-2 px-4 py-2 bg-amber-500 text-white rounded-xl hover:bg-amber-600 transition-colors text-sm font-medium"
                             >
                                 <Edit className="w-4 h-4" />
-                                Chỉnh sửa
+                                {t('common.edit')}
                             </button>
                             <button
                                 onClick={handleToggleStatus}
@@ -226,12 +215,12 @@ const StudentDetail = () => {
                                 {student.active ? (
                                     <>
                                         <Ban className="w-4 h-4" />
-                                        Vô hiệu hóa
+                                        {t('staff.studentDetail.deactivate')}
                                     </>
                                 ) : (
                                     <>
                                         <CheckCircle className="w-4 h-4" />
-                                        Kích hoạt
+                                        {t('staff.studentDetail.activate')}
                                     </>
                                 )}
                             </button>
@@ -269,7 +258,7 @@ const StudentDetail = () => {
                     <div className="space-y-6">
                         <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
                             <User className="w-5 h-5 text-blue-600" />
-                            Thông tin cá nhân
+                            {t('staff.studentDetail.personalInfo')}
                         </h2>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -277,7 +266,7 @@ const StudentDetail = () => {
                             <div className="bg-gray-50 rounded-xl p-4">
                                 <div className="flex items-center gap-2 text-gray-500 text-sm mb-1">
                                     <User className="w-4 h-4" />
-                                    Họ và tên
+                                    {t('staff.createStudent.fullName')}
                                 </div>
                                 <div className="font-semibold text-gray-900">{student.fullName}</div>
                             </div>
@@ -286,10 +275,10 @@ const StudentDetail = () => {
                             <div className="bg-gray-50 rounded-xl p-4">
                                 <div className="flex items-center gap-2 text-gray-500 text-sm mb-1">
                                     <Calendar className="w-4 h-4" />
-                                    Ngày sinh
+                                    {t('staff.students.dob')}
                                 </div>
                                 <div className="font-semibold text-gray-900">
-                                    {formatDate(student.dateOfBirth)} ({calculateAge(student.dateOfBirth)} tuổi)
+                                    {formatDate(student.dateOfBirth)} ({calculateAge(student.dateOfBirth)} {t('staff.studentDetail.yearsOld')})
                                 </div>
                             </div>
 
@@ -297,10 +286,10 @@ const StudentDetail = () => {
                             <div className="bg-gray-50 rounded-xl p-4">
                                 <div className="flex items-center gap-2 text-gray-500 text-sm mb-1">
                                     <User className="w-4 h-4" />
-                                    Giới tính
+                                    {t('staff.students.gender')}
                                 </div>
                                 <div className="font-semibold text-gray-900 capitalize">
-                                    {student.gender === 'male' ? 'Nam' : student.gender === 'female' ? 'Nữ' : 'Khác'}
+                                    {student.gender === 'male' ? t('staff.students.male') : student.gender === 'female' ? t('staff.students.female') : t('staff.students.other')}
                                 </div>
                             </div>
 
@@ -308,7 +297,7 @@ const StudentDetail = () => {
                             <div className="bg-gray-50 rounded-xl p-4">
                                 <div className="flex items-center gap-2 text-gray-500 text-sm mb-1">
                                     <Mail className="w-4 h-4" />
-                                    Email
+                                    {t('common.email')}
                                 </div>
                                 <div className="font-semibold text-gray-900 text-sm break-all">
                                     {student.email || '-'}
@@ -319,7 +308,7 @@ const StudentDetail = () => {
                             <div className="bg-gray-50 rounded-xl p-4">
                                 <div className="flex items-center gap-2 text-gray-500 text-sm mb-1">
                                     <Phone className="w-4 h-4" />
-                                    Số điện thoại
+                                    {t('common.phone')}
                                 </div>
                                 <div className="font-semibold text-gray-900">{student.phone || '-'}</div>
                             </div>
@@ -328,38 +317,38 @@ const StudentDetail = () => {
                             <div className="bg-gray-50 rounded-xl p-4 md:col-span-2 lg:col-span-1">
                                 <div className="flex items-center gap-2 text-gray-500 text-sm mb-1">
                                     <MapPin className="w-4 h-4" />
-                                    Địa chỉ
+                                    {t('common.address')}
                                 </div>
                                 <div className="font-semibold text-gray-900 text-sm">
-                                    {student.address || 'Chưa cập nhật'}
+                                    {student.address || t('staff.studentDetail.notUpdated')}
                                 </div>
                             </div>
                         </div>
 
                         {/* Account Info */}
                         <div className="pt-4 border-t border-gray-100">
-                            <h3 className="font-semibold text-gray-900 mb-3">Thông tin tài khoản</h3>
+                            <h3 className="font-semibold text-gray-900 mb-3">{t('staff.studentDetail.accountInfo')}</h3>
                             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                                 <div className="bg-blue-50 rounded-xl p-4">
-                                    <div className="text-sm text-blue-600 mb-1">Trạng thái</div>
+                                    <div className="text-sm text-blue-600 mb-1">{t('common.status')}</div>
                                     <div className="font-semibold text-blue-900">
-                                        {student.isActive ? 'Đang hoạt động' : 'Đã khóa'}
+                                        {student.isActive ? t('staff.studentDetail.activeStatus') : t('staff.studentDetail.lockedStatus')}
                                     </div>
                                 </div>
                                 <div className="bg-purple-50 rounded-xl p-4">
-                                    <div className="text-sm text-purple-600 mb-1">Số lớp đang học</div>
+                                    <div className="text-sm text-purple-600 mb-1">{t('staff.studentDetail.currentClasses')}</div>
                                     <div className="font-semibold text-purple-900">
                                         {student.totalClasses || student.classes?.length || 0}
                                     </div>
                                 </div>
                                 <div className="bg-green-50 rounded-xl p-4">
-                                    <div className="text-sm text-green-600 mb-1">Tổng số khóa</div>
+                                    <div className="text-sm text-green-600 mb-1">{t('staff.studentDetail.totalCourses')}</div>
                                     <div className="font-semibold text-green-900">
                                         {student.totalCourses || 0}
                                     </div>
                                 </div>
                                 <div className="bg-amber-50 rounded-xl p-4">
-                                    <div className="text-sm text-amber-600 mb-1">Điểm danh</div>
+                                    <div className="text-sm text-amber-600 mb-1">{t('staff.studentDetail.attendance')}</div>
                                     <div className="font-semibold text-amber-900">
                                         {student.attendanceRate ? `${Math.round(student.attendanceRate)}%` : 'N/A'}
                                     </div>
@@ -374,7 +363,7 @@ const StudentDetail = () => {
                     <div className="space-y-4">
                         <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
                             <GraduationCap className="w-5 h-5 text-blue-600" />
-                            Lớp học đang tham gia
+                            {t('staff.studentDetail.enrolledClasses')}
                         </h2>
 
                         {student.classes && student.classes.length > 0 ? (
@@ -388,12 +377,12 @@ const StudentDetail = () => {
                                             <div className="flex-1">
                                                 <h3 className="font-semibold text-gray-900">{classInfo.className}</h3>
                                                 <div className="text-sm text-gray-500 mt-1">
-                                                    Mã lớp: {classInfo.classCode || 'N/A'}
+                                                    {t('staff.studentDetail.classCode')}: {classInfo.classCode || 'N/A'}
                                                 </div>
                                             </div>
                                             <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
                                                 <CheckCircle className="w-3 h-3" />
-                                                Đang học
+                                                {t('staff.studentDetail.studying')}
                                             </span>
                                         </div>
                                         <div className="space-y-2 text-sm">
@@ -413,13 +402,13 @@ const StudentDetail = () => {
                                             {classInfo.teacherName && (
                                                 <div className="flex items-center gap-2 text-gray-600">
                                                     <User className="w-4 h-4 text-gray-400" />
-                                                    GV: {classInfo.teacherName}
+                                                    {t('staff.studentDetail.teacher')}: {classInfo.teacherName}
                                                 </div>
                                             )}
                                             {classInfo.room && (
                                                 <div className="flex items-center gap-2 text-gray-600">
                                                     <MapPin className="w-4 h-4 text-gray-400" />
-                                                    Phòng: {classInfo.room}
+                                                    {t('staff.studentDetail.room')}: {classInfo.room}
                                                 </div>
                                             )}
                                         </div>
@@ -427,7 +416,7 @@ const StudentDetail = () => {
                                             onClick={() => navigate(`/classes/${classInfo.classId}`)}
                                             className="mt-3 w-full py-2 text-center text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors text-sm font-medium"
                                         >
-                                            Xem chi tiết lớp
+                                            {t('staff.studentDetail.viewClassDetail')}
                                         </button>
                                     </div>
                                 ))}
@@ -435,7 +424,7 @@ const StudentDetail = () => {
                         ) : (
                             <div className="text-center py-12">
                                 <BookOpen className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                                <p className="text-gray-500">Học viên chưa tham gia lớp nào</p>
+                                <p className="text-gray-500">{t('staff.studentDetail.noClasses')}</p>
                             </div>
                         )}
                     </div>
@@ -446,14 +435,14 @@ const StudentDetail = () => {
                     <div className="space-y-4">
                         <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
                             <CheckCircle className="w-5 h-5 text-blue-600" />
-                            Lịch sử điểm danh
+                            {t('staff.studentDetail.attendanceHistory')}
                         </h2>
 
                         <div className="text-center py-12">
                             <FileText className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                            <p className="text-gray-500">Chức năng điểm danh đang được phát triển</p>
+                            <p className="text-gray-500">{t('staff.studentDetail.attendanceDev')}</p>
                             <p className="text-sm text-gray-400 mt-1">
-                                Vui lòng xem chi tiết trong trang lớp học
+                                {t('staff.studentDetail.attendanceDevHint')}
                             </p>
                         </div>
                     </div>
@@ -465,10 +454,10 @@ const StudentDetail = () => {
                         <div className="flex items-center justify-between">
                             <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
                                 <StickyNote className="w-5 h-5 text-blue-600" />
-                                Ghi chú từ Staff
+                                {t('staff.studentDetail.staffNotes')}
                             </h2>
                             <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium">
-                                Thêm ghi chú
+                                {t('staff.notes.addNote')}
                             </button>
                         </div>
 
@@ -490,7 +479,7 @@ const StudentDetail = () => {
                         ) : (
                             <div className="text-center py-12">
                                 <StickyNote className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                                <p className="text-gray-500">Chưa có ghi chú nào</p>
+                                <p className="text-gray-500">{t('staff.notes.noNotes')}</p>
                             </div>
                         )}
                     </div>
@@ -501,12 +490,12 @@ const StudentDetail = () => {
                     <div className="space-y-4">
                         <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
                             <Activity className="w-5 h-5 text-blue-600" />
-                            Lịch sử hoạt động
+                            {t('staff.studentDetail.activityHistory')}
                         </h2>
 
                         <div className="text-center py-12">
                             <Clock className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                            <p className="text-gray-500">Chức năng lịch sử hoạt động đang được phát triển</p>
+                            <p className="text-gray-500">{t('staff.studentDetail.activityDev')}</p>
                         </div>
                     </div>
                 )}

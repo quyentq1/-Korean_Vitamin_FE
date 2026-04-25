@@ -174,13 +174,13 @@ const AdminGrowth = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Calendar className="w-5 h-5 text-gray-400" />
-            <span className="text-sm font-medium text-gray-700">Kỳ:</span>
+            <span className="text-sm font-medium text-gray-700">{t('admin.growth.period', 'Period')}:</span>
           </div>
           <div className="flex items-center gap-2">
             {[
-              { value: 'month', label: 'Tháng' },
-              { value: 'quarter', label: 'Quý' },
-              { value: 'year', label: 'Năm' },
+              { value: 'month', label: t('admin.growth.month', 'Month') },
+              { value: 'quarter', label: t('admin.growth.quarter', 'Quarter') },
+              { value: 'year', label: t('admin.growth.year', 'Year') },
             ].map((p) => (
               <button
                 key={p.value}
@@ -213,10 +213,10 @@ const AdminGrowth = () => {
               {kpis.userAcquisition.growth >= 0 ? '+' : ''}{kpis.userAcquisition.growth}%
             </div>
           </div>
-          <p className="text-sm text-gray-600 mb-1">Người dùng mới</p>
+          <p className="text-sm text-gray-600 mb-1">{t('admin.growth.newUsers', 'New Users')}</p>
           <p className="text-2xl font-bold text-gray-900">{kpis.userAcquisition.current.toLocaleString()}</p>
           <p className="text-xs text-gray-500 mt-1">
-            Kỳ trước: {kpis.userAcquisition.previous.toLocaleString()}
+            {t('admin.growth.previousPeriod', 'Previous Period')}: {kpis.userAcquisition.previous.toLocaleString()}
           </p>
         </Card>
 
@@ -233,10 +233,10 @@ const AdminGrowth = () => {
               {kpis.revenue.growth >= 0 ? '+' : ''}{kpis.revenue.growth}%
             </div>
           </div>
-          <p className="text-sm text-gray-600 mb-1">Doanh thu</p>
+          <p className="text-sm text-gray-600 mb-1">{t('admin.growth.revenue', 'Revenue')}</p>
           <p className="text-2xl font-bold text-gray-900">{formatCurrency(kpis.revenue.current)}đ</p>
           <p className="text-xs text-gray-500 mt-1">
-            Kỳ trước: {formatCurrency(kpis.revenue.previous)}đ
+            {t('admin.growth.previousPeriod', 'Previous Period')}: {formatCurrency(kpis.revenue.previous)}đ
           </p>
         </Card>
 
@@ -253,10 +253,10 @@ const AdminGrowth = () => {
               {kpis.engagement.growth >= 0 ? '+' : ''}{kpis.engagement.growth}%
             </div>
           </div>
-          <p className="text-sm text-gray-600 mb-1">Độ tương tác</p>
+          <p className="text-sm text-gray-600 mb-1">{t('admin.growth.engagement', 'Engagement')}</p>
           <p className="text-2xl font-bold text-gray-900">{kpis.engagement.current}%</p>
           <p className="text-xs text-gray-500 mt-1">
-            Kỳ trước: {kpis.engagement.previous}%
+            {t('admin.growth.previousPeriod', 'Previous Period')}: {kpis.engagement.previous}%
           </p>
         </Card>
 
@@ -273,10 +273,10 @@ const AdminGrowth = () => {
               {kpis.retention.growth >= 0 ? '+' : ''}{kpis.retention.growth}%
             </div>
           </div>
-          <p className="text-sm text-gray-600 mb-1">Giữ chân</p>
+          <p className="text-sm text-gray-600 mb-1">{t('admin.growth.retention', 'Retention')}</p>
           <p className="text-2xl font-bold text-gray-900">{kpis.retention.current}%</p>
           <p className="text-xs text-gray-500 mt-1">
-            Kỳ trước: {kpis.retention.previous}%
+            {t('admin.growth.previousPeriod', 'Previous Period')}: {kpis.retention.previous}%
           </p>
         </Card>
 
@@ -293,10 +293,10 @@ const AdminGrowth = () => {
               {kpis.conversion.growth >= 0 ? '+' : ''}{kpis.conversion.growth}%
             </div>
           </div>
-          <p className="text-sm text-gray-600 mb-1">Tỷ lệ chuyển đổi</p>
+          <p className="text-sm text-gray-600 mb-1">{t('admin.growth.conversion', 'Conversion Rate')}</p>
           <p className="text-2xl font-bold text-gray-900">{kpis.conversion.current}%</p>
           <p className="text-xs text-gray-500 mt-1">
-            Kỳ trước: {kpis.conversion.previous}%
+            {t('admin.growth.previousPeriod', 'Previous Period')}: {kpis.conversion.previous}%
           </p>
         </Card>
 
@@ -313,10 +313,10 @@ const AdminGrowth = () => {
               {kpis.nps.growth >= 0 ? '+' : ''}{kpis.nps.growth}%
             </div>
           </div>
-          <p className="text-sm text-gray-600 mb-1">NPS Score</p>
+          <p className="text-sm text-gray-600 mb-1">{t('admin.growth.npsScore', 'NPS Score')}</p>
           <p className="text-2xl font-bold text-gray-900">{kpis.nps.current}</p>
           <p className="text-xs text-gray-500 mt-1">
-            Kỳ trước: {kpis.nps.previous}
+            {t('admin.growth.previousPeriod', 'Previous Period')}: {kpis.nps.previous}
           </p>
         </Card>
       </div>
@@ -327,8 +327,8 @@ const AdminGrowth = () => {
         <Card>
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h3 className="text-lg font-bold text-gray-900">Tăng trưởng người dùng</h3>
-              <p className="text-sm text-gray-500">6 tháng gần nhất</p>
+              <h3 className="text-lg font-bold text-gray-900">{t('admin.growth.userGrowth', 'User Growth')}</h3>
+              <p className="text-sm text-gray-500">{t('admin.growth.last6Months', 'Last 6 months')}</p>
             </div>
             <TrendingUp className="w-5 h-5 text-green-500" />
           </div>
@@ -359,8 +359,8 @@ const AdminGrowth = () => {
         <Card>
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h3 className="text-lg font-bold text-gray-900">Xu hướng doanh thu</h3>
-              <p className="text-sm text-gray-500">6 tháng gần nhất</p>
+              <h3 className="text-lg font-bold text-gray-900">{t('admin.growth.revenueTrend', 'Revenue Trend')}</h3>
+              <p className="text-sm text-gray-500">{t('admin.growth.last6Months', 'Last 6 months')}</p>
             </div>
             <DollarSign className="w-5 h-5 text-green-500" />
           </div>
@@ -391,8 +391,8 @@ const AdminGrowth = () => {
         <Card>
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h3 className="text-lg font-bold text-gray-900">Nguồn Traffic</h3>
-              <p className="text-sm text-gray-500">Top 5 nguồn người dùng</p>
+              <h3 className="text-lg font-bold text-gray-900">{t('admin.growth.trafficSources', 'Traffic Sources')}</h3>
+              <p className="text-sm text-gray-500">{t('admin.growth.top5Sources', 'Top 5 user sources')}</p>
             </div>
             <Globe className="w-5 h-5 text-gray-400" />
           </div>
@@ -426,8 +426,8 @@ const AdminGrowth = () => {
         <Card>
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h3 className="text-lg font-bold text-gray-900">Phân khúc người dùng</h3>
-              <p className="text-sm text-gray-500">Theo gói dịch vụ</p>
+              <h3 className="text-lg font-bold text-gray-900">{t('admin.growth.userSegments', 'User Segments')}</h3>
+              <p className="text-sm text-gray-500">{t('admin.growth.byServicePlan', 'By service plan')}</p>
             </div>
             <PieChart className="w-5 h-5 text-gray-400" />
           </div>
@@ -464,7 +464,7 @@ const AdminGrowth = () => {
         <div className="flex items-center justify-between mb-4">
           <div>
             <h3 className="text-lg font-bold text-gray-900">Cohort Retention</h3>
-            <p className="text-sm text-gray-500">Tỷ lệ giữ chân theo nhóm người dùng</p>
+            <p className="text-sm text-gray-500">{t('admin.growth.cohortRetentionDesc', 'Retention rate by user cohort')}</p>
           </div>
           <BarChart3 className="w-5 h-5 text-gray-400" />
         </div>
@@ -508,8 +508,7 @@ const AdminGrowth = () => {
         </div>
         <div className="mt-4 p-4 bg-blue-50 rounded-lg">
           <p className="text-sm text-blue-800">
-            <strong>💡 Insight:</strong> Tỷ lệ giữ chân trung bình 80%+ sau tháng đầu tiên cho thấy người dùng hài lòng với sản phẩm.
-            Nên tập trung vào onboarding để cải thiện retention tháng đầu.
+            <strong>💡 {t('admin.growth.insight', 'Insight')}:</strong> {t('admin.growth.insightText', 'Average retention rate of 80%+ after the first month indicates user satisfaction with the product. Focus on onboarding to improve first-month retention.')}
           </p>
         </div>
       </Card>

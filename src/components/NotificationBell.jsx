@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Bell, Check, Trash2, ExternalLink, Clock, AlertCircle, Info } from 'lucide-react';
 import notificationService from '../services/notificationService';
 
 const NotificationBell = () => {
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const [isOpen, setIsOpen] = useState(false);
     const [notifications, setNotifications] = useState([]);
@@ -101,10 +103,10 @@ const NotificationBell = () => {
         const diffHours = Math.floor(diffMs / 3600000);
         const diffDays = Math.floor(diffMs / 86400000);
 
-        if (diffMins < 1) return 'Vừa xong';
-        if (diffMins < 60) return `${diffMins} phút trước`;
-        if (diffHours < 24) return `${diffHours} giờ trước`;
-        if (diffDays < 7) return `${diffDays} ngày trước`;
+        if (diffMins < 1) return t('component.notificationBell.justNow');
+        if (diffMins < 60) return t('component.notificationBell.minutesAgo', { count: diffMins });
+        if (diffHours < 24) return t('component.notificationBell.hoursAgo', { count: diffHours });
+        if (diffDays < 7) return t('component.notificationBell.daysAgo', { count: diffDays });
         return date.toLocaleDateString('vi-VN');
     };
 
@@ -173,9 +175,9 @@ const NotificationBell = () => {
                         {/* Header */}
                         <div className="px-5 py-4 border-b border-gray-200 flex items-center justify-between bg-gradient-to-r from-violet-50 to-purple-50 shrink-0">
                             <div>
-                                <h3 className="font-bold text-gray-900 text-base">Thông báo</h3>
+                                <h3 className="font-bold text-gray-900 text-base">{t('component.notificationBell.title')}</h3>
                                 {unreadCount > 0 && (
-                                    <p className="text-xs text-gray-600 mt-0.5">{unreadCount} thông báo chưa đọc</p>
+                                    <p className="text-xs text-gray-600 mt-0.5">{unreadCount} {t('component.notificationBell.unreadCount')}</p>
                                 )}
                             </div>
                             <div className="flex items-center gap-2">
@@ -184,7 +186,7 @@ const NotificationBell = () => {
                                         onClick={handleMarkAllAsRead}
                                         className="text-xs text-violet-600 hover:text-violet-700 font-medium hover:bg-violet-100 px-2 py-1 rounded-lg transition-colors"
                                     >
-                                        Đọc tất cả
+                                        {t('component.notificationBell.markAllRead')}
                                     </button>
                                 )}
                                 <button
@@ -207,8 +209,8 @@ const NotificationBell = () => {
                                     <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
                                         <Bell className="w-8 h-8 text-gray-400" />
                                     </div>
-                                    <p className="text-gray-500 text-sm font-medium">Chưa có thông báo nào</p>
-                                    <p className="text-gray-400 text-xs mt-1">Bạn sẽ nhận thông báo khi có cập nhật</p>
+                                    <p className="text-gray-500 text-sm font-medium">{t('component.notificationBell.noNotifications')}</p>
+                                    <p className="text-gray-400 text-xs mt-1">{t('component.notificationBell.noNotificationsDesc')}</p>
                                 </div>
                             ) : (
                                 <div className="divide-y divide-gray-100">
@@ -238,7 +240,7 @@ const NotificationBell = () => {
                                                             <button
                                                                 onClick={(e) => handleMarkAsRead(notification.id, e)}
                                                                 className="shrink-0 text-violet-600 hover:text-violet-700 hover:bg-violet-100 p-1 rounded-full transition-all"
-                                                                title="Đánh dấu đã đọc"
+                                                                title={t('component.notificationBell.markAsRead')}
                                                             >
                                                                 <Check className="w-4 h-4" />
                                                             </button>
@@ -266,7 +268,7 @@ const NotificationBell = () => {
                                     onClick={() => setIsOpen(false)}
                                     className="w-full text-center text-sm text-gray-600 hover:text-gray-900 font-medium py-2 hover:bg-gray-200 rounded-lg transition-colors"
                                 >
-                                    Đóng
+                                    {t('common.close')}
                                 </button>
                             </div>
                         )}

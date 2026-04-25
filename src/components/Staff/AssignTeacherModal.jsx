@@ -69,14 +69,14 @@ const AssignTeacherModal = ({ classId, currentTeachers = [], onClose, onSuccess,
 
     const handleRemoveTeacher = async (teacherId, teacherName) => {
         const result = await Swal.fire({
-            title: 'Loại Bỏ Giáo Viên?',
-            text: `Bạn có chắc muốn loại bỏ ${teacherName} khỏi lớp học này?`,
+            title: t('staff.assignTeacher.removeTitle'),
+            text: t('staff.assignTeacher.removeText', 'Bạn có chắc muốn loại bỏ {{name}} khỏi lớp học này?', { name: teacherName }),
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#f56565',
             cancelButtonColor: '#667eea',
-            confirmButtonText: 'Loại bỏ',
-            cancelButtonText: 'Hủy'
+            confirmButtonText: t('staff.assignTeacher.removeConfirm'),
+            cancelButtonText: t('staff.assignTeacher.cancel')
         });
 
         if (result.isConfirmed) {
@@ -84,8 +84,8 @@ const AssignTeacherModal = ({ classId, currentTeachers = [], onClose, onSuccess,
                 await classService.removeTeacher(classId, teacherId);
                 Swal.fire({
                     icon: 'success',
-                    title: 'Đã Loại Bỏ',
-                    text: 'Giáo viên đã được loại bỏ khỏi lớp học',
+                    title: t('staff.assignTeacher.removedTitle'),
+                    text: t('staff.assignTeacher.removedText'),
                     timer: 1500,
                     showConfirmButton: false
                 });
@@ -94,8 +94,8 @@ const AssignTeacherModal = ({ classId, currentTeachers = [], onClose, onSuccess,
                 console.error('Error removing teacher:', error);
                 Swal.fire({
                     icon: 'error',
-                    title: 'Lỗi',
-                    text: error.response?.data?.message || 'Không thể loại bỏ giáo viên'
+                    title: t('staff.assignTeacher.error'),
+                    text: error.response?.data?.message || t('staff.assignTeacher.removeFailed')
                 });
             }
         }
@@ -151,7 +151,7 @@ const AssignTeacherModal = ({ classId, currentTeachers = [], onClose, onSuccess,
                                                 type="button"
                                                 onClick={() => handleRemoveTeacher(teacher.id, teacher.fullName || teacher.username)}
                                                 className="p-1.5 text-red-600 hover:bg-red-100 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
-                                                title="Loại bỏ giáo viên"
+                                                title={t('staff.assignTeacher.removeTeacherTooltip')}
                                             >
                                                 <Trash2 className="w-4 h-4" />
                                             </button>

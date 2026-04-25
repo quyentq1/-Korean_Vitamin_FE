@@ -43,11 +43,11 @@ const TeacherLayout = () => {
         { icon: <Home className="w-5 h-5" />, label: t('teacher.dashboard.home'), path: '/teacher' },
         { icon: <Library className="w-5 h-5" />, label: t('teacher.dashboard.myCourses'), path: '/teacher/my-courses' },
         { icon: <FileText className="w-5 h-5" />, label: t('teacher.dashboard.examManagement'), path: '/teacher/exam-management' },
-        { icon: <Users className="w-5 h-5" />, label: 'Bài Kiểm Tra Lớp', path: '/teacher/class-exams' },
+        { icon: <Users className="w-5 h-5" />, label: t('layout.teacher.classExams'), path: '/teacher/class-exams' },
         { icon: <BookOpen className="w-5 h-5" />, label: t('teacher.dashboard.questionBank'), path: '/teacher/question-bank' },
         { icon: <CheckCircle className="w-5 h-5" />, label: t('teacher.dashboard.grading'), path: '/teacher/grading-queue' },
         { icon: <TrendingUp className="w-5 h-5" />, label: t('teacher.dashboard.reports'), path: '/teacher/reports' },
-        { icon: <ClipboardCheck className="w-5 h-5" />, label: 'Quản lý lớp học', path: '/teacher/class-management' },
+        { icon: <ClipboardCheck className="w-5 h-5" />, label: t('layout.teacher.classManagement'), path: '/teacher/class-management' },
     ], [t]);
 
     // Check if current path is active

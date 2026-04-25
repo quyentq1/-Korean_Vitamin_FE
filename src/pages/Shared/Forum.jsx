@@ -174,7 +174,7 @@ const Forum = () => {
                         <div className="lg:col-span-3">
                             {loading ? <div className="text-center py-10">Loading...</div> : (
                                 <div className="space-y-3 sm:space-y-4">
-                                    {posts.length === 0 && <div className="text-center text-gray-500 py-10">Chưa có bài viết nào.</div>}
+                                    {posts.length === 0 && <div className="text-center text-gray-500 py-10">{t('forum.noPosts', 'Chưa có bài viết nào.')}</div>}
                                     {posts.map((post) => (
                                         <div key={post.id} className="bg-white rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-6 hover:shadow-xl transition cursor-pointer">
                                             <div className="flex gap-3 sm:gap-4">
@@ -221,10 +221,10 @@ const Forum = () => {
                                                                         ? 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200'
                                                                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                                                 }`}
-                                                                title={post.pinned ? 'Bỏ ghim' : 'Ghim bài viết'}
+                                                                title={post.pinned ? t('forum.unpin', 'Bỏ ghim') : t('forum.pinPost', 'Ghim bài viết')}
                                                             >
                                                                 {post.pinned ? <PinOff className="w-4 h-4" /> : <Pin className="w-4 h-4" />}
-                                                                {post.pinned ? 'Đã ghim' : 'Ghim'}
+                                                                {post.pinned ? t('forum.pinned', 'Đã ghim') : t('forum.pin', 'Ghim')}
                                                             </button>
                                                         )}
                                                         
@@ -240,7 +240,7 @@ const Forum = () => {
                                                                         ? 'bg-green-100 text-green-700'
                                                                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                                                 }`}
-                                                                title="Thích bài viết"
+                                                                title={t('forum.likePost', 'Thích bài viết')}
                                                             >
                                                                 <ThumbsUp className="w-4 h-4" />
                                                                 <span>{post.upvotes || 0}</span>
@@ -255,7 +255,7 @@ const Forum = () => {
                                                                         ? 'bg-red-100 text-red-700'
                                                                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                                                 }`}
-                                                                title="Không thích bài viết"
+                                                                title={t('forum.dislikePost', 'Không thích bài viết')}
                                                             >
                                                                 <ThumbsDown className="w-4 h-4" />
                                                                 <span>{post.downvotes || 0}</span>

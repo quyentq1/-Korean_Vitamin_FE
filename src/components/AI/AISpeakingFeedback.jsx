@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Mic, Volume2, Waveform, CheckCircle, AlertTriangle, Lightbulb, Star, Sparkles } from 'lucide-react';
 import axiosClient from '../../api/axiosClient';
 import Swal from 'sweetalert2';
@@ -17,6 +18,7 @@ import Swal from 'sweetalert2';
  * - Speaking rate analysis
  */
 const AISpeakingFeedback = ({ submissionId, audioUrl, autoAnalyze = false }) => {
+    const { t } = useTranslation();
     const [analyzing, setAnalyzing] = useState(false);
     const [feedback, setFeedback] = useState(null);
     const [expandedSections, setExpandedSections] = useState({
@@ -38,8 +40,8 @@ const AISpeakingFeedback = ({ submissionId, audioUrl, autoAnalyze = false }) => 
         if (!audioUrl) {
             Swal.fire({
                 icon: 'warning',
-                title: 'Thiếu audio',
-                text: 'Vui lòng tải lên hoặc ghi âm bài nói trước khi phân tích',
+                title: t('ai.aiSpeakingFeedback.swalNoAudioTitle'),
+                text: t('ai.aiSpeakingFeedback.swalNoAudioText'),
                 confirmButtonColor: '#6366f1'
             });
             return;
@@ -55,8 +57,8 @@ const AISpeakingFeedback = ({ submissionId, audioUrl, autoAnalyze = false }) => 
         } catch (error) {
             Swal.fire({
                 icon: 'error',
-                title: 'Lỗi phân tích',
-                text: error.response?.data?.message || 'Không thể phân tích bài nói. Vui lòng thử lại.',
+                title: t('ai.aiSpeakingFeedback.swalErrorTitle'),
+                text: error.response?.data?.message || t('ai.aiSpeakingFeedback.swalErrorText'),
                 confirmButtonColor: '#6366f1'
             });
         } finally {
@@ -99,8 +101,8 @@ const AISpeakingFeedback = ({ submissionId, audioUrl, autoAnalyze = false }) => 
                         ))}
                     </div>
                 </div>
-                <p className="text-gray-700 font-medium mb-2">Đang phân tích bài nói...</p>
-                <p className="text-sm text-gray-500">AI đang phân tích phát âm, ngữ điệu và trôi chảy</p>
+                <p className="text-gray-700 font-medium mb-2">{t('ai.aiSpeakingFeedback.analyzing')}</p>
+                <p className="text-sm text-gray-500">{t('ai.aiSpeakingFeedback.analyzingSubtitle')}</p>
             </div>
         );
     }
@@ -111,10 +113,10 @@ const AISpeakingFeedback = ({ submissionId, audioUrl, autoAnalyze = false }) => 
                 <div className="text-center py-8">
                     <Mic className="w-16 h-16 text-purple-300 mx-auto mb-4" />
                     <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                        Phân tích bài nói bằng AI
+                        {t('ai.aiSpeakingFeedback.title')}
                     </h3>
                     <p className="text-sm text-gray-600 mb-4">
-                        Nhận phản hồi chi tiết về phát âm, ngữ điệu, độ trôi chảy và ngữ pháp
+                        {t('ai.aiSpeakingFeedback.subtitle')}
                     </p>
                     <button
                         onClick={analyzeAudio}
@@ -122,7 +124,7 @@ const AISpeakingFeedback = ({ submissionId, audioUrl, autoAnalyze = false }) => 
                         className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center gap-2 mx-auto"
                     >
                         <Sparkles className="w-5 h-5" />
-                        Phân tích ngay
+                        {t('ai.aiSpeakingFeedback.analyzeBtn')}
                     </button>
                 </div>
             </div>
@@ -135,16 +137,16 @@ const AISpeakingFeedback = ({ submissionId, audioUrl, autoAnalyze = false }) => 
             <div className="bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl p-6 text-white">
                 <div className="flex items-center justify-between">
                     <div>
-                        <p className="text-purple-100 text-sm mb-1">Điểm tổng quan</p>
+                        <p className="text-purple-100 text-sm mb-1">{t('ai.aiSpeakingFeedback.overallScore')}</p>
                         <p className="text-4xl font-bold">{feedback.overallScore}/100</p>
                     </div>
                     <div className="text-right">
-                        <p className="text-purple-100 text-sm mb-1">Trình độ nói</p>
+                        <p className="text-purple-100 text-sm mb-1">{t('ai.aiSpeakingFeedback.speakingLevel')}</p>
                         <p className="text-xl font-semibold">{feedback.proficiencyLevel}</p>
                     </div>
                 </div>
                 {feedback.duration && (
-                    <p className="text-purple-100 text-sm mt-3">Thời lượng: {feedback.duration} giây</p>
+                    <p className="text-purple-100 text-sm mt-3">{t('ai.aiSpeakingFeedback.duration')}: {feedback.duration} {t('ai.aiSpeakingFeedback.seconds')}</p>
                 )}
             </div>
 
@@ -154,25 +156,25 @@ const AISpeakingFeedback = ({ submissionId, audioUrl, autoAnalyze = false }) => 
                     <p className={`text-2xl font-bold ${getScoreColor(feedback.pronunciationScore)}`}>
                         {feedback.pronunciationScore}
                     </p>
-                    <p className="text-xs text-gray-600">Phát âm</p>
+                    <p className="text-xs text-gray-600">{t('ai.aiSpeakingFeedback.pronunciation')}</p>
                 </div>
                 <div className="bg-white rounded-lg p-3 border border-gray-200 text-center">
                     <p className={`text-2xl font-bold ${getScoreColor(feedback.fluencyScore)}`}>
                         {feedback.fluencyScore}
                     </p>
-                    <p className="text-xs text-gray-600">Troi chảy</p>
+                    <p className="text-xs text-gray-600">{t('ai.aiSpeakingFeedback.fluency')}</p>
                 </div>
                 <div className="bg-white rounded-lg p-3 border border-gray-200 text-center">
                     <p className={`text-2xl font-bold ${getScoreColor(feedback.grammarScore)}`}>
                         {feedback.grammarScore}
                     </p>
-                    <p className="text-xs text-gray-600">Ngữ pháp</p>
+                    <p className="text-xs text-gray-600">{t('ai.aiSpeakingFeedback.grammar')}</p>
                 </div>
                 <div className="bg-white rounded-lg p-3 border border-gray-200 text-center">
                     <p className={`text-2xl font-bold ${getScoreColor(feedback.vocabularyScore)}`}>
                         {feedback.vocabularyScore}
                     </p>
-                    <p className="text-xs text-gray-600">Từ vựng</p>
+                    <p className="text-xs text-gray-600">{t('ai.aiSpeakingFeedback.vocabulary')}</p>
                 </div>
             </div>
 
@@ -184,7 +186,7 @@ const AISpeakingFeedback = ({ submissionId, audioUrl, autoAnalyze = false }) => 
                 >
                     <div className="flex items-center gap-3">
                         <Volume2 className="w-5 h-5 text-blue-500" />
-                        <h3 className="font-semibold text-gray-900">Phát âm</h3>
+                        <h3 className="font-semibold text-gray-900">{t('ai.aiSpeakingFeedback.pronunciation')}</h3>
                         <span className={`text-sm px-2 py-1 rounded ${getScoreBgColor(feedback.pronunciationScore)}`}>
                             {feedback.pronunciationScore}/100
                         </span>
@@ -197,7 +199,7 @@ const AISpeakingFeedback = ({ submissionId, audioUrl, autoAnalyze = false }) => 
                         {/* Overall Assessment */}
                         <div className="p-4 bg-blue-50 rounded-lg">
                             <p className="text-sm text-blue-900 font-medium mb-2">
-                                Đánh giá chung: {feedback.pronunciationDetails.assessment}
+                                {t('ai.aiSpeakingFeedback.overallAssessment')}: {feedback.pronunciationDetails.assessment}
                             </p>
                             <p className="text-xs text-blue-700">
                                 {feedback.pronunciationDetails.description}
@@ -207,7 +209,7 @@ const AISpeakingFeedback = ({ submissionId, audioUrl, autoAnalyze = false }) => 
                         {/* Word-by-Word Analysis */}
                         {feedback.pronunciationDetails.words && (
                             <div>
-                                <h4 className="font-medium text-gray-900 mb-2 text-sm">Chi tiết từng từ:</h4>
+                                <h4 className="font-medium text-gray-900 mb-2 text-sm">{t('ai.aiSpeakingFeedback.wordByWord')}</h4>
                                 <div className="flex flex-wrap gap-2">
                                     {feedback.pronunciationDetails.words.map((word, idx) => (
                                         <span
@@ -217,7 +219,7 @@ const AISpeakingFeedback = ({ submissionId, audioUrl, autoAnalyze = false }) => 
                                                     ? 'bg-green-100 text-green-700'
                                                     : 'bg-red-100 text-red-700'
                                             }`}
-                                            title={`Độ chính xác: ${Math.round(word.accuracy)}%`}
+                                            title={`${t('ai.aiSpeakingFeedback.accuracy')}: ${Math.round(word.accuracy)}%`}
                                         >
                                             {word.word}
                                             {!word.accurate && (
@@ -236,7 +238,7 @@ const AISpeakingFeedback = ({ submissionId, audioUrl, autoAnalyze = false }) => 
                             <div className="p-3 bg-yellow-50 rounded-lg">
                                 <h4 className="font-medium text-yellow-900 mb-2 text-sm flex items-center gap-2">
                                     <AlertTriangle className="w-4 h-4" />
-                                    Âm cần cải thiện:
+                                    {t('ai.aiSpeakingFeedback.problemSounds')}:
                                 </h4>
                                 <div className="space-y-1">
                                     {feedback.pronunciationDetails.problemSounds.map((sound, idx) => (
@@ -271,7 +273,7 @@ const AISpeakingFeedback = ({ submissionId, audioUrl, autoAnalyze = false }) => 
                 >
                     <div className="flex items-center gap-3">
                         <Waveform className="w-5 h-5 text-purple-500" />
-                        <h3 className="font-semibold text-gray-900">Độ trôi chảy</h3>
+                        <h3 className="font-semibold text-gray-900">{t('ai.aiSpeakingFeedback.fluency')}</h3>
                         <span className={`text-sm px-2 py-1 rounded ${getScoreBgColor(feedback.fluencyScore)}`}>
                             {feedback.fluencyScore}/100
                         </span>
@@ -287,26 +289,26 @@ const AISpeakingFeedback = ({ submissionId, audioUrl, autoAnalyze = false }) => 
                                 <p className="text-lg font-bold text-purple-600">
                                     {feedback.fluencyDetails.speakingRate}
                                 </p>
-                                <p className="text-xs text-gray-600">Từ/phút</p>
+                                <p className="text-xs text-gray-600">{t('ai.aiSpeakingFeedback.wordsPerMinute')}</p>
                             </div>
                             <div className="p-3 bg-blue-50 rounded-lg text-center">
                                 <p className="text-lg font-bold text-blue-600">
                                     {feedback.fluencyDetails.pauseCount}
                                 </p>
-                                <p className="text-xs text-gray-600">S lần ngừng</p>
+                                <p className="text-xs text-gray-600">{t('ai.aiSpeakingFeedback.pauseCount')}</p>
                             </div>
                             <div className="p-3 bg-green-50 rounded-lg text-center">
                                 <p className="text-lg font-bold text-green-600">
                                     {feedback.fluencyDetails.articulationRate}
                                 </p>
-                                <p className="text-xs text-gray-600">Âm/giây</p>
+                                <p className="text-xs text-gray-600">{t('ai.aiSpeakingFeedback.soundsPerSecond')}</p>
                             </div>
                         </div>
 
                         {/* Flow Rating */}
                         <div className="p-4 bg-gray-50 rounded-lg">
                             <div className="flex items-center justify-between mb-2">
-                                <span className="text-sm font-medium text-gray-900">Đánh giá luồng nói:</span>
+                                <span className="text-sm font-medium text-gray-900">{t('ai.aiSpeakingFeedback.flowRating')}:</span>
                                 <div className="flex gap-1">
                                     {[...Array(5)].map((_, i) => (
                                         <Star
@@ -326,7 +328,7 @@ const AISpeakingFeedback = ({ submissionId, audioUrl, autoAnalyze = false }) => 
                         {feedback.fluencyDetails.hesitations && (
                             <div className="p-3 bg-yellow-50 rounded-lg">
                                 <h4 className="font-medium text-yellow-900 mb-2 text-sm">
-                                    Vùng ngập ngừng:
+                                    {t('ai.aiSpeakingFeedback.hesitationAreas')}:
                                 </h4>
                                 <p className="text-sm text-yellow-800">
                                     {feedback.fluencyDetails.hesitations.description}
@@ -357,8 +359,8 @@ const AISpeakingFeedback = ({ submissionId, audioUrl, autoAnalyze = false }) => 
                 >
                     <div className="flex items-center gap-3">
                         <AlertTriangle className={`w-5 h-5 ${feedback.grammarErrors > 0 ? 'text-orange-500' : 'text-green-500'}`} />
-                        <h3 className="font-semibold text-gray-900">Ngữ pháp khi nói</h3>
-                        <span className="text-sm text-gray-500">({feedback.grammarErrors || 0} lỗi)</span>
+                        <h3 className="font-semibold text-gray-900">{t('ai.aiSpeakingFeedback.grammarInSpeaking')}</h3>
+                        <span className="text-sm text-gray-500">({feedback.grammarErrors || 0} {t('ai.aiSpeakingFeedback.errors')})</span>
                     </div>
                     <span className="text-gray-400">{expandedSections.grammar ? '▲' : '▼'}</span>
                 </button>
@@ -368,7 +370,7 @@ const AISpeakingFeedback = ({ submissionId, audioUrl, autoAnalyze = false }) => 
                         {feedback.grammarErrors === 0 ? (
                             <div className="p-4 bg-green-50 rounded-lg flex items-center gap-3">
                                 <CheckCircle className="w-5 h-5 text-green-600" />
-                                <p className="text-sm text-green-800">Không phát hiện lỗi ngữ pháp!</p>
+                                <p className="text-sm text-green-800">{t('ai.aiSpeakingFeedback.noGrammarErrors')}</p>
                             </div>
                         ) : (
                             <>
@@ -378,7 +380,7 @@ const AISpeakingFeedback = ({ submissionId, audioUrl, autoAnalyze = false }) => 
                                             <strong>{error.type}:</strong> "{error.original}"
                                         </p>
                                         <p className="text-sm text-green-700">
-                                            Nên nói: "{error.correction}"
+                                            {t('ai.aiSpeakingFeedback.shouldSay')}: "{error.correction}"
                                         </p>
                                         {error.tip && (
                                             <p className="text-xs text-orange-700 mt-1">{error.tip}</p>
@@ -393,7 +395,7 @@ const AISpeakingFeedback = ({ submissionId, audioUrl, autoAnalyze = false }) => 
                             <div className="p-3 bg-green-50 rounded-lg">
                                 <h4 className="font-medium text-green-900 mb-2 text-sm flex items-center gap-2">
                                     <CheckCircle className="w-4 h-4" />
-                                    Điểm tốt:
+                                    {t('ai.aiSpeakingFeedback.strengths')}:
                                 </h4>
                                 <ul className="space-y-1">
                                     {feedback.grammarDetails.strengths.map((strength, idx) => (
@@ -414,8 +416,8 @@ const AISpeakingFeedback = ({ submissionId, audioUrl, autoAnalyze = false }) => 
                 >
                     <div className="flex items-center gap-3">
                         <Star className="w-5 h-5 text-yellow-500" />
-                        <h3 className="font-semibold text-gray-900">Từ vựng đã dùng</h3>
-                        <span className="text-sm text-gray-500">({feedback.uniqueWords || 0} từ)</span>
+                        <h3 className="font-semibold text-gray-900">{t('ai.aiSpeakingFeedback.usedVocabulary')}</h3>
+                        <span className="text-sm text-gray-500">({feedback.uniqueWords || 0} {t('ai.aiSpeakingFeedback.words')})</span>
                     </div>
                     <span className="text-gray-400">{expandedSections.vocabulary ? '▲' : '▼'}</span>
                 </button>
@@ -426,7 +428,7 @@ const AISpeakingFeedback = ({ submissionId, audioUrl, autoAnalyze = false }) => 
                         <div className="grid grid-cols-3 gap-3">
                             <div className="p-3 bg-green-50 rounded-lg text-center">
                                 <p className="text-lg font-bold text-green-600">{feedback.vocabStats.basic}</p>
-                                <p className="text-xs text-gray-600">Cơ bản</p>
+                                <p className="text-xs text-gray-600">{t('ai.aiSpeakingFeedback.basic')}</p>
                             </div>
                             <div className="p-3 bg-blue-50 rounded-lg text-center">
                                 <p className="text-lg font-bold text-blue-600">{feedback.vocabStats.intermediate}</p>
@@ -434,7 +436,7 @@ const AISpeakingFeedback = ({ submissionId, audioUrl, autoAnalyze = false }) => 
                             </div>
                             <div className="p-3 bg-purple-50 rounded-lg text-center">
                                 <p className="text-lg font-bold text-purple-600">{feedback.vocabStats.advanced}</p>
-                                <p className="text-xs text-gray-600">Nâng cao</p>
+                                <p className="text-xs text-gray-600">{t('ai.aiSpeakingFeedback.advanced')}</p>
                             </div>
                         </div>
 
@@ -442,7 +444,7 @@ const AISpeakingFeedback = ({ submissionId, audioUrl, autoAnalyze = false }) => 
                         {feedback.vocabularyDetails.suggestions && (
                             <div>
                                 <h4 className="font-medium text-gray-900 mb-2 text-sm">
-                                    Từ vựng nên dùng để nâng cấp:
+                                    {t('ai.aiSpeakingFeedback.suggestedVocab')}:
                                 </h4>
                                 <div className="flex flex-wrap gap-2">
                                     {feedback.vocabularyDetails.suggestions.map((word, idx) => (
@@ -468,7 +470,7 @@ const AISpeakingFeedback = ({ submissionId, audioUrl, autoAnalyze = false }) => 
                 >
                     <div className="flex items-center gap-3">
                         <Volume2 className="w-5 h-5 text-gray-500" />
-                        <h3 className="font-semibold text-gray-900">Chất lượng âm thanh</h3>
+                        <h3 className="font-semibold text-gray-900">{t('ai.aiSpeakingFeedback.audioQuality')}</h3>
                     </div>
                     <span className="text-gray-400">{expandedSections.audioQuality ? '▲' : '▼'}</span>
                 </button>
@@ -477,7 +479,7 @@ const AISpeakingFeedback = ({ submissionId, audioUrl, autoAnalyze = false }) => 
                     <div className="px-6 pb-4 space-y-3">
                         <div className="grid grid-cols-2 gap-3">
                             <div className="p-3 bg-gray-50 rounded-lg">
-                                <p className="text-xs text-gray-600 mb-1">Độ rõ</p>
+                                <p className="text-xs text-gray-600 mb-1">{t('ai.aiSpeakingFeedback.clarity')}</p>
                                 <div className="flex items-center gap-2">
                                     <div className="flex-1 bg-gray-200 rounded-full h-2">
                                         <div
@@ -489,7 +491,7 @@ const AISpeakingFeedback = ({ submissionId, audioUrl, autoAnalyze = false }) => 
                                 </div>
                             </div>
                             <div className="p-3 bg-gray-50 rounded-lg">
-                                <p className="text-xs text-gray-600 mb-1">Tiếng ồn</p>
+                                <p className="text-xs text-gray-600 mb-1">{t('ai.aiSpeakingFeedback.noiseLevel')}</p>
                                 <div className="flex items-center gap-2">
                                     <div className="flex-1 bg-gray-200 rounded-full h-2">
                                         <div
@@ -516,7 +518,7 @@ const AISpeakingFeedback = ({ submissionId, audioUrl, autoAnalyze = false }) => 
                 <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-6 border border-purple-200">
                     <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
                         <Lightbulb className="w-5 h-5 text-yellow-500" />
-                        Đề xuất luyện tập
+                        {t('ai.aiSpeakingFeedback.practiceRecommendations')}
                     </h3>
                     <ul className="space-y-2">
                         {feedback.recommendations.map((rec, idx) => (
@@ -536,7 +538,7 @@ const AISpeakingFeedback = ({ submissionId, audioUrl, autoAnalyze = false }) => 
                     className="px-6 py-3 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-2 text-gray-700"
                 >
                     <Sparkles className="w-4 h-4" />
-                    Phân tích lại
+                    {t('ai.aiSpeakingFeedback.reAnalyze')}
                 </button>
             </div>
         </div>

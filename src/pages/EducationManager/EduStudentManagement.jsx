@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import educationManagerService from '../../services/educationManagerService';
 import {
     Search, Users, BookOpen, UserPlus, RefreshCw, X, ChevronDown,
@@ -9,6 +10,7 @@ import Swal from 'sweetalert2';
 const PAGE_SIZE = 15;
 
 const EduStudentManagement = () => {
+    const { t } = useTranslation();
     // Core data
     const [allStudents, setAllStudents] = useState([]);
     const [courses, setCourses] = useState([]);
@@ -188,7 +190,7 @@ const EduStudentManagement = () => {
 
     const handleAddToClass = async (studentId, studentName) => {
         if (!selectedClass) {
-            Swal.fire('Chú ý', 'Vui lòng chọn lớp học trước', 'warning');
+            Swal.fire(t('eduManager.studentManagement.attention'), t('eduManager.studentManagement.selectClassFirstWarn'), 'warning');
             return;
         }
         setAssigning(true);
@@ -201,14 +203,14 @@ const EduStudentManagement = () => {
             setAllStudents(studentList);
             Swal.fire({
                 icon: 'success',
-                title: `Đã thêm ${studentName} vào lớp!`,
+                title: t('eduManager.studentManagement.addedToClass', { name: studentName }),
                 toast: true,
                 timer: 1500,
                 showConfirmButton: false,
                 position: 'top-end',
             });
         } catch (e) {
-            Swal.fire('Lỗi', e?.response?.data?.message || e?.message || 'Không thể thêm học viên vào lớp', 'error');
+            Swal.fire(t('common.error'), e?.response?.data?.message || e?.message || t('eduManager.studentManagement.cannotAddToClass'), 'error');
         } finally {
             setAssigning(false);
         }
@@ -217,13 +219,13 @@ const EduStudentManagement = () => {
     const handleRemoveFromClass = async (studentId, studentName) => {
         if (!selectedClass) return;
         const result = await Swal.fire({
-            title: `Xóa ${studentName} khỏi lớp?`,
-            text: 'Học viên sẽ bị xóa khỏi lớp này.',
+            title: t('eduManager.studentManagement.removeFromClassTitle', { name: studentName }),
+            text: t('eduManager.studentManagement.removeFromClassText'),
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#d33',
-            cancelButtonText: 'Hủy',
-            confirmButtonText: 'Xóa',
+            cancelButtonText: t('common.cancel'),
+            confirmButtonText: t('common.delete'),
         });
         if (!result.isConfirmed) return;
         try {
@@ -235,14 +237,14 @@ const EduStudentManagement = () => {
             setAllStudents(studentList);
             Swal.fire({
                 icon: 'success',
-                title: `Đã xóa ${studentName} khỏi lớp!`,
+                title: t('eduManager.studentManagement.removedFromClass', { name: studentName }),
                 toast: true,
                 timer: 1500,
                 showConfirmButton: false,
                 position: 'top-end',
             });
         } catch (e) {
-            Swal.fire('Lỗi', e?.response?.data?.message || e?.message || 'Không thể xóa học viên', 'error');
+            Swal.fire(t('common.error'), e?.response?.data?.message || e?.message || t('eduManager.studentManagement.cannotRemoveStudent'), 'error');
         }
     };
 
@@ -269,9 +271,9 @@ const EduStudentManagement = () => {
                                 <GraduationCap className="w-6 h-6 text-white" />
                             </div>
                             <div>
-                                <h1 className="text-2xl font-bold">Quản lý Học viên</h1>
+                                <h1 className="text-2xl font-bold">{t('eduManager.studentManagement.title')}</h1>
                                 <p className="text-purple-100 text-sm mt-0.5">
-                                    {allStudents.length} học viên trong hệ thống
+                                    {allStudents.length} {t('eduManager.studentManagement.subtitle')}
                                 </p>
                             </div>
                         </div>
@@ -285,13 +287,13 @@ const EduStudentManagement = () => {
                                 }`}
                             >
                                 <UserPlus className="w-4 h-4" />
-                                Thêm vào lớp
+                                {t('eduManager.studentManagement.addToClass')}
                             </button>
                             <button
                                 onClick={() => window.location.reload()}
                                 className="flex items-center gap-2 px-4 py-2.5 bg-white/20 backdrop-blur-sm rounded-xl text-sm font-medium hover:bg-white/30 transition-all"
                             >
-                                <RefreshCw className="w-4 h-4" /> Làm mới
+                                <RefreshCw className="w-4 h-4" /> {t('common.refresh')}
                             </button>
                         </div>
                     </div>
@@ -303,7 +305,7 @@ const EduStudentManagement = () => {
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="text-base font-semibold text-gray-800 flex items-center gap-2">
                                 <UserPlus className="w-5 h-5 text-indigo-500" />
-                                Thêm học viên vào lớp
+                                {t('eduManager.studentManagement.addStudentPanel')}
                             </h3>
                             <button onClick={() => setShowAssignPanel(false)} className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors">
                                 <X className="w-4 h-4 text-gray-400" />
@@ -314,7 +316,7 @@ const EduStudentManagement = () => {
                             {/* Left: Class selector + class roster */}
                             <div>
                                 <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
-                                    Chọn lớp học
+                                    {t('eduManager.studentManagement.selectClass')}
                                 </label>
                                 <div className="relative">
                                     <select
@@ -322,7 +324,7 @@ const EduStudentManagement = () => {
                                         onChange={e => { setSelectedClass(e.target.value); setAssignSearch(''); }}
                                         className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm bg-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent appearance-none pr-10"
                                     >
-                                        <option value="">-- Chọn lớp học --</option>
+                                        <option value="">{t('eduManager.studentManagement.selectClassPlaceholder')}</option>
                                         {classes.map(cls => (
                                             <option key={cls.id} value={cls.id}>
                                                 {cls.className} ({cls.classCode})
@@ -336,7 +338,7 @@ const EduStudentManagement = () => {
                                     <div className="mt-4">
                                         <div className="flex items-center justify-between mb-2">
                                             <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                                                Học viên trong lớp
+                                                {t('eduManager.studentManagement.studentsInClass')}
                                             </span>
                                             <span className="text-xs px-2 py-0.5 bg-indigo-50 text-indigo-600 rounded-full font-medium">
                                                 {classStudents.length}
@@ -344,9 +346,9 @@ const EduStudentManagement = () => {
                                         </div>
                                         <div className="max-h-48 overflow-y-auto space-y-1 pr-1">
                                             {loadingClassStudents ? (
-                                                <div className="py-4 text-center text-sm text-gray-400">Đang tải...</div>
+                                                <div className="py-4 text-center text-sm text-gray-400">{t('common.loading')}</div>
                                             ) : classStudents.length === 0 ? (
-                                                <div className="py-4 text-center text-sm text-gray-400">Chưa có học viên</div>
+                                                <div className="py-4 text-center text-sm text-gray-400">{t('eduManager.studentManagement.noStudents')}</div>
                                             ) : (
                                                 classStudents.map(s => (
                                                     <div key={s.id || s.studentId}
@@ -375,13 +377,13 @@ const EduStudentManagement = () => {
                             {/* Right: Search all students and add */}
                             <div>
                                 <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
-                                    Tìm học viên (tất cả)
+                                    {t('eduManager.studentManagement.searchAllStudents')}
                                 </label>
                                 <div className="relative">
                                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                                     <input
                                         type="text"
-                                        placeholder="Nhập tên hoặc email để tìm..."
+                                        placeholder={t('eduManager.studentManagement.searchPlaceholder')}
                                         value={assignSearch}
                                         onChange={e => setAssignSearch(e.target.value)}
                                         disabled={!selectedClass}
@@ -394,7 +396,7 @@ const EduStudentManagement = () => {
                                         {assignResults.length === 0 ? (
                                             <div className="py-4 text-center text-sm text-gray-400">
                                                 <Search className="w-6 h-6 mx-auto mb-1 text-gray-200" />
-                                                Không tìm thấy học viên
+                                                {t('eduManager.studentManagement.noResults')}
                                             </div>
                                         ) : assignResults.map(student => {
                                             const inClass = selectedClass && isInClass(student.id);
@@ -412,14 +414,14 @@ const EduStudentManagement = () => {
                                                         </div>
                                                         {studentEnrollments[student.id]?.length > 0 && (
                                                             <span className="text-[10px] px-1.5 py-0.5 bg-purple-50 text-purple-600 rounded-full ml-1">
-                                                                {studentEnrollments[student.id].length} khóa
+                                                                {studentEnrollments[student.id].length} {t('eduManager.studentManagement.courses')}
                                                             </span>
                                                         )}
                                                     </div>
                                                     {selectedClass && (
                                                         inClass ? (
                                                             <span className="inline-flex items-center gap-1 text-xs px-2.5 py-1 bg-green-50 text-green-600 rounded-full font-medium">
-                                                                <UserCheck className="w-3 h-3" /> Đã trong lớp
+                                                                <UserCheck className="w-3 h-3" /> {t('eduManager.studentManagement.alreadyInClass')}
                                                             </span>
                                                         ) : (
                                                             <button
@@ -427,7 +429,7 @@ const EduStudentManagement = () => {
                                                                 disabled={assigning}
                                                                 className="flex items-center gap-1.5 text-xs px-3 py-1.5 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-lg hover:shadow-md disabled:opacity-60 transition-all"
                                                             >
-                                                                <UserPlus className="w-3.5 h-3.5" /> Thêm
+                                                                <UserPlus className="w-3.5 h-3.5" /> {t('common.add')}
                                                             </button>
                                                         )
                                                     )}
@@ -439,7 +441,7 @@ const EduStudentManagement = () => {
 
                                 {!selectedClass && (
                                     <div className="mt-3 p-4 bg-amber-50 rounded-xl border border-amber-100 text-sm text-amber-700">
-                                        Vui lòng chọn lớp học trước khi tìm và thêm học viên.
+                                        {t('eduManager.studentManagement.selectClassFirst')}
                                     </div>
                                 )}
                             </div>
@@ -455,7 +457,7 @@ const EduStudentManagement = () => {
                         </div>
                         <div>
                             <div className="text-lg font-bold text-gray-800">{allStudents.length}</div>
-                            <div className="text-xs text-gray-400">Tổng học viên</div>
+                            <div className="text-xs text-gray-400">{t('eduManager.studentManagement.totalStudents')}</div>
                         </div>
                     </div>
                     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 flex items-center gap-3">
@@ -464,7 +466,7 @@ const EduStudentManagement = () => {
                         </div>
                         <div>
                             <div className="text-lg font-bold text-gray-800">{courses.length}</div>
-                            <div className="text-xs text-gray-400">Khóa học</div>
+                            <div className="text-xs text-gray-400">{t('eduManager.studentManagement.totalCourses')}</div>
                         </div>
                     </div>
                     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 flex items-center gap-3">
@@ -473,7 +475,7 @@ const EduStudentManagement = () => {
                         </div>
                         <div>
                             <div className="text-lg font-bold text-gray-800">{classes.length}</div>
-                            <div className="text-xs text-gray-400">Lớp học</div>
+                            <div className="text-xs text-gray-400">{t('eduManager.studentManagement.totalClasses')}</div>
                         </div>
                     </div>
                     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 flex items-center gap-3">
@@ -484,7 +486,7 @@ const EduStudentManagement = () => {
                             <div className="text-lg font-bold text-gray-800">
                                 {Object.keys(studentEnrollments).length}
                             </div>
-                            <div className="text-xs text-gray-400">Đã ghi danh</div>
+                            <div className="text-xs text-gray-400">{t('eduManager.studentManagement.enrolled')}</div>
                         </div>
                     </div>
                 </div>
@@ -496,7 +498,7 @@ const EduStudentManagement = () => {
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                             <input
                                 type="text"
-                                placeholder="Tìm học viên theo tên, email..."
+                                placeholder={t('eduManager.studentManagement.searchStudentPlaceholder')}
                                 value={searchTerm}
                                 onChange={e => { setSearchTerm(e.target.value); setCurrentPage(1); }}
                                 className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
@@ -509,7 +511,7 @@ const EduStudentManagement = () => {
                                 onChange={e => { setCourseFilter(e.target.value); setCurrentPage(1); }}
                                 className="pl-10 pr-8 py-2.5 border border-gray-200 rounded-xl text-sm bg-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent appearance-none"
                             >
-                                <option value="all">Tất cả khóa học</option>
+                                <option value="all">{t('eduManager.studentManagement.allCourses')}</option>
                                 {courses.map(c => (
                                     <option key={c.id} value={c.id}>
                                         {c.courseName || c.name}
@@ -523,11 +525,11 @@ const EduStudentManagement = () => {
                                 onClick={resetFilters}
                                 className="flex items-center gap-1.5 px-3 py-2.5 text-sm text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors"
                             >
-                                <X className="w-4 h-4" /> Xóa lọc
+                                <X className="w-4 h-4" /> {t('common.clearFilter')}
                             </button>
                         )}
                         <div className="ml-auto text-xs text-gray-400">
-                            {filteredStudents.length} kết quả
+                            {filteredStudents.length} {t('common.results')}
                         </div>
                     </div>
                 </div>
@@ -538,14 +540,14 @@ const EduStudentManagement = () => {
                         <div className="flex items-center justify-center py-20">
                             <div className="text-center">
                                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4" />
-                                <p className="text-gray-400 text-sm">Đang tải danh sách học viên...</p>
+                                <p className="text-gray-400 text-sm">{t('eduManager.studentManagement.loadingStudents')}</p>
                             </div>
                         </div>
                     ) : filteredStudents.length === 0 ? (
                         <div className="py-16 text-center">
                             <Users className="w-16 h-16 mx-auto mb-4 text-gray-200" />
-                            <h3 className="text-lg font-semibold text-gray-400 mb-1">Không tìm thấy học viên</h3>
-                            <p className="text-sm text-gray-300">Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm</p>
+                            <h3 className="text-lg font-semibold text-gray-400 mb-1">{t('eduManager.studentManagement.noStudentsFound')}</h3>
+                            <p className="text-sm text-gray-300">{t('eduManager.studentManagement.tryDifferentFilters')}</p>
                         </div>
                     ) : (
                         <>
@@ -553,11 +555,11 @@ const EduStudentManagement = () => {
                                 <table className="min-w-full">
                                     <thead>
                                         <tr className="bg-gradient-to-r from-indigo-50 to-purple-50">
-                                            <th className="px-5 py-3.5 text-left text-xs font-semibold text-indigo-600 uppercase w-16">STT</th>
-                                            <th className="px-5 py-3.5 text-left text-xs font-semibold text-indigo-600 uppercase">Học viên</th>
-                                            <th className="px-5 py-3.5 text-left text-xs font-semibold text-indigo-600 uppercase">Email / Username</th>
-                                            <th className="px-5 py-3.5 text-left text-xs font-semibold text-indigo-600 uppercase">Khóa học đã đăng ký</th>
-                                            <th className="px-5 py-3.5 text-center text-xs font-semibold text-indigo-600 uppercase">Trạng thái</th>
+                                            <th className="px-5 py-3.5 text-left text-xs font-semibold text-indigo-600 uppercase w-16">{t('common.no')}</th>
+                                            <th className="px-5 py-3.5 text-left text-xs font-semibold text-indigo-600 uppercase">{t('common.student')}</th>
+                                            <th className="px-5 py-3.5 text-left text-xs font-semibold text-indigo-600 uppercase">{t('eduManager.studentManagement.emailUsername')}</th>
+                                            <th className="px-5 py-3.5 text-left text-xs font-semibold text-indigo-600 uppercase">{t('eduManager.studentManagement.enrolledCourses')}</th>
+                                            <th className="px-5 py-3.5 text-center text-xs font-semibold text-indigo-600 uppercase">{t('common.status')}</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-50">
@@ -591,7 +593,7 @@ const EduStudentManagement = () => {
                                                         <div className="flex flex-wrap gap-1.5">
                                                             {enrollments.length === 0 ? (
                                                                 <span className="text-xs px-2.5 py-1 rounded-full bg-gray-100 text-gray-400 font-medium">
-                                                                    Chưa đăng ký
+                                                                    {t('eduManager.studentManagement.notEnrolled')}
                                                                 </span>
                                                             ) : (
                                                                 enrollments.map((courseName, idx) => (
@@ -608,11 +610,11 @@ const EduStudentManagement = () => {
                                                     <td className="px-5 py-3.5 text-center">
                                                         {isActive ? (
                                                             <span className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-green-100 text-green-700 font-medium">
-                                                                <UserCheck className="w-3 h-3" /> Đang học
+                                                                <UserCheck className="w-3 h-3" /> {t('eduManager.studentManagement.studying')}
                                                             </span>
                                                         ) : (
                                                             <span className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-gray-100 text-gray-500 font-medium">
-                                                                Chưa ghi danh
+                                                                {t('eduManager.studentManagement.notEnrolledStatus')}
                                                             </span>
                                                         )}
                                                     </td>
@@ -627,7 +629,7 @@ const EduStudentManagement = () => {
                             {totalPages > 1 && (
                                 <div className="flex items-center justify-between px-5 py-4 border-t border-gray-100 bg-gray-50/50">
                                     <span className="text-xs text-gray-400">
-                                        Hiển thị {(currentPage - 1) * PAGE_SIZE + 1}-{Math.min(currentPage * PAGE_SIZE, filteredStudents.length)} / {filteredStudents.length} học viên
+                                        {t('common.showingItems', { from: (currentPage - 1) * PAGE_SIZE + 1, to: Math.min(currentPage * PAGE_SIZE, filteredStudents.length), total: filteredStudents.length })}
                                     </span>
                                     <div className="flex items-center gap-1">
                                         <button

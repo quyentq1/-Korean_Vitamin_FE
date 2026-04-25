@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import educationManagerService from '../../services/educationManagerService';
 import {
     Search, Filter, Users, Calendar, CheckCircle, AlertTriangle, Lock,
@@ -9,6 +10,7 @@ import {
 const PAGE_SIZE = 15;
 
 const EduAttendanceHistory = () => {
+    const { t } = useTranslation();
     const [classes, setClasses] = useState([]);
     const [selectedClass, setSelectedClass] = useState(null);
     const [stats, setStats] = useState(null);
@@ -53,7 +55,7 @@ const EduAttendanceHistory = () => {
     };
 
     const handleUnlock = async (studentId, studentName) => {
-        if (!window.confirm(`Mở khóa tài khoản của ${studentName}?`)) return;
+        if (!window.confirm(t('eduManager.attendanceHistory.confirmUnlock', { name: studentName }))) return;
         try {
             await educationManagerService.unlockStudent(studentId);
             selectClass(selectedClass);
@@ -122,7 +124,7 @@ const EduAttendanceHistory = () => {
                             <ClipboardCheck className="w-6 h-6 text-white" />
                         </div>
                         <div>
-                            <h1 className="text-2xl font-bold">Lịch sử điểm danh</h1>
+                            <h1 className="text-2xl font-bold">{t('eduManager.attendanceHistory.title')}</h1>
                             <p className="text-purple-100 text-sm mt-0.5">
                                 {new Date().toLocaleDateString('vi-VN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                             </p>
@@ -134,12 +136,12 @@ const EduAttendanceHistory = () => {
                     {/* Class List */}
                     <div className="lg:col-span-1">
                         <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
-                            <BookOpen className="w-3.5 h-3.5" /> Lớp học ({classes.length})
+                            <BookOpen className="w-3.5 h-3.5" /> {t('eduManager.attendanceHistory.classes')} ({classes.length})
                         </h2>
                         <div className="space-y-2 max-h-[calc(100vh-300px)] overflow-y-auto pr-1">
                             {classes.length === 0 ? (
                                 <div className="bg-white rounded-2xl p-6 text-center text-sm text-gray-400 border border-gray-100">
-                                    Chưa có lớp học
+                                    {t('eduManager.attendanceHistory.noClasses')}
                                 </div>
                             ) : classes.map(cls => (
                                 <button key={cls.id} onClick={() => selectClass(cls.id)}
@@ -163,14 +165,14 @@ const EduAttendanceHistory = () => {
                             <div className="flex items-center justify-center py-20">
                                 <div className="text-center">
                                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-                                    <p className="text-gray-400 text-sm">Đang tải...</p>
+                                    <p className="text-gray-400 text-sm">{t('eduManager.attendanceHistory.loading')}</p>
                                 </div>
                             </div>
                         ) : !stats ? (
                             <div className="bg-white rounded-2xl border-2 border-dashed border-gray-200 p-16 text-center">
                                 <ClipboardCheck className="w-16 h-16 mx-auto mb-4 text-gray-200" />
-                                <h3 className="text-lg font-semibold text-gray-400 mb-1">Chọn lớp học</h3>
-                                <p className="text-sm text-gray-300">Chọn lớp từ danh sách bên trái để xem điểm danh</p>
+                                <h3 className="text-lg font-semibold text-gray-400 mb-1">{t('eduManager.attendanceHistory.selectClass')}</h3>
+                                <p className="text-sm text-gray-300">{t('eduManager.attendanceHistory.selectClassHint')}</p>
                             </div>
                         ) : (
                             <div className="space-y-5">
@@ -182,7 +184,7 @@ const EduAttendanceHistory = () => {
                                         </div>
                                         <div>
                                             <div className="text-lg font-bold text-gray-800">{stats.totalSessions}</div>
-                                            <div className="text-xs text-gray-400">Tổng buổi</div>
+                                            <div className="text-xs text-gray-400">{t('eduManager.attendanceHistory.totalSessions')}</div>
                                         </div>
                                     </div>
                                     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 flex items-center gap-3">
@@ -191,7 +193,7 @@ const EduAttendanceHistory = () => {
                                         </div>
                                         <div>
                                             <div className="text-lg font-bold text-gray-800">{stats.totalStudents}</div>
-                                            <div className="text-xs text-gray-400">Học viên</div>
+                                            <div className="text-xs text-gray-400">{t('eduManager.attendanceHistory.students')}</div>
                                         </div>
                                     </div>
                                     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 border-l-4 border-l-green-500 p-4 flex items-center gap-3 hover:shadow-md transition-shadow">
@@ -200,7 +202,7 @@ const EduAttendanceHistory = () => {
                                         </div>
                                         <div>
                                             <div className="text-lg font-bold text-green-600">{countNormal}</div>
-                                            <div className="text-xs text-gray-400">Bình thường</div>
+                                            <div className="text-xs text-gray-400">{t('eduManager.attendanceHistory.normal')}</div>
                                         </div>
                                     </div>
                                     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 border-l-4 border-l-amber-500 p-4 flex items-center gap-3 hover:shadow-md transition-shadow">
@@ -209,7 +211,7 @@ const EduAttendanceHistory = () => {
                                         </div>
                                         <div>
                                             <div className="text-lg font-bold text-amber-600">{countWarning}</div>
-                                            <div className="text-xs text-gray-400">Cảnh báo</div>
+                                            <div className="text-xs text-gray-400">{t('eduManager.attendanceHistory.warning')}</div>
                                         </div>
                                     </div>
                                     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 border-l-4 border-l-red-500 p-4 flex items-center gap-3 hover:shadow-md transition-shadow">
@@ -218,7 +220,7 @@ const EduAttendanceHistory = () => {
                                         </div>
                                         <div>
                                             <div className="text-lg font-bold text-red-600">{countLocked}</div>
-                                            <div className="text-xs text-gray-400">Đã khóa</div>
+                                            <div className="text-xs text-gray-400">{t('eduManager.attendanceHistory.locked')}</div>
                                         </div>
                                     </div>
                                 </div>
@@ -232,7 +234,7 @@ const EduAttendanceHistory = () => {
                                                     ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-md'
                                                     : 'text-gray-600 hover:bg-white'
                                             }`}>
-                                            <Users className="w-4 h-4 inline mr-1.5" /> Theo học viên
+                                            <Users className="w-4 h-4 inline mr-1.5" /> {t('eduManager.attendanceHistory.byStudent')}
                                         </button>
                                         <button onClick={() => setActiveTab('sessions')}
                                             className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all ${
@@ -240,7 +242,7 @@ const EduAttendanceHistory = () => {
                                                     ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-md'
                                                     : 'text-gray-600 hover:bg-white'
                                             }`}>
-                                            <Calendar className="w-4 h-4 inline mr-1.5" /> Theo buổi học
+                                            <Calendar className="w-4 h-4 inline mr-1.5" /> {t('eduManager.attendanceHistory.bySession')}
                                         </button>
                                     </div>
 
@@ -251,23 +253,23 @@ const EduAttendanceHistory = () => {
                                             <div className="flex flex-wrap items-center gap-3 p-4 border-b border-gray-100">
                                                 <div className="relative flex-1 min-w-[200px]">
                                                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                                                    <input type="text" placeholder="Tìm tên hoặc email..."
+                                                    <input type="text" placeholder={t('eduManager.attendanceHistory.searchPlaceholder')}
                                                         value={searchTerm} onChange={e => { setSearchTerm(e.target.value); setCurrentPage(1); }}
                                                         className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent" />
                                                 </div>
                                                 <select value={statusFilter} onChange={e => { setStatusFilter(e.target.value); setCurrentPage(1); }}
                                                     className="px-3 py-2 border border-gray-200 rounded-xl text-sm bg-white focus:ring-2 focus:ring-indigo-500">
-                                                    <option value="all">Tất cả trạng thái</option>
-                                                    <option value="normal">Bình thường</option>
-                                                    <option value="warning">Cảnh báo</option>
-                                                    <option value="locked">Đã khóa</option>
+                                                    <option value="all">{t('eduManager.attendanceHistory.allStatuses')}</option>
+                                                    <option value="normal">{t('eduManager.attendanceHistory.normal')}</option>
+                                                    <option value="warning">{t('eduManager.attendanceHistory.warning')}</option>
+                                                    <option value="locked">{t('eduManager.attendanceHistory.locked')}</option>
                                                 </select>
                                                 <select value={sortBy} onChange={e => setSortBy(e.target.value)}
                                                     className="px-3 py-2 border border-gray-200 rounded-xl text-sm bg-white focus:ring-2 focus:ring-indigo-500">
-                                                    <option value="name">Sắp xếp: Tên A-Z</option>
-                                                    <option value="rate_asc">Tỷ lệ: Thấp → Cao</option>
-                                                    <option value="rate_desc">Tỷ lệ: Cao → Thấp</option>
-                                                    <option value="absent">Vắng nhiều nhất</option>
+                                                    <option value="name">{t('eduManager.attendanceHistory.sortName')}</option>
+                                                    <option value="rate_asc">{t('eduManager.attendanceHistory.sortRateAsc')}</option>
+                                                    <option value="rate_desc">{t('eduManager.attendanceHistory.sortRateDesc')}</option>
+                                                    <option value="absent">{t('eduManager.attendanceHistory.sortAbsent')}</option>
                                                 </select>
                                             </div>
 
@@ -276,20 +278,20 @@ const EduAttendanceHistory = () => {
                                                 <table className="min-w-full">
                                                     <thead>
                                                         <tr className="bg-gradient-to-r from-indigo-50 to-purple-50">
-                                                            <th className="px-5 py-3.5 text-left text-xs font-semibold text-indigo-600 uppercase w-16">STT</th>
-                                                            <th className="px-5 py-3.5 text-left text-xs font-semibold text-indigo-600 uppercase">Học viên</th>
-                                                            <th className="px-5 py-3.5 text-center text-xs font-semibold text-indigo-600 uppercase">Có mặt</th>
-                                                            <th className="px-5 py-3.5 text-center text-xs font-semibold text-indigo-600 uppercase">Vắng</th>
-                                                            <th className="px-5 py-3.5 text-center text-xs font-semibold text-indigo-600 uppercase">Tỷ lệ</th>
-                                                            <th className="px-5 py-3.5 text-center text-xs font-semibold text-indigo-600 uppercase">Trạng thái</th>
-                                                            <th className="px-5 py-3.5 text-center text-xs font-semibold text-indigo-600 uppercase">Hành động</th>
+                                                            <th className="px-5 py-3.5 text-left text-xs font-semibold text-indigo-600 uppercase w-16">{t('eduManager.attendanceHistory.colIndex')}</th>
+                                                            <th className="px-5 py-3.5 text-left text-xs font-semibold text-indigo-600 uppercase">{t('eduManager.attendanceHistory.colStudent')}</th>
+                                                            <th className="px-5 py-3.5 text-center text-xs font-semibold text-indigo-600 uppercase">{t('eduManager.attendanceHistory.colPresent')}</th>
+                                                            <th className="px-5 py-3.5 text-center text-xs font-semibold text-indigo-600 uppercase">{t('eduManager.attendanceHistory.colAbsent')}</th>
+                                                            <th className="px-5 py-3.5 text-center text-xs font-semibold text-indigo-600 uppercase">{t('eduManager.attendanceHistory.colRate')}</th>
+                                                            <th className="px-5 py-3.5 text-center text-xs font-semibold text-indigo-600 uppercase">{t('eduManager.attendanceHistory.colStatus')}</th>
+                                                            <th className="px-5 py-3.5 text-center text-xs font-semibold text-indigo-600 uppercase">{t('eduManager.attendanceHistory.colAction')}</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody className="divide-y divide-gray-50">
                                                         {pagedStudents.length === 0 ? (
                                                             <tr><td colSpan="7" className="px-5 py-10 text-center text-gray-400">
                                                                 <Search className="w-8 h-8 mx-auto mb-2 text-gray-200" />
-                                                                Không tìm thấy học viên
+                                                                {t('eduManager.attendanceHistory.noStudentsFound')}
                                                             </td></tr>
                                                         ) : pagedStudents.map((s, i) => (
                                                             <tr key={s.studentId} className="hover:bg-indigo-50/30 transition-colors">
@@ -328,15 +330,15 @@ const EduAttendanceHistory = () => {
                                                                 <td className="px-5 py-3.5 text-center">
                                                                     {s.isLocked ? (
                                                                         <span className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-red-100 text-red-700 font-medium">
-                                                                            <Lock className="w-3 h-3" /> Khóa
+                                                                            <Lock className="w-3 h-3" /> {t('eduManager.attendanceHistory.locked')}
                                                                         </span>
                                                                     ) : s.isWarning ? (
                                                                         <span className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-amber-100 text-amber-700 font-medium">
-                                                                            <AlertTriangle className="w-3 h-3" /> Cảnh báo
+                                                                            <AlertTriangle className="w-3 h-3" /> {t('eduManager.attendanceHistory.warning')}
                                                                         </span>
                                                                     ) : (
                                                                         <span className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-green-100 text-green-700 font-medium">
-                                                                            <CheckCircle className="w-3 h-3" /> Bình thường
+                                                                            <CheckCircle className="w-3 h-3" /> {t('eduManager.attendanceHistory.normal')}
                                                                         </span>
                                                                     )}
                                                                 </td>
@@ -344,7 +346,7 @@ const EduAttendanceHistory = () => {
                                                                     {s.isLocked && (
                                                                         <button onClick={() => handleUnlock(s.studentId, s.studentName)}
                                                                             className="inline-flex items-center gap-1 text-xs px-3 py-1.5 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 font-medium transition-colors">
-                                                                            <Unlock className="w-3 h-3" /> Mở khóa
+                                                                            <Unlock className="w-3 h-3" /> {t('eduManager.attendanceHistory.unlock')}
                                                                         </button>
                                                                     )}
                                                                 </td>
@@ -358,7 +360,7 @@ const EduAttendanceHistory = () => {
                                             {totalPages > 1 && (
                                                 <div className="flex items-center justify-between px-5 py-4 border-t border-gray-100 bg-gray-50/50">
                                                     <span className="text-xs text-gray-400">
-                                                        Hiển thị {(currentPage - 1) * PAGE_SIZE + 1}-{Math.min(currentPage * PAGE_SIZE, filteredStudents.length)} / {filteredStudents.length} học viên
+                                                        {t('eduManager.attendanceHistory.showing')} {(currentPage - 1) * PAGE_SIZE + 1}-{Math.min(currentPage * PAGE_SIZE, filteredStudents.length)} / {filteredStudents.length} {t('eduManager.attendanceHistory.students')}
                                                     </span>
                                                     <div className="flex items-center gap-1">
                                                         <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}
@@ -398,17 +400,17 @@ const EduAttendanceHistory = () => {
                                     {/* Tab: Sessions */}
                                     {activeTab === 'sessions' && (
                                         selectedSession ? (
-                                            /* ===== Session Detail View ===== */
+                                            /* Session Detail View */
                                             <div>
                                                 <button onClick={closeSessionDetail}
                                                     className="inline-flex items-center gap-1.5 text-sm text-indigo-600 hover:text-indigo-800 bg-indigo-50 px-3 py-1.5 rounded-lg hover:bg-indigo-100 transition-all mb-4">
-                                                    <ArrowLeft className="w-4 h-4" /> Quay lại danh sách
+                                                    <ArrowLeft className="w-4 h-4" /> {t('eduManager.attendanceHistory.backToList')}
                                                 </button>
 
                                                 <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl p-5 text-white mb-4">
                                                     <div className="flex items-center justify-between">
                                                         <div>
-                                                            <h3 className="text-lg font-bold">Buổi {selectedSession.lessonNumber}</h3>
+                                                            <h3 className="text-lg font-bold">{t('eduManager.attendanceHistory.session')} {selectedSession.lessonNumber}</h3>
                                                             <p className="text-indigo-100 text-sm mt-1">
                                                                 {selectedSession.lessonDate && new Date(selectedSession.lessonDate).toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' })}
                                                                 <span className="ml-2">
@@ -421,11 +423,11 @@ const EduAttendanceHistory = () => {
                                                         <div className="flex gap-3">
                                                             <div className="text-center bg-white/20 backdrop-blur-sm px-4 py-2 rounded-xl">
                                                                 <div className="text-2xl font-bold">{selectedSession.present}</div>
-                                                                <div className="text-xs text-indigo-100">Có mặt</div>
+                                                                <div className="text-xs text-indigo-100">{t('eduManager.attendanceHistory.present')}</div>
                                                             </div>
                                                             <div className="text-center bg-white/20 backdrop-blur-sm px-4 py-2 rounded-xl">
                                                                 <div className="text-2xl font-bold">{selectedSession.absent}</div>
-                                                                <div className="text-xs text-indigo-100">Vắng</div>
+                                                                <div className="text-xs text-indigo-100">{t('eduManager.attendanceHistory.absent')}</div>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -440,9 +442,9 @@ const EduAttendanceHistory = () => {
                                                         <table className="min-w-full">
                                                             <thead>
                                                                 <tr className="bg-gradient-to-r from-indigo-50 to-purple-50">
-                                                                    <th className="px-5 py-3.5 text-left text-xs font-semibold text-indigo-600 uppercase w-16">STT</th>
-                                                                    <th className="px-5 py-3.5 text-left text-xs font-semibold text-indigo-600 uppercase">Học viên</th>
-                                                                    <th className="px-5 py-3.5 text-center text-xs font-semibold text-indigo-600 uppercase">Trạng thái</th>
+                                                                    <th className="px-5 py-3.5 text-left text-xs font-semibold text-indigo-600 uppercase w-16">{t('eduManager.attendanceHistory.colIndex')}</th>
+                                                                    <th className="px-5 py-3.5 text-left text-xs font-semibold text-indigo-600 uppercase">{t('eduManager.attendanceHistory.colStudent')}</th>
+                                                                    <th className="px-5 py-3.5 text-center text-xs font-semibold text-indigo-600 uppercase">{t('eduManager.attendanceHistory.colStatus')}</th>
                                                                 </tr>
                                                             </thead>
                                                             <tbody className="divide-y divide-gray-50">
@@ -466,11 +468,11 @@ const EduAttendanceHistory = () => {
                                                                         <td className="px-5 py-3.5 text-center">
                                                                             {s.status === 'PRESENT' ? (
                                                                                 <span className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full bg-green-100 text-green-700 font-medium">
-                                                                                    <UserCheck className="w-3.5 h-3.5" /> Có mặt
+                                                                                    <UserCheck className="w-3.5 h-3.5" /> {t('eduManager.attendanceHistory.present')}
                                                                                 </span>
                                                                             ) : (
                                                                                 <span className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full bg-red-100 text-red-700 font-medium">
-                                                                                    <UserX className="w-3.5 h-3.5" /> Vắng mặt
+                                                                                    <UserX className="w-3.5 h-3.5" /> {t('eduManager.attendanceHistory.absent')}
                                                                                 </span>
                                                                             )}
                                                                         </td>
@@ -482,7 +484,7 @@ const EduAttendanceHistory = () => {
                                                 ) : (
                                                     <div className="p-10 text-center text-gray-400">
                                                         <ClipboardCheck className="w-8 h-8 mx-auto mb-2 text-gray-200" />
-                                                        Buổi học này chưa có dữ liệu điểm danh
+                                                        {t('eduManager.attendanceHistory.noAttendanceData')}
                                                     </div>
                                                 )}
                                             </div>
@@ -491,7 +493,7 @@ const EduAttendanceHistory = () => {
                                             {(stats.sessionStats || []).length === 0 ? (
                                                 <div className="p-10 text-center text-gray-400">
                                                     <Calendar className="w-8 h-8 mx-auto mb-2 text-gray-200" />
-                                                    Chưa có buổi học
+                                                    {t('eduManager.attendanceHistory.noSessions')}
                                                 </div>
                                             ) : (stats.sessionStats || []).map(session => {
                                                 const total = session.present + session.absent;
@@ -508,7 +510,7 @@ const EduAttendanceHistory = () => {
                                                                     ? 'bg-gradient-to-br from-green-500 to-emerald-600'
                                                                     : 'bg-gradient-to-br from-gray-400 to-gray-500'
                                                             }`}>
-                                                                <span className="uppercase tracking-wider">Buổi</span>
+                                                                <span className="uppercase tracking-wider">{t('eduManager.attendanceHistory.sessionShort')}</span>
                                                                 <span className="text-lg leading-none">{session.lessonNumber}</span>
                                                             </div>
                                                             <div>
@@ -526,8 +528,8 @@ const EduAttendanceHistory = () => {
                                                             {session.totalMarked > 0 ? (
                                                                 <>
                                                                     <div className="text-right">
-                                                                        <div className="text-xs font-medium text-green-600">{session.present} Có mặt</div>
-                                                                        <div className="text-xs font-medium text-red-500">{session.absent} Vắng</div>
+                                                                        <div className="text-xs font-medium text-green-600">{session.present} {t('eduManager.attendanceHistory.present')}</div>
+                                                                        <div className="text-xs font-medium text-red-500">{session.absent} {t('eduManager.attendanceHistory.absent')}</div>
                                                                     </div>
                                                                     <div className="w-20 h-2 bg-gray-100 rounded-full overflow-hidden">
                                                                         <div className="h-full bg-gradient-to-r from-green-400 to-emerald-500 rounded-full" style={{ width: `${rate}%` }} />
@@ -535,7 +537,7 @@ const EduAttendanceHistory = () => {
                                                                     <span className="text-sm font-bold text-green-600 min-w-[40px] text-right">{rate}%</span>
                                                                 </>
                                                             ) : (
-                                                                <span className="text-xs text-gray-400 bg-gray-50 px-3 py-1 rounded-full">Chưa điểm danh</span>
+                                                                <span className="text-xs text-gray-400 bg-gray-50 px-3 py-1 rounded-full">{t('eduManager.attendanceHistory.notMarked')}</span>
                                                             )}
                                                             <ChevronRight className={`w-4 h-4 ${session.totalMarked > 0 ? 'text-gray-300 group-hover:text-indigo-400' : 'text-gray-200'} transition-colors`} />
                                                         </div>

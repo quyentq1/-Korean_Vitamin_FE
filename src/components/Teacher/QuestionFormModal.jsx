@@ -362,8 +362,8 @@ const QuestionFormModal = ({ isOpen, onClose, questionId, defaultTarget = 'COURS
         const hasAnswer = question.answers.some(a => a.content.trim());
         const hasCorrect = question.answers.some(a => a.isCorrect);
 
-        if (!hasAnswer) errors.answers = 'Vui lòng nhập ít nhất một đáp án';
-        if (!hasCorrect) errors.correct = 'Vui lòng chọn ít nhất một đáp án đúng';
+        if (!hasAnswer) errors.answers = t('teacher.questionForm.errorAnswerRequired');
+        if (!hasCorrect) errors.correct = t('teacher.questionForm.errorCorrectRequired');
       }
     }
 
@@ -881,7 +881,7 @@ const QuestionFormModal = ({ isOpen, onClose, questionId, defaultTarget = 'COURS
                     // Class options từ topikClassStructure.js
                     getAllClassQuestionTypes().map(type => (
                       <option key={type.type} value={type.type}>
-                        {type.type} - {type.name} ({type.points} điểm - {type.answerType === 'TEXT_INPUT' ? 'Text Input' : 'Multiple Choice'})
+                        {type.type} - {type.name} ({type.points} {t('teacher.questionForm.points')} - {type.answerType === 'TEXT_INPUT' ? 'Text Input' : 'Multiple Choice'})
                       </option>
                     ))
                   ) : (
@@ -889,17 +889,17 @@ const QuestionFormModal = ({ isOpen, onClose, questionId, defaultTarget = 'COURS
                     <>
                       {QUESTION_TYPE_MAPPING.READING?.map(r => (
                         <option key={r.type} value={r.type}>
-                          {r.type} - {r.name} ({r.pointsPerQuestion} điểm)
+                          {r.type} - {r.name} ({r.pointsPerQuestion} {t('teacher.questionForm.points')})
                         </option>
                       ))}
                       {QUESTION_TYPE_MAPPING.LISTENING?.map(l => (
                         <option key={l.type} value={l.type}>
-                          {l.type} - {l.name} ({l.pointsPerQuestion} điểm)
+                          {l.type} - {l.name} ({l.pointsPerQuestion} {t('teacher.questionForm.points')})
                         </option>
                       ))}
                       {QUESTION_TYPE_MAPPING.WRITING?.map(w => (
                         <option key={w.type} value={w.type}>
-                          {w.type} - {w.name} ({w.pointsPerQuestion} điểm)
+                          {w.type} - {w.name} ({w.pointsPerQuestion} {t('teacher.questionForm.points')})
                         </option>
                       ))}
                     </>

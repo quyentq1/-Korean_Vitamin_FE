@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Shield, Search, Filter, Download, Calendar, User, AlertTriangle, CheckCircle, XCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import axiosClient from '../../api/axiosClient';
 import Swal from 'sweetalert2';
 
@@ -15,6 +16,7 @@ import Swal from 'sweetalert2';
  * - View detailed action info
  */
 const AuditLogViewer = () => {
+    const { t } = useTranslation();
     const [logs, setLogs] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState({
@@ -57,16 +59,16 @@ const AuditLogViewer = () => {
             link.remove();
             await Swal.fire({
                 icon: 'success',
-                title: 'Đã xuất',
-                text: 'File audit log đã được tải xuống',
+                title: t('admin.auditLog.swal.exported'),
+                text: t('admin.auditLog.swal.exportedText'),
                 timer: 2000,
                 showConfirmButton: false
             });
         } catch (error) {
             Swal.fire({
                 icon: 'error',
-                title: 'Lỗi',
-                text: 'Không thể xuất audit log',
+                title: t('common.error'),
+                text: t('admin.auditLog.swal.exportError'),
                 confirmButtonColor: '#6366f1'
             });
         }
@@ -101,7 +103,7 @@ const AuditLogViewer = () => {
                     <Shield className="w-6 h-6 text-white" />
                     <div>
                         <h2 className="text-xl font-bold text-white">Audit Log</h2>
-                        <p className="text-red-100 text-sm">Nhật ký hoạt động Admin & Staff</p>
+                        <p className="text-red-100 text-sm">{t('admin.auditLog.subtitle')}</p>
                     </div>
                 </div>
             </div>
@@ -114,7 +116,7 @@ const AuditLogViewer = () => {
                             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                             <input
                                 type="text"
-                                placeholder="Tìm kiếm hành động, người dùng..."
+                                placeholder={t('admin.auditLog.searchPlaceholder')}
                                 value={filter.search}
                                 onChange={(e) => setFilter({ ...filter, search: e.target.value })}
                                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500"
@@ -127,12 +129,12 @@ const AuditLogViewer = () => {
                             onChange={(e) => setFilter({ ...filter, actionType: e.target.value })}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500"
                         >
-                            <option value="all">Tất cả hành động</option>
-                            <option value="CREATE">Tạo mới</option>
-                            <option value="UPDATE">Cập nhật</option>
-                            <option value="DELETE">Xóa</option>
-                            <option value="LOGIN">Đăng nhập</option>
-                            <option value="LOGOUT">Đăng xuất</option>
+                            <option value="all">{t('admin.auditLog.filter.all')}</option>
+                            <option value="CREATE">{t('admin.auditLog.filter.create')}</option>
+                            <option value="UPDATE">{t('admin.auditLog.filter.update')}</option>
+                            <option value="DELETE">{t('admin.auditLog.filter.delete')}</option>
+                            <option value="LOGIN">{t('admin.auditLog.filter.login')}</option>
+                            <option value="LOGOUT">{t('admin.auditLog.filter.logout')}</option>
                         </select>
                     </div>
                     <div className="flex gap-2">
@@ -141,10 +143,10 @@ const AuditLogViewer = () => {
                             onChange={(e) => setFilter({ ...filter, dateRange: e.target.value })}
                             className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500"
                         >
-                            <option value="7d">7 ngày</option>
-                            <option value="30d">30 ngày</option>
-                            <option value="90d">90 ngày</option>
-                            <option value="all">Tất cả</option>
+                            <option value="7d">{t('admin.auditLog.dateRange.7d')}</option>
+                            <option value="30d">{t('admin.auditLog.dateRange.30d')}</option>
+                            <option value="90d">{t('admin.auditLog.dateRange.90d')}</option>
+                            <option value="all">{t('admin.auditLog.dateRange.all')}</option>
                         </select>
                         <button
                             onClick={handleExport}
@@ -161,12 +163,12 @@ const AuditLogViewer = () => {
                 <table className="w-full">
                     <thead className="bg-gray-50">
                         <tr>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Thời gian</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Người dùng</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Hành động</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Đối tượng</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">IP Address</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Chi tiết</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t('admin.auditLog.table.timestamp')}</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t('admin.auditLog.table.user')}</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t('admin.auditLog.table.action')}</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t('admin.auditLog.table.entity')}</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t('admin.auditLog.table.ipAddress')}</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t('admin.auditLog.table.details')}</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200">
@@ -179,7 +181,7 @@ const AuditLogViewer = () => {
                         ) : filteredLogs.length === 0 ? (
                             <tr>
                                 <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
-                                    Không có bản ghi nào
+                                    {t('admin.auditLog.emptyState')}
                                 </td>
                             </tr>
                         ) : (
@@ -214,7 +216,7 @@ const AuditLogViewer = () => {
                                                     onClick={() => showDetail(log)}
                                                     className="text-blue-600 hover:text-blue-800"
                                                 >
-                                                    Xem chi tiết
+                                                    {t('admin.auditLog.viewDetail')}
                                                 </button>
                                             )}
                                         </td>
@@ -230,15 +232,15 @@ const AuditLogViewer = () => {
 
     function showDetail(log) {
         Swal.fire({
-            title: 'Chi tiết hành động',
+            title: t('admin.auditLog.detail.title'),
             html: `
                 <div class="text-left space-y-2 text-sm">
-                    <p><strong>Người dùng:</strong> ${log.userName}</p>
-                    <p><strong>Hành động:</strong> ${log.action}</p>
-                    <p><strong>Thời gian:</strong> ${new Date(log.timestamp).toLocaleString('vi-VN')}</p>
-                    <p><strong>IP:</strong> ${log.ipAddress}</p>
-                    <p><strong>User Agent:</strong> ${log.userAgent || 'N/A'}</p>
-                    ${log.changes ? `<p><strong>Thay đổi:</strong></p><pre class="bg-gray-100 p-2 rounded text-xs overflow-auto max-h-40">${JSON.stringify(log.changes, null, 2)}</pre>` : ''}
+                    <p><strong>${t('admin.auditLog.detail.user')}:</strong> ${log.userName}</p>
+                    <p><strong>${t('admin.auditLog.detail.action')}:</strong> ${log.action}</p>
+                    <p><strong>${t('admin.auditLog.detail.time')}:</strong> ${new Date(log.timestamp).toLocaleString('vi-VN')}</p>
+                    <p><strong>${t('admin.auditLog.detail.ip')}:</strong> ${log.ipAddress}</p>
+                    <p><strong>${t('admin.auditLog.detail.userAgent')}:</strong> ${log.userAgent || 'N/A'}</p>
+                    ${log.changes ? `<p><strong>${t('admin.auditLog.detail.changes')}:</strong></p><pre class="bg-gray-100 p-2 rounded text-xs overflow-auto max-h-40">${JSON.stringify(log.changes, null, 2)}</pre>` : ''}
                 </div>
             `,
             confirmButtonColor: '#6366f1'

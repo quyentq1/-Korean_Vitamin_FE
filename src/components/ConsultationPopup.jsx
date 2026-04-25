@@ -236,13 +236,13 @@ const ConsultationPopup = ({ isOpen, onClose, onSubmit }) => {
                     const fieldLabel = checkResult.field === 'email'
                         ? formData.email.trim()
                         : formData.phone.trim();
-                    const fieldType = checkResult.field === 'email' ? 'Email' : 'Số điện thoại';
+                    const fieldType = checkResult.field === 'email' ? t('component.consultation.email') : t('component.consultation.phone');
 
                     Swal.fire({
                         icon: 'warning',
-                        title: 'Đã gửi yêu cầu trước đó',
-                        html: `<strong>${fieldType}</strong> <em>${fieldLabel}</em> đã có đơn tư vấn đang chờ xử lý.<br>Vui lòng đợi nhân viên liên hệ lại nhé!`,
-                        confirmButtonText: 'Đã hiểu',
+                        title: t('component.consultation.alreadyRequested', 'Đã gửi yêu cầu trước đó'),
+                        html: `<strong>${fieldType}</strong> <em>${fieldLabel}</em> ${t('component.consultation.pendingRequest', 'đã có đơn tư vấn đang chờ xử lý.<br>Vui lòng đợi nhân viên liên hệ lại nhé!')}`,
+                        confirmButtonText: t('component.consultation.understood', 'Đã hiểu'),
                         confirmButtonColor: '#3b82f6',
                     });
                     return;

@@ -63,20 +63,18 @@ const MailManagement = () => {
             if (selectedRole) params.role = selectedRole;
             const data = await staffService.getMailUsers(params);
             setUsers(data || []);
-            // Clear selection when filters change
             setSelectedUserIds(new Set());
         } catch (error) {
             Swal.fire({
                 icon: 'error',
-                title: 'Lỗi tải danh sách',
-                text: 'Không thể tải danh sách người dùng. Vui lòng thử lại sau.'
+                title: t('staff.mailManagement.errorLoadTitle'),
+                text: t('staff.mailManagement.errorLoadText')
             });
         } finally {
             setLoading(false);
         }
     };
 
-    // Filter classes based on selected course
     const filteredClasses = useMemo(() => {
         if (!selectedCourse) return filterClasses;
         return filterClasses.filter(c => String(c.courseId) === String(selectedCourse));
@@ -126,29 +124,28 @@ const MailManagement = () => {
         if (selectedUserIds.size === 0 && customEmailList.length === 0) {
             Swal.fire({
                 icon: 'warning',
-                title: 'Thiếu người nhận',
-                text: 'Vui lòng chọn ít nhất 1 học viên từ danh sách hoặc nhập email khác.'
+                title: t('staff.mailManagement.missingRecipientTitle'),
+                text: t('staff.mailManagement.missingRecipientText')
             });
             return;
         }
 
         if (!subject.trim()) {
-            Swal.fire({ icon: 'warning', title: 'Thiếu tiêu đề', text: 'Vui lòng nhập tiêu đề email.' });
+            Swal.fire({ icon: 'warning', title: t('staff.mailManagement.missingSubjectTitle'), text: t('staff.mailManagement.missingSubjectText') });
             return;
         }
 
         if (!content.trim()) {
-            Swal.fire({ icon: 'warning', title: 'Thiếu nội dung', text: 'Vui lòng nhập nội dung email.' });
+            Swal.fire({ icon: 'warning', title: t('staff.mailManagement.missingContentTitle'), text: t('staff.mailManagement.missingContentText') });
             return;
         }
 
         try {
             setSending(true);
 
-            // Show blocking loading overlay
             Swal.fire({
-                title: 'Đang gửi email...',
-                text: 'Vui lòng không đóng trang.',
+                title: t('staff.mailManagement.sendingTitle'),
+                text: t('staff.mailManagement.sendingText'),
                 allowOutsideClick: false,
                 allowEscapeKey: false,
                 showConfirmButton: false,
@@ -168,8 +165,8 @@ const MailManagement = () => {
 
             await Swal.fire({
                 icon: 'success',
-                title: 'Gửi thành công',
-                text: 'Email đã được đưa vào hàng đợi gửi đi!',
+                title: t('staff.mailManagement.sendSuccessTitle'),
+                text: t('staff.mailManagement.sendSuccessText'),
                 confirmButtonColor: '#22c55e'
             });
 
@@ -181,8 +178,8 @@ const MailManagement = () => {
         } catch (error) {
             await Swal.fire({
                 icon: 'error',
-                title: 'Lỗi gửi mail',
-                text: error.message || 'Có lỗi xảy ra khi gửi email.',
+                title: t('staff.mailManagement.sendErrorTitle'),
+                text: error.message || t('staff.mailManagement.sendErrorText'),
                 confirmButtonColor: '#ef4444'
             });
         } finally {
@@ -193,11 +190,11 @@ const MailManagement = () => {
     return (
         <PageContainer>
             <PageHeader
-                title="Gửi Email Thông Báo"
-                subtitle="Gửi thông báo qua email cho học viên, giáo viên hoặc đối tác."
+                title={t('staff.mailManagement.pageTitle')}
+                subtitle={t('staff.mailManagement.pageSubtitle')}
                 breadcrumbs={[
                     { label: 'Staff', path: '/staff' },
-                    { label: 'Quản lý Email' }
+                    { label: t('staff.mailManagement.breadcrumbLabel') }
                 ]}
             />
 
@@ -206,7 +203,7 @@ const MailManagement = () => {
                 <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2 text-sm font-semibold text-gray-700">
                         <Filter className="w-4 h-4 text-indigo-500" />
-                        Bộ lọc người nhận
+                        {t('staff.mailManagement.recipientFilter')}
                     </div>
                     {hasActiveFilters && (
                         <button
@@ -214,40 +211,40 @@ const MailManagement = () => {
                             className="flex items-center gap-1 text-xs text-gray-500 hover:text-red-500 transition-colors"
                         >
                             <RotateCcw className="w-3 h-3" />
-                            Xóa bộ lọc
+                            {t('staff.mailManagement.clearFilter')}
                         </button>
                     )}
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-3">
                     {/* Role filter */}
                     <div>
-                        <label className="block text-xs font-medium text-gray-500 mb-1">Vai trò</label>
+                        <label className="block text-xs font-medium text-gray-500 mb-1">{t('staff.mailManagement.roleLabel')}</label>
                         <select
                             value={selectedRole}
                             onChange={e => setSelectedRole(e.target.value)}
                             className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
                         >
-                            <option value="">Tất cả vai trò</option>
-                            <option value="STUDENT">Học viên</option>
-                            <option value="TEACHER">Giáo viên</option>
-                            <option value="STAFF">Nhân viên</option>
-                            <option value="EDUCATION_MANAGER">Education Manager</option>
-                            <option value="ADMIN">Admin</option>
+                            <option value="">{t('staff.mailManagement.allRoles')}</option>
+                            <option value="STUDENT">{t('staff.mailManagement.roleStudent')}</option>
+                            <option value="TEACHER">{t('staff.mailManagement.roleTeacher')}</option>
+                            <option value="STAFF">{t('staff.mailManagement.roleStaff')}</option>
+                            <option value="EDUCATION_MANAGER">{t('staff.mailManagement.roleEduManager')}</option>
+                            <option value="ADMIN">{t('staff.mailManagement.roleAdmin')}</option>
                         </select>
                     </div>
 
                     {/* Course filter */}
                     <div>
-                        <label className="block text-xs font-medium text-gray-500 mb-1">Khóa học</label>
+                        <label className="block text-xs font-medium text-gray-500 mb-1">{t('staff.mailManagement.courseLabel')}</label>
                         <select
                             value={selectedCourse}
                             onChange={e => {
                                 setSelectedCourse(e.target.value);
-                                setSelectedClass(''); // Reset class when course changes
+                                setSelectedClass('');
                             }}
                             className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
                         >
-                            <option value="">Tất cả khóa học</option>
+                            <option value="">{t('staff.mailManagement.allCourses')}</option>
                             {filterCourses.map(c => (
                                 <option key={c.id} value={c.id}>{c.name}</option>
                             ))}
@@ -256,13 +253,13 @@ const MailManagement = () => {
 
                     {/* Class filter */}
                     <div>
-                        <label className="block text-xs font-medium text-gray-500 mb-1">Lớp học</label>
+                        <label className="block text-xs font-medium text-gray-500 mb-1">{t('staff.mailManagement.classLabel')}</label>
                         <select
                             value={selectedClass}
                             onChange={e => setSelectedClass(e.target.value)}
                             className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
                         >
-                            <option value="">Tất cả lớp học</option>
+                            <option value="">{t('staff.mailManagement.allClasses')}</option>
                             {filteredClasses.map(c => (
                                 <option key={c.id} value={c.id}>
                                     {c.className} {c.status !== 'ONGOING' ? `(${c.status})` : ''}
@@ -273,15 +270,15 @@ const MailManagement = () => {
 
                     {/* Teacher filter */}
                     <div>
-                        <label className="block text-xs font-medium text-gray-500 mb-1">Giáo viên</label>
+                        <label className="block text-xs font-medium text-gray-500 mb-1">{t('staff.mailManagement.teacherLabel')}</label>
                         <select
                             value={selectedTeacher}
                             onChange={e => setSelectedTeacher(e.target.value)}
                             className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
                         >
-                            <option value="">Tất cả giáo viên</option>
-                            {filterTeachers.map(t => (
-                                <option key={t.id} value={t.id}>{t.fullName}</option>
+                            <option value="">{t('staff.mailManagement.allTeachers')}</option>
+                            {filterTeachers.map(teacher => (
+                                <option key={teacher.id} value={teacher.id}>{teacher.fullName}</option>
                             ))}
                         </select>
                     </div>
@@ -289,7 +286,7 @@ const MailManagement = () => {
                     {/* Result count */}
                     <div className="flex items-end">
                         <div className="text-xs text-gray-500">
-                            {loading ? 'Đang tải...' : `${users.length} người dùng tìm thấy`}
+                            {loading ? t('common.loading') : t('staff.mailManagement.usersFound', { count: users.length })}
                         </div>
                     </div>
                 </div>
@@ -303,10 +300,10 @@ const MailManagement = () => {
                         <div className="p-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
                             <h3 className="font-semibold text-gray-800 flex items-center gap-2">
                                 <Users className="w-5 h-5 text-blue-500" />
-                                Người Nhận Hệ Thống
+                                {t('staff.mailManagement.systemRecipients')}
                             </h3>
                             <span className="text-xs font-semibold bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
-                                {selectedUserIds.size} Đã chọn
+                                {t('staff.mailManagement.selectedCount', { count: selectedUserIds.size })}
                             </span>
                         </div>
 
@@ -315,7 +312,7 @@ const MailManagement = () => {
                                 <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                                 <input
                                     type="text"
-                                    placeholder="Tìm tên hoặc email..."
+                                    placeholder={t('staff.mailManagement.searchNameOrEmail')}
                                     className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
@@ -325,16 +322,16 @@ const MailManagement = () => {
 
                         <div className="flex-1 overflow-y-auto max-h-[400px] p-2">
                             {loading ? (
-                                <div className="text-center py-6 text-gray-500 text-sm">Đang tải danh sách...</div>
+                                <div className="text-center py-6 text-gray-500 text-sm">{t('staff.mailManagement.loadingList')}</div>
                             ) : filteredUsers.length === 0 ? (
                                 <div className="text-center py-6 text-gray-500 text-sm">
-                                    Không tìm thấy người dùng phù hợp.
+                                    {t('staff.mailManagement.noUsersFound')}
                                     {hasActiveFilters && (
                                         <button
                                             onClick={handleClearFilters}
                                             className="block mx-auto mt-2 text-indigo-500 hover:underline text-xs"
                                         >
-                                            Xóa bộ lọc
+                                            {t('staff.mailManagement.clearFilter')}
                                         </button>
                                     )}
                                 </div>
@@ -349,7 +346,7 @@ const MailManagement = () => {
                                         ) : (
                                             <Square className="w-5 h-5 text-gray-300" />
                                         )}
-                                        <span className="font-semibold text-gray-800 text-sm">Chọn tất cả ({filteredUsers.length})</span>
+                                        <span className="font-semibold text-gray-800 text-sm">{t('staff.mailManagement.selectAll', { count: filteredUsers.length })}</span>
                                     </div>
 
                                     {filteredUsers.map(user => (
@@ -390,29 +387,29 @@ const MailManagement = () => {
 
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                    Email nhận bổ sung (Ngoài hệ thống)
+                                    {t('staff.mailManagement.extraEmailLabel')}
                                 </label>
                                 <textarea
                                     rows={2}
                                     className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none"
-                                    placeholder="Nhập email tự do, ngăn cách bởi dấu phẩy (,)"
+                                    placeholder={t('staff.mailManagement.extraEmailPlaceholder')}
                                     value={customEmails}
                                     onChange={(e) => setCustomEmails(e.target.value)}
                                 />
-                                <p className="text-xs text-gray-500 mt-1">Sử dụng để gửi cho phụ huynh hoặc người chưa có tài khoản.</p>
+                                <p className="text-xs text-gray-500 mt-1">{t('staff.mailManagement.extraEmailHint')}</p>
                             </div>
 
                             <hr className="border-gray-100" />
 
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                    Tiêu đề Email <span className="text-red-500">*</span>
+                                    {t('staff.mailManagement.subjectLabel')} <span className="text-red-500">*</span>
                                 </label>
                                 <input
                                     type="text"
                                     required
                                     className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-                                    placeholder="[Korean Vitamin] Tiêu đề thông báo..."
+                                    placeholder={t('staff.mailManagement.subjectPlaceholder')}
                                     value={subject}
                                     onChange={(e) => setSubject(e.target.value)}
                                 />
@@ -420,13 +417,13 @@ const MailManagement = () => {
 
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                    Nội dung Email <span className="text-red-500">*</span>
+                                    {t('staff.mailManagement.contentLabel')} <span className="text-red-500">*</span>
                                 </label>
                                 <textarea
                                     required
                                     rows={12}
                                     className="w-full px-4 py-3 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none leading-relaxed"
-                                    placeholder="Xin chào,&#10;&#10;Nội dung thông báo của bạn..."
+                                    placeholder={t('staff.mailManagement.contentPlaceholder')}
                                     value={content}
                                     onChange={(e) => setContent(e.target.value)}
                                 />
@@ -440,7 +437,7 @@ const MailManagement = () => {
                                     disabled={sending}
                                     className="px-6"
                                 >
-                                    {sending ? 'Đang gửi mail...' : 'Phát Hành Email'}
+                                    {sending ? t('staff.mailManagement.sendingMail') : t('staff.mailManagement.sendEmail')}
                                 </Button>
                             </div>
                         </form>
@@ -454,8 +451,8 @@ const MailManagement = () => {
                 <div className="fixed inset-0 z-[1500] bg-black/40 backdrop-blur-sm flex items-center justify-center">
                     <div className="bg-white rounded-2xl shadow-2xl px-8 py-6 flex flex-col items-center gap-3">
                         <div className="w-10 h-10 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin" />
-                        <p className="text-sm font-semibold text-gray-700">Đang gửi email...</p>
-                        <p className="text-xs text-gray-400">Vui lòng không đóng trang</p>
+                        <p className="text-sm font-semibold text-gray-700">{t('staff.mailManagement.sendingOverlayTitle')}</p>
+                        <p className="text-xs text-gray-400">{t('staff.mailManagement.sendingOverlayText')}</p>
                     </div>
                 </div>
             )}

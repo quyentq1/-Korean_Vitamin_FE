@@ -49,9 +49,9 @@ const AdminLayout = () => {
 
   // Sidebar navigation items - Chỉ 2 chức năng chính
   const navItems = useMemo(() => [
-    { icon: <Home className="w-5 h-5" />, label: 'Tổng quan', path: '/admin' },
-    { icon: <Users className="w-5 h-5" />, label: 'Quản lý người dùng', path: '/admin/users' },
-    { icon: <BarChart3 className="w-5 h-5" />, label: 'Phân tích dữ liệu', path: '/admin/analytics' },
+    { icon: <Home className="w-5 h-5" />, label: t('layout.admin.overview'), path: '/admin' },
+    { icon: <Users className="w-5 h-5" />, label: t('layout.admin.users'), path: '/admin/users' },
+    { icon: <BarChart3 className="w-5 h-5" />, label: t('layout.admin.analytics'), path: '/admin/analytics' },
   ], [t]);
 
   // Check if current path is active

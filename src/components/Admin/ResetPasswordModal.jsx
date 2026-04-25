@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { RefreshCw, Eye, EyeOff, CheckCircle } from 'lucide-react';
 
 /**
@@ -6,6 +7,7 @@ import { RefreshCw, Eye, EyeOff, CheckCircle } from 'lucide-react';
  * Priority 2: User Management Enhancement
  */
 const ResetPasswordModal = ({ user, onClose, onSubmit }) => {
+    const { t } = useTranslation();
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
@@ -49,7 +51,7 @@ const ResetPasswordModal = ({ user, onClose, onSubmit }) => {
                             <RefreshCw className="w-5 h-5 text-blue-600" />
                         </div>
                         <div>
-                            <h3 className="text-lg font-semibold text-gray-900">Đặt lại mật khẩu</h3>
+                            <h3 className="text-lg font-semibold text-gray-900">{t('admin.resetPassword.title')}</h3>
                             <p className="text-sm text-gray-600">
                                 {user?.fullName || user?.username}
                             </p>
@@ -63,14 +65,14 @@ const ResetPasswordModal = ({ user, onClose, onSubmit }) => {
                         {/* New Password */}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Mật khẩu mới <span className="text-red-500">*</span>
+                                {t('admin.resetPassword.newPassword')} <span className="text-red-500">*</span>
                             </label>
                             <div className="relative">
                                 <input
                                     type={showPassword ? 'text' : 'password'}
                                     value={newPassword}
                                     onChange={(e) => setNewPassword(e.target.value)}
-                                    placeholder="Nhập mật khẩu mới..."
+                                    placeholder={t('admin.resetPassword.newPasswordPlaceholder')}
                                     className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                     required
                                 />
@@ -86,7 +88,7 @@ const ResetPasswordModal = ({ user, onClose, onSubmit }) => {
                                 <div className="mt-2 space-y-1">
                                     <div className={`flex items-center gap-2 text-xs ${newPassword.length >= 6 ? 'text-green-600' : 'text-gray-400'}`}>
                                         {newPassword.length >= 6 ? <CheckCircle className="w-3 h-3" /> : <div className="w-3 h-3 border border-gray-300 rounded-full" />}
-                                        Ít nhất 6 ký tự
+                                        {t('admin.resetPassword.minChars')}
                                     </div>
                                 </div>
                             )}
@@ -95,14 +97,14 @@ const ResetPasswordModal = ({ user, onClose, onSubmit }) => {
                         {/* Confirm Password */}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Xác nhận mật khẩu <span className="text-red-500">*</span>
+                                {t('admin.resetPassword.confirmPassword')} <span className="text-red-500">*</span>
                             </label>
                             <div className="relative">
                                 <input
                                     type={showConfirm ? 'text' : 'password'}
                                     value={confirmPassword}
                                     onChange={(e) => setConfirmPassword(e.target.value)}
-                                    placeholder="Nhập lại mật khẩu mới..."
+                                    placeholder={t('admin.resetPassword.confirmPasswordPlaceholder')}
                                     className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                     required
                                 />
@@ -117,7 +119,7 @@ const ResetPasswordModal = ({ user, onClose, onSubmit }) => {
                             {confirmPassword && (
                                 <div className={`flex items-center gap-2 text-xs mt-2 ${passwordsMatch ? 'text-green-600' : 'text-red-600'}`}>
                                     {passwordsMatch ? <CheckCircle className="w-3 h-3" /> : <div className="w-3 h-3 border-2 border-current rounded-full" />}
-                                    {passwordsMatch ? 'Mật khẩu khớp' : 'Mật khẩu không khớp'}
+                                    {passwordsMatch ? t('admin.resetPassword.passwordMatch') : t('admin.resetPassword.passwordMismatch')}
                                 </div>
                             )}
                         </div>
@@ -128,7 +130,7 @@ const ResetPasswordModal = ({ user, onClose, onSubmit }) => {
                             onClick={generateRandomPassword}
                             className="w-full px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
                         >
-                            🎲 Tạo mật khẩu ngẫu nhiên
+                            🎲 {t('admin.resetPassword.generateRandom')}
                         </button>
                     </div>
 
@@ -140,7 +142,7 @@ const ResetPasswordModal = ({ user, onClose, onSubmit }) => {
                             disabled={submitting}
                             className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
                         >
-                            Hủy
+                            {t('common.cancel')}
                         </button>
                         <button
                             type="submit"
@@ -150,12 +152,12 @@ const ResetPasswordModal = ({ user, onClose, onSubmit }) => {
                             {submitting ? (
                                 <>
                                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                                    Đang xử lý...
+                                    {t('common.processing')}
                                 </>
                             ) : (
                                 <>
                                     <RefreshCw className="w-4 h-4" />
-                                    Đặt lại mật khẩu
+                                    {t('admin.resetPassword.reset')}
                                 </>
                             )}
                         </button>

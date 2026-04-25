@@ -1,10 +1,12 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Unlock, CheckCircle } from 'lucide-react';
 
 /**
  * UnlockAccountModal - Modal để mở khóa tài khoản người dùng
  */
 const UnlockAccountModal = ({ user, onClose, onSubmit }) => {
+    const { t } = useTranslation();
     const [submitting, setSubmitting] = useState(false);
 
     const handleSubmit = async (e) => {
@@ -28,7 +30,7 @@ const UnlockAccountModal = ({ user, onClose, onSubmit }) => {
                             <Unlock className="w-5 h-5 text-green-600" />
                         </div>
                         <div>
-                            <h3 className="text-lg font-semibold text-gray-900">Mở khóa tài khoản</h3>
+                            <h3 className="text-lg font-semibold text-gray-900">{t('admin.unlockAccount.title')}</h3>
                             <p className="text-sm text-gray-600">
                                 {user?.fullName || user?.username}
                             </p>
@@ -40,13 +42,13 @@ const UnlockAccountModal = ({ user, onClose, onSubmit }) => {
                 <form onSubmit={handleSubmit} className="p-6">
                     <div className="mb-4">
                         <p className="text-gray-700 mb-4">
-                            Bạn có chắc chắn muốn mở khóa tài khoản này không?
+                            {t('admin.unlockAccount.confirmMessage')}
                         </p>
                         <div className="flex items-start gap-2 p-3 bg-green-50 rounded-lg border border-green-200">
                             <CheckCircle className="w-5 h-5 text-green-600 shrink-0 mt-0.5" />
                             <div className="text-sm text-green-800">
-                                <p className="font-medium mb-1">Xác nhận</p>
-                                <p>Tài khoản sẽ được mở khóa và người dùng có thể đăng nhập lại.</p>
+                                <p className="font-medium mb-1">{t('admin.unlockAccount.confirm')}</p>
+                                <p>{t('admin.unlockAccount.confirmDetail')}</p>
                             </div>
                         </div>
                     </div>
@@ -59,7 +61,7 @@ const UnlockAccountModal = ({ user, onClose, onSubmit }) => {
                             disabled={submitting}
                             className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
                         >
-                            Hủy
+                            {t('common.cancel')}
                         </button>
                         <button
                             type="submit"
@@ -69,12 +71,12 @@ const UnlockAccountModal = ({ user, onClose, onSubmit }) => {
                             {submitting ? (
                                 <>
                                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                                    Đang xử lý...
+                                    {t('common.processing')}
                                 </>
                             ) : (
                                 <>
                                     <Unlock className="w-4 h-4" />
-                                    Mở khóa
+                                    {t('admin.unlockAccount.unlock')}
                                 </>
                             )}
                         </button>

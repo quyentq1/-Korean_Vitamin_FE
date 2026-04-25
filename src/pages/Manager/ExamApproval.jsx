@@ -29,8 +29,8 @@ const ExamApproval = () => {
                 const pending = await examService.getPendingExams();
                 const approved = await examService.getExamsByStatus('APPROVED');
                 const rejected = await examService.getExamsByStatus('REJECTED');
-                data = [...(Array.isArray(pending) ? pending : []), 
-                        ...(Array.isArray(approved) ? approved : []), 
+                data = [...(Array.isArray(pending) ? pending : []),
+                        ...(Array.isArray(approved) ? approved : []),
                         ...(Array.isArray(rejected) ? rejected : [])]
                         .sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
             } else if (filter === 'PENDING') {
@@ -44,8 +44,8 @@ const ExamApproval = () => {
             console.error('Failed to fetch exams:', error);
             Swal.fire({
                 icon: 'error',
-                title: 'Lỗi',
-                text: 'Không thể tải danh sách bài thi',
+                title: t('common.error'),
+                text: t('manager.examApproval.fetchFailed'),
                 timer: 2000,
                 showConfirmButton: false
             });
@@ -62,14 +62,14 @@ const ExamApproval = () => {
     const handleApprove = async (examApproval) => {
         const { value: feedback } = await Swal.fire({
             icon: 'question',
-            title: 'Duyệt bài thi?',
-            text: 'Bài thi này sẽ được công bố và giáo viên có thể sử dụng cho các lớp học',
+            title: t('manager.examApproval.approveTitle'),
+            text: t('manager.examApproval.approveText'),
             input: 'textarea',
-            inputLabel: 'Phản hồi (tùy chọn)',
-            inputPlaceholder: 'Nhập ghi chú hoặc để trống...',
+            inputLabel: t('manager.examApproval.feedbackLabel'),
+            inputPlaceholder: t('manager.examApproval.feedbackPlaceholder'),
             showCancelButton: true,
-            confirmButtonText: 'Duyệt',
-            cancelButtonText: 'Hủy',
+            confirmButtonText: t('common.approve'),
+            cancelButtonText: t('common.cancel'),
             confirmButtonColor: '#22c55e',
             cancelButtonColor: '#6b7280'
         });
@@ -81,8 +81,8 @@ const ExamApproval = () => {
                 await examService.approveExam(examApproval.exam.id, { feedback: feedback || '', status: 'APPROVED' });
                 Swal.fire({
                     icon: 'success',
-                    title: 'Đã duyệt!',
-                    text: 'Bài thi đã được phê duyệt thành công',
+                    title: t('manager.examApproval.approved'),
+                    text: t('manager.examApproval.approvedSuccess'),
                     timer: 2000,
                     showConfirmButton: false
                 });
@@ -91,8 +91,8 @@ const ExamApproval = () => {
                 console.error('Failed to approve exam:', error);
                 Swal.fire({
                     icon: 'error',
-                    title: 'Lỗi',
-                    text: 'Không thể duyệt bài thi',
+                    title: t('common.error'),
+                    text: t('manager.examApproval.approveFailed'),
                     timer: 2000,
                     showConfirmButton: false
                 });
@@ -105,17 +105,17 @@ const ExamApproval = () => {
     const handleReject = async (examApproval) => {
         const { value: reason } = await Swal.fire({
             icon: 'warning',
-            title: 'Từ chối bài thi?',
+            title: t('manager.examApproval.rejectTitle'),
             input: 'textarea',
-            inputLabel: 'Lý do từ chối',
-            inputPlaceholder: 'Nhập lý do từ chối...',
+            inputLabel: t('manager.examApproval.rejectReasonLabel'),
+            inputPlaceholder: t('manager.examApproval.rejectPlaceholder'),
             showCancelButton: true,
-            confirmButtonText: 'Từ chối',
-            cancelButtonText: 'Hủy',
+            confirmButtonText: t('common.reject'),
+            cancelButtonText: t('common.cancel'),
             confirmButtonColor: '#ef4444',
             cancelButtonColor: '#6b7280',
             inputValidator: (value) => {
-                if (!value) return 'Vui lòng nhập lý do từ chối';
+                if (!value) return t('manager.examApproval.rejectReasonRequired');
             }
         });
 
@@ -125,8 +125,8 @@ const ExamApproval = () => {
                 await examService.approveExam(examApproval.exam.id, { feedback: reason, status: 'REJECTED' });
                 Swal.fire({
                     icon: 'success',
-                    title: 'Đã từ chối',
-                    text: 'Bài thi đã bị từ chối và giáo viên sẽ được thông báo',
+                    title: t('manager.examApproval.rejected'),
+                    text: t('manager.examApproval.rejectedSuccess'),
                     timer: 2000,
                     showConfirmButton: false
                 });
@@ -135,8 +135,8 @@ const ExamApproval = () => {
                 console.error('Failed to reject exam:', error);
                 Swal.fire({
                     icon: 'error',
-                    title: 'Lỗi',
-                    text: 'Không thể từ chối bài thi',
+                    title: t('common.error'),
+                    text: t('manager.examApproval.rejectFailed'),
                     timer: 2000,
                     showConfirmButton: false
                 });
@@ -162,8 +162,8 @@ const ExamApproval = () => {
             console.error('Failed to fetch exam details:', error);
             Swal.fire({
                 icon: 'error',
-                title: 'Lỗi',
-                text: 'Không thể tải chi tiết bài thi',
+                title: t('common.error'),
+                text: t('manager.examApproval.fetchDetailFailed'),
                 timer: 2000,
                 showConfirmButton: false
             });
@@ -206,13 +206,13 @@ const ExamApproval = () => {
             <div className="mb-6">
                 <div className="flex items-center justify-between">
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-900">Duyệt Bài Thi</h1>
-                        <p className="text-gray-600 mt-1">Xem và duyệt các bài thi do giáo viên tạo</p>
+                        <h1 className="text-2xl font-bold text-gray-900">{t('manager.examApproval.title')}</h1>
+                        <p className="text-gray-600 mt-1">{t('manager.examApproval.subtitle')}</p>
                     </div>
                     <div className="flex items-center gap-2">
                         <div className="px-4 py-2 bg-blue-50 border border-blue-200 rounded-lg">
                             <span className="text-sm font-medium text-blue-900">
-                                {exams.length} bài thi
+                                {t('manager.examApproval.examCount', { count: exams.length })}
                             </span>
                         </div>
                     </div>
@@ -223,23 +223,23 @@ const ExamApproval = () => {
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
                 <div className="flex items-center gap-3">
                     <Filter className="w-5 h-5 text-gray-400" />
-                    <span className="text-sm font-medium text-gray-700">Lọc theo trạng thái:</span>
+                    <span className="text-sm font-medium text-gray-700">{t('manager.examApproval.filterByStatus')}:</span>
                     <select
                         value={filter}
                         onChange={(e) => setFilter(e.target.value)}
                         className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                     >
-                        <option value="PENDING">⏳ Chờ duyệt</option>
-                        <option value="APPROVED">✅ Đã duyệt</option>
-                        <option value="REJECTED">❌ Đã từ chối</option>
-                        <option value="ALL">📋 Tất cả</option>
+                        <option value="PENDING">{t('manager.examApproval.statusPending')}</option>
+                        <option value="APPROVED">{t('manager.examApproval.statusApproved')}</option>
+                        <option value="REJECTED">{t('manager.examApproval.statusRejected')}</option>
+                        <option value="ALL">{t('manager.examApproval.statusAll')}</option>
                     </select>
 
                     <button
                         onClick={fetchPendingExams}
                         disabled={loading}
                         className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
-                        title="Làm mới"
+                        title={t('common.refresh')}
                     >
                         <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
                     </button>
@@ -251,8 +251,8 @@ const ExamApproval = () => {
                 {exams.length === 0 ? (
                     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
                         <FileText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                        <p className="text-gray-500 text-lg">Không có bài thi nào</p>
-                        <p className="text-gray-400 text-sm mt-2">Thử đổi bộ lọc hoặc kiểm tra lại sau</p>
+                        <p className="text-gray-500 text-lg">{t('manager.examApproval.noExams')}</p>
+                        <p className="text-gray-400 text-sm mt-2">{t('manager.examApproval.noExamsHint')}</p>
                     </div>
                 ) : (
                     exams.map((examApproval) => {
@@ -274,9 +274,9 @@ const ExamApproval = () => {
                                             </span>
 
                                             <span className={`px-3 py-1 text-xs font-semibold rounded-full ${getStatusBadge(examApproval.status)}`}>
-                                                {examApproval.status === 'PENDING' ? '⏳ Chờ duyệt' :
-                                                 examApproval.status === 'APPROVED' ? '✅ Đã duyệt' :
-                                                 examApproval.status === 'REJECTED' ? '❌ Đã từ chối' : 'N/A'}
+                                                {examApproval.status === 'PENDING' ? t('manager.examApproval.badgePending') :
+                                                 examApproval.status === 'APPROVED' ? t('manager.examApproval.badgeApproved') :
+                                                 examApproval.status === 'REJECTED' ? t('manager.examApproval.badgeRejected') : 'N/A'}
                                             </span>
 
                                             <span className="px-3 py-1 text-xs font-semibold rounded-full bg-indigo-100 text-indigo-700">
@@ -284,18 +284,18 @@ const ExamApproval = () => {
                                             </span>
 
                                             <span className="px-3 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-700">
-                                                ⏱️ {exam.durationMinutes || 0} phút
+                                                {exam.durationMinutes || 0} {t('manager.examApproval.minutes')}
                                             </span>
 
                                             <span className="px-3 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-700">
-                                                ❓ {exam.examQuestions?.length || exam.totalQuestions || 0} câu
+                                                {exam.examQuestions?.length || exam.totalQuestions || 0} {t('manager.examApproval.questions')}
                                             </span>
                                         </div>
 
                                         {/* Exam Title & Description */}
                                         <div className="mb-3">
                                             <h3 className="text-lg font-bold text-gray-900 mb-1">
-                                                {exam.title || 'Không có tiêu đề'}
+                                                {exam.title || t('manager.examApproval.noTitle')}
                                             </h3>
                                             {exam.description && (
                                                 <p className="text-gray-600 text-sm">{exam.description}</p>
@@ -307,7 +307,7 @@ const ExamApproval = () => {
                                             <div className="flex items-center gap-2 mb-3">
                                                 <BookOpen className="w-4 h-4 text-gray-400" />
                                                 <span className="text-sm text-gray-700">
-                                                    Khóa học: <span className="font-medium">{exam.course.name || 'N/A'}</span>
+                                                    {t('manager.examApproval.course')}: <span className="font-medium">{exam.course.name || 'N/A'}</span>
                                                 </span>
                                             </div>
                                         )}
@@ -318,7 +318,7 @@ const ExamApproval = () => {
                                                 <div className="flex items-start gap-2">
                                                     <AlertTriangle className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />
                                                     <div>
-                                                        <p className="text-sm font-medium text-red-900">Lý do từ chối:</p>
+                                                        <p className="text-sm font-medium text-red-900">{t('manager.examApproval.rejectionReason')}:</p>
                                                         <p className="text-sm text-red-700 mt-1">{examApproval.feedback}</p>
                                                     </div>
                                                 </div>
@@ -329,11 +329,11 @@ const ExamApproval = () => {
                                         <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
                                             <div className="flex items-center gap-1">
                                                 <User className="w-4 h-4" />
-                                                <span>Người tạo: {exam.createdBy?.fullName || exam.createdBy?.username || 'N/A'}</span>
+                                                <span>{t('manager.examApproval.createdBy')}: {exam.createdBy?.fullName || exam.createdBy?.username || 'N/A'}</span>
                                             </div>
                                             <div className="flex items-center gap-1">
                                                 <Calendar className="w-4 h-4" />
-                                                <span>Ngày gửi: {new Date(examApproval.submittedAt).toLocaleDateString('vi-VN')}</span>
+                                                <span>{t('manager.examApproval.submittedDate')}: {new Date(examApproval.submittedAt).toLocaleDateString('vi-VN')}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -344,7 +344,7 @@ const ExamApproval = () => {
                                             onClick={() => handleViewDetail(examApproval)}
                                             disabled={actionLoading}
                                             className="p-2 text-gray-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors disabled:opacity-50"
-                                            title="Xem chi tiết"
+                                            title={t('common.viewDetail')}
                                         >
                                             <Eye className="w-5 h-5" />
                                         </button>
@@ -354,19 +354,19 @@ const ExamApproval = () => {
                                                     onClick={() => handleApprove(examApproval)}
                                                     disabled={actionLoading}
                                                     className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                                                    title="Duyệt bài thi"
+                                                    title={t('manager.examApproval.approveExam')}
                                                 >
                                                     <CheckCircle className="w-4 h-4" />
-                                                    Duyệt
+                                                    {t('common.approve')}
                                                 </button>
                                                 <button
                                                     onClick={() => handleReject(examApproval)}
                                                     disabled={actionLoading}
                                                     className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                                                    title="Từ chối bài thi"
+                                                    title={t('manager.examApproval.rejectExam')}
                                                 >
                                                     <XCircle className="w-4 h-4" />
-                                                    Từ chối
+                                                    {t('common.reject')}
                                                 </button>
                                             </>
                                         )}
@@ -390,7 +390,7 @@ const ExamApproval = () => {
                         {/* Header */}
                         <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 z-10">
                             <div className="flex items-center justify-between">
-                                <h3 className="text-xl font-bold text-gray-900">Chi Tiết Bài Thi</h3>
+                                <h3 className="text-xl font-bold text-gray-900">{t('manager.examApproval.examDetail')}</h3>
                                 <button
                                     onClick={() => setShowDetailModal(false)}
                                     className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
@@ -411,41 +411,41 @@ const ExamApproval = () => {
                                         {/* Exam Info */}
                                         <div className="grid grid-cols-2 gap-4">
                                             <div>
-                                                <p className="text-sm font-medium text-gray-500 mb-1">Mã bài thi:</p>
+                                                <p className="text-sm font-medium text-gray-500 mb-1">{t('manager.examApproval.examCode')}:</p>
                                                 <p className="text-gray-900 font-medium">{exam.id ? `EXAM-${exam.id}` : 'N/A'}</p>
                                             </div>
                                             <div>
-                                                <p className="text-sm font-medium text-gray-500 mb-1">Loại bài thi:</p>
+                                                <p className="text-sm font-medium text-gray-500 mb-1">{t('manager.examApproval.examType')}:</p>
                                                 <p className="text-gray-900 font-medium">{exam.examType || 'N/A'}</p>
                                             </div>
                                             <div>
-                                                <p className="text-sm font-medium text-gray-500 mb-1">Thời lượng:</p>
-                                                <p className="text-gray-900 font-medium">{exam.durationMinutes || 0} phút</p>
+                                                <p className="text-sm font-medium text-gray-500 mb-1">{t('manager.examApproval.duration')}:</p>
+                                                <p className="text-gray-900 font-medium">{exam.durationMinutes || 0} {t('manager.examApproval.minutes')}</p>
                                             </div>
                                             <div>
-                                                <p className="text-sm font-medium text-gray-500 mb-1">Số câu hỏi:</p>
-                                                <p className="text-gray-900 font-medium">{exam.examQuestions?.length || exam.totalQuestions || 0} câu</p>
+                                                <p className="text-sm font-medium text-gray-500 mb-1">{t('manager.examApproval.totalQuestions')}:</p>
+                                                <p className="text-gray-900 font-medium">{exam.examQuestions?.length || exam.totalQuestions || 0} {t('manager.examApproval.questions')}</p>
                                             </div>
                                             <div>
-                                                <p className="text-sm font-medium text-gray-500 mb-1">Trạng thái:</p>
+                                                <p className="text-sm font-medium text-gray-500 mb-1">{t('manager.examApproval.status')}:</p>
                                                 <p className={`font-medium ${
                                                     selectedExam.status === 'PENDING' ? 'text-amber-600' :
                                                     selectedExam.status === 'APPROVED' ? 'text-green-600' :
                                                     selectedExam.status === 'REJECTED' ? 'text-red-600' :
                                                     'text-gray-600'
                                                 }`}>
-                                                    {selectedExam.status === 'PENDING' ? '⏳ Chờ duyệt' :
-                                                     selectedExam.status === 'APPROVED' ? '✅ Đã duyệt' :
-                                                     selectedExam.status === 'REJECTED' ? '❌ Đã từ chối' : 'N/A'}
+                                                    {selectedExam.status === 'PENDING' ? t('manager.examApproval.badgePending') :
+                                                     selectedExam.status === 'APPROVED' ? t('manager.examApproval.badgeApproved') :
+                                                     selectedExam.status === 'REJECTED' ? t('manager.examApproval.badgeRejected') : 'N/A'}
                                                 </p>
                                             </div>
                                             <div>
-                                                <p className="text-sm font-medium text-gray-500 mb-1">Người tạo:</p>
+                                                <p className="text-sm font-medium text-gray-500 mb-1">{t('manager.examApproval.createdBy')}:</p>
                                                 <p className="text-gray-900 font-medium">{exam.createdBy?.fullName || exam.createdBy?.username || 'N/A'}</p>
                                             </div>
                                             {exam.course && (
                                                 <div className="col-span-2">
-                                                    <p className="text-sm font-medium text-gray-500 mb-1">Khóa học:</p>
+                                                    <p className="text-sm font-medium text-gray-500 mb-1">{t('manager.examApproval.course')}:</p>
                                                     <p className="text-gray-900 font-medium">{exam.course.name || 'N/A'}</p>
                                                 </div>
                                             )}
@@ -453,11 +453,11 @@ const ExamApproval = () => {
 
                                         {/* Title & Description */}
                                         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                                            <p className="text-sm font-bold text-blue-900 mb-2">📝 Tiêu đề:</p>
-                                            <p className="text-gray-900 text-lg font-semibold">{exam.title || 'Không có tiêu đề'}</p>
+                                            <p className="text-sm font-bold text-blue-900 mb-2">{t('manager.examApproval.examTitle')}:</p>
+                                            <p className="text-gray-900 text-lg font-semibold">{exam.title || t('manager.examApproval.noTitle')}</p>
                                             {exam.description && (
                                                 <>
-                                                    <p className="text-sm font-bold text-blue-900 mb-2 mt-4">Mô tả:</p>
+                                                    <p className="text-sm font-bold text-blue-900 mb-2 mt-4">{t('manager.examApproval.description')}:</p>
                                                     <p className="text-gray-700">{exam.description}</p>
                                                 </>
                                             )}
@@ -467,7 +467,7 @@ const ExamApproval = () => {
                                         {exam.examQuestions && exam.examQuestions.length > 0 && (
                                             <div>
                                                 <div className="flex items-center justify-between mb-3">
-                                                    <p className="text-sm font-bold text-gray-900">✅ Danh sách câu hỏi ({exam.examQuestions.length}):</p>
+                                                    <p className="text-sm font-bold text-gray-900">{t('manager.examApproval.questionList', { count: exam.examQuestions.length })}:</p>
                                                     <button
                                                         onClick={() => {
                                                             const currentExpanded = expandedQuestions[exam.id] || {};
@@ -499,7 +499,7 @@ const ExamApproval = () => {
                                                             const currentExpanded = expandedQuestions[exam.id] || {};
                                                             const allExpanded = Object.keys(currentExpanded).length === exam.examQuestions.length &&
                                                                 Object.values(currentExpanded).every(v => v);
-                                                            return allExpanded ? 'Thu gọn tất cả' : 'Mở rộng tất cả';
+                                                            return allExpanded ? t('manager.examApproval.collapseAll') : t('manager.examApproval.expandAll');
                                                         })()}
                                                     </button>
                                                 </div>
@@ -527,7 +527,7 @@ const ExamApproval = () => {
                                                                         {index + 1}
                                                                     </span>
                                                                     <div className="flex-1 min-w-0">
-                                                                        <div 
+                                                                        <div
                                                                             className="text-gray-900 text-sm font-medium line-clamp-2"
                                                                             dangerouslySetInnerHTML={{ __html: q.question?.questionText || q.questionText || q.content || 'N/A' }}
                                                                         />
@@ -539,12 +539,12 @@ const ExamApproval = () => {
                                                                             )}
                                                                             {q.points && (
                                                                                 <span className="inline-block px-2 py-0.5 text-xs font-semibold bg-green-100 text-green-700 rounded">
-                                                                                    {q.points} điểm
+                                                                                    {q.points} {t('manager.examApproval.points')}
                                                                                 </span>
                                                                             )}
                                                                             {q.questionOrder !== undefined && (
                                                                                 <span className="inline-block px-2 py-0.5 text-xs font-semibold bg-gray-100 text-gray-700 rounded">
-                                                                                    STT: {q.questionOrder}
+                                                                                    {t('manager.examApproval.order')}: {q.questionOrder}
                                                                                 </span>
                                                                             )}
                                                                         </div>
@@ -559,13 +559,13 @@ const ExamApproval = () => {
                                                                         <div className="grid grid-cols-2 gap-3 text-sm">
                                                                             {q.question?.category && (
                                                                                 <div className="bg-purple-50 rounded-lg p-2">
-                                                                                    <p className="text-purple-700 font-medium">Danh mục:</p>
+                                                                                    <p className="text-purple-700 font-medium">{t('manager.examApproval.category')}:</p>
                                                                                     <p className="text-purple-900">{q.question.category}</p>
                                                                                 </div>
                                                                             )}
                                                                             {q.question?.level && (
                                                                                 <div className="bg-blue-50 rounded-lg p-2">
-                                                                                    <p className="text-blue-700 font-medium">Độ khó:</p>
+                                                                                    <p className="text-blue-700 font-medium">{t('manager.examApproval.difficulty')}:</p>
                                                                                     <p className="text-blue-900">{q.question.level}</p>
                                                                                 </div>
                                                                             )}
@@ -574,7 +574,7 @@ const ExamApproval = () => {
                                                                         {/* Explanation */}
                                                                         {q.question?.explanation && (
                                                                             <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
-                                                                                <p className="text-sm font-bold text-amber-900 mb-1">💡 Giải thích:</p>
+                                                                                <p className="text-sm font-bold text-amber-900 mb-1">{t('manager.examApproval.explanation')}:</p>
                                                                                 <p className="text-sm text-amber-800">{q.question.explanation}</p>
                                                                             </div>
                                                                         )}
@@ -582,10 +582,10 @@ const ExamApproval = () => {
                                                                         {/* Question Image */}
                                                                         {q.question?.imageUrl && (
                                                                             <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
-                                                                                <p className="text-sm font-bold text-gray-900 mb-2">🖼️ Hình ảnh câu hỏi:</p>
-                                                                                <img 
-                                                                                  src={q.question.imageUrl} 
-                                                                                  alt="Hình ảnh câu hỏi" 
+                                                                                <p className="text-sm font-bold text-gray-900 mb-2">{t('manager.examApproval.questionImage')}:</p>
+                                                                                <img
+                                                                                  src={q.question.imageUrl}
+                                                                                  alt={t('manager.examApproval.questionImage')}
                                                                                   className="max-w-full h-auto rounded-lg mx-auto"
                                                                                   onError={(e) => { e.target.style.display = 'none'; }}
                                                                                 />
@@ -595,10 +595,10 @@ const ExamApproval = () => {
                                                                         {/* Audio File */}
                                                                         {q.question?.audioFile && (
                                                                             <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-3">
-                                                                                <p className="text-sm font-bold text-indigo-900 mb-2">🎵 File âm thanh:</p>
+                                                                                <p className="text-sm font-bold text-indigo-900 mb-2">{t('manager.examApproval.audioFile')}:</p>
                                                                                 <audio controls className="w-full">
                                                                                     <source src={q.question.audioFile} type="audio/mpeg" />
-                                                                                    Trình duyệt không hỗ trợ audio
+                                                                                    {t('manager.examApproval.browserNoAudio')}
                                                                                 </audio>
                                                                             </div>
                                                                         )}
@@ -606,7 +606,7 @@ const ExamApproval = () => {
                                                                         {/* Options/Answers */}
                                                                         {q.question?.options && q.question.options.length > 0 ? (
                                                                             <div className="space-y-2">
-                                                                                <p className="text-sm font-bold text-gray-900">📝 Đáp án:</p>
+                                                                                <p className="text-sm font-bold text-gray-900">{t('manager.examApproval.answers')}:</p>
                                                                                 {q.question.options.map((opt, optIdx) => {
                                                                                     const isCorrect = opt.isCorrect || opt.is_right_answer;
                                                                                     return (
@@ -625,14 +625,14 @@ const ExamApproval = () => {
                                                                                                     {String.fromCharCode(65 + optIdx)}
                                                                                                 </span>
                                                                                                 <div className="flex-1">
-                                                                                                    <div 
+                                                                                                    <div
                                                                                                         className={`text-sm font-medium ${isCorrect ? 'text-green-900' : 'text-gray-900'}`}
                                                                                                         dangerouslySetInnerHTML={{ __html: opt.optionText || opt.text || 'N/A' }}
                                                                                                     />
                                                                                                     {isCorrect && (
                                                                                                         <span className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 text-xs font-semibold bg-green-600 text-white rounded">
                                                                                                             <CheckCircle className="w-3 h-3" />
-                                                                                                            Đáp án đúng
+                                                                                                            {t('manager.examApproval.correctAnswer')}
                                                                                                         </span>
                                                                                                     )}
                                                                                                 </div>
@@ -644,7 +644,7 @@ const ExamApproval = () => {
                                                                             </div>
                                                                         ) : q.question?.correctAnswer && (
                                                                             <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                                                                                <p className="text-sm font-bold text-green-900 mb-1">✅ Đáp án đúng:</p>
+                                                                                <p className="text-sm font-bold text-green-900 mb-1">{t('manager.examApproval.correctAnswer')}:</p>
                                                                                 <p className="text-green-800">{q.question.correctAnswer}</p>
                                                                             </div>
                                                                         )}
@@ -660,7 +660,7 @@ const ExamApproval = () => {
                                         {/* Rejection Feedback */}
                                         {selectedExam.status === 'REJECTED' && selectedExam.feedback && (
                                             <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                                                <p className="text-sm font-bold text-red-900 mb-2">❌ Lý do từ chối:</p>
+                                                <p className="text-sm font-bold text-red-900 mb-2">{t('manager.examApproval.rejectionReason')}:</p>
                                                 <p className="text-gray-700">{selectedExam.feedback}</p>
                                             </div>
                                         )}
@@ -668,11 +668,11 @@ const ExamApproval = () => {
                                         {/* Metadata */}
                                         <div className="grid grid-cols-2 gap-4 text-sm">
                                             <div className="bg-gray-50 rounded-lg p-3">
-                                                <p className="text-gray-500">Ngày tạo bài thi:</p>
+                                                <p className="text-gray-500">{t('manager.examApproval.examCreatedDate')}:</p>
                                                 <p className="text-gray-900 font-medium">{new Date(exam.createdAt).toLocaleString('vi-VN')}</p>
                                             </div>
                                             <div className="bg-gray-50 rounded-lg p-3">
-                                                <p className="text-gray-500">Ngày gửi duyệt:</p>
+                                                <p className="text-gray-500">{t('manager.examApproval.submittedDate')}:</p>
                                                 <p className="text-gray-900 font-medium">{new Date(selectedExam.submittedAt).toLocaleString('vi-VN')}</p>
                                             </div>
                                         </div>
@@ -694,7 +694,7 @@ const ExamApproval = () => {
                                         className="px-6 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
                                         <XCircle className="w-4 h-4" />
-                                        Từ chối
+                                        {t('common.reject')}
                                     </button>
                                     <button
                                         onClick={() => {
@@ -705,7 +705,7 @@ const ExamApproval = () => {
                                         className="px-6 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
                                         <CheckCircle className="w-4 h-4" />
-                                        Duyệt bài thi
+                                        {t('manager.examApproval.approveExam')}
                                     </button>
                                 </div>
                             </div>
