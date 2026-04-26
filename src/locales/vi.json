@@ -2349,7 +2349,7 @@
       "createCourse": "Tạo khóa học",
       "createEditPublishArchive": "Tạo, sửa, publish, archive",
       "createFirstCourse": "+ Tạo khóa học đầu tiên",
-      "createNewCourse": "eduManager.dashboard.createNewCourse",
+      "createNewCourse": "Tạo mới khoá học",
       "createTest": "Tạo bài test",
       "draftCourses": "{{count}} bản nháp",
       "drafts": "eduManager.dashboard.drafts",

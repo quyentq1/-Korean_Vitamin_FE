@@ -2234,7 +2234,7 @@
       "createCourse": "Create Course",
       "createEditPublishArchive": "Create, edit, publish, archive",
       "createFirstCourse": "+ Create first course",
-      "createNewCourse": "eduManager.dashboard.createNewCourse",
+      "createNewCourse": "createNewCourse",
       "createTest": "Create Test",
       "draftCourses": "{{count}} drafts",
       "drafts": "eduManager.dashboard.drafts",

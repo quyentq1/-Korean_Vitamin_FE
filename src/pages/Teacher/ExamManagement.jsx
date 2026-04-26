@@ -343,7 +343,6 @@ const ExamManagement = () => {
           >
             {activeTab === 'MOCK' ? t('exam.createNewFreeTest') : t('exam.createNewPractice')}
           </Button>
-          </Button>
         }
       />
 

@@ -11,10 +11,6 @@ import aiService from '../../services/aiService';
 const GuestKoreanChatbot = () => {
   const { t } = useTranslation();
   const { isAuthenticated } = useAuth();
-
-  // Don't show if authenticated user - MUST be before all hooks!
-  if (isAuthenticated) return null;
-
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState('');
@@ -24,7 +20,6 @@ const GuestKoreanChatbot = () => {
   const messagesEndRef = useRef(null);
   const sessionIdRef = useRef(null);
 
-  // Initialize session ID
   useEffect(() => {
     let sessionId = localStorage.getItem('krChatSession');
     if (!sessionId) {
@@ -33,7 +28,6 @@ const GuestKoreanChatbot = () => {
     }
     sessionIdRef.current = sessionId;
 
-    // Welcome message
     setMessages([
       {
         role: 'assistant',
@@ -42,14 +36,15 @@ const GuestKoreanChatbot = () => {
     ]);
   }, []);
 
-  // Auto-scroll to bottom when new messages arrive
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
+  if (isAuthenticated) return null;
 
   const handleSend = async () => {
     if (!inputText.trim()) return;

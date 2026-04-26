@@ -1406,7 +1406,6 @@ const ExamEditor = () => {
                         <p className="text-sm text-blue-700">
                           {t('teacher.examEditor.examForClassDesc')}
                         </p>
-                        </p>
                       </div>
                     )}
                   </div>
